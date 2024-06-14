@@ -9,11 +9,13 @@ module.exports = {
   ],
   ignorePatterns: ['dist', '.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
-  plugins: ['react-refresh', 'eslint-plugin-react-compiler',
-    '@typescript-eslint'
+  plugins: [
+    'react-refresh',
+    'eslint-plugin-react-compiler',
+    '@typescript-eslint',
   ],
   parserOptions: {
-    project: ["./tsconfig.json", "./tsconfig.node.json"],
+    project: ['./tsconfig.json', './tsconfig.node.json'],
     tsconfigRootDir: __dirname,
   },
   rules: {
@@ -21,7 +23,6 @@ module.exports = {
       'warn',
       { allowConstantExport: true },
     ],
-    'react-compiler/react-compiler': "error",
-
+    'react-compiler/react-compiler': 'error',
   },
-}
+};
