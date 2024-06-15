@@ -1,0 +1,20 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "mhutchie.git-graph",
+        "donjayamanne.githistory",
+        "formulahendry.auto-rename-tag",
+        "esbenp.prettier-vscode",
+        "dotenv.dotenv-vscode",
+        "bradlc.vscode-tailwindcss"
+      ]
+    }
+  },
+  "postCreateCommand": "./.devcontainer/setup.sh",
+  "mounts": [
+    "source=${localEnv:HOME}/.config/gh/,target=/home/node/.config/gh/,type=bind"
+  ]
+}
