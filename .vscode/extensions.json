@@ -8,6 +8,9 @@
     "esbenp.prettier-vscode",
     "dotenv.dotenv-vscode",
     "bradlc.vscode-tailwindcss",
-    "ms-vsliveshare.vsliveshare"
+    "ms-vsliveshare.vsliveshare",
+    "pomdtr.excalidraw-editor",
+    "meganrogge.template-string-converter",
+    "yoavbls.pretty-ts-errors"
   ]
 }
