@@ -1,0 +1,10 @@
+{
+  "workbench.sideBar.location": "right",
+  "workbench.colorTheme": "Default Dark+",
+  "workbench.iconTheme": "vscode-icons",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.stickyScroll.enabled": true,
+  "editor.formatOnSave": true,
+
+  "git.autofetch": true
+}
