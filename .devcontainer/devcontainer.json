@@ -11,7 +11,10 @@
         "dotenv.dotenv-vscode",
         "bradlc.vscode-tailwindcss",
         "ms-vsliveshare.vsliveshare",
-        "eamodio.gitlens"
+        "eamodio.gitlens",
+        "pomdtr.excalidraw-editor",
+        "meganrogge.template-string-converter",
+        "YoavBls.pretty-ts-errors"
       ]
     }
   },
