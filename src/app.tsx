@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Input } from './components/ui/input';
 import { parseEldenRingUrl } from './lib/er-save-parser';
 import { useQuery } from '@tanstack/react-query';
+import { Button } from './components/ui/button';
 
 function App() {
   const [url, setUrl] = useState<string>('http://localhost:8080/ER0000.sl2');
@@ -32,14 +33,23 @@ function App() {
           npx http-server -p 8080 --cors -c-1
         </code>
       </p>
-      <Input
-        value={url}
-        placeholder="http://localhost:8080/ER0000.sl2"
-        onChange={(e) => {
-          setUrl(e.target.value);
-        }}
-        className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-      />
+      <div className="flex">
+        <Input
+          value={url}
+          placeholder="http://localhost:8080/ER0000.sl2"
+          onChange={(e) => {
+            setUrl(e.target.value);
+          }}
+          className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+        />
+        <Button
+          onClick={() => {
+            void erSaveQuery.refetch();
+          }}
+        >
+          Refresh
+        </Button>
+      </div>
       {erSaveQuery.isPending && (
         <p className="text-gray-600 dark:text-gray-400">Loading...</p>
       )}

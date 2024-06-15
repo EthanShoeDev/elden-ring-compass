@@ -1,3 +1,7 @@
+// import { ELDEN_RING_COLLECTIBLES, ELDEN_RING_DATA } from './er-static-data';
+
+import { ELDEN_RING_COLLECTIBLES } from './er-static-data';
+
 type TypedArray =
   | Int8Array
   | Uint8Array
@@ -13,6 +17,7 @@ function bufferEqual(a: TypedArray, b: TypedArray) {
   if (a.length !== b.length) {
     return false;
   }
+  if (a.length > 50) throw new Error('Buffer too long');
   for (let i = 0; i < a.length; i++) {
     if (a[i] !== b[i]) {
       return false;
@@ -60,18 +65,19 @@ function findPatternIdx(data: TypedArray, pattern: TypedArray) {
 }
 
 function getInventoryBuffer(slot: TypedArray) {
-  const patternIdx = findPatternIdx(slot, patternMarker);
-  if (patternIdx === undefined) {
+  const startPatternMarkIdx = findPatternIdx(slot, patternMarker);
+  if (startPatternMarkIdx === undefined) {
     throw new Error('Could not find inventory start pattern');
   }
-  const inventoryStart = patternIdx + patternMarker.byteLength + 8;
-  const inventoryEnd = findPatternIdx(
-    slot.subarray(inventoryStart),
+  const inventoryStart = startPatternMarkIdx + patternMarker.byteLength + 8;
+  const endPatternMarkIdx = findPatternIdx(
+    slot.subarray(inventoryStart, slot.byteLength),
     new Uint8Array(50).fill(0)
   );
-  if (inventoryEnd === undefined) {
+  if (endPatternMarkIdx === undefined) {
     throw new Error('Could not find inventory end');
   }
+  const inventoryEnd = endPatternMarkIdx + inventoryStart + 6;
   return slot.subarray(inventoryStart, inventoryEnd);
 }
 
@@ -127,8 +133,8 @@ export async function parseEldenRingUrl(url: string) {
   }
 }
 
-export function parseEldenRingData(saveData: ArrayBuffer) {
-  const header = new Int8Array(saveData.slice(0, 4));
+export function parseEldenRingData(rawSaveData: Readonly<ArrayBuffer>) {
+  const header = new Int8Array(rawSaveData.slice(0, 4));
 
   if (!bufferEqual(header, new Int8Array([66, 78, 68, 52]))) {
     throw new Error('Invalid save file header');
@@ -136,23 +142,86 @@ export function parseEldenRingData(saveData: ArrayBuffer) {
 
   const decoder = new TextDecoder('utf-8');
 
-  const slotNames = offsetSlotNames.map(([start, end]) =>
-    decoder
-      .decode(
-        new Int8Array(Array.from(new Uint16Array(saveData.slice(start, end))))
-      )
-      .replaceAll('\x00', '')
-  );
+  const slotNamesAndIdx: (readonly [string, number])[] = offsetSlotNames
+    .map(
+      ([start, end], idx) =>
+        [
+          decoder
+            .decode(
+              new Int8Array(
+                Array.from(new Uint16Array(rawSaveData.slice(start, end)))
+              )
+            )
+            .replaceAll('\x00', ''),
+          idx,
+        ] as const
+    )
+    .filter(([name]) => name);
 
-  const saveDataUint8Array = new Uint8Array(saveData);
+  const saveDataUint8Array = new Uint8Array(rawSaveData);
   const slotListData = offsetSlotPointers.map(([start, end]) =>
     saveDataUint8Array.subarray(start, end)
   );
 
-  slotListData.forEach((slotData) => {
-    const inventoryBuffer = getInventoryBuffer(slotData);
-    const idList = split(inventoryBuffer, 16).map((rawId) => reversedId(rawId));
-  });
+  return {
+    slots: Object.fromEntries(
+      slotNamesAndIdx.map(([slotName, slotIdx]) => {
+        const slotData = slotListData[slotIdx];
+        const inventoryBuffer = getInventoryBuffer(slotData);
+        const idList = split(inventoryBuffer, 16).map((rawId) =>
+          reversedId(rawId)
+        );
 
-  return { slotNames };
+        const collectibles = ELDEN_RING_COLLECTIBLES.map((c) => ({
+          ...c,
+          count: slotData.find((_, i) => {
+            if (i < 4) return false;
+            const id = slotData[i - 4];
+            if (id !== c.id[0]) return false;
+            const id2 = slotData[i - 3];
+            if (id2 !== c.id[1]) return false;
+            if (slotData[i - 2] !== 0) return false;
+            if (slotData[i - 1] !== 176) return false;
+            return true;
+          }),
+        }));
+
+        // ELDEN_RING_COLLECTIBLES === quantifiableItems
+        // ELDEN_RING_DATA === itemsData
+
+        // function findItemQuantities(slot) {
+        //   const result = new Array(quantifiableItems.length).fill(0);
+        //   for (let i = 0; i < slot.byteLength - 4; i++) {
+        //     for (let j = 0; j < quantifiableItems.length; j++) {
+        //       const item = quantifiableItems[j];
+        //       if (
+        //         slot[i] === item.id[0] &&
+        //         slot[i + 1] === item.id[1] &&
+        //         slot[i + 2] === 0 &&
+        //         slot[i + 3] === 176
+        //       ) {
+        //         result[j] = slot[i + 4];
+        //       }
+        //     }
+        //   }
+        //   return result;
+        // }
+
+        //Fetch collectibles quantities
+        // const itemsQuantities = findItemQuantities(slots[selected_slot]);
+        // lastQuantities = itemsQuantities;
+        // let globalCounter = 0;
+        // let globalTotal = 0;
+        // const itemsFound = itemsQuantities.reduce((prev, cur) => prev + cur, 0);
+        // const totalItems = quantifiableItems.reduce(
+        //   (prev, cur) => prev + cur.places.length,
+        //   0
+        // );
+        // globalCounter += itemsFound;
+        // globalTotal += totalItems;
+
+        return [slotName, { idList, collectibles }];
+      })
+    ),
+  };
 }
