@@ -9,7 +9,8 @@
         "formulahendry.auto-rename-tag",
         "esbenp.prettier-vscode",
         "dotenv.dotenv-vscode",
-        "bradlc.vscode-tailwindcss"
+        "bradlc.vscode-tailwindcss",
+        "ms-vsliveshare.vsliveshare"
       ]
     }
   },
