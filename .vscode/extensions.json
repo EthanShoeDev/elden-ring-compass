@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "eamodio.gitlens",
+    "dbaeumer.vscode-eslint",
+    "mhutchie.git-graph",
+    "donjayamanne.githistory",
+    "formulahendry.auto-rename-tag",
+    "esbenp.prettier-vscode",
+    "dotenv.dotenv-vscode",
+    "bradlc.vscode-tailwindcss",
+    "ms-vsliveshare.vsliveshare"
+  ]
+}

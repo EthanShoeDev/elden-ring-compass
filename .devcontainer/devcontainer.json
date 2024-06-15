@@ -10,7 +10,8 @@
         "esbenp.prettier-vscode",
         "dotenv.dotenv-vscode",
         "bradlc.vscode-tailwindcss",
-        "ms-vsliveshare.vsliveshare"
+        "ms-vsliveshare.vsliveshare",
+        "eamodio.gitlens"
       ]
     }
   },
