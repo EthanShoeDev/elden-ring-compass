@@ -43,6 +43,7 @@ function App() {
           className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
         />
         <Button
+          className="mx-2"
           onClick={() => {
             void erSaveQuery.refetch();
           }}
