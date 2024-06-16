@@ -26,5 +26,6 @@ module.exports = {
       { allowConstantExport: true },
     ],
     'react-compiler/react-compiler': 'error',
+    '@typescript-eslint/consistent-type-definitions': ['warn', 'type'],
   },
 };
