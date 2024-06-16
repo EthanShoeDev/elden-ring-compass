@@ -9,7 +9,7 @@ import { ZoomInIcon, ZoomOutIcon, FullscreenIcon } from 'lucide-react';
 export function InteractiveMap() {
   return (
     <div className="relative size-full">
-      <TransformWrapper>
+      <TransformWrapper maxScale={50.0}>
         <TransformComponent>
           <img
             src="https://eldenring.wiki.fextralife.com/file/Elden-Ring/the_lands_between_map_elden_ring_wiki_guide_3840px.jpg?v=1648140602316"

@@ -18,6 +18,7 @@ import { formatDistance } from 'date-fns';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { CodeSnippet } from './code-snippet';
 import Spinner from './ui/spinner';
+import { Combobox } from './ui/combobox';
 
 export function SaveFileSourceSelector() {
   const { saveFileSource, setSaveFileSource } = useSaveFileSourceStore();
@@ -28,7 +29,7 @@ export function SaveFileSourceSelector() {
   );
   return (
     <>
-      {saveFileSource && 'url' in saveFileSource && <RefreshButton />}
+      {saveFileSource && <RefreshButton />}
 
       <Popover>
         <PopoverTrigger asChild>
@@ -60,7 +61,7 @@ export function SaveFileSourceSelector() {
               ))}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[500px]">
+        <PopoverContent className="w-[500px] max-w-full">
           <div className="flex flex-col items-start gap-4">
             <Label>Select source</Label>
             <ToggleGroup
@@ -159,11 +160,23 @@ cd (Join-Path "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" (Get-Child
           </div>
         </PopoverContent>
       </Popover>
+      {query.data && (
+        <Combobox
+          emptyLabel="No slot selected"
+          placeholder="Select slot from save file"
+          items={Object.keys(query.data.slots).map((s) => ({
+            label: s,
+            value: s,
+          }))}
+        />
+      )}
     </>
   );
 }
 
 function RefreshButton() {
+  const { saveFileSource } = useSaveFileSourceStore();
+
   const query = useEldenRingSaveQuery();
   const [now, setNow] = useState<number>(Date.now());
 
@@ -179,7 +192,9 @@ function RefreshButton() {
   return (
     <Button
       variant="ghost"
-      disabled={query.isFetching}
+      disabled={
+        query.isFetching || (saveFileSource && 'file' in saveFileSource)
+      }
       className="flex gap-2"
       onClick={() => {
         void query.refetch();
