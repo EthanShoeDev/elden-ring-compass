@@ -95,6 +95,7 @@ export const ELDEN_RING_OBJECTIVES: Region[] = [
             label: 'Meet Merchant Kale',
             npc: 'Merchant Kale',
             tags: ['NPC', 'Merchant'],
+            notes: 'Buy essential gear',
             items: [
               {
                 name: 'Crafting Kit',
