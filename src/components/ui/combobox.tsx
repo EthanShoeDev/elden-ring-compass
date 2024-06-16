@@ -24,17 +24,17 @@ type Item = {
 export function Combobox({
   placeholder,
   items,
-  selectedValue,
+  valueState,
   emptyLabel,
 }: {
   emptyLabel: string;
   placeholder: string;
   items: Item[];
-  selectedValue?: [string, React.Dispatch<React.SetStateAction<string>>];
+  valueState?: readonly [string | undefined, (val?: string) => void];
 }) {
   const [open, setOpen] = React.useState(false);
-  const internalSelectedState = React.useState('');
-  const [value, setValue] = selectedValue ?? internalSelectedState;
+  const internalSelectedState = React.useState<string | undefined>(undefined);
+  const [value, setValue] = valueState ?? internalSelectedState;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

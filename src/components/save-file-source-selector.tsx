@@ -19,6 +19,8 @@ import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { CodeSnippet } from './code-snippet';
 import Spinner from './ui/spinner';
 import { Combobox } from './ui/combobox';
+import { fileToArrBuffer } from '@/lib/er-save-parser';
+import { useSlotSelection } from '@/stores/slot-selection-store';
 
 export function SaveFileSourceSelector() {
   const { saveFileSource, setSaveFileSource } = useSaveFileSourceStore();
@@ -101,9 +103,14 @@ export function SaveFileSourceSelector() {
               ) : (
                 <Input
                   type="file"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     if (e.target.files) {
-                      setSaveFileSource({ file: e.target.files[0] });
+                      setSaveFileSource({
+                        file: {
+                          buffer: await fileToArrBuffer(e.target.files[0]),
+                          name: e.target.files[0].name,
+                        },
+                      });
                     }
                   }}
                 />
@@ -160,17 +167,25 @@ cd (Join-Path "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" (Get-Child
           </div>
         </PopoverContent>
       </Popover>
-      {query.data && (
-        <Combobox
-          emptyLabel="No slot selected"
-          placeholder="Select slot from save file"
-          items={Object.keys(query.data.slots).map((s) => ({
-            label: s,
-            value: s,
-          }))}
-        />
-      )}
+      <SlotSelector />
     </>
+  );
+}
+
+function SlotSelector() {
+  const query = useEldenRingSaveQuery();
+  const slotState = useSlotSelection();
+  if (!query.data) return <></>;
+  return (
+    <Combobox
+      valueState={slotState}
+      emptyLabel="No slot selected"
+      placeholder="Select slot from save file"
+      items={Object.keys(query.data.slots).map((s) => ({
+        label: s,
+        value: s,
+      }))}
+    />
   );
 }
 

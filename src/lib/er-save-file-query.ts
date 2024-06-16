@@ -1,6 +1,6 @@
 import { useSaveFileSourceStore } from '@/stores/save-file-source-store';
 import { useQuery } from '@tanstack/react-query';
-import { parseEldenRingFile, parseEldenRingUrl } from './er-save-parser';
+import { parseEldenRingData, parseEldenRingUrl } from './er-save-parser';
 
 export function useEldenRingSaveQuery() {
   const { saveFileSource } = useSaveFileSourceStore();
@@ -10,7 +10,7 @@ export function useEldenRingSaveQuery() {
     queryFn: async () => {
       if (!src) throw new Error('No source provided');
       if ('file' in src) {
-        const erData = await parseEldenRingFile(src.file);
+        const erData = parseEldenRingData(src.file.buffer);
         return erData;
       }
       if ('url' in src) {

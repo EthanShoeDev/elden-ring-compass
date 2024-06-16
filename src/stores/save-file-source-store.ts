@@ -1,7 +1,12 @@
 import { create } from 'zustand';
 
+type FileData = {
+  name: string;
+  buffer: ArrayBuffer;
+};
+
 type FileUploadSource = {
-  file: File;
+  file: FileData;
 };
 
 type UrlSource = {
@@ -15,10 +20,21 @@ type SaveFileSourceStoreState = {
   setSaveFileSource: (val?: SaveFileSource) => void;
 };
 
+const cachedUrl = localStorage.getItem('saveFileSourceUrl');
+
 export const useSaveFileSourceStore = create<SaveFileSourceStoreState>()(
   (set) => ({
-    saveFileSource: undefined,
+    saveFileSource: cachedUrl
+      ? {
+          url: cachedUrl,
+        }
+      : undefined,
     setSaveFileSource: (val) => {
+      if (val && 'url' in val) {
+        localStorage.setItem('saveFileSourceUrl', val.url);
+      } else {
+        localStorage.removeItem('saveFileSourceUrl');
+      }
       set({ saveFileSource: val });
     },
   })

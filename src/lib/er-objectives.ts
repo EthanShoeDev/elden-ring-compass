@@ -17,7 +17,7 @@ type GenericObjective = {
   recommendedLevel?: number;
   notes?: string;
   tags?: string[];
-  items?: Item[];
+  items?: EldenRingObjectiveItem[];
 };
 
 type NPCObjective = GenericObjective & {
@@ -51,9 +51,10 @@ type Objective =
   | BossObjective
   | GenericObjective;
 
-type Item = {
+export type EldenRingObjectiveItem = {
   name: string;
   notes?: string;
+  href?: string;
 };
 
 export const ELDEN_RING_OBJECTIVES: Region[] = [
@@ -117,6 +118,7 @@ export const ELDEN_RING_OBJECTIVES: Region[] = [
             items: [
               {
                 name: 'Limgrave West Map Fragment',
+                href: 'https://eldenring.wiki.fextralife.com/Map+(Limgrave,+West)',
               },
               {
                 name: 'Whetstone Knife',

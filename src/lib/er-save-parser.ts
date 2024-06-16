@@ -104,24 +104,26 @@ function reversedId(id: TypedArray) {
     .join('');
 }
 
-export function parseEldenRingFile(file: File) {
-  return new Promise<ReturnType<typeof parseEldenRingData>>(
-    (resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const buffer = e.target?.result;
-        if (buffer instanceof ArrayBuffer) {
-          try {
-            const slotNames = parseEldenRingData(buffer);
-            resolve(slotNames);
-          } catch (err) {
-            reject(err instanceof Error ? err : new Error(String(err)));
-          }
+export function fileToArrBuffer(file: File) {
+  return new Promise<ArrayBuffer>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const buffer = e.target?.result;
+      if (buffer instanceof ArrayBuffer) {
+        try {
+          resolve(buffer);
+        } catch (err) {
+          reject(err instanceof Error ? err : new Error(String(err)));
         }
-      };
-      reader.readAsArrayBuffer(file);
-    }
-  );
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+export async function parseEldenRingFile(file: File) {
+  const rawSaveData = await fileToArrBuffer(file);
+  return parseEldenRingData(rawSaveData);
 }
 export async function parseEldenRingUrl(url: string) {
   const res = await fetch(url);

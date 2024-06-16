@@ -27,5 +27,13 @@ module.exports = {
     ],
     'react-compiler/react-compiler': 'error',
     '@typescript-eslint/consistent-type-definitions': ['warn', 'type'],
+    '@typescript-eslint/no-misused-promises': [
+      2,
+      {
+        checksVoidReturn: {
+          attributes: false, //If you use void in http attributes the promise will not execute
+        },
+      },
+    ],
   },
 };

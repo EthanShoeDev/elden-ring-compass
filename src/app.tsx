@@ -1,4 +1,5 @@
 import { AppBar } from './components/app-bar';
+import { Footer } from './components/footer';
 import { MainContent } from './components/main-content';
 
 function App() {
@@ -6,6 +7,7 @@ function App() {
     <div className="flex h-screen flex-col">
       <AppBar />
       <MainContent />
+      <Footer />
     </div>
   );
 }
