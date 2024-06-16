@@ -179,15 +179,20 @@ function RefreshButton() {
   return (
     <Button
       variant="ghost"
-      disabled={query.isPending}
+      disabled={query.isFetching}
       className="flex gap-2"
       onClick={() => {
         void query.refetch();
       }}
     >
-      {query.isPending ? <Spinner /> : <RefreshCcwIcon />}
-      Last updated{' '}
-      {query.data ? formatDistance(query.dataUpdatedAt, now) : 'never'}
+      {query.isFetching ? <Spinner /> : <RefreshCcwIcon />}
+      Updated{' '}
+      {query.data
+        ? formatDistance(query.dataUpdatedAt, now, {
+            addSuffix: true,
+            includeSeconds: true,
+          })
+        : 'never'}
     </Button>
   );
 }
