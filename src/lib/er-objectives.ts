@@ -192,31 +192,126 @@ export const ELDEN_RING_OBJECTIVES: Region[] = [
       },
       {
         description: `If you are a mage or intend to learn sorceries, you will want to unlock [Sorceress Sellen](https://eldenring.wiki.fextralife.com/Sorceress+Sellen "Elden Ring Sorceress Sellen") in [Waypoint Ruins](https://eldenring.wiki.fextralife.com/Waypoint+Ruins "Elden Ring Waypoint Ruins") - follow the road south from Gatefront Ruins to find it. She's past the [Mad Pumkin Head](https://eldenring.wiki.fextralife.com/Mad+Pumpkin+Head "Elden Ring Mad Pumpkin Head") Boss fight.`,
-        objectives: [],
+        objectives: [
+          {
+            label: 'Boss Fight: Mad Pumkin Head',
+            boss: 'Mad Pumkin Head',
+          },
+          {
+            label: 'Speak with Sorceress Sellen',
+            npc: 'Sorceress Sellen',
+            tags: ['NPC', 'Mage'],
+          },
+        ],
       },
       {
         description: `Head towards [Stormhill](https://eldenring.wiki.fextralife.com/Stormhill "Elden Ring Stormhill") (past the Gatefront grace leading west) and talk to [Roderika](https://eldenring.wiki.fextralife.com/Roderika "Elden Ring Roderika") to begin her quest and receive the Sitting Sideways gesture, alongside the [Spirit Jellyfish Ashes](https://eldenring.wiki.fextralife.com/Spirit+Jellyfish+Ashes "Elden Ring Spirit Jellyfish Ashes"). If you want to see Roderika's quest in it's entirety, make sure to complete [Stormveil Castle](https://eldenring.wiki.fextralife.com/Stormveil+Castle "Elden Ring Stormveil Castle") before visiting the [Roundtable Hold](https://eldenring.wiki.fextralife.com/Roundtable+Hold "Elden Ring Roundtable Hold") for the first time. You will pick up a [Golden Seed](https://eldenring.wiki.fextralife.com/Golden+Seed "Elden Ring Golden Seed") just before arriving at [Stormhill Shack](https://eldenring.wiki.fextralife.com/Stormhill+Shack "Elden Ring Stormhill Shack"). There's also a [Stonesword Key](https://eldenring.wiki.fextralife.com/Stonesword+Key "Elden Ring Stonesword Key") here that you will want to start collecting.`,
-        objectives: [],
+        objectives: [
+          {
+            label: 'Speak with Roderika',
+            npc: 'Roderika',
+            tags: ['NPC', 'Quest'],
+            items: [
+              {
+                name: 'Sitting Sideways gesture',
+              },
+              {
+                name: 'Spirit Jellyfish Ashes',
+              },
+            ],
+          },
+          {
+            label: 'Complete Stormveil Castle',
+            notes:
+              'To complete Roderika quest, complete before Roundtable Hold',
+          },
+        ],
       },
       {
         description: `Follow the road East from the [Stormhill Shack](https://eldenring.wiki.fextralife.com/Stormhill+Shack "Elden Ring Stormhill Shack") in Stormhill and you'll come to [Warmaster's Shack](https://eldenring.wiki.fextralife.com/Warmaster's+Shack "Elden Ring Warmaster's Shack"), where you can purchase Ashes of War from [Knight Bernahl](https://eldenring.wiki.fextralife.com/Knight+Bernahl "Elden Ring Knight Bernahl"). At night, Bernahl will be gone, and a [Bell Bearing Hunter](https://eldenring.wiki.fextralife.com/Bell+Bearing+Hunter "Elden Ring Bell Bearing Hunter") boss will spawn as you enter the shack. Note that this boss may be extremely challenging at this point in the game. Defeating him awards the [Bone Peddler's Bell Bearing](https://eldenring.wiki.fextralife.com/Bone+Peddler's+Bell+Bearing "Elden Ring Bone Peddler's Bell Bearing"). Similar to ashes hunter badges in previous games, [Bell Bearings](https://eldenring.wiki.fextralife.com/Bell+Bearings "Elden Ring Bell Bearings") unlock new items in the game's primary shop when given to the [Twin Maiden Husks](https://eldenring.wiki.fextralife.com/Twin+Maiden+Husks "Elden Ring Twin Maiden Husks") after you arrive at [Roundtable Hold](https://eldenring.wiki.fextralife.com/Roundtable+Hold "Elden Ring Roundtable Hold"). Just south from here in the hills where the trolls are, you can visit at night and be invaded by a [Deathbird](https://eldenring.wiki.fextralife.com/Deathbird "Elden Ring Deathbird") mini-boss and get the [Blue-Feathered Branchsword](https://eldenring.wiki.fextralife.com/Blue-Feathered+Branchsword "Elden Ring Blue-Feathered Branchsword") talisman.`,
-        objectives: [],
+        objectives: [
+          {
+            label: 'Purchase Ashes of War',
+            npc: 'Knight Bernahl',
+            tags: ['NPC', 'Merchant'],
+          },
+          {
+            label: 'Defeat Bell Bearing Hunter',
+            boss: 'Bell Bearing Hunter',
+            recommendedLevel: 15,
+            notes: 'Recommended to skip and come back later',
+            items: [
+              {
+                name: "Bone Peddler's Bell Bearing",
+              },
+            ],
+          },
+          {
+            label: 'Defeat Deathbird',
+            boss: 'Deathbird',
+            recommendedLevel: 15,
+            notes: 'Recommended to skip and come back later',
+            items: [
+              {
+                name: 'Blue-Feathered Branchsword',
+              },
+            ],
+          },
+        ],
       },
       {
         description: `Continue northeast along the road from Warmaster's Shack and turn right as you see a bridge and hear someone shouting. There is a small path to take up the cliff to your right hand side. You will meet [Alexander (Potboy)](https://eldenring.wiki.fextralife.com/Iron+Fist+Alexander "Elden Ring Iron Fist Alexander") and can free him to begin his quest and earn the Triumphant Delight gesture and 1x [Exalted Flesh](https://eldenring.wiki.fextralife.com/Exalted+Flesh "Elden Ring Exalted Flesh"). You have to hit him with a heavy attack or several times from behind.`,
-        objectives: [],
+        objectives: [
+          {
+            label: 'Speak with Alexander (Potboy)',
+            npc: 'Alexander (Potboy)',
+            tags: ['NPC', 'Quest'],
+            items: [
+              {
+                name: 'Triumphant Delight gesture',
+              },
+              {
+                name: 'Exalted Flesh',
+              },
+            ],
+          },
+        ],
       },
       {
         description: `Before we proceed, there's another dungeon nearby with useful loot, especially if you're going for an assassin type class. Return a bit west, to the barricades you passed through where you just fought the dog and commoners. Leave the barricades and head east along the road towards the bridge again. This time stick to the left of the road. Before the bridge, follow the path next to the cliff and you will find [Deathtouched Catacombs](https://eldenring.wiki.fextralife.com/Deathtouched+Catacombs "Elden Ring Deathtouched Catacombs"). Inside there will be gathering/farm materials, upgrade materials, an [Uchigatana](https://eldenring.wiki.fextralife.com/Uchigatana "Elden Ring Uchigatana"), the talisman [Assassin's Crimson Dagger](https://eldenring.wiki.fextralife.com/Assassin's+Crimson+Dagger "Elden Ring Assassin's Crimson Dagger") and a [Deathroot](https://eldenring.wiki.fextralife.com/Deathroot "Elden Ring Deathroot").`,
-        objectives: [],
+        objectives: [
+          {
+            label: 'Discover location Deathtouched Catacombs',
+            location: 'Deathtouched Catacombs',
+          },
+        ],
       },
       {
         description: `Further down the road, past the bridge, you can meet [D, Hunter of the Dead](https://eldenring.wiki.fextralife.com/D,+Hunter+of+the+Dead "Elden Ring D, Hunter of the Dead"), and begin his quest (if you already reached the Roundtable Hold before this point, he will not show up since you would have first met him at the hold instead of near past the bridge, but quest progression remains the same).`,
-        objectives: [],
+        objectives: [
+          {
+            label: 'Speak with D, Hunter of the Dead',
+            npc: 'D, Hunter of the Dead',
+            tags: ['NPC', 'Quest'],
+          },
+        ],
       },
       {
         description: `You will now want to return to the lower area of Limgrave, to go up the ravine from Agheel Lake until you find [Murkwater Cave](https://eldenring.wiki.fextralife.com/Murkwater+Cave "Elden Ring Murkwater Cave") that has a special surprise, and then [Murkwater Catacombs](https://eldenring.wiki.fextralife.com/Murkwater+Catacombs "Elden Ring Murkwater Catacombs"). You will get invaded here, so be careful! If you wait a bit to defeat the invader, [Bloody Finger Hunter Yura](https://eldenring.wiki.fextralife.com/Bloody+Finger+Hunter+Yura "Elden Ring Bloody Finger Hunter Yura") will show up to help you defeat him. You can meet him back north of Murkwater Cave afterwards, where you can exhaust his dialogue to start his quest.`,
-        objectives: [],
+        objectives: [
+          {
+            label: 'Discover location Murkwater Cave',
+            location: 'Murkwater Cave',
+          },
+          {
+            label: 'Discover location Murkwater Catacombs',
+            location: 'Murkwater Catacombs',
+          },
+          {
+            label: 'Defeat Bloody Finger Hunter Yura',
+            boss: 'Bloody Finger Hunter Yura',
+          },
+        ],
       },
     ],
   },
