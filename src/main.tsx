@@ -4,6 +4,7 @@ import App from './app.tsx';
 import './index.css';
 import { Providers } from './components/providers.tsx';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 const root = document.getElementById('root');
 
@@ -15,7 +16,8 @@ ReactDOM.createRoot(root).render(
   <React.StrictMode>
     <Providers>
       <App />
-      <Analytics />
     </Providers>
+    <Analytics />
+    <SpeedInsights />
   </React.StrictMode>
 );
