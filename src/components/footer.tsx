@@ -2,7 +2,7 @@ export function Footer() {
   return (
     <footer className="flex flex-col items-center pt-10">
       <h3 className="mb-2 text-lg font-bold">Huge thanks to these projects:</h3>
-      <ul className="prose list-inside list-disc">
+      <ul className="prose list-inside list-disc dark:prose-invert">
         <li>
           <a
             href="https://github.com/elden-ring-progression-tracker/elden-ring-progression-tracker.github.io"
