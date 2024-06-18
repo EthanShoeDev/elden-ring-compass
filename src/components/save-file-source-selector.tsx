@@ -24,7 +24,7 @@ import { useSlotSelection } from '@/stores/slot-selection-store';
 
 export function SaveFileSourceSelector() {
   const { saveFileSource, setSaveFileSource } = useSaveFileSourceStore();
-  const query = useEldenRingSaveQuery();
+  const { query, isParsing } = useEldenRingSaveQuery();
 
   const [type, setType] = useState<'file' | 'url'>(
     saveFileSource && 'url' in saveFileSource ? 'url' : 'file'
@@ -158,7 +158,7 @@ cd (Join-Path "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" (Get-Child
               </>
             )}
             {query.isLoading ? (
-              <div>Loading...</div>
+              <div>{isParsing ? 'Parsing' : 'Loading'}...</div>
             ) : query.isError ? (
               <div>Error: {query.error.message}</div>
             ) : query.isSuccess ? (
@@ -173,7 +173,7 @@ cd (Join-Path "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" (Get-Child
 }
 
 function SlotSelector() {
-  const query = useEldenRingSaveQuery();
+  const { query } = useEldenRingSaveQuery();
   const slotState = useSlotSelection();
   if (!query.data) return <></>;
   return (
@@ -192,7 +192,7 @@ function SlotSelector() {
 function RefreshButton() {
   const { saveFileSource } = useSaveFileSourceStore();
 
-  const query = useEldenRingSaveQuery();
+  const { query, isParsing } = useEldenRingSaveQuery();
   const [now, setNow] = useState<number>(Date.now());
 
   useEffect(() => {
@@ -215,14 +215,23 @@ function RefreshButton() {
         void query.refetch();
       }}
     >
-      {query.isFetching ? <Spinner /> : <RefreshCcwIcon />}
-      Updated{' '}
-      {query.data
-        ? formatDistance(query.dataUpdatedAt, now, {
-            addSuffix: true,
-            includeSeconds: true,
-          })
-        : 'never'}
+      {query.isFetching ? (
+        <>
+          <Spinner />
+          {isParsing ? 'Parsing...' : 'Loading...'}
+        </>
+      ) : (
+        <>
+          <RefreshCcwIcon />
+          Updated{' '}
+          {query.data
+            ? formatDistance(query.dataUpdatedAt, now, {
+                addSuffix: true,
+                includeSeconds: true,
+              })
+            : 'never'}
+        </>
+      )}
     </Button>
   );
 }

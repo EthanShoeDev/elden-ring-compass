@@ -516,7 +516,7 @@ pub mod save {
             }
         }
 
-        pub fn get_user_data_11(&mut self) -> &UserData11 {
+        pub fn get_user_data_11(&self) -> &UserData11 {
             match self {
                 SaveType::Unknown => panic!("Why are we here?"),
                 SaveType::PC(pc_save) => &pc_save.user_data_11.user_data_11,

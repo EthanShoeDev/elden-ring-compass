@@ -7,65 +7,89 @@ mod vm;
 mod write;
 
 use save::common::save_slot::SaveSlot;
+use save::common::user_data_10::*;
+use save::common::user_data_11::*;
 use save::save::save::*;
-use serde::ser::{Serialize, SerializeStruct, Serializer};
+use serde::Serialize;
+use serde_wasm_bindgen::Serializer;
+
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
-pub fn test_string() -> String {
-    // "Hello, elden-ring-save-parser!".to_string()
+extern crate web_sys;
 
-    match Save::default().save_type {
-        SaveType::PlayStation(_) => "PlayStation".to_string(),
-        _ => "Unknown".to_string(),
+macro_rules! log {
+    ( $( $t:tt )* ) => {
+        web_sys::console::log_1(&format!( $( $t )* ).into());
     }
 }
 
-#[wasm_bindgen]
-pub fn test_save_val() -> String {
-    match Save::default().save_type {
-        SaveType::PlayStation(_) => "PlayStation".to_string(),
-        _ => "PC".to_string(),
-    }
+// #[wasm_bindgen]
+// pub fn load_slots(save_data: &[u8]) -> Result<JsValue, JsValue> {
+//     let save_result = Save::from_contents(save_data.to_vec());
+//     let save = save_result.unwrap();
+//     let save_type = save.save_type;
+//     // save_type.get_character_steam_id(index)
+//     // save_type.get_profile_summary(index)
+//     let save_result = Save::from_contents(save_data.to_vec());
+//     let save = save_result.unwrap();
+//     let save_type = save.save_type;
+//     let active_slot_indexes = save_type.active_slots(); // [bool; 10]
+//     let mut slots = Vec::new();
+
+//     for (index, active) in active_slot_indexes.iter().enumerate() {
+//         if *active {
+//             let slot = save_type.get_slot(index);
+//             slots.push(slot);
+//         }
+//     }
+//     let serializer = Serializer::new().serialize_large_number_types_as_bigints(true);
+//     let js_value = slots.serialize(&serializer).unwrap();
+
+//     Ok(js_value)
+// }
+#[derive(Serialize)]
+struct JSEldenRingSave {
+    global_steam_id: u64,
+    character_steam_ids: Vec<u64>,
+    profile_summaries: Vec<ProfileSummary>,
+    regulation: Vec<u8>,
+    slots: Vec<SaveSlot>,
+    user_data_11: UserData11,
 }
 
-#[wasm_bindgen]
-pub fn take_number_slice_by_shared_ref(save_data: &[u8]) -> String {
-    let save_result = Save::from_contents(save_data.to_vec());
-    let save = save_result.unwrap();
-    match save.save_type {
-        SaveType::PlayStation(_) => "PlayStation".to_string(),
-        _ => "PC".to_string(),
-    }
-}
-
-impl Serialize for SaveSlot {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("SaveSlot", 30)?; // Adjust the number of fields accordingly
-
-        // // Serialize simple fields directly
-        // state.serialize_field("ga_items", &self.ga_items)?;
-        // state.serialize_field("player_game_data", &self.player_game_data)?;
-        // // Example of handling a large array efficiently
-        // // Convert the _0xd0 array to a base64 string for efficient serialization
-        // let _0xd0_base64 = encode(&self._0xd0);
-        // state.serialize_field("_0xd0", &_0xd0_base64)?;
-
-        // // Continue with other fields, applying similar logic
-        // // ...
-
-        state.end()
-    }
-}
-
-#[wasm_bindgen]
-pub fn load_save_contents(save_data: &[u8], slot_index: usize) -> Result<JsValue, JsValue> {
-    let save_result = Save::from_contents(save_data.to_vec());
-    let save = save_result.unwrap();
+fn save_to_js(save: Save) -> JSEldenRingSave {
     let save_type = save.save_type;
-    let slot = save_type.get_slot(slot_index);
-    Ok(serde_wasm_bindgen::to_value(&slot)?)
+    let active_slot_indexes = save_type.active_slots(); // [bool; 10]
+    let mut slots = Vec::new();
+    let mut character_steam_ids = Vec::new();
+    let mut profile_summaries = Vec::new();
+
+    for (index, active) in active_slot_indexes.iter().enumerate() {
+        if *active {
+            let slot = save_type.get_slot(index);
+            slots.push(slot.clone());
+            character_steam_ids.push(save_type.get_character_steam_id(index).clone());
+            profile_summaries.push(save_type.get_profile_summary(index).clone());
+        }
+    }
+
+    JSEldenRingSave {
+        global_steam_id: save_type.get_global_steam_id(),
+        character_steam_ids,
+        profile_summaries,
+        regulation: save_type.get_regulation().to_vec(),
+        slots,
+        user_data_11: save_type.get_user_data_11().clone(),
+    }
+}
+
+#[wasm_bindgen]
+pub fn parse_save_internal_rust(save_data: &[u8]) -> Result<JsValue, JsValue> {
+    let save_result = Save::from_contents(save_data.to_vec());
+    let save = save_result.unwrap();
+    let js_save = save_to_js(save);
+    let serializer = Serializer::new().serialize_large_number_types_as_bigints(true);
+    let js_value = js_save.serialize(&serializer).unwrap();
+
+    Ok(js_value)
 }

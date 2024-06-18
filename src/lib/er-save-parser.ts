@@ -1,7 +1,5 @@
-// import { ELDEN_RING_COLLECTIBLES, ELDEN_RING_DATA } from './er-static-data';
-
 import { ELDEN_RING_COLLECTIBLES } from './er-static-data';
-import { take_number_slice_by_shared_ref } from 'elden-ring-save-parser';
+import { parse_save_wasm } from './wasm-wrapper';
 
 type TypedArray =
   | Int8Array
@@ -124,21 +122,27 @@ export function fileToArrBuffer(file: File) {
 
 export async function parseEldenRingFile(file: File) {
   const rawSaveData = await fileToArrBuffer(file);
-  return parseEldenRingData(rawSaveData);
+  return parseEldenRingDataOld(rawSaveData);
 }
 export async function parseEldenRingUrl(url: string) {
   const res = await fetch(url);
   const buffer = await res.arrayBuffer();
   try {
-    const result = take_number_slice_by_shared_ref(new Uint8Array(buffer));
-    console.log('wasm result', result);
-    return parseEldenRingData(buffer);
+    return parseEldenRingDataOld(buffer);
   } catch (err) {
+    console.error(err);
     throw err instanceof Error ? err : new Error(String(err));
   }
 }
 
 export function parseEldenRingData(rawSaveData: Readonly<ArrayBuffer>) {
+  const save = new Uint8Array(rawSaveData);
+  const saveData = parse_save_wasm(save);
+  return saveData;
+}
+
+export function parseEldenRingDataOld(rawSaveData: Readonly<ArrayBuffer>) {
+  parseEldenRingData(rawSaveData);
   const header = new Int8Array(rawSaveData.slice(0, 4));
 
   if (!bufferEqual(header, new Int8Array([66, 78, 68, 52]))) {

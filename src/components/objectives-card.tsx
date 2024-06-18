@@ -173,7 +173,7 @@ function itemFromName(name: string) {
 }
 
 function ItemListItem({ item }: { item: EldenRingObjectiveItem }) {
-  const query = useEldenRingSaveQuery();
+  const { query } = useEldenRingSaveQuery();
   const [slot] = useSlotSelection();
 
   const [tooltipOpen, setTooltipOpen] = useState(false);
