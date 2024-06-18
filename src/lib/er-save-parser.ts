@@ -1,6 +1,7 @@
 // import { ELDEN_RING_COLLECTIBLES, ELDEN_RING_DATA } from './er-static-data';
 
 import { ELDEN_RING_COLLECTIBLES } from './er-static-data';
+import { take_number_slice_by_shared_ref } from 'elden-ring-save-parser';
 
 type TypedArray =
   | Int8Array
@@ -129,6 +130,8 @@ export async function parseEldenRingUrl(url: string) {
   const res = await fetch(url);
   const buffer = await res.arrayBuffer();
   try {
+    const result = take_number_slice_by_shared_ref(new Uint8Array(buffer));
+    console.log('wasm result', result);
     return parseEldenRingData(buffer);
   } catch (err) {
     throw err instanceof Error ? err : new Error(String(err));

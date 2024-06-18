@@ -22,4 +22,3 @@ dist-ssr
 *.sw?
 package-lock.json
 .eslintcache
-packages/

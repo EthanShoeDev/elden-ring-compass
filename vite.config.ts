@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import wasm from 'vite-plugin-wasm';
 
 const ReactCompilerConfig = {
   /* ... */
@@ -12,12 +13,16 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
   },
+  build: {
+    target: 'esnext',
+  },
   plugins: [
     react({
       babel: {
         plugins: [['babel-plugin-react-compiler', ReactCompilerConfig]],
       },
     }),
+    wasm(),
   ],
   resolve: {
     alias: {

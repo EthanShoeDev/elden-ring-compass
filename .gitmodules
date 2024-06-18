@@ -1,0 +1,3 @@
+[submodule "packages/ER-Save-Editor"]
+	path = packages/ER-Save-Editor
+	url = https://github.com/ClayAmore/ER-Save-Editor.git

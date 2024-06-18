@@ -185,7 +185,6 @@ function ItemListItem({ item }: { item: EldenRingObjectiveItem }) {
       ? query.data.slots[slot].idList.includes(itemData.itemId)
       : undefined;
 
-  console.log(itemData);
   return (
     <li className="my-1">
       <div className="flex items-center gap-2">
