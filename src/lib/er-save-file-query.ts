@@ -26,6 +26,9 @@ export function useEldenRingSaveQuery() {
               parseEldenRingDataOld(buffer)
             );
             return erData;
+          } catch (err) {
+            console.error(err);
+            throw err instanceof Error ? err : new Error(String(err));
           } finally {
             setIsParsing(false);
           }

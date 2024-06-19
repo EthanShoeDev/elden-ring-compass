@@ -5,14 +5,12 @@ type SlotSelectionStoreState = {
   setSelectedSlot: (val?: string) => void;
 };
 
-export const useSlotSelectionStore = create<SlotSelectionStoreState>()(
-  (set) => ({
-    selectedSlot: undefined,
-    setSelectedSlot: (val) => {
-      set({ selectedSlot: val });
-    },
-  })
-);
+const useSlotSelectionStore = create<SlotSelectionStoreState>()((set) => ({
+  selectedSlot: undefined,
+  setSelectedSlot: (val) => {
+    set({ selectedSlot: val });
+  },
+}));
 
 export const useSlotSelection = () => {
   const slot = useSlotSelectionStore((state) => state.selectedSlot);

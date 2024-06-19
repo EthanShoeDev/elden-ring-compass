@@ -22,7 +22,7 @@ import { useState } from 'react';
 
 export function ObjectivesCard() {
   return (
-    <div className="flex flex-col gap-4 rounded-lg bg-muted p-2 shadow-md md:p-6">
+    <div className="flex max-w-[850px] flex-col gap-4 rounded-lg bg-muted p-2 shadow-md md:p-6">
       {ELDEN_RING_OBJECTIVES.map((region, idx) => (
         <div
           key={idx}

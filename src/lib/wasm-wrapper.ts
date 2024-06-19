@@ -35,7 +35,7 @@ function prettyPrint(obj: object) {
 export function parse_save_wasm(save_data: Uint8Array) {
   // console.profile('parse_save_wasm_profile');
   console.time('parse_save_wasm');
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
   const result = parse_save_internal_rust(save_data) as WasmEldenRingSave;
   console.timeEnd('parse_save_wasm');
   // console.profileEnd('parse_save_wasm_profile');
@@ -48,376 +48,376 @@ export function parse_save_wasm(save_data: Uint8Array) {
 }
 
 export type WasmEldenRingSave = {
-  global_steam_id: string;
-  character_steam_ids: string[];
-  profile_summaries: ProfileSummary[];
-  regulation: number[];
-  slots: Slot[];
-  user_data_11: UserData11;
+  global_steam_id: Readonly<string>;
+  character_steam_ids: Readonly<string[]>;
+  profile_summaries: Readonly<ProfileSummary[]>;
+  regulation: Readonly<number[]>;
+  slots: Readonly<Slot[]>;
+  user_data_11: Readonly<UserData11>;
 };
 
 export type ProfileSummary = {
-  character_name: number[];
-  level: number;
-  _0x28: number;
-  _0x2c: number;
-  _0x30: number;
-  _0x34: number;
-  _0x38_0x150: number;
-  equipment_gaitem: EquipmentGaitem;
-  equipment_item: EquipmentItem;
-  _0x290: number;
-  _0x291: number;
-  _0x292: number;
-  _0x293: number;
-  _0x294: number;
-  _0x295: number;
-  _0x298: number;
+  character_name: Readonly<number[]>;
+  level: Readonly<number>;
+  _0x28: Readonly<number>;
+  _0x2c: Readonly<number>;
+  _0x30: Readonly<number>;
+  _0x34: Readonly<number>;
+  _0x38_0x150: Readonly<number>;
+  equipment_gaitem: Readonly<EquipmentGaitem>;
+  equipment_item: Readonly<EquipmentItem>;
+  _0x290: Readonly<number>;
+  _0x291: Readonly<number>;
+  _0x292: Readonly<number>;
+  _0x293: Readonly<number>;
+  _0x294: Readonly<number>;
+  _0x295: Readonly<number>;
+  _0x298: Readonly<number>;
 };
 
 export type EquipmentGaitem = {
-  unk: number;
-  unk1: number;
-  arm_style: number;
-  left_hand_active_slot: number;
-  right_hand_active_slot: number;
-  left_arrow_active_slot: number;
-  right_arrow_active_slot: number;
-  left_bolt_active_slot: number;
-  right_bolt_active_slot: number;
-  left_hand_armaments: number[];
-  right_hand_armaments: number[];
-  arrows: number[];
-  bolts: number[];
-  _0x4: number;
-  head: number;
-  chest: number;
-  arms: number;
-  legs: number;
-  _0x4_2: number;
-  talismans: number[];
-  _0x4_3: number;
+  unk: Readonly<number>;
+  unk1: Readonly<number>;
+  arm_style: Readonly<number>;
+  left_hand_active_slot: Readonly<number>;
+  right_hand_active_slot: Readonly<number>;
+  left_arrow_active_slot: Readonly<number>;
+  right_arrow_active_slot: Readonly<number>;
+  left_bolt_active_slot: Readonly<number>;
+  right_bolt_active_slot: Readonly<number>;
+  left_hand_armaments: Readonly<number[]>;
+  right_hand_armaments: Readonly<number[]>;
+  arrows: Readonly<number[]>;
+  bolts: Readonly<number[]>;
+  _0x4: Readonly<number>;
+  head: Readonly<number>;
+  chest: Readonly<number>;
+  arms: Readonly<number>;
+  legs: Readonly<number>;
+  _0x4_2: Readonly<number>;
+  talismans: Readonly<number[]>;
+  _0x4_3: Readonly<number>;
 };
 
 export type EquipmentItem = {
-  left_hand_armaments: number[];
-  right_hand_armaments: number[];
-  _0x4: number;
-  arrows: number[];
-  bolts: number[];
-  _0x8: string;
-  head: number;
-  chest: number;
-  arms: number;
-  legs: number;
-  _0x4_2: number;
-  talismans: number[];
-  _0x4_3: number[];
+  left_hand_armaments: Readonly<number[]>;
+  right_hand_armaments: Readonly<number[]>;
+  _0x4: Readonly<number>;
+  arrows: Readonly<number[]>;
+  bolts: Readonly<number[]>;
+  _0x8: Readonly<string>;
+  head: Readonly<number>;
+  chest: Readonly<number>;
+  arms: Readonly<number>;
+  legs: Readonly<number>;
+  _0x4_2: Readonly<number>;
+  talismans: Readonly<number[]>;
+  _0x4_3: Readonly<number[]>;
 };
 
 export type Slot = {
-  ver: number;
-  map_id: number[];
-  ga_items: GaItem[];
-  player_game_data: PlayerGameData;
-  equip_data: EquipData;
-  chr_asm: ChrAsm;
-  chr_asm2: ChrAsm2;
-  equip_inventory_data: EquipInventoryData;
-  equip_magic_data: EquipMagicData;
-  equip_item_data: EquipItemData;
-  equip_gesture_data: number[];
-  equip_projectile_data: EquipProjectileData;
-  equipped_items: EquippedItems;
-  equip_physics_data: EquipPhysicsData;
-  _0x4: number;
-  storage_inventory_data: StorageInventoryData;
-  gesture_game_data: number[];
-  regions: Regions;
-  ride_game_data: RideGameData;
-  _0x1: number;
-  _0x4_1: number;
-  _0x4_2: number;
-  _0x4_3: number;
-  ga_item_data: GaItemData;
-  event_flags: EventFlags;
-  _0x1_1: number;
-  _unk_lists: UnkList[];
-  player_coords: PlayerCoords;
-  _0x1_2: number;
-  _cs_net_data_chunks: number[];
-  world_area_weather: WorldAreaWeather;
-  world_area_time: WorldAreaTime;
-  steam_id: string;
-  _rest: number[];
+  ver: Readonly<number>;
+  map_id: Readonly<number[]>;
+  ga_items: Readonly<GaItem[]>;
+  player_game_data: Readonly<PlayerGameData>;
+  equip_data: Readonly<EquipData>;
+  chr_asm: Readonly<ChrAsm>;
+  chr_asm2: Readonly<ChrAsm2>;
+  equip_inventory_data: Readonly<EquipInventoryData>;
+  equip_magic_data: Readonly<EquipMagicData>;
+  equip_item_data: Readonly<EquipItemData>;
+  equip_gesture_data: Readonly<number[]>;
+  equip_projectile_data: Readonly<EquipProjectileData>;
+  equipped_items: Readonly<EquippedItems>;
+  equip_physics_data: Readonly<EquipPhysicsData>;
+  _0x4: Readonly<number>;
+  storage_inventory_data: Readonly<StorageInventoryData>;
+  gesture_game_data: Readonly<number[]>;
+  regions: Readonly<Regions>;
+  ride_game_data: Readonly<RideGameData>;
+  _0x1: Readonly<number>;
+  _0x4_1: Readonly<number>;
+  _0x4_2: Readonly<number>;
+  _0x4_3: Readonly<number>;
+  ga_item_data: Readonly<GaItemData>;
+  event_flags: Readonly<EventFlags>;
+  _0x1_1: Readonly<number>;
+  _unk_lists: Readonly<UnkList[]>;
+  player_coords: Readonly<PlayerCoords>;
+  _0x1_2: Readonly<number>;
+  _cs_net_data_chunks: Readonly<number[]>;
+  world_area_weather: Readonly<WorldAreaWeather>;
+  world_area_time: Readonly<WorldAreaTime>;
+  steam_id: Readonly<string>;
+  _rest: Readonly<number[]>;
 };
 
 export type GaItem = {
-  gaitem_handle: number;
-  item_id: number;
-  unk2: number;
-  unk3: number;
-  aow_gaitem_handle: number;
-  unk5: number;
+  gaitem_handle: Readonly<number>;
+  item_id: Readonly<number>;
+  unk2: Readonly<number>;
+  unk3: Readonly<number>;
+  aow_gaitem_handle: Readonly<number>;
+  unk5: Readonly<number>;
 };
 
 export type PlayerGameData = {
-  _0x4: number;
-  _0x4_1: number;
-  health: number;
-  max_health: number;
-  base_max_health: number;
-  fp: number;
-  max_fp: number;
-  base_max_fp: number;
-  _0x4_2: number;
-  sp: number;
-  max_sp: number;
-  base_max_sp: number;
-  _0x4_3: number;
-  vigor: number;
-  mind: number;
-  endurance: number;
-  strength: number;
-  dexterity: number;
-  intelligence: number;
-  faith: number;
-  arcane: number;
-  _0x4_4: number;
-  _0x4_5: number;
-  _0x4_6: number;
-  level: number;
-  souls: number;
-  soulsmemory: number;
-  character_name: number[];
-  gender: number;
-  arche_type: number;
-  gift: number;
-  match_making_wpn_lvl: number;
-  password: number[];
-  group_password1: number[];
-  group_password2: number[];
-  group_password3: number[];
-  group_password4: number[];
-  group_password5: number[];
+  _0x4: Readonly<number>;
+  _0x4_1: Readonly<number>;
+  health: Readonly<number>;
+  max_health: Readonly<number>;
+  base_max_health: Readonly<number>;
+  fp: Readonly<number>;
+  max_fp: Readonly<number>;
+  base_max_fp: Readonly<number>;
+  _0x4_2: Readonly<number>;
+  sp: Readonly<number>;
+  max_sp: Readonly<number>;
+  base_max_sp: Readonly<number>;
+  _0x4_3: Readonly<number>;
+  vigor: Readonly<number>;
+  mind: Readonly<number>;
+  endurance: Readonly<number>;
+  strength: Readonly<number>;
+  dexterity: Readonly<number>;
+  intelligence: Readonly<number>;
+  faith: Readonly<number>;
+  arcane: Readonly<number>;
+  _0x4_4: Readonly<number>;
+  _0x4_5: Readonly<number>;
+  _0x4_6: Readonly<number>;
+  level: Readonly<number>;
+  souls: Readonly<number>;
+  soulsmemory: Readonly<number>;
+  character_name: Readonly<number[]>;
+  gender: Readonly<number>;
+  arche_type: Readonly<number>;
+  gift: Readonly<number>;
+  match_making_wpn_lvl: Readonly<number>;
+  password: Readonly<number[]>;
+  group_password1: Readonly<number[]>;
+  group_password2: Readonly<number[]>;
+  group_password3: Readonly<number[]>;
+  group_password4: Readonly<number[]>;
+  group_password5: Readonly<number[]>;
 };
 
 export type EquipData = {
-  left_hand_armaments: number[];
-  right_hand_armaments: number[];
-  arrows: number[];
-  bolts: number[];
-  _0x4: number;
-  _0x4_1: number;
-  head: number;
-  chest: number;
-  arms: number;
-  legs: number;
-  _0x4_2: number;
-  talismans: number[];
-  unk: number;
+  left_hand_armaments: Readonly<number[]>;
+  right_hand_armaments: Readonly<number[]>;
+  arrows: Readonly<number[]>;
+  bolts: Readonly<number[]>;
+  _0x4: Readonly<number>;
+  _0x4_1: Readonly<number>;
+  head: Readonly<number>;
+  chest: Readonly<number>;
+  arms: Readonly<number>;
+  legs: Readonly<number>;
+  _0x4_2: Readonly<number>;
+  talismans: Readonly<number[]>;
+  unk: Readonly<number>;
 };
 
 export type ChrAsm = {
-  arm_style: number;
-  left_hand_active_slot: number;
-  right_hand_active_slot: number;
-  left_arrow_active_slot: number;
-  right_arrow_active_slot: number;
-  left_bolt_active_slot: number;
-  right_bolt_active_slot: number;
-  left_hand_armaments: number[];
-  right_hand_armaments: number[];
-  arrows: number[];
-  bolts: number[];
-  _0x4: number;
-  _0x4_1: number;
-  head: number;
-  chest: number;
-  arms: number;
-  legs: number;
-  _0x4_2: number;
-  talismans: number[];
-  unk: number;
+  arm_style: Readonly<number>;
+  left_hand_active_slot: Readonly<number>;
+  right_hand_active_slot: Readonly<number>;
+  left_arrow_active_slot: Readonly<number>;
+  right_arrow_active_slot: Readonly<number>;
+  left_bolt_active_slot: Readonly<number>;
+  right_bolt_active_slot: Readonly<number>;
+  left_hand_armaments: Readonly<number[]>;
+  right_hand_armaments: Readonly<number[]>;
+  arrows: Readonly<number[]>;
+  bolts: Readonly<number[]>;
+  _0x4: Readonly<number>;
+  _0x4_1: Readonly<number>;
+  head: Readonly<number>;
+  chest: Readonly<number>;
+  arms: Readonly<number>;
+  legs: Readonly<number>;
+  _0x4_2: Readonly<number>;
+  talismans: Readonly<number[]>;
+  unk: Readonly<number>;
 };
 
 export type ChrAsm2 = {
-  left_hand_armaments: number[];
-  right_hand_armaments: number[];
-  arrows: number[];
-  bolts: number[];
-  _unk0: number;
-  _unk1: number;
-  head: number;
-  chest: number;
-  arms: number;
-  legs: number;
-  _unk2: number;
-  talismans: number[];
-  _unk3: number;
+  left_hand_armaments: Readonly<number[]>;
+  right_hand_armaments: Readonly<number[]>;
+  arrows: Readonly<number[]>;
+  bolts: Readonly<number[]>;
+  _unk0: Readonly<number>;
+  _unk1: Readonly<number>;
+  head: Readonly<number>;
+  chest: Readonly<number>;
+  arms: Readonly<number>;
+  legs: Readonly<number>;
+  _unk2: Readonly<number>;
+  talismans: Readonly<number[]>;
+  _unk3: Readonly<number>;
 };
 
 export type EquipInventoryData = {
-  common_inventory_items_distinct_count: number;
-  common_items: CommonItem[];
-  key_inventory_items_distinct_count: number;
-  key_items: KeyItem[];
-  next_equip_index: number;
-  next_acquisition_sort_id: number;
+  common_inventory_items_distinct_count: Readonly<number>;
+  common_items: Readonly<CommonItem[]>;
+  key_inventory_items_distinct_count: Readonly<number>;
+  key_items: Readonly<KeyItem[]>;
+  next_equip_index: Readonly<number>;
+  next_acquisition_sort_id: Readonly<number>;
 };
 
 export type CommonItem = {
-  ga_item_handle: number;
-  quantity: number;
-  inventory_index: number;
+  ga_item_handle: Readonly<number>;
+  quantity: Readonly<number>;
+  inventory_index: Readonly<number>;
 };
 
 export type KeyItem = {
-  ga_item_handle: number;
-  quantity: number;
-  inventory_index: number;
+  ga_item_handle: Readonly<number>;
+  quantity: Readonly<number>;
+  inventory_index: Readonly<number>;
 };
 
 export type EquipMagicData = {
-  equip_magic_spells: EquipMagicSpell[];
-  _0x10: number[];
-  active_slot: number;
+  equip_magic_spells: Readonly<EquipMagicSpell[]>;
+  _0x10: Readonly<number[]>;
+  active_slot: Readonly<number>;
 };
 
 export type EquipMagicSpell = {
-  spell_id: number;
-  unk: number;
+  spell_id: Readonly<number>;
+  unk: Readonly<number>;
 };
 
 export type EquipItemData = {
-  quick_slot_items: QuickSlotItem[];
-  active_slot: number;
-  pouch_items: PouchItem[];
-  _0x8: number[];
+  quick_slot_items: Readonly<QuickSlotItem[]>;
+  active_slot: Readonly<number>;
+  pouch_items: Readonly<PouchItem[]>;
+  _0x8: Readonly<number[]>;
 };
 
 export type QuickSlotItem = {
-  item_id: number;
-  equipment_index: number;
+  item_id: Readonly<number>;
+  equipment_index: Readonly<number>;
 };
 
 export type PouchItem = {
-  item_id: number;
-  equipment_index: number;
+  item_id: Readonly<number>;
+  equipment_index: Readonly<number>;
 };
 
 export type EquipProjectileData = {
-  projectile_count: number;
-  projectiles: Projectile[];
+  projectile_count: Readonly<number>;
+  projectiles: Readonly<Projectile[]>;
 };
 
 export type Projectile = {
-  projectile_id: number;
-  unk: number;
+  projectile_id: Readonly<number>;
+  unk: Readonly<number>;
 };
 
 export type EquippedItems = {
-  left_hand_armaments: number[];
-  right_hand_armaments: number[];
-  arrows: number[];
-  bolts: number[];
-  _unk1: number;
-  _unk2: number;
-  head: number;
-  chest: number;
-  arms: number;
-  legs: number;
-  _unk3: number;
-  talismans: number[];
-  _unk4: number;
-  quickitems: number[];
-  pouch: number[];
-  _padding17: number;
+  left_hand_armaments: Readonly<number[]>;
+  right_hand_armaments: Readonly<number[]>;
+  arrows: Readonly<number[]>;
+  bolts: Readonly<number[]>;
+  _unk1: Readonly<number>;
+  _unk2: Readonly<number>;
+  head: Readonly<number>;
+  chest: Readonly<number>;
+  arms: Readonly<number>;
+  legs: Readonly<number>;
+  _unk3: Readonly<number>;
+  talismans: Readonly<number[]>;
+  _unk4: Readonly<number>;
+  quickitems: Readonly<number[]>;
+  pouch: Readonly<number[]>;
+  _padding17: Readonly<number>;
 };
 
 export type EquipPhysicsData = {
-  slot1: number;
-  slot2: number;
+  slot1: Readonly<number>;
+  slot2: Readonly<number>;
 };
 
 export type StorageInventoryData = {
-  common_inventory_items_distinct_count: number;
-  common_items: CommonItem2[];
-  key_inventory_items_distinct_count: number;
-  key_items: KeyItem2[];
-  next_equip_index: number;
-  next_acquisition_sort_id: number;
+  common_inventory_items_distinct_count: Readonly<number>;
+  common_items: Readonly<CommonItem2[]>;
+  key_inventory_items_distinct_count: Readonly<number>;
+  key_items: Readonly<KeyItem2[]>;
+  next_equip_index: Readonly<number>;
+  next_acquisition_sort_id: Readonly<number>;
 };
 
 export type CommonItem2 = {
-  ga_item_handle: number;
-  quantity: number;
-  inventory_index: number;
+  ga_item_handle: Readonly<number>;
+  quantity: Readonly<number>;
+  inventory_index: Readonly<number>;
 };
 
 export type KeyItem2 = {
-  ga_item_handle: number;
-  quantity: number;
-  inventory_index: number;
+  ga_item_handle: Readonly<number>;
+  quantity: Readonly<number>;
+  inventory_index: Readonly<number>;
 };
 
 export type Regions = {
-  unlocked_regions_count: number;
-  unlocked_regions: number[];
+  unlocked_regions_count: Readonly<number>;
+  unlocked_regions: Readonly<number[]>;
 };
 
 export type RideGameData = {
-  horse_coords: number[];
-  _0x4: number;
-  _0x10: number[];
-  horse_hp: number;
-  _0x4_1: number;
+  horse_coords: Readonly<number[]>;
+  _0x4: Readonly<number>;
+  _0x10: Readonly<number[]>;
+  horse_hp: Readonly<number>;
+  _0x4_1: Readonly<number>;
 };
 
 export type GaItemData = {
-  distinct_aquired_items_count: number;
-  unk1: number;
-  ga_items: GaItem2[];
+  distinct_aquired_items_count: Readonly<number>;
+  unk1: Readonly<number>;
+  ga_items: Readonly<GaItem2[]>;
 };
 
 export type GaItem2 = {
-  id: number;
-  unk: number;
-  reinforce_type: number;
-  unk1: number;
+  id: Readonly<number>;
+  unk: Readonly<number>;
+  reinforce_type: Readonly<number>;
+  unk1: Readonly<number>;
 };
 
 export type EventFlags = {
-  flags: number[];
+  flags: Readonly<number[]>;
 };
 
 export type UnkList = {
-  length: number;
-  elements: number[];
+  length: Readonly<number>;
+  elements: Readonly<number[]>;
 };
 
 export type PlayerCoords = {
-  player_coords: number[];
-  map_id: number[];
-  _0x11: number[];
-  player_coords2: number[];
-  _0x10: number[];
+  player_coords: Readonly<number[]>;
+  map_id: Readonly<number[]>;
+  _0x11: Readonly<number[]>;
+  player_coords2: Readonly<number[]>;
+  _0x10: Readonly<number[]>;
 };
 
 export type WorldAreaWeather = {
-  unk0: number;
-  unk1: number;
-  unk2: number;
+  unk0: Readonly<number>;
+  unk1: Readonly<number>;
+  unk2: Readonly<number>;
 };
 
 export type WorldAreaTime = {
-  unk0: number;
-  unk1: number;
-  unk2: number;
+  unk0: Readonly<number>;
+  unk1: Readonly<number>;
+  unk2: Readonly<number>;
 };
 
 export type UserData11 = {
-  unk: number[];
-  regulation: number[];
-  rest: number[];
+  unk: Readonly<number[]>;
+  regulation: Readonly<number[]>;
+  rest: Readonly<number[]>;
 };

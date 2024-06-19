@@ -1,3 +1,4 @@
+// import { inventoryDbView } from './er-db';
 import { ELDEN_RING_COLLECTIBLES } from './er-static-data';
 import { parse_save_wasm } from './wasm-wrapper';
 
@@ -138,11 +139,13 @@ export async function parseEldenRingUrl(url: string) {
 export function parseEldenRingData(rawSaveData: Readonly<ArrayBuffer>) {
   const save = new Uint8Array(rawSaveData);
   const saveData = parse_save_wasm(save);
+  // const inventory = inventoryDbView(saveData.slots[0]);
+  // console.log('inventoryDbView', inventory);
   return saveData;
 }
 
 export function parseEldenRingDataOld(rawSaveData: Readonly<ArrayBuffer>) {
-  parseEldenRingData(rawSaveData);
+  const newData = parseEldenRingData(rawSaveData);
   const header = new Int8Array(rawSaveData.slice(0, 4));
 
   if (!bufferEqual(header, new Int8Array([66, 78, 68, 52]))) {
@@ -173,6 +176,7 @@ export function parseEldenRingDataOld(rawSaveData: Readonly<ArrayBuffer>) {
   );
 
   return {
+    newData,
     slots: Object.fromEntries(
       slotNamesAndIdx.map(([slotName, slotIdx]) => {
         const slotData = slotListData[slotIdx];

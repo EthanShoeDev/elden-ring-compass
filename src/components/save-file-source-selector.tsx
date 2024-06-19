@@ -21,6 +21,7 @@ import Spinner from './ui/spinner';
 import { Combobox } from './ui/combobox';
 import { fileToArrBuffer } from '@/lib/er-save-parser';
 import { useSlotSelection } from '@/stores/slot-selection-store';
+import { playerNameBytesToString } from '@/lib/er-db';
 
 export function SaveFileSourceSelector() {
   const { saveFileSource, setSaveFileSource } = useSaveFileSourceStore();
@@ -181,10 +182,14 @@ function SlotSelector() {
       valueState={slotState}
       emptyLabel="No slot selected"
       placeholder="Select slot from save file"
-      items={Object.keys(query.data.slots).map((s) => ({
-        label: s,
-        value: s,
-      }))}
+      items={query.data.newData.slots
+        .map((slot) =>
+          playerNameBytesToString(slot.player_game_data.character_name)
+        )
+        .map((s) => ({
+          label: s,
+          value: s,
+        }))}
     />
   );
 }
