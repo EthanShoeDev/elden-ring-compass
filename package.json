@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "build:wasm-parser": "cd packages/elden-ring-save-parser && wasm-pack build",
+    "build:wasm-parser": "cd packages/elden-ring-save-parser && wasm-pack build && cd ../..",
     "lint:fix": "eslint . --ext ts,tsx --report-unused-disable-directives --cache --max-warnings 0 --fix",
     "format": "prettier --write --cache .",
     "typecheck": "tsc --noEmit",
