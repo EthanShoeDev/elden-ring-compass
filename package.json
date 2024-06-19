@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "bun run format && bun run lint:fix && bun run typecheck",
     "preview": "vite preview",
-    "prepare": "husky && bun run build:wasm-parser"
+    "prepare": "husky"
   },
   "lint-staged": {
     "**/*": "bun run lint & bun run format"
