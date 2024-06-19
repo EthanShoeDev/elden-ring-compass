@@ -7,11 +7,12 @@ import { labels, statuses } from './data/data';
 import { Task } from './data/schema';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
-import { inventoryDbView, playerNameBytesToString } from '@/lib/er-db';
+import { playerNameBytesToString } from '@/lib/er-db';
 import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon } from 'lucide-react';
 import { useEldenRingSaveQuery } from '@/lib/er-save-file-query';
 import { DataTable } from './data-table';
 import { useSlotSelection } from '@/stores/slot-selection-store';
+import { inventoryDbView } from '@/lib/vm/inventory';
 
 const priorities = [
   {
@@ -36,7 +37,7 @@ export function InventoryDataTable() {
   const [slotSelectionName] = useSlotSelection();
   if (query.isLoading) return <div>Loading...</div>;
   if (query.isError) return <div>Error: {query.error.message}</div>;
-  const slot = query.data?.newData.slots.find(
+  const slot = query.data?.slots.find(
     (slot) =>
       slotSelectionName ==
       playerNameBytesToString(slot.player_game_data.character_name)

@@ -6,12 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:wasm-parser": "cd packages/elden-ring-save-parser && wasm-pack build",
     "lint:fix": "eslint . --ext ts,tsx --report-unused-disable-directives --cache --max-warnings 0 --fix",
     "format": "prettier --write --cache .",
     "typecheck": "tsc --noEmit",
     "lint": "bun run format && bun run lint:fix && bun run typecheck",
     "preview": "vite preview",
-    "prepare": "husky"
+    "prepare": "husky && bun run build:wasm-parser"
   },
   "lint-staged": {
     "**/*": "bun run lint & bun run format"

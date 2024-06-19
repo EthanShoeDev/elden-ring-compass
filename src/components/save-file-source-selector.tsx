@@ -182,7 +182,7 @@ function SlotSelector() {
       valueState={slotState}
       emptyLabel="No slot selected"
       placeholder="Select slot from save file"
-      items={query.data.newData.slots
+      items={query.data.slots
         .map((slot) =>
           playerNameBytesToString(slot.player_game_data.character_name)
         )

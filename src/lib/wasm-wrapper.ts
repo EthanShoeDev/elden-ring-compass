@@ -1,36 +1,31 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { parse_save_internal_rust } from 'elden-ring-save-parser';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function prettyPrint(obj: object) {
-  const prettyArray = (arr: any[]) => {
-    if (arr.length < 3) return arr;
-    return arr
-      .slice(0, 3)
-      .map((i) =>
-        typeof i === 'object'
-          ? traverseObject(i as object)
-          : typeof i === 'bigint'
-            ? '// BigInt'
-            : i
-      );
-  };
+// function prettyPrint(obj: object) {
+//   const prettyArray = (arr: any[]) => {
+//     if (arr.length < 3) return arr;
+//     return arr
+//       .slice(0, 3)
+//       .map((i) =>
+//         typeof i === 'object'
+//           ? traverseObject(i as object)
+//           : typeof i === 'bigint'
+//             ? '// BigInt'
+//             : i
+//       );
+//   };
 
-  const traverseObject = (obj: object): object =>
-    Object.fromEntries(
-      Object.entries(obj).map(([k, v]) => {
-        if (Array.isArray(v)) return [k, prettyArray(v)];
-        if (typeof v === 'bigint') return [k, '// BigInt'];
-        if (typeof v === 'object') return [k, traverseObject(v as object)];
-        return [k, v];
-      })
-    );
+//   const traverseObject = (obj: object): object =>
+//     Object.fromEntries(
+//       Object.entries(obj).map(([k, v]) => {
+//         if (Array.isArray(v)) return [k, prettyArray(v)];
+//         if (typeof v === 'bigint') return [k, '// BigInt'];
+//         if (typeof v === 'object') return [k, traverseObject(v as object)];
+//         return [k, v];
+//       })
+//     );
 
-  return traverseObject(obj);
-}
+//   return traverseObject(obj);
+// }
 
 export function parse_save_wasm(save_data: Uint8Array) {
   // console.profile('parse_save_wasm_profile');

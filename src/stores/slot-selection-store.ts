@@ -13,7 +13,7 @@ const useSlotSelectionStore = create<SlotSelectionStoreState>()((set) => ({
 }));
 
 export const useSlotSelection = () => {
-  const slot = useSlotSelectionStore((state) => state.selectedSlot);
-  const setSlot = useSlotSelectionStore((state) => state.setSelectedSlot);
-  return [slot, setSlot] as const;
+  const store = useSlotSelectionStore();
+
+  return [store.selectedSlot, store.setSelectedSlot] as const;
 };

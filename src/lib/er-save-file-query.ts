@@ -1,6 +1,6 @@
 import { useSaveFileSourceStore } from '@/stores/save-file-source-store';
 import { useQuery } from '@tanstack/react-query';
-import { parseEldenRingDataOld } from './er-save-parser';
+import { parseEldenRingData } from './er-save-parser';
 import { useState } from 'react';
 import { delayMs } from './utils';
 
@@ -14,7 +14,7 @@ export function useEldenRingSaveQuery() {
       queryFn: async () => {
         if (!src) throw new Error('No source provided');
         if ('file' in src) {
-          const erData = parseEldenRingDataOld(src.file.buffer);
+          const erData = parseEldenRingData(src.file.buffer);
           return erData;
         }
         if ('url' in src) {
@@ -23,7 +23,7 @@ export function useEldenRingSaveQuery() {
           try {
             setIsParsing(true);
             const erData = await delayMs(10).then(() =>
-              parseEldenRingDataOld(buffer)
+              parseEldenRingData(buffer)
             );
             return erData;
           } catch (err) {
