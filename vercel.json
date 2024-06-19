@@ -1,3 +1,0 @@
-{
-  "buildCommand": "./scripts/ci-build.sh"
-}
