@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import {
-  CopyIcon,
   EditIcon,
   FileCheckIcon,
   Link2OffIcon,
@@ -22,6 +21,7 @@ import { Combobox } from './ui/combobox';
 import { fileToArrBuffer } from '@/lib/er-save-parser';
 import { useSlotSelection } from '@/stores/slot-selection-store';
 import { playerNameBytesToString } from '@/lib/er-db';
+import { CopyButton } from './copy-button';
 
 export function SaveFileSourceSelector() {
   const { saveFileSource, setSaveFileSource } = useSaveFileSourceStore();
@@ -132,17 +132,12 @@ cd (Join-Path "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" (Get-Child
                   <span className="bg-secondary p-1">
                     http://localhost:8080/ER0000.sl2
                   </span>
-                  <Button
-                    className="p-0.5"
-                    size="icon"
-                    onClick={() =>
-                      void navigator.clipboard.writeText(
-                        'http://localhost:8080/ER0000.sl2'
-                      )
-                    }
-                  >
-                    <CopyIcon className="size-5" />
-                  </Button>
+                  <CopyButton value="http://localhost:8080/ER0000.sl2" />
+                </div>
+                <p>Test save: </p>
+                <div className="flex items-center">
+                  <span className="bg-secondary p-1">/ER0000.sl2</span>
+                  <CopyButton value="/ER0000.sl2" />
                 </div>
                 <Input
                   type="url"

@@ -7,4 +7,5 @@ echo "Installing wasm-pack..."
 curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh -s -- -y
 
 export PATH="$PATH:/vercel/.cargo/bin/"
+echo "export PATH=\"$PATH:/vercel/.cargo/bin/\"" >> "$HOME/.bashrc"
 # cd packages/elden-ring-save-parser && wasm-pack build && cd ../..
