@@ -28,6 +28,8 @@ export function SlotOverview({ className }: { className?: string }) {
         <p>Level: {statsVm.stats.level}</p>
         <p>Souls: {statsVm.stats.souls}</p>
         <p>Souls Memory: {statsVm.stats.soulsmemory}</p>
+        <br />
+        <p>{JSON.stringify(statsVm.coords, undefined, 2)}</p>
       </div>
     </Card>
   );
