@@ -49,10 +49,13 @@ export const RAW_ELDEN_RING_DB = {
 };
 
 export function playerNameBytesToString(bytes: Readonly<number[]>) {
-  return bytes
-    .map((i) => String.fromCharCode(i))
-    .join('')
-    .replaceAll(String.fromCharCode(0), ' ')
-    .trimEnd()
-    .toLowerCase();
+  const character_name = bytes;
+  const character_name_trimmed: number[] = [];
+  for (let i = 0; i < 0x10; i++) {
+    if (character_name[i] == 0) {
+      break;
+    }
+    character_name_trimmed.push(character_name[i]);
+  }
+  return String.fromCharCode(...character_name_trimmed);
 }
