@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -26,6 +25,7 @@ import {
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableToolbar } from './data-table-toolbar';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 export function DataTable<TData, TValue>({
   className,
@@ -38,26 +38,25 @@ export function DataTable<TData, TValue>({
 }) {
   'use no memo';
 
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [rowSelection, setRowSelection] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   const table = useReactTable({
     data,
     columns,
+    initialState: {
+      pagination: {
+        pageSize: 10,
+        pageIndex: 0,
+      },
+    },
     state: {
       sorting,
       columnVisibility,
       rowSelection,
       columnFilters,
-      pagination: {
-        pageSize: 100,
-        pageIndex: 0,
-      },
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,

@@ -20,8 +20,8 @@ import Spinner from './ui/spinner';
 import { Combobox } from './ui/combobox';
 import { fileToArrBuffer } from '@/lib/er-save-parser';
 import { useSlotSelection } from '@/stores/slot-selection-store';
-import { playerNameBytesToString } from '@/lib/er-db';
 import { CopyButton } from './copy-button';
+import { playerNameBytesToString } from '@/lib/er-raw-db';
 
 export function SaveFileSourceSelector() {
   const { saveFileSource, setSaveFileSource } = useSaveFileSourceStore();

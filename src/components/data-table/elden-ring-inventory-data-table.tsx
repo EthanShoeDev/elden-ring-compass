@@ -1,18 +1,17 @@
 import { ColumnDef } from '@tanstack/react-table';
 
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 
-import { labels, statuses } from './data/data';
-import { Task } from './data/schema';
+import { item_types, statuses } from './data/data';
+import { InventoryItem } from './data/schema';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
-import { playerNameBytesToString } from '@/lib/er-db';
 import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon } from 'lucide-react';
 import { useEldenRingSaveQuery } from '@/lib/er-save-file-query';
 import { DataTable } from './data-table';
 import { useSlotSelection } from '@/stores/slot-selection-store';
 import { inventoryDbView } from '@/lib/vm/inventory';
+import { playerNameBytesToString } from '@/lib/er-raw-db';
 
 const priorities = [
   {
@@ -44,26 +43,28 @@ export function InventoryDataTable() {
   );
   if (!slot) return <div>No slot selected</div>;
 
-  const tasks: Task[] = inventoryDbView(slot).items.map((item) => ({
-    id: item.item_id.toString(),
-    title: item.item_name,
-    status: 'in progress',
-    priority: 'medium',
-    label: item.type as string,
-
-    quantity: item.quantity,
-  }));
+  const items: InventoryItem[] = inventoryDbView(slot)
+    .items.filter((i) => i.item_id != 0)
+    .map((item) => ({
+      id: item.item_id.toString(),
+      name: item.item_name,
+      quantity: item.quantity,
+      type: item.type,
+      status: 'todo',
+      priority: 'medium',
+      tags: [item.type as string],
+    }));
 
   return (
     <DataTable
       className="not-prose w-full max-w-none"
       columns={columns}
-      data={tasks}
+      data={items}
     />
   );
 }
 
-const columns: ColumnDef<Task>[] = [
+const columns: ColumnDef<InventoryItem>[] = [
   {
     id: 'select',
     header: ({ table }) => (
@@ -89,7 +90,7 @@ const columns: ColumnDef<Task>[] = [
         className="translate-y-[2px]"
       />
     ),
-    enableSorting: false,
+    enableSorting: true,
     enableHiding: false,
   },
   {
@@ -98,22 +99,20 @@ const columns: ColumnDef<Task>[] = [
       <DataTableColumnHeader column={column} title="Item Id" />
     ),
     cell: ({ row }) => <div className="w-[80px]">{row.getValue('id')}</div>,
-    enableSorting: true,
-    enableHiding: true,
   },
   {
-    accessorKey: 'title',
+    accessorKey: 'name',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Title" />
+      <DataTableColumnHeader column={column} title="Name" />
     ),
     cell: ({ row }) => {
-      const label = labels.find((label) => label.value === row.original.label);
+      // const label = labels.find((label) => label.value === row.original.name);
 
       return (
         <div className="flex space-x-2">
-          {label && <Badge variant="outline">{label.label}</Badge>}
+          {/* {label && <Badge variant="outline">{label.label}</Badge>} */}
           <span className="max-w-[500px] truncate font-medium">
-            {row.getValue('title')}
+            {row.getValue('name')}
           </span>
         </div>
       );
@@ -125,17 +124,37 @@ const columns: ColumnDef<Task>[] = [
       <DataTableColumnHeader column={column} title="Quantity" />
     ),
     cell: ({ row }) => {
-      const label = labels.find((label) => label.value === row.original.label);
-
       return (
         <div className="flex space-x-2">
-          {label && <Badge variant="outline">{label.label}</Badge>}
           <span className="max-w-[500px] truncate font-medium">
             {row.getValue('quantity')}
           </span>
         </div>
       );
     },
+  },
+  {
+    accessorKey: 'type',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Type" />
+    ),
+    cell: ({ row }) => {
+      const itemType = item_types.find(
+        (status) => status.value === row.getValue('type')
+      );
+
+      if (!itemType) {
+        return null;
+      }
+
+      return (
+        <div className="flex w-[100px] items-center">
+          {<itemType.icon className="mr-2 size-4 text-muted-foreground" />}
+          <span>{itemType.label}</span>
+        </div>
+      );
+    },
+    filterFn: 'arrIncludesSome',
   },
   {
     accessorKey: 'status',
@@ -158,10 +177,7 @@ const columns: ColumnDef<Task>[] = [
         </div>
       );
     },
-    filterFn: (row, id, value) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      return value.includes(row.getValue(id));
-    },
+    filterFn: 'arrIncludes',
   },
   {
     accessorKey: 'priority',
@@ -184,10 +200,7 @@ const columns: ColumnDef<Task>[] = [
         </div>
       );
     },
-    filterFn: (row, id, value) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      return value.includes(row.getValue(id));
-    },
+    filterFn: 'arrIncludes',
   },
   {
     id: 'actions',

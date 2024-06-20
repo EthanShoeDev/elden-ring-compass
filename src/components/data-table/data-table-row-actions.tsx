@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 import { labels } from './data/data';
-import { taskSchema } from './data/schema';
+import { inventoryItemSchema } from './data/schema';
 
 type DataTableRowActionsProps<TData> = {
   row: Row<TData>;
@@ -27,7 +27,7 @@ export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
   'use no memo';
-  const task = taskSchema.parse(row.original);
+  const task = inventoryItemSchema.parse(row.original);
 
   return (
     <DropdownMenu>
@@ -48,7 +48,7 @@ export function DataTableRowActions<TData>({
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>Labels</DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
-            <DropdownMenuRadioGroup value={task.label}>
+            <DropdownMenuRadioGroup value={task.name}>
               {labels.map((label) => (
                 <DropdownMenuRadioItem key={label.value} value={label.value}>
                   {label.label}

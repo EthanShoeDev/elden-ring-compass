@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import React from 'react';
 
 type DataTableColumnHeaderProps<TData, TValue> = {
   column: Column<TData, TValue>;
@@ -27,6 +28,7 @@ export function DataTableColumnHeader<TData, TValue>({
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
   'use no memo';
+
   if (!column.getCanSort()) {
     return <div className={cn(className)}>{title}</div>;
   }

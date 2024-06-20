@@ -1,4 +1,4 @@
-import { RAW_ELDEN_RING_DB } from '../er-db';
+import { RAW_ELDEN_RING_DB } from '../er-raw-db';
 import {
   CommonItem,
   EquipInventoryData,
@@ -7,34 +7,39 @@ import {
   StorageInventoryData,
 } from '../wasm-wrapper';
 
-const InventoryItemType = {
-  NONE: -1,
+const InventoryItemTypeToOffset = {
+  EMPTY: -1,
   WEAPON: 0x0,
   ARMOR: 0x10000000,
   ACCESSORY: 0x20000000,
   ITEM: 0x40000000,
   AOW: 0x80000000,
-};
-const InventoryGaitemType = {
+} as const;
+const InventoryGaitemTypeToOffset = {
   EMPTY: -1,
   WEAPON: 0x80000000,
   ARMOR: 0x90000000,
   ACCESSORY: 0xa0000000,
   ITEM: 0xb0000000,
   AOW: 0xc0000000,
-};
+} as const;
+export type InventoryItemType = keyof typeof InventoryItemTypeToOffset;
+
+export const inventoryItemTypes: string[] = Object.keys(
+  InventoryItemTypeToOffset
+);
 
 function itemTypeFromGaHandle(
   gaHandle: number
-): keyof typeof InventoryGaitemType {
+): keyof typeof InventoryGaitemTypeToOffset {
   const itemType = (gaHandle & 0xf0000000) >>> 0;
 
   if (itemType === -1) return 'EMPTY';
-  if (itemType === InventoryGaitemType.WEAPON) return 'WEAPON';
-  if (itemType === InventoryGaitemType.ARMOR) return 'ARMOR';
-  if (itemType === InventoryGaitemType.ACCESSORY) return 'ACCESSORY';
-  if (itemType === InventoryGaitemType.ITEM) return 'ITEM';
-  if (itemType === InventoryGaitemType.AOW) return 'AOW';
+  if (itemType === InventoryGaitemTypeToOffset.WEAPON) return 'WEAPON';
+  if (itemType === InventoryGaitemTypeToOffset.ARMOR) return 'ARMOR';
+  if (itemType === InventoryGaitemTypeToOffset.ACCESSORY) return 'ACCESSORY';
+  if (itemType === InventoryGaitemTypeToOffset.ITEM) return 'ITEM';
+  if (itemType === InventoryGaitemTypeToOffset.AOW) return 'AOW';
   return 'EMPTY';
 }
 
@@ -72,7 +77,7 @@ export function inventoryDbView(slot: Readonly<Slot>) {
     item_info: CommonItem;
     equip_index: number;
     gaitem: GaItem;
-    gaitem_type: keyof typeof InventoryGaitemType;
+    gaitem_type: keyof typeof InventoryGaitemTypeToOffset;
   }) {
     let item_type_specific: [number, string] = [0, ''];
     if (gaitem_type === 'WEAPON') {
@@ -87,25 +92,26 @@ export function inventoryDbView(slot: Readonly<Slot>) {
           : weaponName,
       ];
     } else if (gaitem_type === 'ARMOR') {
-      const id = gaitem.item_id ^ InventoryItemType.ARMOR;
+      const id = gaitem.item_id ^ InventoryItemTypeToOffset.ARMOR;
       const idStr = id.toString();
       const armorName =
         RAW_ELDEN_RING_DB.ARMOR_NAME[idStr] ?? `[UNKOWN_${idStr}]`;
       item_type_specific = [id, armorName];
     } else if (gaitem_type === 'ACCESSORY') {
-      const id = item_info.ga_item_handle ^ InventoryGaitemType.ACCESSORY;
+      const id =
+        item_info.ga_item_handle ^ InventoryGaitemTypeToOffset.ACCESSORY;
       const idStr = id.toString();
       const accessoryName =
         RAW_ELDEN_RING_DB.ACCESSORY_NAME[idStr] ?? `[UNKOWN_${idStr}]`;
       item_type_specific = [id, accessoryName];
     } else if (gaitem_type === 'ITEM') {
-      const id = item_info.ga_item_handle ^ InventoryGaitemType.ITEM;
+      const id = item_info.ga_item_handle ^ InventoryGaitemTypeToOffset.ITEM;
       const idStr = id.toString();
       const itemName =
         RAW_ELDEN_RING_DB.ITEM_NAMES[idStr] ?? `[UNKOWN_${idStr}]`;
       item_type_specific = [id, itemName];
     } else if (gaitem_type === 'AOW') {
-      const id = gaitem.item_id ^ InventoryItemType.AOW;
+      const id = gaitem.item_id ^ InventoryItemTypeToOffset.AOW;
       const idStr = id.toString();
       const aowName = RAW_ELDEN_RING_DB.AOW_NAME[idStr] ?? `[UNKOWN_${idStr}]`;
       item_type_specific = [id, aowName];
@@ -138,7 +144,7 @@ export function inventoryDbView(slot: Readonly<Slot>) {
     equip_index,
   }: {
     commonItem: CommonItem;
-    inventory_gaitem_type: keyof typeof InventoryGaitemType;
+    inventory_gaitem_type: keyof typeof InventoryGaitemTypeToOffset;
     equip_index: number;
   }) {
     const gaitem = ['ACCESSORY', 'ITEM', 'EMPTY'].includes(
