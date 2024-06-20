@@ -81,9 +81,9 @@ export function inventoryDbView(slot: Readonly<Slot>) {
   }) {
     let item_type_specific: [number, string] = [0, ''];
     if (gaitem_type === 'WEAPON') {
-      const id = (gaitem.item_id / 100) * 100;
+      const id = Math.round(gaitem.item_id);
       const upgrade_level = gaitem.item_id % 100;
-      const weaponName = getWeaponNameFromId(id);
+      const weaponName = getWeaponNameFromId(id - upgrade_level);
 
       item_type_specific = [
         gaitem.item_id,
