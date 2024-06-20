@@ -17,26 +17,6 @@ export function SlotOverview({ className }: { className?: string }) {
 
   return (
     <Card className={cn('p-4', className)}>
-      {/* <div className="prose dark:prose-invert prose-p:my-0">
-        <p>Steam ID: {statsVm.steam_id}</p>
-        <p>Gender: {statsVm.gender}</p>
-        <p>Weapon Level: {statsVm.match_making_weapon_level}</p>
-        <p>Archetype: {statsVm.arche_type}</p>
-        <p style={{ marginTop: '20px' }}>Stats</p>
-        <p>Vigor: {statsVm.stats.vigor}</p>
-        <p>Mind: {statsVm.stats.mind}</p>
-        <p>Endurance: {statsVm.stats.endurance}</p>
-        <p>Strength: {statsVm.stats.strength}</p>
-        <p>Dexterity: {statsVm.stats.dexterity}</p>
-        <p>Intelligence: {statsVm.stats.intelligence}</p>
-        <p>Faith: {statsVm.stats.faith}</p>
-        <p>Arcane: {statsVm.stats.arcane}</p>
-        <p>Level: {statsVm.stats.level}</p>
-        <p>Souls: {statsVm.stats.souls}</p>
-        <p>Souls Memory: {statsVm.stats.soulsmemory}</p>
-        <br />
-        <p>{JSON.stringify(statsVm.coords, undefined, 2)}</p>
-      </div> */}
       <CardHeader className="flex flex-col items-center gap-4 p-6">
         <div className="flex items-center gap-4">
           <Avatar>
