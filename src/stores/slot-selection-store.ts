@@ -4,24 +4,24 @@ import { useEffect } from 'react';
 import { create } from 'zustand';
 
 type SlotSelectionStoreState = {
-  selectedSlot?: string;
-  setSelectedSlot: (val?: string) => void;
+  selectedSlotName?: string;
+  setSelectedSlotName: (val?: string) => void;
 };
 
 const useSlotSelectionStore = create<SlotSelectionStoreState>()((set) => ({
-  selectedSlot: undefined,
-  setSelectedSlot: (val) => {
-    set({ selectedSlot: val });
+  selectedSlotName: undefined,
+  setSelectedSlotName: (val) => {
+    set({ selectedSlotName: val });
   },
 }));
 
-export const useSlotSelection = () => {
+export const useSlotNameSelection = () => {
   const { query } = useEldenRingSaveQuery();
   const store = useSlotSelectionStore();
 
   useEffect(() => {
     if (
-      store.selectedSlot === undefined &&
+      store.selectedSlotName === undefined &&
       query.data &&
       query.data.slots.length > 0
     ) {
@@ -35,9 +35,9 @@ export const useSlotSelection = () => {
             cachedSlotName
         )
       ) {
-        store.setSelectedSlot(cachedSlotName);
+        store.setSelectedSlotName(cachedSlotName);
       } else {
-        store.setSelectedSlot(
+        store.setSelectedSlotName(
           playerNameBytesToString(
             query.data.slots[0].player_game_data.character_name
           )
@@ -50,8 +50,18 @@ export const useSlotSelection = () => {
     if (!query.data) return;
     const steamId = query.data.global_steam_id;
     if (val) localStorage.setItem(`selectedSlot-${steamId}`, val);
-    store.setSelectedSlot(val);
+    store.setSelectedSlotName(val);
   };
 
-  return [store.selectedSlot, setSelectedSlot] as const;
+  return [store.selectedSlotName, setSelectedSlot] as const;
+};
+
+export const useSelectedSlot = () => {
+  const [slotName] = useSlotNameSelection();
+  const { query } = useEldenRingSaveQuery();
+  if (!query.data) return;
+  return query.data.slots.find(
+    (slot) =>
+      slotName === playerNameBytesToString(slot.player_game_data.character_name)
+  );
 };

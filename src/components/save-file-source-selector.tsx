@@ -19,7 +19,7 @@ import { CodeSnippet } from './code-snippet';
 import Spinner from './ui/spinner';
 import { Combobox } from './ui/combobox';
 import { fileToArrBuffer } from '@/lib/er-save-parser';
-import { useSlotSelection } from '@/stores/slot-selection-store';
+import { useSlotNameSelection } from '@/stores/slot-selection-store';
 import { CopyButton } from './copy-button';
 import { playerNameBytesToString } from '@/lib/er-raw-db';
 
@@ -164,13 +164,14 @@ cd (Join-Path "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" (Get-Child
         </PopoverContent>
       </Popover>
       <SlotSelector />
+      <SteamIdLabel />
     </>
   );
 }
 
 function SlotSelector() {
   const { query } = useEldenRingSaveQuery();
-  const slotState = useSlotSelection();
+  const slotState = useSlotNameSelection();
   if (!query.data) return <></>;
   return (
     <Combobox
@@ -187,6 +188,12 @@ function SlotSelector() {
         }))}
     />
   );
+}
+
+function SteamIdLabel() {
+  const { query } = useEldenRingSaveQuery();
+  if (!query.data) return <></>;
+  return <Label>Steam ID: {query.data.global_steam_id}</Label>;
 }
 
 function RefreshButton() {

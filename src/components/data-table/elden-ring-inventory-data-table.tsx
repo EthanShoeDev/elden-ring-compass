@@ -9,7 +9,7 @@ import { DataTableRowActions } from './data-table-row-actions';
 import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon } from 'lucide-react';
 import { useEldenRingSaveQuery } from '@/lib/er-save-file-query';
 import { DataTable } from './data-table';
-import { useSlotSelection } from '@/stores/slot-selection-store';
+import { useSlotNameSelection } from '@/stores/slot-selection-store';
 import { inventoryDbView } from '@/lib/vm/inventory';
 import { playerNameBytesToString } from '@/lib/er-raw-db';
 
@@ -33,7 +33,7 @@ const priorities = [
 
 export function InventoryDataTable() {
   const { query } = useEldenRingSaveQuery();
-  const [slotSelectionName] = useSlotSelection();
+  const [slotSelectionName] = useSlotNameSelection();
   if (query.isLoading) return <div>Loading...</div>;
   if (query.isError) return <div>Error: {query.error.message}</div>;
   const slot = query.data?.slots.find(
