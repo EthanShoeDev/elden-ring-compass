@@ -1,8 +1,10 @@
 use crate::read::read::Read;
 use crate::write::write::Write;
 use binary_reader::BinaryReader;
+use serde::Serialize;
 use std::io::Error;
 
+#[derive(Clone, Serialize)]
 pub struct UserData11 {
     unk: [u8; 0x10],
     pub regulation: Vec<u8>,
