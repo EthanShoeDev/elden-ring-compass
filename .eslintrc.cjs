@@ -9,7 +9,7 @@ module.exports = {
     'plugin:tailwindcss/recommended',
     'plugin:@tanstack/eslint-plugin-query/recommended',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs', 'packages'],
+  ignorePatterns: ['dist', '.eslintrc.cjs', 'packages', 'scripts'],
   parser: '@typescript-eslint/parser',
   plugins: [
     'react-refresh',

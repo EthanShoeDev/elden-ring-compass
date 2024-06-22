@@ -64,6 +64,7 @@
     "@eslint/js": "^9.5.0",
     "@tailwindcss/typography": "^0.5.13",
     "@tanstack/eslint-plugin-query": "^5.43.1",
+    "@types/bun": "^1.1.5",
     "@types/eslint__js": "^8.42.3",
     "@types/node": "^20.14.4",
     "@types/react": "npm:types-react@rc",
