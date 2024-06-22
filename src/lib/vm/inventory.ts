@@ -1,4 +1,4 @@
-import { RAW_ELDEN_RING_DB } from '../er-raw-db';
+import { RAW_ELDEN_RING_DB } from '../elden-ring-raw-db/er-raw-db';
 import {
   CommonItem,
   EquipInventoryData,
@@ -7,7 +7,7 @@ import {
   StorageInventoryData,
 } from '../wasm-wrapper';
 
-const InventoryItemTypeToOffset = {
+export const InventoryItemTypeToOffset = {
   EMPTY: -1,
   WEAPON: 0x0,
   ARMOR: 0x10000000,
@@ -15,7 +15,7 @@ const InventoryItemTypeToOffset = {
   ITEM: 0x40000000,
   AOW: 0x80000000,
 } as const;
-const InventoryGaitemTypeToOffset = {
+export const InventoryGaitemTypeToOffset = {
   EMPTY: -1,
   WEAPON: 0x80000000,
   ARMOR: 0x90000000,
@@ -29,40 +29,48 @@ export const inventoryItemTypes: string[] = Object.keys(
   InventoryItemTypeToOffset
 );
 
-function itemTypeFromGaHandle(
-  gaHandle: number
-): keyof typeof InventoryGaitemTypeToOffset {
-  const itemType = (gaHandle & 0xf0000000) >>> 0;
-
-  if (itemType === -1) return 'EMPTY';
-  if (itemType === InventoryGaitemTypeToOffset.WEAPON) return 'WEAPON';
-  if (itemType === InventoryGaitemTypeToOffset.ARMOR) return 'ARMOR';
-  if (itemType === InventoryGaitemTypeToOffset.ACCESSORY) return 'ACCESSORY';
-  if (itemType === InventoryGaitemTypeToOffset.ITEM) return 'ITEM';
-  if (itemType === InventoryGaitemTypeToOffset.AOW) return 'AOW';
-  return 'EMPTY';
-}
-
 export function inventoryDbView(slot: Readonly<Slot>) {
-  let next_gaitem_handle = 0;
-  let part_gaitem_handle = 0;
-  let next_aow_index = 0;
-  let next_armament_or_armor_index = 0;
-  for (const [index, gaitem] of slot.ga_items.entries()) {
-    if (itemTypeFromGaHandle(gaitem.gaitem_handle) === 'AOW') {
-      next_aow_index = index;
-    }
-    if ((gaitem.gaitem_handle & 0xffff) >>> 0 > part_gaitem_handle) {
-      next_gaitem_handle = (gaitem.gaitem_handle & 0xffff) >>> 0;
-      next_armament_or_armor_index = index;
-    }
+  function itemTypeFromGaHandle(
+    gaHandle: number
+  ): keyof typeof InventoryGaitemTypeToOffset {
+    const itemType = (gaHandle & 0xf0000000) >>> 0;
+
+    if (itemType === -1) return 'EMPTY';
+    if (itemType === InventoryGaitemTypeToOffset.WEAPON) return 'WEAPON';
+    if (itemType === InventoryGaitemTypeToOffset.ARMOR) return 'ARMOR';
+    if (itemType === InventoryGaitemTypeToOffset.ACCESSORY) return 'ACCESSORY';
+    if (itemType === InventoryGaitemTypeToOffset.ITEM) return 'ITEM';
+    if (itemType === InventoryGaitemTypeToOffset.AOW) return 'AOW';
+    return 'EMPTY';
   }
-  part_gaitem_handle = ((slot.ga_items[0].gaitem_handle >> 16) & 0xff) >>> 0;
+  // Wont need this function, its mostly for writing to save
+  function getNextItemIndexes(slot: Readonly<Slot>) {
+    let next_gaitem_handle = 0;
+    let part_gaitem_handle = 0;
+    let next_aow_index = 0;
+    let next_armament_or_armor_index = 0;
+    for (const [index, gaitem] of slot.ga_items.entries()) {
+      if (itemTypeFromGaHandle(gaitem.gaitem_handle) === 'AOW') {
+        next_aow_index = index;
+      }
+      if ((gaitem.gaitem_handle & 0xffff) >>> 0 > part_gaitem_handle) {
+        next_gaitem_handle = (gaitem.gaitem_handle & 0xffff) >>> 0;
+        next_armament_or_armor_index = index;
+      }
+    }
+    part_gaitem_handle = ((slot.ga_items[0].gaitem_handle >> 16) & 0xff) >>> 0;
 
-  next_gaitem_handle = next_gaitem_handle + 1;
-  next_aow_index = next_aow_index + 1;
-  next_armament_or_armor_index = next_armament_or_armor_index + 1;
+    next_gaitem_handle = next_gaitem_handle + 1;
+    next_aow_index = next_aow_index + 1;
+    next_armament_or_armor_index = next_armament_or_armor_index + 1;
 
+    return {
+      next_gaitem_handle,
+      part_gaitem_handle,
+      next_aow_index,
+      next_armament_or_armor_index,
+    };
+  }
   function getWeaponNameFromId(id: number): string {
     const idStr = id.toString();
     return RAW_ELDEN_RING_DB.WEAPON_NAME[idStr] ?? `[UNKOWN_${idStr}]`;
@@ -128,16 +136,6 @@ export function inventoryDbView(slot: Readonly<Slot>) {
     };
   }
 
-  const default_gaitem: GaItem = {
-    gaitem_handle: 0,
-    item_id: 0,
-    unk2: -1,
-    unk3: -1,
-    // aow_gaitem_handle: u32::MAX,
-    aow_gaitem_handle: 0xffffffff,
-    unk5: 0,
-  };
-
   function get_inventory_vm_item_from_save({
     commonItem,
     inventory_gaitem_type,
@@ -166,6 +164,15 @@ export function inventoryDbView(slot: Readonly<Slot>) {
     });
   }
 
+  const default_gaitem: GaItem = {
+    gaitem_handle: 0,
+    item_id: 0,
+    unk2: -1,
+    unk3: -1,
+    aow_gaitem_handle: 0xffffffff, // u32::MAX
+    unk5: 0,
+  };
+
   const fill_storage_type = (
     inventory_data: EquipInventoryData | StorageInventoryData
   ) => {
@@ -185,11 +192,10 @@ export function inventoryDbView(slot: Readonly<Slot>) {
   const storage_inventory = fill_storage_type(slot.storage_inventory_data);
 
   const userInventory = {
-    next_gaitem_handle,
-    part_gaitem_handle,
-    next_aow_index,
-    next_armament_or_armor_index,
-    items: [...equip_inventory, ...storage_inventory],
+    ...getNextItemIndexes(slot),
+    items: [...equip_inventory, ...storage_inventory].filter(
+      (i) => i.item_id != 0
+    ),
   };
 
   return userInventory;

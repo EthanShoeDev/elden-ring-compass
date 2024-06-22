@@ -1,4 +1,7 @@
-export const GRACES = {
+export const GRACES: Record<
+  string,
+  Record<string, [string, number, string]>
+> = {
   'Table of Lost Grace / Roundtable Hold': {
     RoundtableHold: [
       'RoundtableHold',

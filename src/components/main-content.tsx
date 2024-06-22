@@ -1,6 +1,7 @@
 // import { ObjectivesCard } from './objectives-card';
 
-import { InventoryDataTable } from './data-table/elden-ring-inventory-data-table';
+import { EventsDataTable } from './events-data-table';
+import { InventoryDataTable } from './inventory-data-table';
 import { SlotOverview } from './slot-overview';
 
 export function MainContent() {
@@ -10,6 +11,8 @@ export function MainContent() {
       <SlotOverview />
       <h1 className="w-full text-2xl">Inventory</h1>
       <InventoryDataTable />
+      <h1 className="w-full text-2xl">Events</h1>
+      <EventsDataTable />
       {/* <Card className="max-h-[450px] overflow-hidden">
           <InteractiveMap />
         </Card> */}

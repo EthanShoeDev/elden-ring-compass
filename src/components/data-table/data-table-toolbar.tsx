@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTableViewOptions } from './data-table-view-options';
 
-import { item_types, priorities, statuses } from './data/data';
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
 
 type DataTableToolbarProps<TData> = {
@@ -22,37 +21,33 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="Filter tasks..."
+          placeholder={'Search'}
           value={
-            (table.getColumn('name')?.getFilterValue() as string | undefined) ??
+            (table.getColumn('Name')?.getFilterValue() as string | undefined) ??
             ''
           }
           onChange={(event) =>
-            table.getColumn('name')?.setFilterValue(event.target.value)
+            table.getColumn('Name')?.setFilterValue(event.target.value)
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {table.getColumn('status') && (
-          <DataTableFacetedFilter
-            column={table.getColumn('status')}
-            title="Status"
-            options={statuses}
-          />
-        )}
-        {table.getColumn('priority') && (
-          <DataTableFacetedFilter
-            column={table.getColumn('priority')}
-            title="Priority"
-            options={priorities}
-          />
-        )}
-        {table.getColumn('type') && (
-          <DataTableFacetedFilter
-            column={table.getColumn('type')}
-            title="Type"
-            options={item_types}
-          />
-        )}
+        {table
+          .getAllLeafColumns()
+          .filter((col) => col.columnDef.filterFn == 'arrIncludesSome')
+          .map((column) => (
+            <DataTableFacetedFilter
+              key={column.id}
+              column={column}
+              title={column.columnDef.id}
+              options={Array.from(column.getFacetedUniqueValues().keys()).map(
+                (value) => ({
+                  label: value as string,
+                  value: value as string,
+                  icon: undefined,
+                })
+              )}
+            />
+          ))}
         {isFiltered && (
           <Button
             variant="ghost"

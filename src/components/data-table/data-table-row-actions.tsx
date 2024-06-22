@@ -16,9 +16,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-import { labels } from './data/data';
-import { inventoryItemSchema } from './data/schema';
-
 type DataTableRowActionsProps<TData> = {
   row: Row<TData>;
 };

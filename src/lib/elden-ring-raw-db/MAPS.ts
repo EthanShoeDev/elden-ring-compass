@@ -1,4 +1,4 @@
-export const MAPS = {
+export const MAPS: Record<string, [number, string]> = {
   SE: [62007, 'SE'],
   NW: [62006, 'NW'],
   SW: [62005, 'SW'],

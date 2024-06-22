@@ -21,7 +21,7 @@ import { Combobox } from './ui/combobox';
 import { fileToArrBuffer } from '@/lib/er-save-parser';
 import { useSlotNameSelection } from '@/stores/slot-selection-store';
 import { CopyButton } from './copy-button';
-import { playerNameBytesToString } from '@/lib/er-raw-db';
+import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
 
 export function SaveFileSourceSelector() {
   const { saveFileSource, setSaveFileSource } = useSaveFileSourceStore();

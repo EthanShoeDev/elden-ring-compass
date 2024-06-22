@@ -1,4 +1,4 @@
-export const SUMMONING_POOLS = {
+export const SUMMONING_POOLS: Record<string, [number, string]> = {
   SummoningPool10000040: [10000040, 'Name_10000040'],
   SummoningPool10000041: [10000041, 'Name_10000041'],
   SummoningPool10000042: [10000042, 'Name_10000042'],

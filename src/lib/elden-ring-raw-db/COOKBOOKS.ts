@@ -1,4 +1,4 @@
-export const COOKBOOKS = {
+export const COOKBOOKS: Record<string, Record<string, [number, string]>> = {
   "Missionary's Cookbook": {
     MissionarysCookbook1: [67610, "Missionary's Cookbook[1]"],
     MissionarysCookbook2: [67600, "Missionary's Cookbook[2]"],

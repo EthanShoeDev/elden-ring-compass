@@ -1,4 +1,4 @@
-import { playerNameBytesToString } from '@/lib/er-raw-db';
+import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
 import { useEldenRingSaveQuery } from '@/lib/er-save-file-query';
 import { useEffect } from 'react';
 import { create } from 'zustand';

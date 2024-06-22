@@ -1,4 +1,4 @@
-export const BOSSES = {
+export const BOSSES: Record<string, Record<string, [number, string]>> = {
   Limgrave: {
     AlabasterLordEvergaol: [1036500800, 'Alabaster Lord (Evergaol)'],
     BeastmanofFaramAzulaGrovesideCave: [

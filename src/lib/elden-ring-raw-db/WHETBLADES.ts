@@ -1,4 +1,4 @@
-export const WHETBLADES = {
+export const WHETBLADES: Record<string, [number, string]> = {
   BlackWhetbladeBlood: [65710, 'Black Whetblade (Blood)'],
   BlackWhetbladeOccult: [65720, 'Black Whetblade (Occult)'],
   BlackWhetbladePoison: [65700, 'Black Whetblade (Poison)'],
