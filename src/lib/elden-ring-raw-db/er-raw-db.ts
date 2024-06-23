@@ -126,6 +126,12 @@ export const CLEAN_ELDEN_RING_DB = (() => {
           }))
         )
         .flat(),
+      {
+        type: 'boss',
+        eventId: 310,
+        name: 'Radahn',
+        regionName: 'Caelid',
+      },
       ...Object.entries(RAW_ELDEN_RING_DB.SUMMONING_POOLS).map(
         ([summonPoolKey, tupleDetails]) => ({
           type: 'summoningPool',

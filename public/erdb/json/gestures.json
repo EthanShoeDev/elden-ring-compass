@@ -1,0 +1,895 @@
+{
+  "Bow": {
+    "full_hex_id": "40002328",
+    "id": 9000,
+    "name": "Bow",
+    "summary": "A bow",
+    "description": ["A formal bow"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7000,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Polite Bow": {
+    "full_hex_id": "40002329",
+    "id": 9001,
+    "name": "Polite Bow",
+    "summary": "A formal bow",
+    "description": ["A stiff bow"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7001,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "My Thanks": {
+    "full_hex_id": "4000232A",
+    "id": 9002,
+    "name": "My Thanks",
+    "summary": "A stiff bow",
+    "description": ["A reverential bow"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7002,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Curtsy": {
+    "full_hex_id": "4000232B",
+    "id": 9003,
+    "name": "Curtsy",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7003,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Reverential Bow": {
+    "full_hex_id": "4000232C",
+    "id": 9004,
+    "name": "Reverential Bow",
+    "summary": "A reverential bow",
+    "description": ["Wave hand"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7004,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "My Lord": {
+    "full_hex_id": "4000232D",
+    "id": 9005,
+    "name": "My Lord",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7005,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Warm Welcome": {
+    "full_hex_id": "4000232E",
+    "id": 9006,
+    "name": "Warm Welcome",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7006,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Wave": {
+    "full_hex_id": "4000232F",
+    "id": 9007,
+    "name": "Wave",
+    "summary": "Wave hand",
+    "description": ["A tough fist gesture"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7007,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Casual Greeting": {
+    "full_hex_id": "40002330",
+    "id": 9008,
+    "name": "Casual Greeting",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7008,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Strength!": {
+    "full_hex_id": "40002331",
+    "id": 9009,
+    "name": "Strength!",
+    "summary": "A tough fist gesture",
+    "description": ["Raise morale"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7009,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "As You Wish": {
+    "full_hex_id": "40002332",
+    "id": 9010,
+    "name": "As You Wish",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7010,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Point Forwards": {
+    "full_hex_id": "40002333",
+    "id": 9011,
+    "name": "Point Forwards",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7011,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Point Upwards": {
+    "full_hex_id": "40002334",
+    "id": 9012,
+    "name": "Point Upwards",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7012,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Point Downwards": {
+    "full_hex_id": "40002335",
+    "id": 9013,
+    "name": "Point Downwards",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7013,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Beckon": {
+    "full_hex_id": "40002336",
+    "id": 9014,
+    "name": "Beckon",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7014,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Wait!": {
+    "full_hex_id": "40002337",
+    "id": 9015,
+    "name": "Wait!",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7015,
+    "max_held": 0,
+    "max_stored": 0,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Calm Down!": {
+    "full_hex_id": "40002338",
+    "id": 9016,
+    "name": "Calm Down!",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7016,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Nod In Thought": {
+    "full_hex_id": "40002339",
+    "id": 9017,
+    "name": "Nod In Thought",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7017,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Extreme Repentance": {
+    "full_hex_id": "4000233A",
+    "id": 9018,
+    "name": "Extreme Repentance",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7018,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Grovel For Mercy": {
+    "full_hex_id": "4000233B",
+    "id": 9019,
+    "name": "Grovel For Mercy",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7019,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Rallying Cry": {
+    "full_hex_id": "4000233C",
+    "id": 9020,
+    "name": "Rallying Cry",
+    "summary": "Raise morale",
+    "description": ["Pledge on one's sword"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7020,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Heartening Cry": {
+    "full_hex_id": "4000233D",
+    "id": 9021,
+    "name": "Heartening Cry",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7021,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "By My Sword": {
+    "full_hex_id": "4000233E",
+    "id": 9022,
+    "name": "By My Sword",
+    "summary": "Pledge on one's sword",
+    "description": ["A threatening gesture"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7022,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Hoslow's Oath": {
+    "full_hex_id": "4000233F",
+    "id": 9023,
+    "name": "Hoslow's Oath",
+    "summary": "A threatening gesture",
+    "description": ["An inspiriting gesture"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7023,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Fire Spur Me": {
+    "full_hex_id": "40002340",
+    "id": 9024,
+    "name": "Fire Spur Me",
+    "summary": "Inspire fellow warriors",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7024,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Bravo!": {
+    "full_hex_id": "40002342",
+    "id": 9026,
+    "name": "Bravo!",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7026,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Jump for Joy": {
+    "full_hex_id": "40002343",
+    "id": 9027,
+    "name": "Jump for Joy",
+    "summary": "A gleeful leap",
+    "description": ["Slump to the floor"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7027,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Triumphant Delight": {
+    "full_hex_id": "40002344",
+    "id": 9028,
+    "name": "Triumphant Delight",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7028,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Fancy Spin": {
+    "full_hex_id": "40002345",
+    "id": 9029,
+    "name": "Fancy Spin",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7029,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Finger Snap": {
+    "full_hex_id": "40002346",
+    "id": 9030,
+    "name": "Finger Snap",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7030,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Dejection": {
+    "full_hex_id": "40002347",
+    "id": 9031,
+    "name": "Dejection",
+    "summary": "Slump to the floor",
+    "description": ["Rest on the floor"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7031,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Patches' Crouch": {
+    "full_hex_id": "40002348",
+    "id": 9032,
+    "name": "Patches' Crouch",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7032,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Crossed Legs": {
+    "full_hex_id": "40002349",
+    "id": 9033,
+    "name": "Crossed Legs",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7033,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Rest": {
+    "full_hex_id": "4000234A",
+    "id": 9034,
+    "name": "Rest",
+    "summary": "Rest on the floor",
+    "description": ["A dismissive gesture"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7034,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Sitting Sideways": {
+    "full_hex_id": "4000234B",
+    "id": 9035,
+    "name": "Sitting Sideways",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7035,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Dozing Cross-Legged": {
+    "full_hex_id": "4000234C",
+    "id": 9036,
+    "name": "Dozing Cross-Legged",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7036,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Spread Out": {
+    "full_hex_id": "4000234D",
+    "id": 9037,
+    "name": "Spread Out",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7037,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Balled Up": {
+    "full_hex_id": "4000234F",
+    "id": 9039,
+    "name": "Balled Up",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7039,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "What Do You Want?": {
+    "full_hex_id": "40002350",
+    "id": 9040,
+    "name": "What Do You Want?",
+    "summary": "A dismissive gesture",
+    "description": ["A prayer borne of despair"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7040,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Prayer": {
+    "full_hex_id": "40002351",
+    "id": 9041,
+    "name": "Prayer",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7041,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Desperate Prayer": {
+    "full_hex_id": "40002352",
+    "id": 9042,
+    "name": "Desperate Prayer",
+    "summary": "A prayer borne of despair",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7042,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Rapture": {
+    "full_hex_id": "40002353",
+    "id": 9043,
+    "name": "Rapture",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7043,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Erudition": {
+    "full_hex_id": "40002355",
+    "id": 9045,
+    "name": "Erudition",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7046,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Outer Order": {
+    "full_hex_id": "40002356",
+    "id": 9046,
+    "name": "Outer Order",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7047,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Inner Order": {
+    "full_hex_id": "40002357",
+    "id": 9047,
+    "name": "Inner Order",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7048,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "Golden Order Totality": {
+    "full_hex_id": "40002358",
+    "id": 9048,
+    "name": "Golden Order Totality",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7049,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  },
+  "The Ring": {
+    "full_hex_id": "4000235A",
+    "id": 9050,
+    "name": "The Ring",
+    "summary": "no summary",
+    "description": ["no description"],
+    "is_tradable": true,
+    "price_sold": 0,
+    "rarity": "Common",
+    "icon": 7050,
+    "max_held": 1,
+    "max_stored": 1,
+    "locations": [
+      {
+        "summary": "no summary"
+      }
+    ],
+    "remarks": []
+  }
+}

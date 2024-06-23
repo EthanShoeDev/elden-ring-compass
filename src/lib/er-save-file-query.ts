@@ -11,6 +11,7 @@ export function useEldenRingSaveQuery() {
   return {
     query: useQuery({
       queryKey: ['er-save', src],
+      staleTime: 30 * 1000,
       queryFn: async () => {
         if (!src) throw new Error('No source provided');
         if ('file' in src) {

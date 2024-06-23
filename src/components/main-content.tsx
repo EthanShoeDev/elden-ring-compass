@@ -2,11 +2,13 @@
 
 import { EventsDataTable } from './events-data-table';
 import { InventoryDataTable } from './inventory-data-table';
+import { MainBossSection } from './sections/main-boss-section';
 import { SlotOverview } from './slot-overview';
 
 export function MainContent() {
   return (
-    <main className="flex flex-1 flex-col items-center gap-4 bg-background p-2 md:p-4">
+    <main className="flex flex-1 flex-col gap-4 bg-background p-2 md:p-4">
+      <MainBossSection />
       <h1 className="w-full text-2xl">Overview</h1>
       <SlotOverview />
       <h1 className="w-full text-2xl">Inventory</h1>
