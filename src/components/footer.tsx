@@ -14,20 +14,20 @@ export function Footer() {
         </li>
         <li>
           <a
-            href="https://eldenring.wiki.fextralife.com/Game+Progress+Route"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Game Progress Route on Fextralife
-          </a>
-        </li>
-        <li>
-          <a
             href="https://github.com/ClayAmore/ER-Save-Editor"
             target="_blank"
             rel="noopener noreferrer"
           >
             ER Save Editor on GitHub
+          </a>
+        </li>
+        <li>
+          <a
+            href="https://github.com/EldenRingDatabase/erdb"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            ERDB
           </a>
         </li>
       </ul>
