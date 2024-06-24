@@ -9,7 +9,7 @@ export function Footer() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Elden Ring Progression Tracker on GitHub
+            Elden Ring Progression Tracker
           </a>
         </li>
         <li>
@@ -18,7 +18,7 @@ export function Footer() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            ER Save Editor on GitHub
+            ER Save Editor
           </a>
         </li>
         <li>
