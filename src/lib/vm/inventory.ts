@@ -26,7 +26,7 @@ export const InventoryGaItemTypeToOffset = {
 } as const;
 export type InventoryItemType = keyof typeof InventoryItemTypeToOffset;
 
-export const inventoryItemTypes: string[] = Object.keys(
+export const inventoryItemTypes: Array<string> = Object.keys(
   InventoryItemTypeToOffset
 );
 

@@ -153,9 +153,9 @@ export const CLEAN_ELDEN_RING_DB = (() => {
   };
 })();
 
-export function playerNameBytesToString(bytes: Readonly<number[]>) {
+export function playerNameBytesToString(bytes: Readonly<Array<number>>) {
   const character_name = bytes;
-  const character_name_trimmed: number[] = [];
+  const character_name_trimmed: Array<number> = [];
   for (let i = 0; i < 0x10; i++) {
     if (character_name[i] == 0) {
       break;

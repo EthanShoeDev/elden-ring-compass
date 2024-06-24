@@ -48,7 +48,7 @@ type Action =
     };
 
 type State = {
-  toasts: ToasterToast[];
+  toasts: Array<ToasterToast>;
 };
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
@@ -124,7 +124,7 @@ export const reducer = (state: State, action: Action): State => {
   }
 };
 
-const listeners: ((state: State) => void)[] = [];
+const listeners: Array<(state: State) => void> = [];
 
 let memoryState: State = { toasts: [] };
 

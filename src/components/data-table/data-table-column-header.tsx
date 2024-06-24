@@ -19,7 +19,7 @@ import React from 'react';
 
 type DataTableColumnHeaderProps<TData, TValue> = {
   column: Column<TData, TValue>;
-  title: string;
+  title?: string;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export function DataTableColumnHeader<TData, TValue>({
@@ -32,6 +32,8 @@ export function DataTableColumnHeader<TData, TValue>({
   if (!column.getCanSort()) {
     return <div className={cn(className)}>{title}</div>;
   }
+
+  title = title ?? column.id;
 
   return (
     <div className={cn('flex items-center space-x-2', className)}>

@@ -1,6 +1,6 @@
 type MapEntry = [number, [number, number]];
 
-export const EVENT_FLAGS: MapEntry[] = [
+export const EVENT_FLAGS: Array<MapEntry> = [
   [6080, [0x2f8, 7]],
   [300, [0x25, 3]],
   [310, [0x26, 1]],

@@ -24,7 +24,7 @@ export function InventoryDataTable() {
 }
 
 const columnHelper = createColumnHelper<InventoryItem>();
-const columns: ColumnDef<InventoryItem>[] = [
+const columns: Array<ColumnDef<InventoryItem>> = [
   commonSelectColumnDef(columnHelper),
   columnHelper.accessor('item_id', {
     id: 'ID',

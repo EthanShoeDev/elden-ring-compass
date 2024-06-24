@@ -1,4 +1,3 @@
-import armaments from '@/assets/erdb/json/armaments.json';
 import { DataTable } from '../data-table/data-table';
 import {
   Card,
@@ -11,7 +10,9 @@ import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { commonSelectColumnDef } from '../data-table/common-column-defs';
 import { inventoryDbView } from '@/lib/vm/inventory';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
+import { Armament, ERDB } from '@/lib/erdb';
 import { DataTableColumnHeader } from '../data-table/data-table-column-header';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 export function ArmamentsSection() {
   const slot = useSelectedSlot();
@@ -22,7 +23,7 @@ export function ArmamentsSection() {
       : []
   );
 
-  const items = Object.values(armaments).map((value) => ({
+  const items = Object.values(ERDB.armaments).map((value) => ({
     quantity: inventoryQuantityById.get(value.id) ?? undefined,
     ...value,
   }));
@@ -46,43 +47,69 @@ export function ArmamentsSection() {
   );
 }
 
-const items = Object.values(armaments).map((value) => ({
-  quantity: undefined,
-  ...value,
-}));
-
-type Item = (typeof items)[0];
+type Item = Armament & { quantity: number | undefined };
 const columnHelper = createColumnHelper<Item>();
-const columns: ColumnDef<Item>[] = [
+const columns: Array<ColumnDef<Item>> = [
   commonSelectColumnDef(columnHelper),
-  columnHelper.accessor('id', {
-    id: 'ID',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="ID" />
-    ),
-    cell: (cell) => <div className="w-[80px]">{cell.renderValue()}</div>,
-  }) as ColumnDef<Item>,
+  // commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+  //   cell: (cell) => (
+  //     <div>
+  //       <img />
+  //       {cell.renderValue() as ReactNode}
+  //     </div>
+  //   ),
+  // }),
   columnHelper.accessor('name', {
-    id: 'Name', // signal to use search on this column
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Name" />
-    ),
-    cell: (cell) => <div className="w-[200px]">{cell.renderValue()}</div>,
+    id: 'Name',
+    header: ({ column }) => <DataTableColumnHeader column={column} />,
+    cell: (cell) => {
+      const imgUrl = new URL(
+        `../../assets/erdb/icons/armaments/${cell.row.original.icon.toString()}.png`,
+        import.meta.url
+      ).href;
+      const name = cell.renderValue();
+      return (
+        <div className="flex gap-4">
+          <Tooltip>
+            <TooltipTrigger>
+              <img className="size-10" src={imgUrl} alt={name ?? 'unknown'} />
+            </TooltipTrigger>
+            <TooltipContent>
+              <img className="size-64" src={imgUrl} alt={name ?? 'unknown'} />
+            </TooltipContent>
+          </Tooltip>
+          {name}
+        </div>
+      );
+    },
   }) as ColumnDef<Item>,
   columnHelper.accessor('quantity', {
     id: 'Quantity',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Quantity" />
-    ),
-    cell: (cell) => <div className="w-[80px]">{cell.renderValue()}</div>,
+    header: ({ column }) => <DataTableColumnHeader column={column} />,
+    cell: (cell) => <div>{cell.renderValue()}</div>,
     filterFn: 'arrIncludesSome',
   }) as ColumnDef<Item>,
   columnHelper.accessor('category', {
     id: 'Category',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Category" />
-    ),
-    cell: (cell) => <div className="w-[100px]">{cell.renderValue()}</div>,
+    header: ({ column }) => <DataTableColumnHeader column={column} />,
+    cell: (cell) => <div>{cell.renderValue()}</div>,
+    filterFn: 'arrIncludesSome',
+  }) as ColumnDef<Item>,
+  columnHelper.accessor('description', {
+    id: 'Description',
+    header: ({ column }) => <DataTableColumnHeader column={column} />,
+    cell: (cell) => <div>{cell.renderValue()}</div>,
+  }) as ColumnDef<Item>,
+  columnHelper.accessor('is_tradable', {
+    id: 'Is Tradable',
+    header: ({ column }) => <DataTableColumnHeader column={column} />,
+    cell: (cell) => <div>{cell.renderValue()?.toString()}</div>,
+    filterFn: 'arrIncludesSome',
+  }) as ColumnDef<Item>,
+  columnHelper.accessor('allow_ash_of_war', {
+    id: 'Allow Ash of War',
+    header: ({ column }) => <DataTableColumnHeader column={column} />,
+    cell: (cell) => <div>{cell.renderValue()?.toString()}</div>,
     filterFn: 'arrIncludesSome',
   }) as ColumnDef<Item>,
 ];

@@ -24,11 +24,11 @@ import { Separator } from '@/components/ui/separator';
 type DataTableFacetedFilterProps<TData, TValue> = {
   column?: Column<TData, TValue>;
   title?: string;
-  options: {
+  options: Array<{
     label: string;
     value: string;
     icon?: React.ComponentType<{ className?: string }>;
-  }[];
+  }>;
 };
 
 export function DataTableFacetedFilter<TData, TValue>({
@@ -38,7 +38,7 @@ export function DataTableFacetedFilter<TData, TValue>({
 }: DataTableFacetedFilterProps<TData, TValue>) {
   'use no memo';
   const facets = column?.getFacetedUniqueValues();
-  const selectedValues = new Set(column?.getFilterValue() as string[]);
+  const selectedValues = new Set(column?.getFilterValue() as Array<string>);
 
   return (
     <Popover>

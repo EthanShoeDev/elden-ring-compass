@@ -33,8 +33,8 @@ export function DataTable<TData, TValue>({
   data,
 }: {
   className?: string;
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+  columns: Array<ColumnDef<TData, TValue>>;
+  data: Array<TData>;
 }) {
   'use no memo';
 

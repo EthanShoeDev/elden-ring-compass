@@ -35,5 +35,6 @@ module.exports = {
         },
       },
     ],
+    '@typescript-eslint/array-type': ['error', { default: 'generic' }],
   },
 };
