@@ -7,7 +7,7 @@ import { statsDbView } from '@/lib/vm/stats';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { equipmentDbView } from '@/lib/vm/equipement';
+// import { equipmentDbView } from '@/lib/vm/equipement';
 
 export function SlotOverview({ className }: { className?: string }) {
   const slot = useSelectedSlot();
@@ -36,7 +36,7 @@ export function SlotOverview({ className }: { className?: string }) {
         steam_id: 'Unknown',
       };
 
-  const equipmentVm = equipmentDbView(slot);
+  // const equipmentVm = equipmentDbView(slot);
 
   const capitalizeFirstLetter = (string: string) => {
     if (!string) return '';
