@@ -1,8 +1,6 @@
 import { SwordIcon } from 'lucide-react';
 import { SaveFileSourceSelector } from './save-file-source-selector';
 import { DarkModeToggle } from './dark-mode-toggle';
-import { ELDEN_RING_OBJECTIVES } from '@/lib/er-objectives';
-import { Combobox } from './ui/combobox';
 
 export function AppBar() {
   return (
@@ -13,14 +11,6 @@ export function AppBar() {
             <SwordIcon className="size-8" />
           </a>
           <h1 className="text-2xl font-bold">Elden Ring Save Parser</h1>
-          <Combobox
-            emptyLabel="No region selected"
-            placeholder="Select a region"
-            items={ELDEN_RING_OBJECTIVES.map((r) => ({
-              label: r.name,
-              value: r.name,
-            }))}
-          />
         </div>
         <div className="flex flex-wrap items-center gap-2 md:gap-4">
           <SaveFileSourceSelector />

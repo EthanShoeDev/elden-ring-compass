@@ -29,7 +29,7 @@ export function Combobox({
 }: {
   emptyLabel: string;
   placeholder: string;
-  items: Item[];
+  items: Array<Item>;
   valueState?: readonly [string | undefined, (val?: string) => void];
 }) {
   const [open, setOpen] = React.useState(false);

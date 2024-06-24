@@ -25,7 +25,7 @@ export function EventsDataTable() {
 }
 
 const columnHelper = createColumnHelper<Event>();
-const columns: ColumnDef<Event>[] = [
+const columns: Array<ColumnDef<Event>> = [
   commonSelectColumnDef(columnHelper),
   columnHelper.accessor('eventId', {
     id: 'ID',

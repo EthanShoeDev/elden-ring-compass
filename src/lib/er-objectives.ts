@@ -3,21 +3,21 @@ type Region = {
   name: string;
   level: string;
   upgrades: string;
-  overview: string[];
-  detailed: DetailedStep[];
+  overview: Array<string>;
+  detailed: Array<DetailedStep>;
 };
 
 type DetailedStep = {
   description: string; // markdown
-  objectives: Objective[];
+  objectives: Array<Objective>;
 };
 
 type GenericObjective = {
   label: string;
   recommendedLevel?: number;
   notes?: string;
-  tags?: string[];
-  items?: EldenRingObjectiveItem[];
+  tags?: Array<string>;
+  items?: Array<EldenRingObjectiveItem>;
 };
 
 type NPCObjective = GenericObjective & {
@@ -57,7 +57,7 @@ export type EldenRingObjectiveItem = {
   href?: string;
 };
 
-export const ELDEN_RING_OBJECTIVES: Region[] = [
+export const ELDEN_RING_OBJECTIVES: Array<Region> = [
   {
     name: 'West Limgrave',
     level: '1~15',
