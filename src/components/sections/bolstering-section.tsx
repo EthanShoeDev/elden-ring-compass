@@ -19,6 +19,7 @@ import {
 } from '../ui/table';
 import { eventsDbView } from '@/lib/vm/events';
 import { cn } from '@/lib/utils';
+import { SlotOverview } from '../slot-overview';
 
 export function BolsteringSection() {
   const slot = useSelectedSlot();
@@ -128,10 +129,11 @@ export function BolsteringSection() {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Bolstering Materials</CardTitle>
+        <CardTitle>Overview</CardTitle>
         <CardDescription></CardDescription>
       </CardHeader>
       <CardContent className="flex gap-4">
+        <SlotOverview />
         <Card className="">
           <CardHeader>
             <CardTitle>Flasks</CardTitle>

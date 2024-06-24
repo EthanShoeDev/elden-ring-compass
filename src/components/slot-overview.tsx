@@ -11,13 +11,38 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 export function SlotOverview({ className }: { className?: string }) {
   const slot = useSelectedSlot();
   const [slotName] = useSlotNameSelection();
-  if (!slot) return <div>No slot selected</div>;
 
-  const statsVm = statsDbView(slot);
+  const statsVm = slot
+    ? statsDbView(slot)
+    : {
+        arche_type: 'Unknown',
+        coords: { player_coords: {} },
+        gender: 'Unknown',
+        match_making_weapon_level: 0,
+        stats: {
+          arcane: 0,
+          dexterity: 0,
+          endurance: 0,
+          faith: 0,
+          intelligence: 0,
+          level: 0,
+          mind: 0,
+          soulsmemory: 0,
+          souls: 0,
+          strength: 0,
+          vigor: 0,
+        },
+        steam_id: 'Unknown',
+      };
+
+  const capitalizeFirstLetter = (string: string) => {
+    if (!string) return '';
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
 
   return (
     <Card className={cn('p-4', className)}>
-      <CardHeader className="flex flex-col items-center gap-4 p-6">
+      <CardHeader className="flex flex-col gap-4 p-6">
         <div className="flex items-center gap-4">
           <Avatar>
             <AvatarImage src="/placeholder-user.jpg" />
@@ -31,7 +56,7 @@ export function SlotOverview({ className }: { className?: string }) {
           </div>
         </div>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div>Gender: {statsVm.gender}</div>
+          <div>Gender: {capitalizeFirstLetter(statsVm.gender)}</div>
           <Separator orientation="vertical" />
           <div>Weapon Level: {statsVm.match_making_weapon_level}</div>
           <Separator orientation="vertical" />
