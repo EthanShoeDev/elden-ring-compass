@@ -4,8 +4,27 @@ import {
   InventoryGaItemTypeToOffset,
   InventoryItemTypeToOffset,
 } from './inventory';
-
-export function equipmentDbView(slot: Readonly<Slot>) {
+const empty = {
+  gaitem_handle: 0,
+  id: 0,
+  equip_index: 0,
+  name: 'Empty',
+};
+export function equipmentDbView(slot?: Readonly<Slot>) {
+  if (!slot)
+    return {
+      arms: empty,
+      arrows: [empty, empty],
+      left_hand_armaments: [empty, empty, empty],
+      right_hand_armaments: [empty, empty, empty],
+      head: empty,
+      chest: empty,
+      legs: empty,
+      pouch: [empty],
+      quickslots: [empty, empty, empty, empty, empty, empty, empty, empty],
+      talisman_count: 0,
+      talismans: [empty, empty, empty, empty],
+    };
   const gaHandleToGaItemId = new Map(
     slot.ga_items.map((g) => [g.gaitem_handle, g.item_id])
   );
@@ -122,13 +141,13 @@ export function equipmentDbView(slot: Readonly<Slot>) {
   };
 
   const quickslots = Array.from({ length: 10 }, (_, i) => {
-    const gaitem_handle = slot.equip_item_data.quick_slot_items[i].item_id;
+    const gaitem_handle = slot.equip_item_data.quick_slot_items[i]?.item_id;
 
     return itemFn(gaitem_handle);
   });
 
   const pouch = Array.from({ length: 8 }, (_, i) =>
-    itemFn(slot.equip_item_data.pouch_items[i].item_id)
+    itemFn(slot.equip_item_data.pouch_items[i]?.item_id)
   );
 
   return {

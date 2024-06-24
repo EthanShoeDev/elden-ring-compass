@@ -126,6 +126,18 @@ export function BolsteringSection() {
     },
   };
 
+  const maxPowerMaterialOwned =
+    (inventoryQuantityById.get(
+      ERDB.bolstering['Ancient Dragon Smithing Stone'].id
+    ) ?? 0) +
+    (inventoryQuantityById.get(
+      ERDB.bolstering['Ancient Dragon Smithing Stone'].id
+    ) ?? 0) +
+    (inventoryQuantityById.get(ERDB.bolstering['Great Ghost Glovewort'].id) ??
+      0) +
+    (inventoryQuantityById.get(ERDB.bolstering['Great Grave Glovewort'].id) ??
+      0);
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -137,8 +149,44 @@ export function BolsteringSection() {
         <Card className="">
           <CardHeader>
             <CardTitle>Flasks</CardTitle>
-            <CardDescription></CardDescription>
+            <CardDescription>5 / 20 - (35%)</CardDescription>
             <CardContent>
+              <img
+                className="size-12"
+                src={
+                  new URL(
+                    `../../assets/erdb/icons/tools/${ERDB.tools['Flask of Cerulean Tears'].icon.toString()}.png`,
+                    import.meta.url
+                  ).href
+                }
+              />
+              <img
+                className="size-12"
+                src={
+                  new URL(
+                    `../../assets/erdb/icons/bolstering-materials/${ERDB.bolstering['Golden Seed'].icon.toString()}.png`,
+                    import.meta.url
+                  ).href
+                }
+              />
+              <img
+                className="size-12"
+                src={
+                  new URL(
+                    `../../assets/erdb/icons/bolstering-materials/${ERDB.bolstering['Sacred Tear'].icon.toString()}.png`,
+                    import.meta.url
+                  ).href
+                }
+              />
+              {/* <img
+                className="size-12"
+                src={
+                  new URL(
+                    `../../assets/erdb/icons/tools/${ERDB.tools['Spectral Steed Whistle'].icon.toString()}.png`,
+                    import.meta.url
+                  ).href
+                }
+              /> */}
               {/* {JSON.stringify(ERDB.bolstering['Golden Seed'])} */}
               {/* {JSON.stringify(ERDB.bolstering['Sacred Tear'])} */}
               {/* {JSON.stringify(ERDB.tools['Flask of Cerulean Tears'])} */}
@@ -153,7 +201,11 @@ export function BolsteringSection() {
         <Card>
           <CardHeader>
             <CardTitle>Upgrade Materials</CardTitle>
-            <CardDescription>2 / 3 - Smiting Stones for RH</CardDescription>
+            <CardDescription>
+              {maxPowerMaterialOwned} / 31 - (
+              {Math.round((maxPowerMaterialOwned / 31) * 100)}%) Max Power
+              Materials
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
