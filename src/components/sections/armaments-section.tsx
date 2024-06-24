@@ -11,8 +11,9 @@ import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { commonSelectColumnDef } from '../data-table/common-column-defs';
 import { inventoryDbView } from '@/lib/vm/inventory';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
+import { DataTableColumnHeader } from '../data-table/data-table-column-header';
 
-export function WeaponsSection() {
+export function ArmamentsSection() {
   const slot = useSelectedSlot();
 
   const inventoryQuantityById = new Map(
@@ -21,16 +22,22 @@ export function WeaponsSection() {
       : []
   );
 
-  const items = Object.entries(armaments).map(([key, value]) => ({
-    name: key,
+  const items = Object.values(armaments).map((value) => ({
     quantity: inventoryQuantityById.get(value.id) ?? undefined,
     ...value,
   }));
+
+  const ownedCount = items.filter(
+    (item) => item.quantity != undefined && item.quantity > 0
+  ).length;
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Weapons</CardTitle>
-        <CardDescription></CardDescription>
+        <CardTitle>Armaments</CardTitle>
+        <CardDescription>
+          {ownedCount} / {items.length} - (
+          {((ownedCount / items.length) * 100).toFixed(0)}% owned)
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <DataTable columns={columns} data={items} />
@@ -39,8 +46,7 @@ export function WeaponsSection() {
   );
 }
 
-const items = Object.entries(armaments).map(([key, value]) => ({
-  name: key,
+const items = Object.values(armaments).map((value) => ({
   quantity: undefined,
   ...value,
 }));
@@ -56,7 +62,7 @@ const columns: ColumnDef<Item>[] = [
     ),
     cell: (cell) => <div className="w-[80px]">{cell.renderValue()}</div>,
   }) as ColumnDef<Item>,
-  columnHelper.accessor('item_name', {
+  columnHelper.accessor('name', {
     id: 'Name', // signal to use search on this column
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
