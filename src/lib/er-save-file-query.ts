@@ -1,11 +1,10 @@
 import { useSaveFileSourceStore } from '@/stores/save-file-source-store';
 import { useQuery } from '@tanstack/react-query';
-import { parseEldenRingData } from './er-save-parser';
 import { useState } from 'react';
 import { delayMs } from './utils';
 
 const parserWorker = new ComlinkWorker<typeof import('./er-save-parser')>(
-  new URL('./er-save-parser', import.meta.url),
+  new URL('./er-save-parser.js', import.meta.url),
   {
     name: 'EldenRingSaveParser',
     type: 'module',
@@ -23,7 +22,7 @@ export function useEldenRingSaveQuery() {
       queryFn: async () => {
         if (!src) throw new Error('No source provided');
         if ('file' in src) {
-          const erData = parseEldenRingData(src.file.buffer);
+          const erData = parserWorker.parseEldenRingData(src.file.buffer);
           return erData;
         }
         if ('url' in src) {

@@ -102,7 +102,9 @@ export function inventoryDbView(slot: Readonly<Slot>) {
           `Could not find gaitem for common item: ${commonItem.ga_item_handle.toString()}`
         );
 
-      const itemId = gaitem.item_id ^ InventoryItemTypeToOffset[itemType];
+      const itemId = ['ACCESSORY', 'ITEM', 'EMPTY'].includes(itemType)
+        ? commonItem.ga_item_handle ^ InventoryGaItemTypeToOffset[itemType]
+        : gaitem.item_id ^ InventoryItemTypeToOffset[itemType];
 
       const itemName = (() => {
         if (itemType === 'WEAPON') {

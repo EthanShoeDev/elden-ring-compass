@@ -11,6 +11,18 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { eventsDbView } from '@/lib/vm/events';
 import { cn } from '@/lib/utils';
 
+import rennalaImgSrc from '@/assets/erdb/icons/tools/172.png';
+import godrickImgSrc from '@/assets/erdb/icons/tools/163.png';
+import radahnImgSrc from '@/assets/erdb/icons/tools/164.png';
+import mohgImgSrc from '@/assets/erdb/icons/tools/168.png';
+import rykardImgSrc from '@/assets/erdb/icons/tools/166.png';
+
+import godfreyImgSrc from '@/assets/erdb/icons/tools/170.png';
+import morgottImgSrc from '@/assets/erdb/icons/tools/165.png';
+import fireGiantImgSrc from '@/assets/erdb/icons/tools/174.png';
+import malikethImgSrc from '@/assets/erdb/icons/tools/169.png';
+import eldenBeastImgSrc from '@/assets/erdb/icons/tools/176.png';
+
 export function MainBossSection() {
   return (
     <Card className="w-full">
@@ -23,13 +35,13 @@ export function MainBossSection() {
           <CardHeader>
             <CardDescription>2 required</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            <Boss name="Godrick" eventId={10000800} />
-            <Boss name="Rennala" eventId={14000800} />
+          <CardContent className="flex flex-wrap gap-4">
+            <Boss name="Godrick" eventId={10000800} imgSrc={godrickImgSrc} />
+            <Boss name="Rennala" eventId={14000800} imgSrc={rennalaImgSrc} />
             {/* This is wrong Radahn eventId */}
-            <Boss name="Radahn" eventId={310} />
-            <Boss name="Mohg" eventId={35000800} />
-            <Boss name="Rykard" eventId={16000800} />
+            <Boss name="Radahn" eventId={310} imgSrc={radahnImgSrc} />
+            <Boss name="Mohg" eventId={35000800} imgSrc={mohgImgSrc} />
+            <Boss name="Rykard" eventId={16000800} imgSrc={rykardImgSrc} />
           </CardContent>
         </Card>
         <Card>
@@ -38,13 +50,17 @@ export function MainBossSection() {
           </CardHeader>
           <CardContent className="flex flex-wrap gap-4">
             <Boss name="Godfrey (Shade)" eventId={11000850} />
-            <Boss name="Morgott" eventId={11000800} />
-            <Boss name="Fire Giant" eventId={1052520800} />
+            <Boss name="Morgott" eventId={11000800} imgSrc={morgottImgSrc} />
+            <Boss
+              name="Fire Giant"
+              eventId={1052520800}
+              imgSrc={fireGiantImgSrc}
+            />
             <Boss name="Godskin Duo" eventId={13000850} />
-            <Boss name="Beast Clergyman" eventId={13000800} />
+            <Boss name="Maliketh" eventId={13000800} imgSrc={malikethImgSrc} />
             <Boss name="Sir Gideon-Ofnir" eventId={11050850} />
-            <Boss name="Godfrey" eventId={11050800} />
-            <Boss name="Radagon" eventId={19000810} />
+            <Boss name="Godfrey" eventId={11050800} imgSrc={godfreyImgSrc} />
+            <Boss name="Radagon" eventId={19000810} imgSrc={eldenBeastImgSrc} />
           </CardContent>
         </Card>
       </CardContent>
@@ -65,7 +81,6 @@ function Boss({
   const event = slot
     ? eventsDbView(slot).find((e) => e.eventId === eventId)
     : undefined;
-  console.log(event);
 
   const isKilled = event?.on === 'on';
 
@@ -73,7 +88,7 @@ function Boss({
     <Tooltip>
       <TooltipTrigger
         className={cn(
-          'flex w-16 flex-col items-center gap-1',
+          'flex w-20 flex-col items-center gap-1 rounded-lg p-1',
           isKilled && 'border border-green-400'
         )}
       >
@@ -86,11 +101,11 @@ function Boss({
         </span>
       </TooltipTrigger>
       <TooltipContent>
-        <p>Defeated: {isKilled ? 'true' : 'false'}</p>
+        <img src={imgSrc} className="mb-2 size-72" />
+        {isKilled && <strong>Defeated</strong>}
         <p>
           Event Id: <span>{eventId}</span>
         </p>
-        <br />
         <a
           className="hover:underline"
           target="_blank"

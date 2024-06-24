@@ -30,7 +30,6 @@ import { parse_save_internal_rust } from 'elden-ring-save-parser';
 export function parse_save_wasm(save_data: Uint8Array) {
   // console.profile('parse_save_wasm_profile');
   console.time('parse_save_wasm');
-
   const result = parse_save_internal_rust(save_data) as WasmEldenRingSave;
   console.timeEnd('parse_save_wasm');
   // console.profileEnd('parse_save_wasm_profile');
