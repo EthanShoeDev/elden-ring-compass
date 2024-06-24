@@ -34,20 +34,27 @@ export function DataTableToolbar<TData>({
         {table
           .getAllLeafColumns()
           .filter((col) => col.columnDef.filterFn == 'arrIncludesSome')
-          .map((column) => (
-            <DataTableFacetedFilter
-              key={column.id}
-              column={column}
-              title={column.columnDef.id}
-              options={Array.from(column.getFacetedUniqueValues().keys()).map(
-                (value) => ({
-                  label: value as string,
-                  value: value as string,
-                  icon: undefined,
-                })
-              )}
-            />
-          ))}
+          .map((column) => {
+            const options = Array.from(
+              column.getFacetedUniqueValues().keys()
+            ).map((value) => ({
+              label:
+                typeof value != 'string'
+                  ? value == null
+                    ? 'NA'
+                    : JSON.stringify(value)
+                  : value,
+              value: value as unknown,
+            }));
+            return (
+              <DataTableFacetedFilter
+                key={column.id}
+                column={column}
+                title={column.columnDef.id}
+                options={options}
+              />
+            );
+          })}
         {isFiltered && (
           <Button
             variant="ghost"

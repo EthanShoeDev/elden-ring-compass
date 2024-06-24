@@ -76,8 +76,33 @@ export type Armament = {
     intelligence?: number;
     arcane?: number;
   };
-  effects: Array<any>;
+  effects: Array<{
+    attribute: string;
+    value: number;
+    model: 'additive' | 'multiplicative';
+    type: 'positive' | 'negative';
+    conditions?: Array<string>;
+  }>;
   affinity: any;
+};
+
+export type Bolstering = {
+  full_hex_id: string;
+  id: number;
+  name: string;
+  summary: string;
+  description: Array<string>;
+  is_tradable: boolean;
+  price_sold: number;
+  rarity: string;
+  icon: number;
+  max_held: number;
+  max_stored: number;
+  locations: Array<{
+    summary: string;
+  }>;
+  remarks: Array<any>;
+  category: string;
 };
 
 export const ERDB = {

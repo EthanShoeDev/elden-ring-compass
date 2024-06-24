@@ -31,15 +31,19 @@ export function DataTable<TData, TValue>({
   className,
   columns,
   data,
+  initialColumnVisibility,
 }: {
   className?: string;
   columns: Array<ColumnDef<TData, TValue>>;
   data: Array<TData>;
+  initialColumnVisibility?: VisibilityState;
 }) {
   'use no memo';
 
   const [rowSelection, setRowSelection] = useState({});
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    initialColumnVisibility ?? {}
+  );
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
 

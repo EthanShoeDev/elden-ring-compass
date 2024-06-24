@@ -1,7 +1,6 @@
 import { ColumnDef, ColumnHelper } from '@tanstack/react-table';
 import { Checkbox } from '../ui/checkbox';
 import { DataTableColumnHeader } from './data-table-column-header';
-import { ReactNode } from 'react';
 
 export const commonSelectColumnDef = <T,>(
   columnHelper: ColumnHelper<T>
@@ -43,7 +42,16 @@ export const commonAccessorColumnDef = <T,>(
   columnHelper.accessor(accessor, {
     id: label,
     header: ({ column }) => <DataTableColumnHeader column={column} />,
-    cell: (cell) => <div>{cell.renderValue() as ReactNode}</div>,
+    cell: (cell) => {
+      const value = cell.renderValue();
+      const renderValue =
+        typeof value === 'string'
+          ? value
+          : value == null
+            ? 'NA'
+            : JSON.stringify(value);
+      return <div>{renderValue}</div>;
+    },
     filterFn: 'arrIncludesSome',
     ...overrides,
   });

@@ -7,7 +7,10 @@ import {
   CardTitle,
 } from '../ui/card';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { commonSelectColumnDef } from '../data-table/common-column-defs';
+import {
+  commonAccessorColumnDef,
+  commonSelectColumnDef,
+} from '../data-table/common-column-defs';
 import { inventoryDbView } from '@/lib/vm/inventory';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { Armament, ERDB } from '@/lib/erdb';
@@ -24,13 +27,11 @@ export function ArmamentsSection() {
   );
 
   const items = Object.values(ERDB.armaments).map((value) => ({
-    quantity: inventoryQuantityById.get(value.id) ?? undefined,
+    quantity: inventoryQuantityById.get(value.id) ?? 0,
     ...value,
   }));
 
-  const ownedCount = items.filter(
-    (item) => item.quantity != undefined && item.quantity > 0
-  ).length;
+  const ownedCount = items.filter((item) => item.quantity > 0).length;
   return (
     <Card className="w-full">
       <CardHeader>
@@ -41,7 +42,13 @@ export function ArmamentsSection() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable columns={columns} data={items} />
+        <DataTable
+          columns={columns}
+          data={items}
+          initialColumnVisibility={{
+            Description: false,
+          }}
+        />
       </CardContent>
     </Card>
   );
@@ -51,14 +58,6 @@ type Item = Armament & { quantity: number | undefined };
 const columnHelper = createColumnHelper<Item>();
 const columns: Array<ColumnDef<Item>> = [
   commonSelectColumnDef(columnHelper),
-  // commonAccessorColumnDef(columnHelper, 'name', 'Name', {
-  //   cell: (cell) => (
-  //     <div>
-  //       <img />
-  //       {cell.renderValue() as ReactNode}
-  //     </div>
-  //   ),
-  // }),
   columnHelper.accessor('name', {
     id: 'Name',
     header: ({ column }) => <DataTableColumnHeader column={column} />,
@@ -83,33 +82,30 @@ const columns: Array<ColumnDef<Item>> = [
       );
     },
   }) as ColumnDef<Item>,
-  columnHelper.accessor('quantity', {
-    id: 'Quantity',
-    header: ({ column }) => <DataTableColumnHeader column={column} />,
-    cell: (cell) => <div>{cell.renderValue()}</div>,
-    filterFn: 'arrIncludesSome',
-  }) as ColumnDef<Item>,
-  columnHelper.accessor('category', {
-    id: 'Category',
-    header: ({ column }) => <DataTableColumnHeader column={column} />,
-    cell: (cell) => <div>{cell.renderValue()}</div>,
-    filterFn: 'arrIncludesSome',
-  }) as ColumnDef<Item>,
-  columnHelper.accessor('description', {
-    id: 'Description',
-    header: ({ column }) => <DataTableColumnHeader column={column} />,
-    cell: (cell) => <div>{cell.renderValue()}</div>,
-  }) as ColumnDef<Item>,
-  columnHelper.accessor('is_tradable', {
-    id: 'Is Tradable',
-    header: ({ column }) => <DataTableColumnHeader column={column} />,
-    cell: (cell) => <div>{cell.renderValue()?.toString()}</div>,
-    filterFn: 'arrIncludesSome',
-  }) as ColumnDef<Item>,
-  columnHelper.accessor('allow_ash_of_war', {
-    id: 'Allow Ash of War',
-    header: ({ column }) => <DataTableColumnHeader column={column} />,
-    cell: (cell) => <div>{cell.renderValue()?.toString()}</div>,
-    filterFn: 'arrIncludesSome',
-  }) as ColumnDef<Item>,
+  commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
+  commonAccessorColumnDef(columnHelper, 'category', 'Category'),
+  commonAccessorColumnDef(
+    columnHelper,
+    (row) => row.description.join('\n'),
+    'Description',
+    {
+      filterFn: 'includesString',
+    }
+  ),
+  commonAccessorColumnDef(columnHelper, 'allow_ash_of_war', 'Allow AOW'),
+  commonAccessorColumnDef(columnHelper, 'is_buffable', 'Buffable'),
+  commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
+  commonAccessorColumnDef(columnHelper, 'weight', 'Weight'),
+  commonAccessorColumnDef(columnHelper, 'upgrade_material', 'Upgrade Material'),
+  commonAccessorColumnDef(
+    columnHelper,
+    (row) =>
+      row.effects
+        .map(
+          (e) =>
+            `${e.attribute} ${e.type == 'positive' ? (e.model == 'additive' ? '+' : '* ') : e.model == 'additive' ? '-' : '* -'}${e.value.toString()}${e.conditions ? ` ${e.conditions.join(',')}` : ''}`
+        )
+        .join('\n'),
+    'Effects'
+  ),
 ];

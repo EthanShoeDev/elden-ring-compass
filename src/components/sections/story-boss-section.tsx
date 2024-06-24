@@ -23,12 +23,101 @@ import fireGiantImgSrc from '@/assets/erdb/icons/tools/174.png';
 import malikethImgSrc from '@/assets/erdb/icons/tools/169.png';
 import eldenBeastImgSrc from '@/assets/erdb/icons/tools/176.png';
 
-export function MainBossSection() {
+export function StoryBossSection() {
+  const slot = useSelectedSlot();
+  const events = slot ? eventsDbView(slot) : [];
+
+  const earlyBosses = [
+    {
+      name: 'Godrick',
+      eventId: 10000800,
+      imgSrc: godrickImgSrc,
+    },
+    {
+      name: 'Rennala',
+      eventId: 14000800,
+      imgSrc: rennalaImgSrc,
+    },
+    {
+      name: 'Radahn',
+      eventId: 310,
+      imgSrc: radahnImgSrc,
+    },
+    {
+      name: 'Mohg',
+      eventId: 35000800,
+      imgSrc: mohgImgSrc,
+    },
+    {
+      name: 'Rykard',
+      eventId: 16000800,
+      imgSrc: rykardImgSrc,
+    },
+  ].map((boss) => ({
+    ...boss,
+    killed: slot
+      ? events.find((e) => e.eventId === boss.eventId)?.on === 'on'
+      : false,
+  }));
+
+  const sequentialBosses = [
+    {
+      name: 'Godfrey (Shade)',
+      eventId: 11000850,
+    },
+    {
+      name: 'Morgott',
+      eventId: 11000800,
+      imgSrc: morgottImgSrc,
+    },
+    {
+      name: 'Fire Giant',
+      eventId: 1052520800,
+      imgSrc: fireGiantImgSrc,
+    },
+    {
+      name: 'Godskin Duo',
+      eventId: 13000850,
+    },
+    {
+      name: 'Maliketh',
+      eventId: 13000800,
+      imgSrc: malikethImgSrc,
+    },
+    {
+      name: 'Sir Gideon-Ofnir',
+      eventId: 11050850,
+    },
+    {
+      name: 'Godfrey',
+      eventId: 11050800,
+      imgSrc: godfreyImgSrc,
+    },
+    {
+      name: 'Radagon',
+      eventId: 19000810,
+      imgSrc: eldenBeastImgSrc,
+    },
+  ].map((boss) => ({
+    ...boss,
+    killed: slot
+      ? events.find((e) => e.eventId === boss.eventId)?.on === 'on'
+      : false,
+  }));
+
+  const bossesKilled =
+    earlyBosses.filter((b) => b.killed).length +
+    sequentialBosses.filter((b) => b.killed).length;
+  const totalBosses = earlyBosses.length + sequentialBosses.length;
+
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Main Progression</CardTitle>
-        <CardDescription></CardDescription>
+        <CardDescription>
+          {bossesKilled} /{totalBosses} - (
+          {((bossesKilled / totalBosses) * 100).toFixed(0)}% defeated)
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex gap-4">
         <Card>
@@ -36,12 +125,9 @@ export function MainBossSection() {
             <CardDescription>2 required</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-4">
-            <Boss name="Godrick" eventId={10000800} imgSrc={godrickImgSrc} />
-            <Boss name="Rennala" eventId={14000800} imgSrc={rennalaImgSrc} />
-            {/* This is wrong Radahn eventId */}
-            <Boss name="Radahn" eventId={310} imgSrc={radahnImgSrc} />
-            <Boss name="Mohg" eventId={35000800} imgSrc={mohgImgSrc} />
-            <Boss name="Rykard" eventId={16000800} imgSrc={rykardImgSrc} />
+            {earlyBosses.map((boss, i) => (
+              <Boss key={i} {...boss} />
+            ))}
           </CardContent>
         </Card>
         <Card>
@@ -49,18 +135,9 @@ export function MainBossSection() {
             <CardDescription>Sequential</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-4">
-            <Boss name="Godfrey (Shade)" eventId={11000850} />
-            <Boss name="Morgott" eventId={11000800} imgSrc={morgottImgSrc} />
-            <Boss
-              name="Fire Giant"
-              eventId={1052520800}
-              imgSrc={fireGiantImgSrc}
-            />
-            <Boss name="Godskin Duo" eventId={13000850} />
-            <Boss name="Maliketh" eventId={13000800} imgSrc={malikethImgSrc} />
-            <Boss name="Sir Gideon-Ofnir" eventId={11050850} />
-            <Boss name="Godfrey" eventId={11050800} imgSrc={godfreyImgSrc} />
-            <Boss name="Radagon" eventId={19000810} imgSrc={eldenBeastImgSrc} />
+            {sequentialBosses.map((boss, i) => (
+              <Boss key={i} {...boss} />
+            ))}
           </CardContent>
         </Card>
       </CardContent>
@@ -72,24 +149,19 @@ function Boss({
   name,
   imgSrc,
   eventId,
+  killed,
 }: {
   name: string;
   imgSrc?: string;
   eventId: number;
+  killed: boolean;
 }) {
-  const slot = useSelectedSlot();
-  const event = slot
-    ? eventsDbView(slot).find((e) => e.eventId === eventId)
-    : undefined;
-
-  const isKilled = event?.on === 'on';
-
   return (
     <Tooltip>
       <TooltipTrigger
         className={cn(
           'flex w-20 flex-col items-center gap-1 rounded-lg p-1',
-          isKilled && 'border border-green-400'
+          killed && 'border border-green-400'
         )}
       >
         <Avatar>
@@ -102,7 +174,7 @@ function Boss({
       </TooltipTrigger>
       <TooltipContent>
         <img src={imgSrc} className="mb-2 size-72" />
-        {isKilled && <strong>Defeated</strong>}
+        {killed && <strong>Defeated</strong>}
         <p>
           Event Id: <span>{eventId}</span>
         </p>

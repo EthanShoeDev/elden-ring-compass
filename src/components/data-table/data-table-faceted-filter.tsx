@@ -26,7 +26,7 @@ type DataTableFacetedFilterProps<TData, TValue> = {
   title?: string;
   options: Array<{
     label: string;
-    value: string;
+    value: unknown;
     icon?: React.ComponentType<{ className?: string }>;
   }>;
 };
@@ -38,7 +38,7 @@ export function DataTableFacetedFilter<TData, TValue>({
 }: DataTableFacetedFilterProps<TData, TValue>) {
   'use no memo';
   const facets = column?.getFacetedUniqueValues();
-  const selectedValues = new Set(column?.getFilterValue() as Array<string>);
+  const selectedValues = new Set(column?.getFilterValue() as Array<unknown>);
 
   return (
     <Popover>
@@ -69,7 +69,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                     .map((option) => (
                       <Badge
                         variant="secondary"
-                        key={option.value}
+                        key={JSON.stringify(option.value) || 'NA'}
                         className="rounded-sm px-1 font-normal"
                       >
                         {option.label}
@@ -83,7 +83,7 @@ export function DataTableFacetedFilter<TData, TValue>({
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0" align="start">
         <Command>
-          <CommandInput placeholder={title} />
+          {options.length > 4 && <CommandInput placeholder={title} />}
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
@@ -91,7 +91,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                 const isSelected = selectedValues.has(option.value);
                 return (
                   <CommandItem
-                    key={option.value}
+                    key={JSON.stringify(option.value) || 'NA'}
                     onSelect={() => {
                       if (isSelected) {
                         selectedValues.delete(option.value);
