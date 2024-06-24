@@ -9,6 +9,7 @@ export function MainContent() {
   return (
     <main className="flex flex-1 flex-col gap-4 bg-background p-2 md:p-4">
       <MainBossSection />
+      <WeaponsSection />
       <h1 className="w-full text-2xl">Overview</h1>
       <SlotOverview />
       <h1 className="w-full text-2xl">Inventory</h1>

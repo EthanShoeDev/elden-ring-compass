@@ -1,3 +1,4 @@
+import { SaveFileSource } from '@/stores/save-file-source-store';
 import { parse_save_wasm } from './wasm-wrapper';
 
 export function fileToArrBuffer(file: File) {

@@ -19,11 +19,7 @@ export function InventoryDataTable() {
   if (!slot) return <p>Select a slot</p>;
 
   return (
-    <DataTable
-      className="not-prose w-full max-w-none"
-      columns={columns}
-      data={items}
-    />
+    <DataTable className="w-full max-w-none" columns={columns} data={items} />
   );
 }
 
