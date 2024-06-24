@@ -1,20 +1,14 @@
 import { CLEAN_ELDEN_RING_DB } from '../elden-ring-raw-db/er-raw-db';
 import { Slot } from '../wasm-wrapper';
 import {
-  InventoryGaitemTypeToOffset,
+  InventoryGaItemTypeToOffset,
   InventoryItemTypeToOffset,
 } from './inventory';
 
 export function equipmentDbView(slot: Readonly<Slot>) {
-  const gaitem_map = new Map(slot.ga_items.map((g) => [g.gaitem_handle, g]));
-
-  //   equipment_vm.talisman_count = 1;
-  //   for i in 0..slot.equip_inventory_data.key_inventory_items_distinct_count as usize {
-  //       let key_item = slot.equip_inventory_data.key_items[i];
-  //       if (key_item.ga_item_handle ^ InventoryGaitemType::ITEM as u32) == 10040 {
-  //           equipment_vm.talisman_count = u32::min(1 + key_item.quantity as u32, 4);
-  //       }
-  //   }
+  const gaHandleToGaItemId = new Map(
+    slot.ga_items.map((g) => [g.gaitem_handle, g.item_id])
+  );
 
   const talisman_count = (() => {
     let count = 1;
@@ -25,7 +19,7 @@ export function equipmentDbView(slot: Readonly<Slot>) {
     ) {
       const key_item = slot.equip_inventory_data.key_items[i];
       if (
-        (key_item.ga_item_handle ^ InventoryGaitemTypeToOffset.ITEM) ==
+        (key_item.ga_item_handle ^ InventoryGaItemTypeToOffset.ITEM) ==
         10040
       ) {
         count = Math.min(1 + key_item.quantity, 4);
@@ -48,7 +42,7 @@ export function equipmentDbView(slot: Readonly<Slot>) {
         side == 'left'
           ? slot.chr_asm2.left_hand_armaments[i]
           : slot.chr_asm2.right_hand_armaments[i];
-      const id = gaitem_map.get(gaitem_handle)?.item_id;
+      const id = gaHandleToGaItemId.get(gaitem_handle);
       const equip_index = equip_index_from_ga_handle(gaitem_handle);
       return {
         gaitem_handle,
@@ -65,7 +59,7 @@ export function equipmentDbView(slot: Readonly<Slot>) {
 
   const arrows = Array.from({ length: 2 }, (_, i) => {
     const gaitem_handle = slot.chr_asm2.arrows[i];
-    const id = gaitem_map.get(gaitem_handle)?.item_id ?? 0;
+    const id = gaHandleToGaItemId.get(gaitem_handle) ?? 0;
     const equip_index = equip_index_from_ga_handle(gaitem_handle);
     return {
       gaitem_handle,
@@ -78,7 +72,7 @@ export function equipmentDbView(slot: Readonly<Slot>) {
   });
 
   const armor_fn = (ga_handle: Readonly<number>) => {
-    const item_id = gaitem_map.get(ga_handle)?.item_id ?? 0;
+    const item_id = gaHandleToGaItemId.get(ga_handle) ?? 0;
     const armor_id =
       item_id != 0 ? item_id ^ InventoryItemTypeToOffset.ARMOR : 0;
     const equip_index = equip_index_from_ga_handle(ga_handle);
@@ -99,9 +93,9 @@ export function equipmentDbView(slot: Readonly<Slot>) {
 
   const talismans = Array.from({ length: 4 }, (_, i) => {
     const gaitem_handle = slot.chr_asm2.talismans[i];
-    const item_id = gaitem_map.get(gaitem_handle)?.item_id ?? 0;
+    const item_id = gaHandleToGaItemId.get(gaitem_handle) ?? 0;
     const talisman_id =
-      item_id != 0 ? item_id ^ InventoryGaitemTypeToOffset.ACCESSORY : 0;
+      item_id != 0 ? item_id ^ InventoryGaItemTypeToOffset.ACCESSORY : 0;
     const equip_index = equip_index_from_ga_handle(gaitem_handle);
     return {
       gaitem_handle,
@@ -114,8 +108,8 @@ export function equipmentDbView(slot: Readonly<Slot>) {
   });
 
   const itemFn = (gaitem_handle: Readonly<number>) => {
-    const item_id = gaitem_map.get(gaitem_handle)?.item_id ?? 0;
-    const id = item_id != 0 ? item_id ^ InventoryGaitemTypeToOffset.ITEM : 0;
+    const item_id = gaHandleToGaItemId.get(gaitem_handle) ?? 0;
+    const id = item_id != 0 ? item_id ^ InventoryGaItemTypeToOffset.ITEM : 0;
     const equip_index = equip_index_from_ga_handle(gaitem_handle);
     return {
       gaitem_handle,

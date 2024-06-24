@@ -4,6 +4,14 @@ import { parseEldenRingData } from './er-save-parser';
 import { useState } from 'react';
 import { delayMs } from './utils';
 
+const parserWorker = new ComlinkWorker<typeof import('./er-save-parser')>(
+  new URL('./er-save-parser', import.meta.url),
+  {
+    name: 'EldenRingSaveParser',
+    type: 'module',
+  }
+);
+
 export function useEldenRingSaveQuery() {
   const [isParsing, setIsParsing] = useState(false);
   const { saveFileSource } = useSaveFileSourceStore();
@@ -24,7 +32,7 @@ export function useEldenRingSaveQuery() {
           try {
             setIsParsing(true);
             const erData = await delayMs(10).then(() =>
-              parseEldenRingData(buffer)
+              parserWorker.parseEldenRingData(buffer)
             );
             return erData;
           } catch (err) {
