@@ -102,60 +102,46 @@ export function inventoryDbView(slot: Readonly<Slot>) {
           `Could not find gaitem for common item: ${commonItem.ga_item_handle.toString()}`
         );
 
-      const itemInfo: {
-        itemId: number;
-        itemName: string;
-      } = (() => {
-        const id = gaitem.item_id ^ InventoryItemTypeToOffset[itemType];
-        const idStr = id.toString();
+      const itemId = gaitem.item_id ^ InventoryItemTypeToOffset[itemType];
 
+      const itemName = (() => {
         if (itemType === 'WEAPON') {
           const upgrade_level = gaitem.item_id % 100;
-          const idStr = (id - upgrade_level).toString();
+          const idStr = (itemId - upgrade_level).toString();
           const weaponName =
             RAW_ELDEN_RING_DB.WEAPON_NAME[idStr] ?? `[UNKOWN_${idStr}]`;
 
-          return {
-            itemId: gaitem.item_id,
-            itemName:
-              upgrade_level > 0
-                ? `${weaponName} +${upgrade_level.toString()}`
-                : weaponName,
-          };
+          return upgrade_level > 0
+            ? `${weaponName} +${upgrade_level.toString()}`
+            : weaponName;
         } else if (itemType === 'ARMOR') {
-          return {
-            itemId: id,
-            itemName:
-              RAW_ELDEN_RING_DB.ARMOR_NAME[idStr] ?? `[UNKOWN_${idStr}]`,
-          };
+          return (
+            RAW_ELDEN_RING_DB.ARMOR_NAME[itemId.toString()] ??
+            `[UNKOWN_${itemId.toString()}]`
+          );
         } else if (itemType === 'ACCESSORY') {
-          return {
-            itemId: id,
-            itemName:
-              RAW_ELDEN_RING_DB.ACCESSORY_NAME[idStr] ?? `[UNKOWN_${idStr}]`,
-          };
+          return (
+            RAW_ELDEN_RING_DB.ACCESSORY_NAME[itemId.toString()] ??
+            `[UNKOWN_${itemId.toString()}]`
+          );
         } else if (itemType === 'ITEM') {
-          return {
-            itemId: id,
-            itemName:
-              RAW_ELDEN_RING_DB.ITEM_NAMES[idStr] ?? `[UNKOWN_${idStr}]`,
-          };
+          return (
+            RAW_ELDEN_RING_DB.ITEM_NAMES[itemId.toString()] ??
+            `[UNKOWN_${itemId.toString()}]`
+          );
         } else if (itemType === 'AOW') {
-          return {
-            itemId: id,
-            itemName: RAW_ELDEN_RING_DB.AOW_NAME[idStr] ?? `[UNKOWN_${idStr}]`,
-          };
+          return (
+            RAW_ELDEN_RING_DB.AOW_NAME[itemId.toString()] ??
+            `[UNKOWN_${itemId.toString()}]`
+          );
         }
-        return {
-          itemId: 0,
-          itemName: 'Unknown',
-        };
+        return 'Unknown';
       })();
 
       return {
         ga_item_handle: commonItem.ga_item_handle,
-        item_id: itemInfo.itemId,
-        item_name: itemInfo.itemName,
+        item_id: itemId,
+        item_name: itemName,
         quantity: commonItem.quantity,
         inventory_index: commonItem.inventory_index,
         equip_index,
