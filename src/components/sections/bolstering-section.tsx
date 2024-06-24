@@ -227,6 +227,13 @@ export function BolsteringSection() {
                           (bellLocation &&
                             'boss' in bellLocation &&
                             bellLocation.boss.killed);
+
+                        const imgSrc =
+                          item &&
+                          new URL(
+                            `../../assets/erdb/icons/bolstering-materials/${item.icon.toString()}.png`,
+                            import.meta.url
+                          ).href;
                         return (
                           <TableCell key={i} className={cn('p-2')}>
                             <Tooltip>
@@ -239,15 +246,7 @@ export function BolsteringSection() {
                                 <div className="flex flex-wrap items-center justify-center gap-1">
                                   {item && (
                                     <>
-                                      <img
-                                        className="size-8"
-                                        src={
-                                          new URL(
-                                            `../../assets/erdb/icons/bolstering-materials/${item.icon.toString()}.png`,
-                                            import.meta.url
-                                          ).href
-                                        }
-                                      />
+                                      <img className="size-8" src={imgSrc} />
 
                                       <span className="w-10 whitespace-nowrap">
                                         {inventoryQuantityById.get(item.id) ??
@@ -267,15 +266,19 @@ export function BolsteringSection() {
                                   )}
                                 </div>
                               </TooltipTrigger>
-                              <TooltipContent className="flex flex-col">
+                              <TooltipContent className="flex max-w-72 flex-col items-center">
+                                <img src={imgSrc} className="size-40" />
                                 <p className="text-lg">{item?.name}</p>
                                 {bellLocation && (
-                                  <p>
-                                    Bell bearing found{' '}
-                                    {'boss' in bellLocation
-                                      ? `from boss ${bellLocation.boss.bossName}`
-                                      : `in ${bellLocation.location}`}
-                                  </p>
+                                  <>
+                                    <br />
+                                    <p className="w-full text-wrap text-center">
+                                      Bell bearing found{' '}
+                                      {'boss' in bellLocation
+                                        ? `from boss ${bellLocation.boss.bossName}`
+                                        : `in ${bellLocation.location}`}
+                                    </p>
+                                  </>
                                 )}
                               </TooltipContent>
                             </Tooltip>
