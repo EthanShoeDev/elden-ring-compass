@@ -105,6 +105,31 @@ export type Bolstering = {
   category: string;
 };
 
+export type Tool = {
+  full_hex_id: string;
+  id: number;
+  name: string;
+  summary: string;
+  description: Array<string>;
+  is_tradable: boolean;
+  price_sold: number;
+  rarity: string;
+  icon: number;
+  max_held: number;
+  max_stored: number;
+  locations: Array<{
+    summary: string;
+  }>;
+  remarks: Array<any>;
+  category: string;
+  availability: string;
+  fp_cost: number;
+  is_consumed: boolean;
+  is_ladder_usable: boolean;
+  is_horseback_usable: boolean;
+  effects: Array<any>;
+};
+
 export const ERDB = {
   ammo: ammo as Record<string, Ammo>,
   armaments: armaments as Record<string, Armament>,
@@ -122,5 +147,5 @@ export const ERDB = {
   spells,
   spirit,
   talismans,
-  tools,
+  tools: tools as Record<string, Tool>,
 };

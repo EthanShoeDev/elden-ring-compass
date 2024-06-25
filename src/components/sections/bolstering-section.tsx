@@ -7,7 +7,7 @@ import {
 } from '../ui/card';
 import { inventoryDbView } from '@/lib/vm/inventory';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
-import { Bolstering, ERDB } from '@/lib/erdb';
+import { Bolstering, ERDB, Tool } from '@/lib/erdb';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import {
   Table,
@@ -20,6 +20,7 @@ import {
 import { eventsDbView } from '@/lib/vm/events';
 import { cn } from '@/lib/utils';
 import { SlotOverview } from '../slot-overview';
+import { Separator } from '../ui/separator';
 
 export function BolsteringSection() {
   const slot = useSelectedSlot();
@@ -138,65 +139,51 @@ export function BolsteringSection() {
     (inventoryQuantityById.get(ERDB.bolstering['Great Grave Glovewort'].id) ??
       0);
 
+  const baseFlaskItem = ERDB.tools['Flask of Crimson Tears'];
+
+  const usersFlask =
+    Array.from({ length: 12 })
+      .map(
+        (_, i) =>
+          ERDB.tools[
+            `${baseFlaskItem.name}${i == 0 ? '' : ` +${(i + 1).toString()}`}`
+          ]
+      )
+      .toReversed()
+      .find((flask) => (inventoryQuantityById.get(flask.id) ?? 0) > 0) ??
+    baseFlaskItem;
+
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Overview</CardTitle>
         <CardDescription></CardDescription>
       </CardHeader>
-      <CardContent className="flex gap-4">
+      <CardContent className="flex flex-wrap gap-4">
         <SlotOverview />
         <Card className="">
           <CardHeader>
             <CardTitle>Flasks</CardTitle>
             <CardDescription>5 / 20 - (35%)</CardDescription>
-            <CardContent>
-              <img
-                className="size-12"
-                src={
-                  new URL(
-                    `../../assets/erdb/icons/tools/${ERDB.tools['Flask of Cerulean Tears'].icon.toString()}.png`,
-                    import.meta.url
-                  ).href
-                }
-              />
-              <img
-                className="size-12"
-                src={
-                  new URL(
-                    `../../assets/erdb/icons/bolstering-materials/${ERDB.bolstering['Golden Seed'].icon.toString()}.png`,
-                    import.meta.url
-                  ).href
-                }
-              />
-              <img
-                className="size-12"
-                src={
-                  new URL(
-                    `../../assets/erdb/icons/bolstering-materials/${ERDB.bolstering['Sacred Tear'].icon.toString()}.png`,
-                    import.meta.url
-                  ).href
-                }
-              />
-              {/* <img
-                className="size-12"
-                src={
-                  new URL(
-                    `../../assets/erdb/icons/tools/${ERDB.tools['Spectral Steed Whistle'].icon.toString()}.png`,
-                    import.meta.url
-                  ).href
-                }
-              /> */}
-              {/* {JSON.stringify(ERDB.bolstering['Golden Seed'])} */}
-              {/* {JSON.stringify(ERDB.bolstering['Sacred Tear'])} */}
-              {/* {JSON.stringify(ERDB.tools['Flask of Cerulean Tears'])} */}
-              {/* Flask of Crimson Tears */}
-              {/* Flask of Wondrous Physick */}
-              {/* {JSON.stringify(ERDB.tools['Golden Rune [11]'])} */}
-              {/* {JSON.stringify(ERDB.tools['Spectral Steed Whistle'])} */}
-              {/* {JSON.stringify(ERDB.tools['Wraith Calling Bell'])} */}
-            </CardContent>
           </CardHeader>
+          <CardContent className="flex flex-col gap-1">
+            <FlaskItem item={usersFlask} iconType="tools" />
+            <Separator />
+            <FlaskItem
+              item={ERDB.tools['Flask of Cerulean Tears']}
+              iconType="tools"
+            />
+            <Separator />
+            <FlaskItem
+              item={ERDB.bolstering['Golden Seed']}
+              iconType="bolstering-materials"
+            />
+            <Separator />
+            <FlaskItem
+              item={ERDB.bolstering['Sacred Tear']}
+              iconType="bolstering-materials"
+            />
+          </CardContent>
         </Card>
         <Card>
           <CardHeader>
@@ -210,11 +197,13 @@ export function BolsteringSection() {
           <CardContent>
             <Table>
               <TableHeader>
-                <TableHead>Power</TableHead>
-                <TableHead>Stone</TableHead>
-                <TableHead>Somber</TableHead>
-                <TableHead>Grave</TableHead>
-                <TableHead>Ghost</TableHead>
+                <TableRow>
+                  <TableHead>Power</TableHead>
+                  <TableHead>Stone</TableHead>
+                  <TableHead>Somber</TableHead>
+                  <TableHead>Grave</TableHead>
+                  <TableHead>Ghost</TableHead>
+                </TableRow>
               </TableHeader>
               <TableBody>
                 {Array.from({ length: 10 }).map((_, i) => {
@@ -346,5 +335,43 @@ export function BolsteringSection() {
         </Card>
       </CardContent>
     </Card>
+  );
+}
+
+function FlaskItem({
+  item,
+  iconType,
+}: {
+  item: Bolstering | Tool;
+  iconType: 'tools' | 'bolstering-materials';
+}) {
+  const slot = useSelectedSlot();
+  const inventoryQuantityById = new Map(
+    slot
+      ? inventoryDbView(slot).items.map((item) => [item.item_id, item.quantity])
+      : []
+  );
+
+  const imgSrc = new URL(
+    `../../assets/erdb/icons/${iconType == 'tools' ? 'tools' : 'bolstering-materials'}/${item.icon.toString()}.png`,
+    import.meta.url
+  ).href;
+  return (
+    <div className="flex items-center justify-between gap-10 rounded-lg transition-colors hover:bg-muted/50">
+      <Tooltip>
+        <TooltipTrigger>
+          <img className="size-12" src={imgSrc} />
+        </TooltipTrigger>
+        <TooltipContent>
+          <img className="size-40" src={imgSrc} />
+        </TooltipContent>
+      </Tooltip>
+      <div className="flex flex-col items-end p-2">
+        <p>{item.name}</p>
+        <p className="text-sm text-muted-foreground">
+          {inventoryQuantityById.get(item.id) ?? 0} / 14
+        </p>
+      </div>
+    </div>
   );
 }
