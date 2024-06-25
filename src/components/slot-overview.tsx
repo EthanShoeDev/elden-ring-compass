@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from './ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import {
   useSelectedSlot,
   useSlotNameSelection,
@@ -7,6 +7,7 @@ import { statsDbView } from '@/lib/vm/stats';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+// import { equipmentDbView } from '@/lib/vm/equipement';
 
 export function SlotOverview({ className }: { className?: string }) {
   const slot = useSelectedSlot();
@@ -35,14 +36,17 @@ export function SlotOverview({ className }: { className?: string }) {
         steam_id: 'Unknown',
       };
 
+  // const equipmentVm = equipmentDbView(slot);
+
   const capitalizeFirstLetter = (string: string) => {
     if (!string) return '';
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
   return (
-    <Card className={cn('p-4', className)}>
-      <CardHeader className="flex flex-col gap-4 p-6">
+    <Card className={cn(className)}>
+      <CardHeader className="flex flex-col gap-4">
+        <CardTitle>Character</CardTitle>
         <div className="flex items-center gap-4">
           <Avatar>
             <AvatarImage src="/placeholder-user.jpg" />
@@ -127,23 +131,20 @@ export function SlotOverview({ className }: { className?: string }) {
             <div className="text-xs font-medium text-muted-foreground">
               Souls
             </div>
-            <div className="text-lg font-medium">{statsVm.stats.souls}</div>
+            <div className="text-lg font-medium">
+              {statsVm.stats.souls.toLocaleString()}
+            </div>
           </div>
           <div className="grid gap-1">
             <div className="text-xs font-medium text-muted-foreground">
               Souls Memory
             </div>
             <div className="text-lg font-medium">
-              {statsVm.stats.soulsmemory}
+              {statsVm.stats.soulsmemory.toLocaleString()}
             </div>
           </div>
         </div>
-        <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
-          <pre>
-            Player Coords:{' '}
-            {JSON.stringify(statsVm.coords.player_coords, null, 2)}
-          </pre>
-        </div>
+        <div></div>
       </CardContent>
     </Card>
   );

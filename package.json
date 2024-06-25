@@ -11,11 +11,7 @@
     "format": "prettier --write --cache .",
     "typecheck": "tsc --noEmit",
     "lint": "bun run format && bun run lint:fix && bun run typecheck",
-    "preview": "vite preview",
-    "prepare": "husky"
-  },
-  "lint-staged": {
-    "**/*": "bun run lint & bun run format"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@faker-js/faker": "^8.4.1",
@@ -79,8 +75,6 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
     "eslint-plugin-tailwindcss": "^3.17.3",
-    "husky": "^9.0.11",
-    "lint-staged": "^15.2.7",
     "postcss": "^8.4.38",
     "prettier": "^3.3.2",
     "prettier-plugin-tailwindcss": "^0.6.5",
