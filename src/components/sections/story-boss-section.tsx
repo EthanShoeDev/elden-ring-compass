@@ -56,7 +56,7 @@ export function StoryBossSection() {
   ].map((boss) => ({
     ...boss,
     killed: slot
-      ? events.find((e) => e.eventId === boss.eventId)?.on === 'on'
+      ? events.find((e) => e.eventId === boss.eventId)?.on == true
       : false,
   }));
 
@@ -101,7 +101,7 @@ export function StoryBossSection() {
   ].map((boss) => ({
     ...boss,
     killed: slot
-      ? events.find((e) => e.eventId === boss.eventId)?.on === 'on'
+      ? events.find((e) => e.eventId === boss.eventId)?.on == true
       : false,
   }));
 
@@ -161,7 +161,7 @@ function Boss({
       <TooltipTrigger
         className={cn(
           'flex w-20 flex-col items-center gap-1 rounded-lg p-1',
-          killed && 'border border-green-400'
+          killed && 'border border-green-300'
         )}
       >
         <Avatar>

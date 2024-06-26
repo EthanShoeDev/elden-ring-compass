@@ -13,11 +13,11 @@ export function eventsDbView(slot: Readonly<Slot>) {
 
   const checkIfEventIsOn = <T>(e: T & { eventId: number }) => {
     const eventFlagInfo = eventIdToOffsetMap.get(e.eventId);
-    const on = eventFlagInfo
-      ? get_bit(slot.event_flags.flags[eventFlagInfo[0]], eventFlagInfo[1])
-        ? 'on'
-        : 'off'
-      : 'unknown';
+    if (!eventFlagInfo) throw new Error('No event info');
+    const on = get_bit(
+      slot.event_flags.flags[eventFlagInfo[0]],
+      eventFlagInfo[1]
+    );
     return {
       ...e,
       on,

@@ -519,6 +519,7 @@ const keyColumns: Array<ColumnDef<InfoItem>> = (() => {
       }
     ),
     commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
+    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
   ];
 })();
 type ShopItem = Shop & Quantity;

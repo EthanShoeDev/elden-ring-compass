@@ -1,4 +1,7 @@
-export const REGIONS = {
+export const REGIONS: Record<
+  string,
+  [number, string, string, boolean, boolean, boolean]
+> = {
   ChurchofDragonCommunion: [
     6100090,
     'Church of Dragon Communion',

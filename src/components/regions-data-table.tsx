@@ -7,7 +7,6 @@ import {
   commonAccessorColumnDef,
   commonSelectColumnDef,
 } from './data-table/common-column-defs';
-import { eventsDbView } from '@/lib/vm/events';
 import {
   Card,
   CardContent,
@@ -15,20 +14,21 @@ import {
   CardHeader,
   CardTitle,
 } from './ui/card';
+import { regionsDbView } from '@/lib/vm/regions';
 
-type Event = ReturnType<typeof eventsDbView>[0];
+type Region = ReturnType<typeof regionsDbView>[0];
 
-export function EventsDataTable() {
+export function RegionsDataTable() {
   const slot = useSelectedSlot();
-  const items = useMemo(() => (slot ? eventsDbView(slot) : []), [slot]);
+  const items = useMemo(() => (slot ? regionsDbView(slot) : []), [slot]);
 
   if (!slot) return <p>Select a slot</p>;
 
-  const ownedCount = items.filter((item) => item.on).length;
+  const ownedCount = items.filter((item) => item.found).length;
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Events</CardTitle>
+        <CardTitle>Regions</CardTitle>
         <CardDescription>
           {ownedCount} / {items.length} - (
           {((ownedCount / items.length) * 100).toFixed(0)}% owned)
@@ -46,11 +46,14 @@ export function EventsDataTable() {
   );
 }
 
-const columnHelper = createColumnHelper<Event>();
-const columns: Array<ColumnDef<Event>> = [
+const columnHelper = createColumnHelper<Region>();
+const columns: Array<ColumnDef<Region>> = [
   commonSelectColumnDef(columnHelper),
   commonAccessorColumnDef(columnHelper, 'eventId', 'ID'),
   commonAccessorColumnDef(columnHelper, 'name', 'Name'),
-  commonAccessorColumnDef(columnHelper, 'on', 'Complete'),
-  commonAccessorColumnDef(columnHelper, 'type', 'Type'),
+  commonAccessorColumnDef(columnHelper, 'found', 'Found'),
+  commonAccessorColumnDef(columnHelper, 'map', 'Map'),
+  commonAccessorColumnDef(columnHelper, 'isBoss', 'Is Boss'),
+  commonAccessorColumnDef(columnHelper, 'isDungeon', 'Is Dungeon'),
+  commonAccessorColumnDef(columnHelper, 'isOpenWorld', 'Is Open World'),
 ];

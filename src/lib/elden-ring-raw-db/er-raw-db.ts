@@ -150,6 +150,14 @@ export const CLEAN_ELDEN_RING_DB = (() => {
       ),
     ],
     equipment: [],
+    regions: Object.values(RAW_ELDEN_RING_DB.REGIONS).map((values) => ({
+      eventId: values[0],
+      name: values[1],
+      map: values[2],
+      isOpenWorld: values[3],
+      isDungeon: values[4],
+      isBoss: values[5],
+    })),
   };
 })();
 

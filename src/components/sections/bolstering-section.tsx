@@ -74,7 +74,7 @@ export function BolsteringSection() {
     "Smithing-Stone Miner's Bell Bearing [1]": {
       boss: {
         bossName: 'Crystalian (Raya Lucaria Crystal Tunnel)',
-        killed: events.find((e) => e.eventId === 32020800)?.on === 'on',
+        killed: events.find((e) => e.eventId === 32020800)?.on === true,
       },
     },
     "Smithing-Stone Miner's Bell Bearing [2]": { location: 'Sealed Tunnel' },
@@ -82,19 +82,19 @@ export function BolsteringSection() {
     "Smithing-Stone Miner's Bell Bearing [4]": {
       boss: {
         bossName: 'Godskin Duo',
-        killed: events.find((e) => e.eventId === 13000850)?.on === 'on',
+        killed: events.find((e) => e.eventId === 13000850)?.on === true,
       },
     },
     "Somberstone Miner's Bell Bearing [1]": {
       boss: {
         bossName: 'Fallingstar Beast (Sellia Crystal Tunnel)',
-        killed: events.find((e) => e.eventId === 32080800)?.on === 'on',
+        killed: events.find((e) => e.eventId === 32080800)?.on === true,
       },
     },
     "Somberstone Miner's Bell Bearing [2]": {
       boss: {
         bossName: 'Crystalian Spear and Crystalian Ringblade (Altus Tunnel)',
-        killed: events.find((e) => e.eventId === 32050800)?.on === 'on',
+        killed: events.find((e) => e.eventId === 32050800)?.on === true,
       },
     },
     "Somberstone Miner's Bell Bearing [3]": {
@@ -167,21 +167,24 @@ export function BolsteringSection() {
             <CardDescription>5 / 20 - (35%)</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-1">
-            <FlaskItem item={usersFlask} iconType="tools" />
+            <FlaskItem item={usersFlask} iconType="tools" max={14} />
             <Separator />
             <FlaskItem
               item={ERDB.tools['Flask of Cerulean Tears']}
               iconType="tools"
+              max={14}
             />
             <Separator />
             <FlaskItem
               item={ERDB.bolstering['Golden Seed']}
               iconType="bolstering-materials"
+              max={30}
             />
             <Separator />
             <FlaskItem
               item={ERDB.bolstering['Sacred Tear']}
               iconType="bolstering-materials"
+              max={12}
             />
           </CardContent>
         </Card>
@@ -281,7 +284,7 @@ export function BolsteringSection() {
                               <TooltipTrigger
                                 className={cn(
                                   'flex items-center rounded-lg p-1',
-                                  bellOwned ? 'border border-green-500' : ''
+                                  bellOwned ? 'border border-green-300/50' : ''
                                 )}
                               >
                                 <div className="flex flex-wrap items-center justify-center gap-1">
@@ -341,9 +344,11 @@ export function BolsteringSection() {
 function FlaskItem({
   item,
   iconType,
+  max,
 }: {
   item: Bolstering | Tool;
   iconType: 'tools' | 'bolstering-materials';
+  max: number;
 }) {
   const slot = useSelectedSlot();
   const inventoryQuantityById = new Map(
@@ -369,7 +374,7 @@ function FlaskItem({
       <div className="flex flex-col items-end p-2">
         <p>{item.name}</p>
         <p className="text-sm text-muted-foreground">
-          {inventoryQuantityById.get(item.id) ?? 0} / 14
+          {inventoryQuantityById.get(item.id) ?? 0} / {max}
         </p>
       </div>
     </div>

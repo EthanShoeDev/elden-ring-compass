@@ -81,7 +81,7 @@ export function DataTableFacetedFilter<TData, TValue>({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0" align="start">
+      <PopoverContent className="p-0" align="start">
         <Command>
           {options.length > 4 && <CommandInput placeholder={title} />}
           <CommandList>

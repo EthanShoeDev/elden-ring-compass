@@ -1,6 +1,7 @@
 import { ColumnDef, ColumnHelper } from '@tanstack/react-table';
 import { Checkbox } from '../ui/checkbox';
 import { DataTableColumnHeader } from './data-table-column-header';
+import { CheckIcon, XIcon } from 'lucide-react';
 
 export const commonSelectColumnDef = <T,>(
   columnHelper: ColumnHelper<T>
@@ -48,11 +49,19 @@ export const commonAccessorColumnDef = <T,>(
     cell: (cell) => {
       const value = cell.renderValue();
       const renderValue =
-        typeof value === 'string' || typeof value === 'number'
-          ? value
-          : value == null
-            ? 'NA'
-            : JSON.stringify(value);
+        typeof value === 'string' || typeof value === 'number' ? (
+          value
+        ) : value == null ? (
+          'NA'
+        ) : typeof value == 'boolean' ? (
+          value ? (
+            <CheckIcon className="size-4 text-green-300" />
+          ) : (
+            <XIcon className="size-4 text-red-300" />
+          )
+        ) : (
+          JSON.stringify(value)
+        );
       return <div>{renderValue}</div>;
     },
     filterFn: function defaultFacetedFilterFn(row, columnId, filterVal) {
