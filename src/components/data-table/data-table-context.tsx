@@ -94,7 +94,7 @@ const createDataTableStore = (initProps: DataTableStoreProps) => {
         setColumnSizing: handleOnChangeParam('columnSizing')(set, get),
       }),
       {
-        name: initProps.tableId,
+        name: `data-table-state-${initProps.tableId}`,
       }
     )
   );
