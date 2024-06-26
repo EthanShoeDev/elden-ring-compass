@@ -6,5 +6,12 @@
   "editor.stickyScroll.enabled": true,
   "editor.formatOnSave": true,
 
-  "git.autofetch": true
+  "git.autofetch": true,
+  "tailwindCSS.classAttributes": [
+    "class",
+    "className",
+    "ngClass",
+    "class:list",
+    ".*ClassName"
+  ]
 }

@@ -1,8 +1,5 @@
 import {
   ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -25,27 +22,45 @@ import {
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableToolbar } from './data-table-toolbar';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import {
+  DataTableProvider,
+  DataTableStoreProps,
+  useDataTableContext,
+} from './data-table-context';
 
 export function DataTable<TData, TValue>({
   className,
   columns,
   data,
-  initialColumnVisibility,
+  ...props
 }: {
   className?: string;
   columns: Array<ColumnDef<TData, TValue>>;
   data: Array<TData>;
-  initialColumnVisibility?: VisibilityState;
+} & DataTableStoreProps) {
+  return (
+    <DataTableProvider {...props}>
+      <DataTableInner className={className} columns={columns} data={data} />
+    </DataTableProvider>
+  );
+}
+
+function DataTableInner<TData, TValue>({
+  className,
+  columns,
+  data,
+}: {
+  className?: string;
+  columns: Array<ColumnDef<TData, TValue>>;
+  data: Array<TData>;
 }) {
   'use no memo';
-
-  const [rowSelection, setRowSelection] = useState({});
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    initialColumnVisibility ?? {}
-  );
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = useState<SortingState>([]);
+  // const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  // const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+  //   initialColumnVisibility ?? {}
+  // );
+  // const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const state = useDataTableContext((state) => state);
 
   const table = useReactTable({
     data,
@@ -57,16 +72,17 @@ export function DataTable<TData, TValue>({
       },
     },
     state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
-      columnFilters,
+      sorting: state.sorting,
+      columnVisibility: state.columnVisibility,
+      rowSelection: state.rowSelection,
+      columnFilters: state.columnFilters,
     },
     enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
+    columnResizeMode: 'onChange',
+    onRowSelectionChange: state.setRowSelection,
+    onSortingChange: state.setSorting,
+    onColumnFiltersChange: state.setColumnFilters,
+    onColumnVisibilityChange: state.setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -74,7 +90,6 @@ export function DataTable<TData, TValue>({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
-
   return (
     <div className={cn('space-y-4', className)}>
       <DataTableToolbar table={table} />
@@ -85,13 +100,32 @@ export function DataTable<TData, TValue>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} colSpan={header.colSpan}>
+                    <TableHead
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      className="relative"
+                      style={{
+                        width: header.getSize(),
+                      }}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
                             header.getContext()
                           )}
+                      {header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className={cn(
+                            'absolute inset-y-0 right-0 z-10 w-2 cursor-col-resize touch-none select-none border-r hover:bg-muted',
+                            header.column.getIsResizing()
+                              ? 'bg-secondary-foreground/20 hover:bg-secondary-foreground/20'
+                              : ''
+                          )}
+                        ></div>
+                      )}
                     </TableHead>
                   );
                 })}

@@ -26,11 +26,13 @@ export function Combobox({
   items,
   valueState,
   emptyLabel,
+  triggerButtonClassName,
 }: {
   emptyLabel: string;
   placeholder: string;
   items: Array<Item>;
   valueState?: readonly [string | undefined, (val?: string) => void];
+  triggerButtonClassName?: string;
 }) {
   const [open, setOpen] = React.useState(false);
   const internalSelectedState = React.useState<string | undefined>(undefined);
@@ -43,7 +45,7 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className={cn('w-[200px] justify-between', triggerButtonClassName)}
         >
           {value
             ? items.find((item) => item.value === value)?.label

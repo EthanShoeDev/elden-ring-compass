@@ -4,18 +4,20 @@ import armaments from '@/assets/erdb/json/armaments.json';
 import armor from '@/assets/erdb/json/armor.json';
 import ashes from '@/assets/erdb/json/ashes-of-war.json';
 import bolstering from '@/assets/erdb/json/bolstering-materials.json';
-import correctionAttack from '@/assets/erdb/json/correction-attack.json';
-import correctionGraph from '@/assets/erdb/json/correction-graph.json';
+// import correctionAttack from '@/assets/erdb/json/correction-attack.json';
+// import correctionGraph from '@/assets/erdb/json/correction-graph.json';
 import crafting from '@/assets/erdb/json/crafting-materials.json';
 import gestures from '@/assets/erdb/json/gestures.json';
 import info from '@/assets/erdb/json/info.json';
 import keys from '@/assets/erdb/json/keys.json';
-import reinforcements from '@/assets/erdb/json/reinforcements.json';
+// import reinforcements from '@/assets/erdb/json/reinforcements.json';
 import shop from '@/assets/erdb/json/shop.json';
 import spells from '@/assets/erdb/json/spells.json';
 import spirit from '@/assets/erdb/json/spirit-ashes.json';
 import talismans from '@/assets/erdb/json/talismans.json';
 import tools from '@/assets/erdb/json/tools.json';
+import { useSelectedSlot } from '@/stores/slot-selection-store';
+import { inventoryDbView } from './vm/inventory';
 
 type Ammo = {
   full_hex_id: string;
@@ -136,16 +138,40 @@ export const ERDB = {
   armor,
   ashes,
   bolstering,
-  correctionAttack,
-  correctionGraph,
+  // correctionAttack,
+  // correctionGraph,
   crafting,
   gestures,
   info,
   keys,
-  reinforcements,
+  // reinforcements,
   shop,
   spells,
   spirit,
   talismans,
   tools: tools as Record<string, Tool>,
+} satisfies Record<string, Record<string, { id: number }>>;
+
+export const useErdb = <T extends { id: number }>(
+  erdbItems: Array<T>
+): {
+  items: Array<T & { quantity: number }>;
+  ownedCount: number;
+} => {
+  const slot = useSelectedSlot();
+
+  const inventoryQuantityById = new Map(
+    slot
+      ? inventoryDbView(slot).items.map((item) => [item.item_id, item.quantity])
+      : []
+  );
+
+  const items = erdbItems.map((value) => ({
+    quantity: inventoryQuantityById.get(value.id) ?? 0,
+    ...value,
+  }));
+
+  const ownedCount = items.filter((item) => item.quantity > 0).length;
+
+  return { items, ownedCount };
 };
