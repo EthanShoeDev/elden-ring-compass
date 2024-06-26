@@ -1,5 +1,5 @@
-import { ARCHE_TYPE } from '../elden-ring-raw-db/ARCHE_TYPE';
-import { Slot } from '../wasm-wrapper';
+import { ARCHE_TYPE } from '@/lib/elden-ring-raw-db/ARCHE_TYPE';
+import { Slot } from '@/lib/wasm-wrapper';
 
 type ArcheType = keyof typeof ARCHE_TYPE;
 

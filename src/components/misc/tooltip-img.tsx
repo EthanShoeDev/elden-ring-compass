@@ -1,4 +1,4 @@
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 export function TooltipImg({ imgSrc, alt }: { imgSrc: string; alt?: string }) {
   return (

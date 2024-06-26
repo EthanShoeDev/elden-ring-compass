@@ -20,9 +20,7 @@ type Region = ReturnType<typeof regionsDbView>[0];
 
 export function RegionsDataTable() {
   const slot = useSelectedSlot();
-  const items = useMemo(() => (slot ? regionsDbView(slot) : []), [slot]);
-
-  if (!slot) return <p>Select a slot</p>;
+  const items = useMemo(() => regionsDbView(slot), [slot]);
 
   const ownedCount = items.filter((item) => item.found).length;
   return (
@@ -49,7 +47,7 @@ export function RegionsDataTable() {
 const columnHelper = createColumnHelper<Region>();
 const columns: Array<ColumnDef<Region>> = [
   commonSelectColumnDef(columnHelper),
-  commonAccessorColumnDef(columnHelper, 'eventId', 'ID'),
+  commonAccessorColumnDef(columnHelper, 'eventId', 'ID', { size: 1 }),
   commonAccessorColumnDef(columnHelper, 'name', 'Name'),
   commonAccessorColumnDef(columnHelper, 'found', 'Found'),
   commonAccessorColumnDef(columnHelper, 'map', 'Map'),

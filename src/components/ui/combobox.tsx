@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import {
   Popover,
@@ -19,6 +19,7 @@ import { CommandList } from 'cmdk';
 type Item = {
   label: string;
   value: string;
+  dropDownItem?: ReactNode;
 };
 
 export function Combobox({
@@ -76,7 +77,7 @@ export function Combobox({
                       value === item.value ? 'opacity-100' : 'opacity-0'
                     )}
                   />
-                  {item.label}
+                  {item.dropDownItem ?? item.label}
                 </CommandItem>
               ))}
             </CommandList>

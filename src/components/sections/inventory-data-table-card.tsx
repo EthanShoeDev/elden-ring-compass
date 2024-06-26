@@ -3,7 +3,7 @@ import {
   commonAccessorColumnDef,
 } from '@/components/data-table/common-column-defs';
 import { DataTable } from '@/components/data-table/data-table';
-import { TooltipImg } from '@/components/tooltip-img';
+import { TooltipImg } from '@/components/misc/tooltip-img';
 import {
   Card,
   CardContent,
@@ -28,7 +28,7 @@ import {
   Spirit,
   Talisman,
   Tool,
-  useErdb,
+  useAllErdb,
 } from '@/lib/erdb';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { create } from 'zustand';
@@ -53,7 +53,10 @@ const useTableSelection = create<{
 
 export function InventoryDataTableCard() {
   const { table, setTableType } = useTableSelection();
-  const { items, ownedCount } = useErdb(Object.values(ERDB[table]));
+  const allErdb = useAllErdb();
+
+  const items = allErdb[table].items;
+  const ownedCount = allErdb[table].ownedCount;
 
   return (
     <Card className="w-full">
@@ -69,16 +72,33 @@ export function InventoryDataTableCard() {
               },
             ]}
             emptyLabel=""
-            items={Object.entries(tables).map(([table, info]) => ({
-              label: info.label,
-              value: table,
-            }))}
+            items={Object.entries(tables).map(([table, info]) => {
+              const ownedCount = allErdb[table].ownedCount;
+              const items = allErdb[table].items;
+              return {
+                label: info.label,
+                value: table,
+                dropDownItem: (
+                  <>
+                    <span>{info.label}</span>
+                    <span className="ml-auto font-mono text-muted-foreground">
+                      {ownedCount}/{items.length} (
+                      {((ownedCount / items.length) * 100)
+                        .toFixed(0)
+                        .padStart(2, ' ')}
+                      %)
+                    </span>
+                  </>
+                ),
+              };
+            })}
             triggerButtonClassName="text-2xl font-semibold h-auto"
           />
         </CardTitle>
         <CardDescription>
-          {ownedCount} / {items.length} - (
-          {((ownedCount / items.length) * 100).toFixed(0)}% owned)
+          {ownedCount} / {items.length}
+          <br />
+          {((ownedCount / items.length) * 100).toFixed(0)}% owned
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -148,7 +168,7 @@ const ammoColumns: Array<ColumnDef<AmmoItem>> = (() => {
   ];
 })();
 
-type ArmamentItem = Armament & Quantity;
+type ArmamentItem = Armament & Quantity & { weapon_upgrade_level: number };
 const armColumns: Array<ColumnDef<ArmamentItem>> = (() => {
   const columnHelper = createColumnHelper<ArmamentItem>();
 
@@ -190,6 +210,11 @@ const armColumns: Array<ColumnDef<ArmamentItem>> = (() => {
     commonAccessorColumnDef(columnHelper, 'allow_ash_of_war', 'Allow AOW'),
     commonAccessorColumnDef(columnHelper, 'is_buffable', 'Buffable'),
     commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
+    commonAccessorColumnDef(
+      columnHelper,
+      'weapon_upgrade_level',
+      'Upgrade Level'
+    ),
     commonAccessorColumnDef(columnHelper, 'weight', 'Weight'),
     commonAccessorColumnDef(
       columnHelper,

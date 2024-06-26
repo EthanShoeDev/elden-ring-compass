@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button } from './ui/button';
+import { Button } from '../ui/button';
 import { CheckIcon, CopyIcon } from 'lucide-react';
 
 export function CopyButton({ value }: { value: string }) {

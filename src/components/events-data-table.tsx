@@ -20,9 +20,7 @@ type Event = ReturnType<typeof eventsDbView>[0];
 
 export function EventsDataTable() {
   const slot = useSelectedSlot();
-  const items = useMemo(() => (slot ? eventsDbView(slot) : []), [slot]);
-
-  if (!slot) return <p>Select a slot</p>;
+  const items = useMemo(() => eventsDbView(slot), [slot]);
 
   const ownedCount = items.filter((item) => item.on).length;
   return (
@@ -49,7 +47,7 @@ export function EventsDataTable() {
 const columnHelper = createColumnHelper<Event>();
 const columns: Array<ColumnDef<Event>> = [
   commonSelectColumnDef(columnHelper),
-  commonAccessorColumnDef(columnHelper, 'eventId', 'ID'),
+  commonAccessorColumnDef(columnHelper, 'eventId', 'ID', { size: 1 }),
   commonAccessorColumnDef(columnHelper, 'name', 'Name'),
   commonAccessorColumnDef(columnHelper, 'on', 'Complete'),
   commonAccessorColumnDef(columnHelper, 'type', 'Type'),

@@ -3,12 +3,8 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import wasm from 'vite-plugin-wasm';
 import { comlink } from 'vite-plugin-comlink';
+import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
 
-const ReactCompilerConfig = {
-  /* ... */
-};
-
-// https://vitejs.dev/config/
 export default defineConfig({
   server: {
     port: 5173,
@@ -20,8 +16,12 @@ export default defineConfig({
   plugins: [
     react({
       babel: {
-        plugins: [['babel-plugin-react-compiler', ReactCompilerConfig]],
+        plugins: [['babel-plugin-react-compiler', {}]],
       },
+    }),
+    ViteImageOptimizer({
+      cache: true,
+      cacheLocation: 'node_modules/.cache/vite-plugin-image-optimizer',
     }),
     wasm(),
     comlink(),

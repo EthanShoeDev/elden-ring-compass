@@ -1,5 +1,5 @@
 import { CopyIcon } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from '../ui/button';
 import { useRef } from 'react';
 
 export function CodeSnippet({ children }: { children: string }) {

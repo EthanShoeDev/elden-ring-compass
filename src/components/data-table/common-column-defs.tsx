@@ -1,4 +1,4 @@
-import { ColumnDef, ColumnHelper } from '@tanstack/react-table';
+import { ColumnDef, ColumnHelper, Row } from '@tanstack/react-table';
 import { Checkbox } from '../ui/checkbox';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { CheckIcon, XIcon } from 'lucide-react';
@@ -37,6 +37,16 @@ export const commonSelectColumnDef = <T,>(
     enableColumnFilter: false,
   });
 
+export const defaultFacetedFilterFnSymbol = Symbol('defaultFacetedFilterFn');
+function defaultFacetedFilterFn<T>(
+  row: Row<T>,
+  columnId: string,
+  filterVal: Array<T>
+) {
+  return filterVal.includes(row.getValue(columnId));
+}
+defaultFacetedFilterFn[defaultFacetedFilterFnSymbol] = true;
+
 export const commonAccessorColumnDef = <T,>(
   columnHelper: ColumnHelper<T>,
   accessor: Parameters<ColumnHelper<T>['accessor']>[0],
@@ -45,7 +55,9 @@ export const commonAccessorColumnDef = <T,>(
 ): ColumnDef<T> =>
   columnHelper.accessor(accessor, {
     id: label,
-    header: ({ column }) => <DataTableColumnHeader column={column} />,
+    header: ({ column, table }) => (
+      <DataTableColumnHeader table={table} column={column} />
+    ),
     cell: (cell) => {
       const value = cell.renderValue();
       const renderValue =
@@ -64,8 +76,6 @@ export const commonAccessorColumnDef = <T,>(
         );
       return <div>{renderValue}</div>;
     },
-    filterFn: function defaultFacetedFilterFn(row, columnId, filterVal) {
-      return (filterVal as Array<T>).includes(row.getValue(columnId));
-    },
+    filterFn: defaultFacetedFilterFn,
     ...overrides,
   });

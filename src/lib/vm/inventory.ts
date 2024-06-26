@@ -76,80 +76,83 @@ export function inventoryDbView(slot: Readonly<Slot>) {
   const fill_storage_type = (
     inventory_data: EquipInventoryData | StorageInventoryData
   ) => {
-    return inventory_data.common_items.map((commonItem, idx) => {
-      const itemType = itemTypeFromGaHandle(commonItem.ga_item_handle);
-      const equip_index = idx + 0x180;
+    return inventory_data.common_items
+      .map((commonItem, idx) => {
+        const itemType = itemTypeFromGaHandle(commonItem.ga_item_handle);
+        const equip_index = idx + 0x180;
 
-      const gaitem: GaItem | undefined = [
-        'ACCESSORY',
-        'ITEM',
-        'EMPTY',
-      ].includes(itemType)
-        ? {
-            gaitem_handle: 0,
-            item_id: 0,
-            unk2: -1,
-            unk3: -1,
-            aow_gaitem_handle: 0xffffffff, // u32::MAX
-            unk5: 0,
+        const gaitem: GaItem | undefined = [
+          'ACCESSORY',
+          'ITEM',
+          'EMPTY',
+        ].includes(itemType)
+          ? {
+              gaitem_handle: 0,
+              item_id: 0,
+              unk2: -1,
+              unk3: -1,
+              aow_gaitem_handle: 0xffffffff, // u32::MAX
+              unk5: 0,
+            }
+          : slot.ga_items.find(
+              (item) => item.gaitem_handle === commonItem.ga_item_handle
+            );
+
+        if (!gaitem)
+          throw new Error(
+            `Could not find gaitem for common item: ${commonItem.ga_item_handle.toString()}`
+          );
+
+        const itemId = ['ACCESSORY', 'ITEM', 'EMPTY'].includes(itemType)
+          ? commonItem.ga_item_handle ^ InventoryGaItemTypeToOffset[itemType]
+          : gaitem.item_id ^ InventoryItemTypeToOffset[itemType];
+
+        const upgrade_level = itemType === 'WEAPON' ? gaitem.item_id % 100 : 0;
+        const itemName = (() => {
+          if (itemType === 'WEAPON') {
+            const idStr = (itemId - upgrade_level).toString();
+            const weaponName =
+              RAW_ELDEN_RING_DB.WEAPON_NAME[idStr] ?? `[UNKOWN_${idStr}]`;
+
+            return upgrade_level > 0
+              ? `${weaponName} +${upgrade_level.toString()}`
+              : weaponName;
+          } else if (itemType === 'ARMOR') {
+            return (
+              RAW_ELDEN_RING_DB.ARMOR_NAME[itemId.toString()] ??
+              `[UNKOWN_${itemId.toString()}]`
+            );
+          } else if (itemType === 'ACCESSORY') {
+            return (
+              RAW_ELDEN_RING_DB.ACCESSORY_NAME[itemId.toString()] ??
+              `[UNKOWN_${itemId.toString()}]`
+            );
+          } else if (itemType === 'ITEM') {
+            return (
+              RAW_ELDEN_RING_DB.ITEM_NAMES[itemId.toString()] ??
+              `[UNKOWN_${itemId.toString()}]`
+            );
+          } else if (itemType === 'AOW') {
+            return (
+              RAW_ELDEN_RING_DB.AOW_NAME[itemId.toString()] ??
+              `[UNKOWN_${itemId.toString()}]`
+            );
           }
-        : slot.ga_items.find(
-            (item) => item.gaitem_handle === commonItem.ga_item_handle
-          );
+          return 'Unknown';
+        })();
 
-      if (!gaitem)
-        throw new Error(
-          `Could not find gaitem for common item: ${commonItem.ga_item_handle.toString()}`
-        );
-
-      const itemId = ['ACCESSORY', 'ITEM', 'EMPTY'].includes(itemType)
-        ? commonItem.ga_item_handle ^ InventoryGaItemTypeToOffset[itemType]
-        : gaitem.item_id ^ InventoryItemTypeToOffset[itemType];
-
-      const itemName = (() => {
-        if (itemType === 'WEAPON') {
-          const upgrade_level = gaitem.item_id % 100;
-          const idStr = (itemId - upgrade_level).toString();
-          const weaponName =
-            RAW_ELDEN_RING_DB.WEAPON_NAME[idStr] ?? `[UNKOWN_${idStr}]`;
-
-          return upgrade_level > 0
-            ? `${weaponName} +${upgrade_level.toString()}`
-            : weaponName;
-        } else if (itemType === 'ARMOR') {
-          return (
-            RAW_ELDEN_RING_DB.ARMOR_NAME[itemId.toString()] ??
-            `[UNKOWN_${itemId.toString()}]`
-          );
-        } else if (itemType === 'ACCESSORY') {
-          return (
-            RAW_ELDEN_RING_DB.ACCESSORY_NAME[itemId.toString()] ??
-            `[UNKOWN_${itemId.toString()}]`
-          );
-        } else if (itemType === 'ITEM') {
-          return (
-            RAW_ELDEN_RING_DB.ITEM_NAMES[itemId.toString()] ??
-            `[UNKOWN_${itemId.toString()}]`
-          );
-        } else if (itemType === 'AOW') {
-          return (
-            RAW_ELDEN_RING_DB.AOW_NAME[itemId.toString()] ??
-            `[UNKOWN_${itemId.toString()}]`
-          );
-        }
-        return 'Unknown';
-      })();
-
-      return {
-        ga_item_handle: commonItem.ga_item_handle,
-        item_id: itemId,
-        item_name: itemName,
-        quantity: commonItem.quantity,
-        inventory_index: commonItem.inventory_index,
-        equip_index,
-        type: itemType,
-      };
-    });
+        return {
+          ga_item_handle: commonItem.ga_item_handle,
+          item_id: itemId - upgrade_level,
+          item_name: itemName,
+          quantity: commonItem.quantity,
+          inventory_index: commonItem.inventory_index,
+          equip_index,
+          type: itemType,
+          upgrade_level,
+        };
+      })
+      .filter((i) => i.item_id != -1 && i.item_id != 0);
   };
 
   const equip_inventory = fill_storage_type(slot.equip_inventory_data);
@@ -157,9 +160,7 @@ export function inventoryDbView(slot: Readonly<Slot>) {
 
   const userInventory = {
     ...getNextItemIndexes(slot),
-    items: [...equip_inventory, ...storage_inventory].filter(
-      (i) => i.item_id != 0
-    ),
+    items: [...equip_inventory, ...storage_inventory],
   };
 
   return userInventory;

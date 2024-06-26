@@ -15,12 +15,12 @@ import {
 } from 'lucide-react';
 import { formatDistance } from 'date-fns';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
-import { CodeSnippet } from './code-snippet';
+import { CodeSnippet } from './misc/code-snippet';
 import Spinner from './ui/spinner';
 import { Combobox } from './ui/combobox';
 import { fileToArrBuffer } from '@/lib/er-save-parser';
 import { useSlotNameSelection } from '@/stores/slot-selection-store';
-import { CopyButton } from './copy-button';
+import { CopyButton } from './misc/copy-button';
 import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
 
 export function SaveFileSourceSelector() {

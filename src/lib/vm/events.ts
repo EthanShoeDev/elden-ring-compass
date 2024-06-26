@@ -8,16 +8,15 @@ function get_bit(byte: number, bit_pos: number) {
   return (byte & (1 << bit_pos)) != 0;
 }
 
-export function eventsDbView(slot: Readonly<Slot>) {
+export function eventsDbView(slot?: Readonly<Slot>) {
   const eventIdToOffsetMap = new Map(RAW_ELDEN_RING_DB.EVENT_FLAGS);
 
   const checkIfEventIsOn = <T>(e: T & { eventId: number }) => {
     const eventFlagInfo = eventIdToOffsetMap.get(e.eventId);
     if (!eventFlagInfo) throw new Error('No event info');
-    const on = get_bit(
-      slot.event_flags.flags[eventFlagInfo[0]],
-      eventFlagInfo[1]
-    );
+    const on = slot
+      ? get_bit(slot.event_flags.flags[eventFlagInfo[0]], eventFlagInfo[1])
+      : false;
     return {
       ...e,
       on,

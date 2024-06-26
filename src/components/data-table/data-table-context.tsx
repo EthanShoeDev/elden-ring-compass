@@ -1,7 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createStore, useStore } from 'zustand';
-import { createContext, useContext } from 'react';
-import { useRef } from 'react';
+import { createContext, useContext, useRef } from 'react';
 import {
   ColumnFiltersState,
   RowSelectionState,
@@ -10,6 +9,7 @@ import {
   ColumnSizingState,
   OnChangeFn,
   Updater,
+  ColumnOrderState,
 } from '@tanstack/react-table';
 import { persist } from 'zustand/middleware';
 
@@ -48,6 +48,8 @@ type DataTableState = {
   setSorting: OnChangeFn<SortingState>;
   columnSizing: ColumnSizingState;
   setColumnSizing: OnChangeFn<ColumnSizingState>;
+  columnOrder: ColumnOrderState;
+  setColumnOrder: OnChangeFn<ColumnOrderState>;
 };
 
 type DataTableStore = ReturnType<typeof createDataTableStore>;
@@ -92,6 +94,8 @@ const createDataTableStore = (initProps: DataTableStoreProps) => {
         setSorting: handleOnChangeParam('sorting')(set, get),
         columnSizing: {},
         setColumnSizing: handleOnChangeParam('columnSizing')(set, get),
+        columnOrder: [],
+        setColumnOrder: handleOnChangeParam('columnOrder')(set, get),
       }),
       {
         name: `data-table-state-${initProps.tableId}`,

@@ -86,6 +86,26 @@ export function DataTableFacetedFilter<TData, TValue>({
           {options.length > 4 && <CommandInput placeholder={title} />}
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
+            <CommandGroup className="flex *:flex *:w-full">
+              <CommandItem
+                className="flex grow items-center justify-center py-0.5"
+                onSelect={() => {
+                  const filterValues = options.map((option) => option.value);
+                  column?.setFilterValue(filterValues);
+                }}
+              >
+                All
+              </CommandItem>
+              <CommandItem
+                className="flex grow items-center justify-center py-0.5"
+                onSelect={() => {
+                  column?.setFilterValue(undefined);
+                }}
+              >
+                None
+              </CommandItem>
+            </CommandGroup>
+            <CommandSeparator />
             <CommandGroup>
               {options.map((option) => {
                 const isSelected = selectedValues.has(option.value);

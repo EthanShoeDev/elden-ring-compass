@@ -405,26 +405,64 @@ export const ERDB = {
   tools: tools as Record<string, Tool>,
 } satisfies Record<string, Record<string, { id: number }>>;
 
-export const useErdb = <T extends { id: number }>(
-  erdbItems: Array<T>
-): {
-  items: Array<T & { quantity: number }>;
-  ownedCount: number;
-} => {
+export const useAllErdb = () => {
   const slot = useSelectedSlot();
 
-  const inventoryQuantityById = new Map(
-    slot
-      ? inventoryDbView(slot).items.map((item) => [item.item_id, item.quantity])
-      : []
+  // const inventory = slot ? inventoryDbView(slot).items : [];
+  // const inventoryById = new Map(inventory.map((item) => [item.item_id, item]));
+
+  // if (inventory.length != inventoryById.size) {
+  //   throw new Error('Duplicate item ids in inventory');
+  // }
+  const inventory = slot ? inventoryDbView(slot).items : [];
+  const inventoryById = new Map<number, (typeof inventory)[0]>();
+
+  for (const item of inventory) {
+    const currentItem = inventoryById.get(item.item_id);
+    inventoryById.set(item.item_id, {
+      ...item,
+      quantity: currentItem
+        ? item.quantity + currentItem.quantity
+        : item.quantity,
+      upgrade_level: currentItem
+        ? Math.max(currentItem.upgrade_level, item.upgrade_level)
+        : item.upgrade_level,
+    });
+  }
+
+  const slotErdb = Object.fromEntries(
+    Object.entries(ERDB).map(([key, value]) => {
+      const items = Object.values(
+        value as Record<
+          string,
+          {
+            name: string;
+            id: number;
+          }
+        >
+      ).map((item) => {
+        const invItem = inventoryById.get(item.id);
+        const weapon_upgrade_level = invItem?.upgrade_level ?? 0;
+        return {
+          old_category: invItem?.type,
+          weapon_upgrade_level,
+          quantity: invItem?.quantity ?? 0,
+          ...item,
+          name:
+            weapon_upgrade_level > 0
+              ? `${item.name} +${weapon_upgrade_level.toString()}`
+              : item.name,
+        };
+      });
+      return [
+        key,
+        {
+          items,
+          ownedCount: items.filter((item) => item.quantity > 0).length,
+        },
+      ];
+    })
   );
 
-  const items = erdbItems.map((value) => ({
-    quantity: inventoryQuantityById.get(value.id) ?? 0,
-    ...value,
-  }));
-
-  const ownedCount = items.filter((item) => item.quantity > 0).length;
-
-  return { items, ownedCount };
+  return slotErdb;
 };
