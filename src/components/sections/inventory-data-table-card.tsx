@@ -318,7 +318,7 @@ const bolsteringColumns: Array<ColumnDef<BolsteringItem>> = (() => {
       maxSize: 75,
       cell: (cell) => {
         const imgUrl = new URL(
-          `../../assets/erdb/icons/bolstering-material/${cell.row.original.icon.toString()}.png`,
+          `../../assets/erdb/icons/bolstering-materials/${cell.row.original.icon.toString()}.png`,
           import.meta.url
         ).href;
         return (
