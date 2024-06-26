@@ -12,6 +12,14 @@ if (!root) {
   throw new Error('No root element found');
 }
 
+if (!import.meta.env.DEV)
+  window.addEventListener('error', () => {
+    console.log('Error detected, clearing local storage');
+    localStorage.clear();
+    console.log('Reload window');
+    window.location.reload();
+  });
+
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
     <Providers>

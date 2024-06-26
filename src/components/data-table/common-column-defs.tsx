@@ -7,6 +7,7 @@ export const commonSelectColumnDef = <T,>(
 ): ColumnDef<T> =>
   columnHelper.display({
     id: 'select',
+    size: 1,
     header: ({ table }) => (
       <Checkbox
         checked={
@@ -32,6 +33,7 @@ export const commonSelectColumnDef = <T,>(
     enableSorting: true,
     enableHiding: false,
     enableResizing: true,
+    enableColumnFilter: false,
   });
 
 export const commonAccessorColumnDef = <T,>(
@@ -46,13 +48,15 @@ export const commonAccessorColumnDef = <T,>(
     cell: (cell) => {
       const value = cell.renderValue();
       const renderValue =
-        typeof value === 'string'
+        typeof value === 'string' || typeof value === 'number'
           ? value
           : value == null
             ? 'NA'
             : JSON.stringify(value);
       return <div>{renderValue}</div>;
     },
-    filterFn: 'arrIncludesSome',
+    filterFn: function defaultFacetedFilterFn(row, columnId, filterVal) {
+      return (filterVal as Array<T>).includes(row.getValue(columnId));
+    },
     ...overrides,
   });

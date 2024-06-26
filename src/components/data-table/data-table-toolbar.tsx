@@ -33,7 +33,11 @@ export function DataTableToolbar<TData>({
         />
         {table
           .getAllLeafColumns()
-          .filter((col) => col.columnDef.filterFn == 'arrIncludesSome')
+          .filter(
+            (col) =>
+              col.getCanFilter() &&
+              col.getFilterFn()?.name == 'defaultFacetedFilterFn'
+          )
           .map((column) => {
             const options = Array.from(
               column.getFacetedUniqueValues().keys()

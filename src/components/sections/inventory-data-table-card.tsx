@@ -101,13 +101,13 @@ const ammoColumns: Array<ColumnDef<AmmoItem>> = (() => {
 
   return [
     commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID'),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
 
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      minSize: 75,
-      maxSize: 75,
+      size: 1,
+      maxSize: 1,
       cell: (cell) => {
         const imgUrl = new URL(
           `../../assets/erdb/icons/ammo/${cell.row.original.icon.toString()}.png`,
@@ -121,7 +121,9 @@ const ammoColumns: Array<ColumnDef<AmmoItem>> = (() => {
       },
       enableHiding: true,
     }),
-    commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
     commonAccessorColumnDef(
@@ -152,12 +154,12 @@ const armColumns: Array<ColumnDef<ArmamentItem>> = (() => {
 
   return [
     commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID'),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      minSize: 75,
-      maxSize: 75,
+      size: 1,
+      maxSize: 1,
       cell: (cell) => {
         const imgUrl = new URL(
           `../../assets/erdb/icons/armaments/${cell.row.original.icon.toString()}.png`,
@@ -172,7 +174,9 @@ const armColumns: Array<ColumnDef<ArmamentItem>> = (() => {
       enableHiding: true,
     }),
 
-    commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
     commonAccessorColumnDef(
@@ -212,12 +216,12 @@ const armorColumns: Array<ColumnDef<ArmorItem>> = (() => {
 
   return [
     commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID'),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      minSize: 75,
-      maxSize: 75,
+      size: 1,
+      maxSize: 1,
       cell: (cell) => {
         const imgUrl = new URL(
           `../../assets/erdb/icons/armor/${cell.row.original.icon.toString()}.png`,
@@ -232,7 +236,9 @@ const armorColumns: Array<ColumnDef<ArmorItem>> = (() => {
       enableHiding: true,
     }),
 
-    commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
     commonAccessorColumnDef(
@@ -265,12 +271,12 @@ const ashesColumns: Array<ColumnDef<AshesItem>> = (() => {
 
   return [
     commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID'),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      minSize: 75,
-      maxSize: 75,
+      size: 1,
+      maxSize: 1,
       cell: (cell) => {
         const imgUrl = new URL(
           `../../assets/erdb/icons/ashes-of-war/${cell.row.original.icon.toString()}.png`,
@@ -285,7 +291,9 @@ const ashesColumns: Array<ColumnDef<AshesItem>> = (() => {
       enableHiding: true,
     }),
 
-    commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(
       columnHelper,
@@ -310,12 +318,12 @@ const bolsteringColumns: Array<ColumnDef<BolsteringItem>> = (() => {
 
   return [
     commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID'),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      minSize: 75,
-      maxSize: 75,
+      size: 1,
+      maxSize: 1,
       cell: (cell) => {
         const imgUrl = new URL(
           `../../assets/erdb/icons/bolstering-materials/${cell.row.original.icon.toString()}.png`,
@@ -330,7 +338,9 @@ const bolsteringColumns: Array<ColumnDef<BolsteringItem>> = (() => {
       enableHiding: true,
     }),
 
-    commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
     commonAccessorColumnDef(
@@ -351,12 +361,12 @@ const craftingColumns: Array<ColumnDef<CraftingItem>> = (() => {
 
   return [
     commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID'),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      minSize: 75,
-      maxSize: 75,
+      size: 1,
+      maxSize: 1,
       cell: (cell) => {
         const imgUrl = new URL(
           `../../assets/erdb/icons/crafting-materials/${cell.row.original.icon.toString()}.png`,
@@ -371,7 +381,9 @@ const craftingColumns: Array<ColumnDef<CraftingItem>> = (() => {
       enableHiding: true,
     }),
 
-    commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
     commonAccessorColumnDef(
@@ -392,12 +404,12 @@ const gesturesColumns: Array<ColumnDef<GestureItem>> = (() => {
 
   return [
     commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID'),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      minSize: 75,
-      maxSize: 75,
+      size: 1,
+      maxSize: 1,
       cell: (cell) => {
         const imgUrl = new URL(
           `../../assets/erdb/icons/gestures/${cell.row.original.icon.toString()}.png`,
@@ -412,7 +424,9 @@ const gesturesColumns: Array<ColumnDef<GestureItem>> = (() => {
       enableHiding: true,
     }),
 
-    commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(
       columnHelper,
@@ -431,12 +445,12 @@ const infoColumns: Array<ColumnDef<InfoItem>> = (() => {
 
   return [
     commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID'),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      minSize: 75,
-      maxSize: 75,
+      size: 1,
+      maxSize: 1,
       cell: (cell) => {
         const imgUrl = new URL(
           `../../assets/erdb/icons/info/${cell.row.original.icon.toString()}.png`,
@@ -451,7 +465,9 @@ const infoColumns: Array<ColumnDef<InfoItem>> = (() => {
       enableHiding: true,
     }),
 
-    commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(
       columnHelper,
@@ -470,12 +486,12 @@ const keyColumns: Array<ColumnDef<InfoItem>> = (() => {
 
   return [
     commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID'),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      minSize: 75,
-      maxSize: 75,
+      size: 1,
+      maxSize: 1,
       cell: (cell) => {
         const imgUrl = new URL(
           `../../assets/erdb/icons/keys/${cell.row.original.icon.toString()}.png`,
@@ -490,7 +506,9 @@ const keyColumns: Array<ColumnDef<InfoItem>> = (() => {
       enableHiding: true,
     }),
 
-    commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(
       columnHelper,
@@ -509,12 +527,12 @@ const shopColumns: Array<ColumnDef<ShopItem>> = (() => {
 
   return [
     commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID'),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      minSize: 75,
-      maxSize: 75,
+      size: 1,
+      maxSize: 1,
       cell: (cell) => {
         const imgUrl = new URL(
           `../../assets/erdb/icons/shop/${cell.row.original.icon.toString()}.png`,
@@ -529,7 +547,9 @@ const shopColumns: Array<ColumnDef<ShopItem>> = (() => {
       enableHiding: true,
     }),
 
-    commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(
       columnHelper,
@@ -540,6 +560,7 @@ const shopColumns: Array<ColumnDef<ShopItem>> = (() => {
       }
     ),
     commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
+    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
   ];
 })();
 type SpellItem = Spell & Quantity;
@@ -548,12 +569,12 @@ const spellColumns: Array<ColumnDef<SpellItem>> = (() => {
 
   return [
     commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID'),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      minSize: 75,
-      maxSize: 75,
+      size: 1,
+      maxSize: 1,
       cell: (cell) => {
         const imgUrl = new URL(
           `../../assets/erdb/icons/spells/${cell.row.original.icon.toString()}.png`,
@@ -568,7 +589,9 @@ const spellColumns: Array<ColumnDef<SpellItem>> = (() => {
       enableHiding: true,
     }),
 
-    commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(
       columnHelper,
@@ -579,6 +602,10 @@ const spellColumns: Array<ColumnDef<SpellItem>> = (() => {
       }
     ),
     commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
+    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
+    commonAccessorColumnDef(columnHelper, 'fp_cost', 'FP Cost'),
+    commonAccessorColumnDef(columnHelper, 'sp_cost', 'SP Cost'),
+    commonAccessorColumnDef(columnHelper, 'is_weapon_buff', 'Is Weapon Buff'),
   ];
 })();
 type SpiritItem = Spirit & Quantity;
@@ -587,12 +614,12 @@ const spiritColumns: Array<ColumnDef<SpiritItem>> = (() => {
 
   return [
     commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID'),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      minSize: 75,
-      maxSize: 75,
+      size: 1,
+      maxSize: 1,
       cell: (cell) => {
         const imgUrl = new URL(
           `../../assets/erdb/icons/spirit-ashes/${cell.row.original.icon.toString()}.png`,
@@ -607,7 +634,9 @@ const spiritColumns: Array<ColumnDef<SpiritItem>> = (() => {
       enableHiding: true,
     }),
 
-    commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(
       columnHelper,
@@ -618,6 +647,21 @@ const spiritColumns: Array<ColumnDef<SpiritItem>> = (() => {
       }
     ),
     commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
+    commonAccessorColumnDef(columnHelper, 'hp_cost', 'HP Cost'),
+    commonAccessorColumnDef(columnHelper, 'fp_cost', 'FP Cost'),
+    commonAccessorColumnDef(
+      columnHelper,
+      'upgrade_material',
+      'Upgrade Material'
+    ),
+    commonAccessorColumnDef(columnHelper, 'summon_name', 'Summon Name', {
+      filterFn: 'includesString',
+    }),
+    commonAccessorColumnDef(
+      columnHelper,
+      (row) => row.abilities.join(', '),
+      'Abilities'
+    ),
   ];
 })();
 type TalismanItem = Talisman & Quantity;
@@ -626,12 +670,12 @@ const talismanColumns: Array<ColumnDef<TalismanItem>> = (() => {
 
   return [
     commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID'),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      minSize: 75,
-      maxSize: 75,
+      size: 1,
+      maxSize: 1,
       cell: (cell) => {
         const imgUrl = new URL(
           `../../assets/erdb/icons/talismans/${cell.row.original.icon.toString()}.png`,
@@ -646,7 +690,9 @@ const talismanColumns: Array<ColumnDef<TalismanItem>> = (() => {
       enableHiding: true,
     }),
 
-    commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(
       columnHelper,
@@ -657,6 +703,23 @@ const talismanColumns: Array<ColumnDef<TalismanItem>> = (() => {
       }
     ),
     commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
+    commonAccessorColumnDef(columnHelper, 'weight', 'Weight'),
+    commonAccessorColumnDef(
+      columnHelper,
+      (row) =>
+        row.effects
+          .map(
+            (e) =>
+              `${e.attribute} ${e.type == 'positive' ? (e.model == 'additive' ? '+' : '* ') : e.model == 'additive' ? '-' : '* -'}${e.value.toString()}`
+          )
+          .join('\n'),
+      'Effects'
+    ),
+    commonAccessorColumnDef(
+      columnHelper,
+      (row) => row.conflicts.join(', '),
+      'Conflicts'
+    ),
   ];
 })();
 type ToolItem = Tool & Quantity;
@@ -665,12 +728,12 @@ const toolColumns: Array<ColumnDef<ToolItem>> = (() => {
 
   return [
     commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID'),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      minSize: 75,
-      maxSize: 75,
+      size: 1,
+      maxSize: 1,
       cell: (cell) => {
         const imgUrl = new URL(
           `../../assets/erdb/icons/tools/${cell.row.original.icon.toString()}.png`,
@@ -685,7 +748,9 @@ const toolColumns: Array<ColumnDef<ToolItem>> = (() => {
       enableHiding: true,
     }),
 
-    commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(
       columnHelper,

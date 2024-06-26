@@ -3,13 +3,17 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { delayMs } from './utils';
 
-const parserWorker = new ComlinkWorker<typeof import('./er-save-parser')>(
+// const USE_WEB_WORKER = import.meta.env.USE_WEB_WORKER == 'true';
+
+const worker = new ComlinkWorker<typeof import('./er-save-parser.js')>(
   new URL('./er-save-parser.js', import.meta.url),
   {
     name: 'EldenRingSaveParser',
     type: 'module',
   }
 );
+// USE_WEB_WORKER ?
+// : await import('./er-save-parser.js');
 
 export function useEldenRingSaveQuery() {
   const [isParsing, setIsParsing] = useState(false);
@@ -22,22 +26,28 @@ export function useEldenRingSaveQuery() {
       queryFn: async () => {
         if (!src) throw new Error('No source provided');
         if ('file' in src) {
-          const erData = parserWorker.parseEldenRingData(src.file.buffer);
+          const erData = worker.parseEldenRingData(src.file.buffer);
           return erData;
         }
         if ('url' in src) {
+          console.time(`fetch save`);
           const res = await fetch(src.url);
+          console.timeEnd(`fetch save`);
+          console.time(`arrayBuffer save`);
           const buffer = await res.arrayBuffer();
+          console.timeEnd(`arrayBuffer save`);
           try {
             setIsParsing(true);
+            console.time('wasm call');
             const erData = await delayMs(10).then(() =>
-              parserWorker.parseEldenRingData(buffer)
+              worker.parseEldenRingData(buffer)
             );
             return erData;
           } catch (err) {
             console.error(err);
             throw err instanceof Error ? err : new Error(String(err));
           } finally {
+            console.timeEnd('wasm call');
             setIsParsing(false);
           }
         }
