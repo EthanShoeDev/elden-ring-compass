@@ -178,6 +178,8 @@ function SlotSelector() {
       valueState={slotState}
       emptyLabel="No slot selected"
       placeholder="Select slot from save file"
+      triggerButtonClassName="w-[200px]"
+      popoverContentClassName="w-[200px]"
       items={query.data.slots
         .map((slot) =>
           playerNameBytesToString(slot.player_game_data.character_name)

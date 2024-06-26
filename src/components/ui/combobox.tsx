@@ -27,12 +27,14 @@ export function Combobox({
   valueState,
   emptyLabel,
   triggerButtonClassName,
+  popoverContentClassName,
 }: {
   emptyLabel: string;
   placeholder: string;
   items: Array<Item>;
   valueState?: readonly [string | undefined, (val?: string) => void];
   triggerButtonClassName?: string;
+  popoverContentClassName?: string;
 }) {
   const [open, setOpen] = React.useState(false);
   const internalSelectedState = React.useState<string | undefined>(undefined);
@@ -53,7 +55,7 @@ export function Combobox({
           <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent className={cn('p-0', popoverContentClassName)}>
         <Command>
           <CommandInput placeholder={placeholder} />
           <CommandEmpty>{emptyLabel}</CommandEmpty>
