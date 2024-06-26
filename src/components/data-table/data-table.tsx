@@ -40,7 +40,7 @@ export function DataTable<TData, TValue>({
   data: Array<TData>;
 } & DataTableStoreProps) {
   return (
-    <DataTableProvider {...props}>
+    <DataTableProvider key={props.tableId} {...props}>
       <DataTableInner className={className} columns={columns} data={data} />
     </DataTableProvider>
   );
