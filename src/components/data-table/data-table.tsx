@@ -27,6 +27,7 @@ import {
   DataTableStoreProps,
   useDataTableContext,
 } from './data-table-context';
+import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 
 export function DataTable<TData, TValue>({
   className,
@@ -77,6 +78,9 @@ function DataTableInner<TData, TValue>({
       rowSelection: state.rowSelection,
       columnFilters: state.columnFilters,
     },
+    defaultColumn: {
+      minSize: 50,
+    },
     enableRowSelection: true,
     columnResizeMode: 'onChange',
     onRowSelectionChange: state.setRowSelection,
@@ -93,75 +97,78 @@ function DataTableInner<TData, TValue>({
   return (
     <div className={cn('space-y-4', className)}>
       <DataTableToolbar table={table} />
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      colSpan={header.colSpan}
-                      className="relative"
-                      style={{
-                        width: header.getSize(),
-                      }}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      {header.column.getCanResize() && (
-                        <div
-                          onMouseDown={header.getResizeHandler()}
-                          onTouchStart={header.getResizeHandler()}
-                          className={cn(
-                            'absolute inset-y-0 right-0 z-10 w-2 cursor-col-resize touch-none select-none border-r hover:bg-muted',
-                            header.column.getIsResizing()
-                              ? 'bg-secondary-foreground/20 hover:bg-secondary-foreground/20'
-                              : ''
-                          )}
-                        ></div>
-                      )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
+      <ScrollArea>
+        <div className="rounded-md border">
+          <Table className="min-w-full">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead
+                        key={header.id}
+                        colSpan={header.colSpan}
+                        className="relative"
+                        style={{
+                          width: header.getSize(),
+                        }}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                        {header.column.getCanResize() && (
+                          <div
+                            onMouseDown={header.getResizeHandler()}
+                            onTouchStart={header.getResizeHandler()}
+                            className={cn(
+                              'absolute inset-y-0 right-0 z-10 w-2 cursor-col-resize touch-none select-none border-r hover:bg-muted',
+                              header.column.getIsResizing()
+                                ? 'bg-secondary-foreground/20 hover:bg-secondary-foreground/20'
+                                : ''
+                            )}
+                          ></div>
+                        )}
+                      </TableHead>
+                    );
+                  })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
       <DataTablePagination table={table} />
     </div>
   );

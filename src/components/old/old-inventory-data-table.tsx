@@ -1,15 +1,15 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 
-import { DataTableColumnHeader } from './data-table/data-table-column-header';
-import { DataTable } from './data-table/data-table';
+import { DataTableColumnHeader } from '../data-table/data-table-column-header';
+import { DataTable } from '../data-table/data-table';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { inventoryDbView } from '@/lib/vm/inventory';
 import { useMemo } from 'react';
-import { commonSelectColumnDef } from './data-table/common-column-defs';
+import { commonSelectColumnDef } from '../data-table/common-column-defs';
 
 type InventoryItem = ReturnType<typeof inventoryDbView>['items'][0];
 
-export function InventoryDataTable() {
+export function OldInventoryDataTable() {
   const slot = useSelectedSlot();
   const items = useMemo(
     () => (slot ? inventoryDbView(slot).items : []),
@@ -19,7 +19,12 @@ export function InventoryDataTable() {
   if (!slot) return <p>Select a slot</p>;
 
   return (
-    <DataTable className="w-full max-w-none" columns={columns} data={items} />
+    <DataTable
+      tableId="old-inventory"
+      className="w-full max-w-none"
+      columns={columns}
+      data={items}
+    />
   );
 }
 

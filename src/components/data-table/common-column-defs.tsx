@@ -26,11 +26,12 @@ export const commonSelectColumnDef = <T,>(
           row.toggleSelected(!!value);
         }}
         aria-label="Select row"
-        className="translate-y-[2px]"
+        className="ml-2 translate-y-[2px]"
       />
     ),
     enableSorting: true,
     enableHiding: false,
+    enableResizing: true,
   });
 
 export const commonAccessorColumnDef = <T,>(

@@ -17,6 +17,7 @@ export function EventsDataTable() {
 
   return (
     <DataTable
+      tableId="old-events"
       className="not-prose w-full max-w-none"
       columns={columns}
       data={items}

@@ -19,7 +19,7 @@ import tools from '@/assets/erdb/json/tools.json';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { inventoryDbView } from './vm/inventory';
 
-type Ammo = {
+export type Ammo = {
   full_hex_id: string;
   id: number;
   name: string;
@@ -40,8 +40,22 @@ type Ammo = {
     stamina: number;
   };
   category: string;
-  effects: Array<any>;
+  effects: Array<{
+    attribute: string;
+    value: number;
+    model: 'additive' | 'multiplicative';
+    type: 'positive' | 'negative';
+    conditions?: Array<string>;
+  }>;
   status_effects: any;
+};
+
+type Effect = {
+  attribute: string;
+  value: number;
+  model: 'additive' | 'multiplicative';
+  type: 'positive' | 'negative';
+  conditions?: Array<string>;
 };
 
 export type Armament = {
@@ -78,13 +92,7 @@ export type Armament = {
     intelligence?: number;
     arcane?: number;
   };
-  effects: Array<{
-    attribute: string;
-    value: number;
-    model: 'additive' | 'multiplicative';
-    type: 'positive' | 'negative';
-    conditions?: Array<string>;
-  }>;
+  effects: Array<Effect>;
   affinity: any;
 };
 
@@ -130,6 +138,251 @@ export type Tool = {
   is_ladder_usable: boolean;
   is_horseback_usable: boolean;
   effects: Array<any>;
+};
+
+export type Armor = {
+  full_hex_id: string;
+  id: number;
+  name: string;
+  summary: string;
+  description: Array<string>;
+  is_tradable: boolean;
+  price_sold: number;
+  rarity: string;
+  icon: number;
+  max_held: number;
+  max_stored: number;
+  locations: Array<{
+    summary: string;
+  }>;
+  remarks: Array<any>;
+  category: string;
+  altered: string;
+  weight: number;
+  icon_fem: number;
+  absorptions: {
+    physical: number;
+    strike: number;
+    slash: number;
+    pierce: number;
+    magic: number;
+    fire: number;
+    lightning: number;
+    holy: number;
+  };
+  resistances: {
+    immunity: number;
+    robustness: number;
+    focus: number;
+    vitality: number;
+    poise: number;
+  };
+  effects: Array<Effect>;
+};
+
+export type Ashes = {
+  full_hex_id: string;
+  id: number;
+  name: string;
+  summary: string;
+  description: Array<string>;
+  is_tradable: boolean;
+  price_sold: number;
+  rarity: string;
+  icon: number;
+  max_held: number;
+  max_stored: number;
+  locations: Array<{
+    summary: string;
+    location: string;
+    region: string;
+  }>;
+  remarks: Array<any>;
+  armament_categories: Array<string>;
+  default_affinity: string;
+  possible_affinities: Array<string>;
+  skill_id: number;
+};
+
+export type Crafting = {
+  full_hex_id: string;
+  id: number;
+  name: string;
+  summary: string;
+  description: Array<string>;
+  is_tradable: boolean;
+  price_sold: number;
+  rarity: string;
+  icon: number;
+  max_held: number;
+  max_stored: number;
+  locations: Array<{
+    summary: string;
+  }>;
+  remarks: Array<any>;
+  category: string;
+  hint: string;
+  products: Array<string>;
+};
+
+export type Gesture = {
+  full_hex_id: string;
+  id: number;
+  name: string;
+  summary: string;
+  description: Array<string>;
+  is_tradable: boolean;
+  price_sold: number;
+  rarity: string;
+  icon: number;
+  max_held: number;
+  max_stored: number;
+  locations: Array<{
+    summary: string;
+  }>;
+  remarks: Array<any>;
+};
+
+export type Info = {
+  full_hex_id: string;
+  id: number;
+  name: string;
+  summary: string;
+  description: Array<string>;
+  is_tradable: boolean;
+  price_sold: number;
+  rarity: string;
+  icon: number;
+  max_held: number;
+  max_stored: number;
+  locations: Array<{
+    summary: string;
+  }>;
+  remarks: Array<any>;
+  category: string;
+};
+
+export type KeyItem = {
+  full_hex_id: string;
+  id: number;
+  name: string;
+  summary: string;
+  description: Array<string>;
+  is_tradable: boolean;
+  price_sold: number;
+  rarity: string;
+  icon: number;
+  max_held: number;
+  max_stored: number;
+  locations: Array<{
+    summary: string;
+  }>;
+  remarks: Array<any>;
+  category: string;
+};
+
+export type Shop = {
+  full_hex_id: string;
+  id: number;
+  name: string;
+  summary: string;
+  description: Array<string>;
+  is_tradable: boolean;
+  price_sold: number;
+  rarity: string;
+  icon: number;
+  max_held: number;
+  max_stored: number;
+  locations: Array<{
+    summary: string;
+  }>;
+  remarks: Array<any>;
+  category: string;
+};
+
+export type Spell = {
+  full_hex_id: string;
+  id: number;
+  name: string;
+  summary: string;
+  description: Array<string>;
+  is_tradable: boolean;
+  price_sold: number;
+  rarity: string;
+  icon: number;
+  max_held: number;
+  max_stored: number;
+  locations: Array<{
+    summary: string;
+  }>;
+  remarks: Array<any>;
+  fp_cost: number;
+  fp_cost_extra: number;
+  sp_cost: number;
+  sp_cost_extra: number;
+  category: string;
+  slots_used: number;
+  hold_action: string;
+  is_weapon_buff: boolean;
+  is_shield_buff: boolean;
+  is_horseback_castable: boolean;
+  requirements: {
+    intelligence: number;
+  };
+};
+
+export type Spirit = {
+  full_hex_id: string;
+  id: number;
+  name: string;
+  summary: string;
+  description: Array<string>;
+  is_tradable: boolean;
+  price_sold: number;
+  rarity: string;
+  icon: number;
+  max_held: number;
+  max_stored: number;
+  locations: Array<{
+    summary: string;
+    location: string;
+    region: string;
+    requirements: Array<string>;
+  }>;
+  remarks: Array<any>;
+  summon_quantity: number;
+  abilities: Array<string>;
+  summon_name: string;
+  fp_cost: number;
+  hp_cost: number;
+  upgrade_material: string;
+  upgrade_costs: Array<number>;
+};
+
+export type Talisman = {
+  full_hex_id: string;
+  id: number;
+  name: string;
+  summary: string;
+  description: Array<string>;
+  is_tradable: boolean;
+  price_sold: number;
+  rarity: string;
+  icon: number;
+  max_held: number;
+  max_stored: number;
+  locations: Array<{
+    summary: string;
+  }>;
+  remarks: Array<any>;
+  weight: number;
+  effects: Array<{
+    attribute: string;
+    value: number;
+    model: string;
+    type: string;
+  }>;
+  conflicts: Array<string>;
 };
 
 export const ERDB = {

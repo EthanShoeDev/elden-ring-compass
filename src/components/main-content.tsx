@@ -1,11 +1,11 @@
 // import { ObjectivesCard } from './objectives-card';
 
 import { EventsDataTable } from './events-data-table';
-import { InventoryDataTable } from './inventory-data-table';
+import { OldInventoryDataTable } from './old/old-inventory-data-table';
 import { StoryBossSection } from './sections/story-boss-section';
 import { BolsteringSection } from './sections/bolstering-section';
 import { QuestSection } from './sections/quests-section';
-import { InventoryDataTableCard } from './sections/inventory/inventory-data-table-card';
+import { InventoryDataTableCard } from './sections/inventory-data-table-card';
 
 export function MainContent() {
   return (
@@ -14,11 +14,7 @@ export function MainContent() {
       <BolsteringSection />
       <StoryBossSection />
       <InventoryDataTableCard />
-      <h1 className="w-full text-2xl">Overview</h1>
-
-      <h1 className="w-full text-2xl">Inventory</h1>
-      <InventoryDataTable />
-      <h1 className="w-full text-2xl">Events</h1>
+      <OldInventoryDataTable />
       <EventsDataTable />
     </main>
   );
