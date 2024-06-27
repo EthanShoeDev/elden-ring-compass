@@ -22,7 +22,7 @@ export default defineConfig({
     ViteImageOptimizer({
       cache: true,
       cacheLocation: './node_modules/.cache/vite-plugin-image-optimizer',
-      exclude: /^[0123456789].*/, // Exclude odd-numbered images
+      exclude: /^[012345678].*/, // Exclude odd-numbered images
     }),
     wasm(),
     comlink(),

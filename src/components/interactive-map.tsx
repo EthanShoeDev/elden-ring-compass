@@ -1,7 +1,14 @@
 import aboveMapSrc from '@/assets/erdb/map/lod_0.jpeg';
 import { cn } from '@/lib/utils';
-import { FullscreenIcon, PinIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
-import { HTMLAttributes, useState } from 'react';
+import {
+  LocateIcon,
+  MapIcon,
+  MapPinIcon,
+  PinIcon,
+  ZoomInIcon,
+  ZoomOutIcon,
+} from 'lucide-react';
+import React, { HTMLAttributes, useState } from 'react';
 import {
   TransformComponent,
   TransformWrapper,
@@ -14,10 +21,10 @@ import { Button } from './ui/button';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 const HITBOX_TEST = false as boolean;
 
-type Location = { x: number; y: number; type: 'pin' };
 type TransformState = {
   positionX: number;
   positionY: number;
@@ -33,8 +40,6 @@ const defaultTransformState = {
 const useMapStore = create<{
   transformState: TransformState;
   setTransformState: (state: TransformState) => void;
-  locations: Array<Location>;
-  setLocations: (locations: Array<Location>) => void;
   originTransformState: TransformState;
   setOriginTransformState: (state: TransformState) => void;
 }>()(
@@ -44,12 +49,6 @@ const useMapStore = create<{
       setTransformState: (state) => {
         set({
           transformState: { ...state },
-        });
-      },
-      locations: [],
-      setLocations: (locations) => {
-        set({
-          locations: [...locations],
         });
       },
       originTransformState: defaultTransformState,
@@ -96,9 +95,7 @@ export function InteractiveMap() {
 }
 function MapInner() {
   const [isPanning, setIsPanning] = useState(false);
-  const [placingOrigin, setPlacingOrigin] = useState<TransformState | null>(
-    null
-  );
+
   useTransformEffect(({ instance }) => {
     setIsPanning(instance.isPanning);
   });
@@ -115,42 +112,15 @@ function MapInner() {
       <div
         className={cn(
           'relative aspect-[19/18] h-[720px] min-h-[720px] w-[760px] min-w-[760px] overflow-visible',
-          isPanning && 'cursor-grabbing',
-          placingOrigin && 'cursor-crosshair'
+          isPanning && 'cursor-grabbing'
+          // placingOrigin && 'cursor-crosshair'
         )}
       >
         <TransformComponent wrapperClass="!overflow-visible">
           <div className="relative">
             <img src={aboveMapSrc} alt="4k Elden Ring Map" />
-
-            <div
-              className={cn(
-                'absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2',
-                HITBOX_TEST && 'border border-red-500'
-              )}
-              style={{
-                top:
-                  (360 - originTransformState.positionY) /
-                  originTransformState.scale,
-                left:
-                  (380 - originTransformState.positionX) /
-                  originTransformState.scale,
-              }}
-            >
-              <BetterKeepScale>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <PinIcon
-                      className={cn(
-                        'size-6 -translate-y-1/2',
-                        HITBOX_TEST && 'border border-blue-400'
-                      )}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent>Origin</TooltipContent>
-                </Tooltip>
-              </BetterKeepScale>
-            </div>
+            <OriginPin />
+            <PlayerLocationPin />
           </div>
         </TransformComponent>
       </div>
@@ -178,7 +148,7 @@ function MapInner() {
             );
           }}
         >
-          <FullscreenIcon />
+          <MapIcon />
         </Button>
       </div>
       <div className="absolute left-4 top-4 flex flex-col font-mono leading-4">
@@ -189,14 +159,83 @@ function MapInner() {
       <div className="absolute bottom-4 left-4 flex gap-4">
         <Button
           onClick={() => {
-            setPlacingOrigin(originTransformState);
             setOriginTransformState(transformState);
           }}
         >
-          <PinIcon />
+          <LocateIcon />
         </Button>
       </div>
     </>
+  );
+}
+
+function OriginPin() {
+  const originTransformState = useMapStore(
+    (state) => state.originTransformState
+  );
+  return (
+    <MapWidget
+      toolTipLabel="Origin"
+      top={(360 - originTransformState.positionY) / originTransformState.scale}
+      left={(380 - originTransformState.positionX) / originTransformState.scale}
+    >
+      <PinIcon
+        className={cn(
+          'size-6 -translate-y-1/2',
+          HITBOX_TEST && 'border border-blue-400'
+        )}
+      />
+    </MapWidget>
+  );
+}
+
+function PlayerLocationPin() {
+  const slot = useSelectedSlot();
+  if (!slot) return null;
+
+  console.log(slot.player_coords);
+
+  return (
+    <MapWidget toolTipLabel="Player Location" top={0} left={0}>
+      <MapPinIcon
+        className={cn(
+          'size-6 -translate-y-1/2',
+          HITBOX_TEST && 'border border-blue-400'
+        )}
+      />
+    </MapWidget>
+  );
+}
+
+function MapWidget({
+  toolTipLabel,
+  top,
+  left,
+  children,
+}: {
+  toolTipLabel: string;
+  children: React.ReactNode;
+  top: number;
+  left: number;
+}) {
+  return (
+    <div
+      className={cn(
+        'absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2',
+        HITBOX_TEST && 'border border-red-500'
+      )}
+      style={{
+        left,
+        top,
+      }}
+    >
+      <BetterKeepScale>
+        <Tooltip>
+          <TooltipTrigger>{children}</TooltipTrigger>
+          <TooltipContent>{toolTipLabel}</TooltipContent>
+        </Tooltip>
+      </BetterKeepScale>
+    </div>
   );
 }
 
