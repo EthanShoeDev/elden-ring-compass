@@ -1,9 +1,9 @@
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import wasm from 'vite-plugin-wasm';
+import { defineConfig } from 'vite';
 import { comlink } from 'vite-plugin-comlink';
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
+import wasm from 'vite-plugin-wasm';
 
 export default defineConfig({
   server: {
@@ -22,6 +22,7 @@ export default defineConfig({
     ViteImageOptimizer({
       cache: true,
       cacheLocation: './node_modules/.cache/vite-plugin-image-optimizer',
+      exclude: '^[13579].*', // Exclude odd-numbered images
     }),
     wasm(),
     comlink(),

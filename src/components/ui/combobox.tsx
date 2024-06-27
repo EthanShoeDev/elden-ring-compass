@@ -1,10 +1,3 @@
-import React, { ReactNode } from 'react';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -13,8 +6,15 @@ import {
   CommandInput,
   CommandItem,
 } from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { CommandList } from 'cmdk';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import React, { ReactNode } from 'react';
 
 type Item = {
   label: string;

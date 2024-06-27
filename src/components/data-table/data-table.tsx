@@ -19,15 +19,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-import { DataTablePagination } from './data-table-pagination';
-import { DataTableToolbar } from './data-table-toolbar';
 import { cn } from '@/lib/utils';
+import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import {
   DataTableProvider,
   DataTableStoreProps,
   useDataTableContext,
 } from './data-table-context';
-import { ScrollArea, ScrollBar } from '../ui/scroll-area';
+import { DataTablePagination } from './data-table-pagination';
+import { DataTableToolbar } from './data-table-toolbar';
 
 export function DataTable<TData, TValue>({
   className,

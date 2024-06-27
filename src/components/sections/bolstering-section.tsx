@@ -1,3 +1,9 @@
+import { Bolstering, ERDB, Tool } from '@/lib/erdb';
+import { cn } from '@/lib/utils';
+import { eventsDbView } from '@/lib/vm/events';
+import { inventoryDbView } from '@/lib/vm/inventory';
+import { useSelectedSlot } from '@/stores/slot-selection-store';
+import { SlotOverview } from '../slot-overview';
 import {
   Card,
   CardContent,
@@ -5,10 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '../ui/card';
-import { inventoryDbView } from '@/lib/vm/inventory';
-import { useSelectedSlot } from '@/stores/slot-selection-store';
-import { Bolstering, ERDB, Tool } from '@/lib/erdb';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { Separator } from '../ui/separator';
 import {
   Table,
   TableBody,
@@ -17,10 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '../ui/table';
-import { eventsDbView } from '@/lib/vm/events';
-import { cn } from '@/lib/utils';
-import { SlotOverview } from '../slot-overview';
-import { Separator } from '../ui/separator';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 export function BolsteringSection() {
   const slot = useSelectedSlot();

@@ -1,6 +1,6 @@
 import { SwordIcon } from 'lucide-react';
-import { SaveFileSourceSelector } from './save-file-source-selector';
 import { DarkModeToggle } from './misc/dark-mode-toggle';
+import { SaveFileSourceSelector } from './save-file-source-selector';
 
 export function AppBar() {
   return (

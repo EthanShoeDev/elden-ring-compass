@@ -1,15 +1,15 @@
+import aboveMapSrc from '@/assets/erdb/map/lod_0.jpeg';
+import { cn } from '@/lib/utils';
+import { FullscreenIcon, PinIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { HTMLAttributes, useState } from 'react';
 import {
-  KeepScale,
   TransformComponent,
   TransformWrapper,
   useControls,
+  useTransformContext,
   useTransformEffect,
 } from 'react-zoom-pan-pinch';
 import { Button } from './ui/button';
-import { ZoomInIcon, ZoomOutIcon, FullscreenIcon, PinIcon } from 'lucide-react';
-import aboveMapSrc from '@/assets/erdb/map/lod_0.jpeg';
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -90,27 +90,32 @@ export function InteractiveMap() {
     </div>
   );
 }
-
+type ZoomPanPinch = ReturnType<typeof useTransformContext>;
 function MapInner() {
+  const [instance, setInstance] = useState<null | ZoomPanPinch>(null);
   const [isPanning, setIsPanning] = useState(false);
+  const [placingOrigin, setPlacingOrigin] = useState<TransformState | null>(
+    null
+  );
   useTransformEffect(({ instance }) => {
     setIsPanning(instance.isPanning);
+    setInstance({ ...instance });
   });
   const transformState = useMapStore((state) => state.transformState);
   const originTransformState = useMapStore(
     (state) => state.originTransformState
   );
+  const setOriginTransformState = useMapStore(
+    (state) => state.setOriginTransformState
+  );
   const { zoomIn, zoomOut, setTransform } = useControls();
-  useTransformEffect(({ instance }) => {
-    console.log(instance.lastMousePosition);
-  });
-
   return (
     <>
       <div
         className={cn(
           'relative aspect-[19/18] h-[720px] min-h-[720px] w-[760px] min-w-[760px] overflow-visible',
-          isPanning && 'cursor-grabbing'
+          isPanning && 'cursor-grabbing',
+          placingOrigin && 'cursor-crosshair'
         )}
       >
         <TransformComponent wrapperClass="!overflow-visible">
@@ -125,14 +130,14 @@ function MapInner() {
                   (1 / originTransformState.scale) *
                   1.035,
                 left:
-                  -originTransformState.positionY *
+                  -originTransformState.positionX *
                   (1 / originTransformState.scale) *
-                  0.5256,
+                  1.055,
               }}
             >
-              <KeepScale>
+              <BetterKeepScale>
                 <PinIcon className="size-6 -translate-y-1/2" />
-              </KeepScale>
+              </BetterKeepScale>
             </div>
           </div>
         </TransformComponent>
@@ -169,15 +174,44 @@ function MapInner() {
           <p>x: {transformState.positionX.toFixed(2)}</p>
           <p>y: {transformState.positionY.toFixed(2)}</p>
           <p>scale: {transformState.scale.toFixed(2)}</p>
+          <p>
+            bounds:{' '}
+            {Object.values(instance?.bounds ?? {})
+              .map((s) => s.toFixed(2))
+              .join(',')}
+          </p>
         </div>
         <Button
           onClick={() => {
-            zoomIn();
+            setPlacingOrigin(originTransformState);
+            setOriginTransformState(transformState);
           }}
         >
           <PinIcon />
         </Button>
       </div>
     </>
+  );
+}
+
+function BetterKeepScale(props: HTMLAttributes<HTMLDivElement>) {
+  const instance = useTransformContext();
+  const [scale, setScale] = useState(initTransformState.scale);
+
+  useTransformEffect(({ instance }) => {
+    setScale(instance.transformState.scale);
+  });
+
+  const transform = instance.handleTransformStyles(0, 0, 1 / scale);
+
+  return (
+    <div
+      {...props}
+      // ref={localRef}
+      style={{
+        ...props.style,
+        transform,
+      }}
+    />
   );
 }

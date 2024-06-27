@@ -1,10 +1,10 @@
-import { useSaveFileSourceStore } from '@/stores/save-file-source-store';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { useEldenRingSaveQuery } from '@/lib/er-save-file-query';
-import { useEffect, useState } from 'react';
 import { Label } from '@/components/ui/label';
-import { Input } from './ui/input';
-import { Button } from './ui/button';
+import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
+import { useEldenRingSaveQuery } from '@/lib/er-save-file-query';
+import { fileToArrBuffer } from '@/lib/er-save-parser';
+import { useSaveFileSourceStore } from '@/stores/save-file-source-store';
+import { useSlotNameSelection } from '@/stores/slot-selection-store';
+import { formatDistance } from 'date-fns';
 import {
   EditIcon,
   FileCheckIcon,
@@ -13,15 +13,15 @@ import {
   RefreshCcwIcon,
   UnplugIcon,
 } from 'lucide-react';
-import { formatDistance } from 'date-fns';
-import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
+import { useEffect, useState } from 'react';
 import { CodeSnippet } from './misc/code-snippet';
-import Spinner from './ui/spinner';
-import { Combobox } from './ui/combobox';
-import { fileToArrBuffer } from '@/lib/er-save-parser';
-import { useSlotNameSelection } from '@/stores/slot-selection-store';
 import { CopyButton } from './misc/copy-button';
-import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
+import { Button } from './ui/button';
+import { Combobox } from './ui/combobox';
+import { Input } from './ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import Spinner from './ui/spinner';
+import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 
 export function SaveFileSourceSelector() {
   const { saveFileSource, setSaveFileSource } = useSaveFileSourceStore();

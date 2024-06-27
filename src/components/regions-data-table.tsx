@@ -1,12 +1,13 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 
-import { DataTable } from './data-table/data-table';
+import { regionsDbView } from '@/lib/vm/regions';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { useMemo } from 'react';
 import {
   commonAccessorColumnDef,
   commonSelectColumnDef,
 } from './data-table/common-column-defs';
+import { DataTable } from './data-table/data-table';
 import {
   Card,
   CardContent,
@@ -14,7 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from './ui/card';
-import { regionsDbView } from '@/lib/vm/regions';
 
 type Region = ReturnType<typeof regionsDbView>[0];
 

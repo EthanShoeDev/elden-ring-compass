@@ -1,7 +1,7 @@
 import { ColumnDef, ColumnHelper, Row } from '@tanstack/react-table';
+import { CheckIcon, XIcon } from 'lucide-react';
 import { Checkbox } from '../ui/checkbox';
 import { DataTableColumnHeader } from './data-table-column-header';
-import { CheckIcon, XIcon } from 'lucide-react';
 
 export const commonSelectColumnDef = <T,>(
   columnHelper: ColumnHelper<T>

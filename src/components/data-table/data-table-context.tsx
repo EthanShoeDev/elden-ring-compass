@@ -1,16 +1,16 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createStore, useStore } from 'zustand';
-import { createContext, useContext, useRef } from 'react';
 import {
   ColumnFiltersState,
-  RowSelectionState,
-  SortingState,
-  VisibilityState,
+  ColumnOrderState,
   ColumnSizingState,
   OnChangeFn,
+  RowSelectionState,
+  SortingState,
   Updater,
-  ColumnOrderState,
+  VisibilityState,
 } from '@tanstack/react-table';
+import { createContext, useContext, useRef } from 'react';
+import { createStore, useStore } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 type DataTableProviderProps = React.PropsWithChildren<DataTableStoreProps>;

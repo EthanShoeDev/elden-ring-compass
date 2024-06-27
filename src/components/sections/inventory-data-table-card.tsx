@@ -1,6 +1,6 @@
 import {
-  commonSelectColumnDef,
   commonAccessorColumnDef,
+  commonSelectColumnDef,
 } from '@/components/data-table/common-column-defs';
 import { DataTable } from '@/components/data-table/data-table';
 import { TooltipImg } from '@/components/misc/tooltip-img';

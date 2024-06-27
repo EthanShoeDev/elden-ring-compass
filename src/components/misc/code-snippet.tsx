@@ -1,6 +1,6 @@
 import { CopyIcon } from 'lucide-react';
-import { Button } from '../ui/button';
 import { useRef } from 'react';
+import { Button } from '../ui/button';
 
 export function CodeSnippet({ children }: { children: string }) {
   const codeRef = useRef<HTMLPreElement>(null);

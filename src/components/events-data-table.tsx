@@ -1,13 +1,13 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 
-import { DataTable } from './data-table/data-table';
+import { eventsDbView } from '@/lib/vm/events';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { useMemo } from 'react';
 import {
   commonAccessorColumnDef,
   commonSelectColumnDef,
 } from './data-table/common-column-defs';
-import { eventsDbView } from '@/lib/vm/events';
+import { DataTable } from './data-table/data-table';
 import {
   Card,
   CardContent,

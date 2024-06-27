@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "build:wasm-parser": "cd packages/elden-ring-save-parser && wasm-pack build && cd ../..",
     "lint:fix": "eslint . --ext ts,tsx --report-unused-disable-directives --cache --max-warnings 0 --fix",
-    "format": "prettier --write --cache .",
+    "format": "SORT_IMPORTS=true prettier --write --cache .",
     "typecheck": "tsc --noEmit",
     "lint": "bun run format && bun run lint:fix && bun run typecheck",
     "preview": "vite preview"
@@ -61,10 +61,6 @@
   "devDependencies": {
     "@eslint/js": "^9.5.0",
     "@tailwindcss/typography": "^0.5.13",
-    "vite-plugin-image-optimizer": "^1.1.8",
-    "svgo": "^3.3.2",
-    "sharp": "^0.33.4",
-    "eslint-plugin-import": "^2.29.1",
     "@tanstack/eslint-plugin-query": "^5.43.1",
     "@types/bun": "^1.1.5",
     "@types/eslint__js": "^8.42.3",
@@ -77,17 +73,22 @@
     "autoprefixer": "^10.4.19",
     "eslint": "^8.57.0",
     "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-react-compiler": "^0.0.0-experimental-0998c1e-20240625",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
     "eslint-plugin-tailwindcss": "^3.17.3",
     "postcss": "^8.4.38",
     "prettier": "^3.3.2",
+    "prettier-plugin-organize-imports": "^3.2.4",
     "prettier-plugin-tailwindcss": "^0.6.5",
+    "sharp": "^0.33.4",
+    "svgo": "^3.3.2",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.13.1",
-    "vite": "^5.3.1"
+    "vite": "^5.3.1",
+    "vite-plugin-image-optimizer": "^1.1.8"
   },
   "overrides": {
     "@types/react": "npm:types-react@rc",

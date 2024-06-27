@@ -8,7 +8,7 @@ import {
 } from '@radix-ui/react-icons';
 import { Column, Table } from '@tanstack/react-table';
 
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import React from 'react';
 
 type DataTableColumnHeaderProps<TData, TValue> = {

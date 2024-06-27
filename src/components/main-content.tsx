@@ -1,12 +1,12 @@
 // import { ObjectivesCard } from './objectives-card';
 
 import { EventsDataTable } from './events-data-table';
-import { StoryBossSection } from './sections/story-boss-section';
-import { BolsteringSection } from './sections/bolstering-section';
-import { QuestSection } from './sections/quests-section';
-import { InventoryDataTableCard } from './sections/inventory-data-table-card';
-import { RegionsDataTable } from './regions-data-table';
 import { InteractiveMap } from './interactive-map';
+import { RegionsDataTable } from './regions-data-table';
+import { BolsteringSection } from './sections/bolstering-section';
+import { InventoryDataTableCard } from './sections/inventory-data-table-card';
+import { QuestSection } from './sections/quests-section';
+import { StoryBossSection } from './sections/story-boss-section';
 
 export function MainContent() {
   return (

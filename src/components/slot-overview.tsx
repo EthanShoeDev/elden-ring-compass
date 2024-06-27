@@ -1,12 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { cn } from '@/lib/utils';
+import { statsDbView } from '@/lib/vm/stats';
 import {
   useSelectedSlot,
   useSlotNameSelection,
 } from '@/stores/slot-selection-store';
-import { statsDbView } from '@/lib/vm/stats';
-import { cn } from '@/lib/utils';
-import { Separator } from './ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Separator } from './ui/separator';
 // import { equipmentDbView } from '@/lib/vm/equipement';
 
 export function SlotOverview({ className }: { className?: string }) {

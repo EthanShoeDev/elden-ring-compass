@@ -1,3 +1,5 @@
+import { cn } from '@/lib/utils';
+import { eventsDbView } from '@/lib/vm/events';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import {
@@ -8,19 +10,17 @@ import {
   CardTitle,
 } from '../ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
-import { eventsDbView } from '@/lib/vm/events';
-import { cn } from '@/lib/utils';
 
-import rennalaImgSrc from '@/assets/erdb/icons/tools/172.png';
 import godrickImgSrc from '@/assets/erdb/icons/tools/163.png';
 import radahnImgSrc from '@/assets/erdb/icons/tools/164.png';
-import mohgImgSrc from '@/assets/erdb/icons/tools/168.png';
 import rykardImgSrc from '@/assets/erdb/icons/tools/166.png';
+import mohgImgSrc from '@/assets/erdb/icons/tools/168.png';
+import rennalaImgSrc from '@/assets/erdb/icons/tools/172.png';
 
-import godfreyImgSrc from '@/assets/erdb/icons/tools/170.png';
 import morgottImgSrc from '@/assets/erdb/icons/tools/165.png';
-import fireGiantImgSrc from '@/assets/erdb/icons/tools/174.png';
 import malikethImgSrc from '@/assets/erdb/icons/tools/169.png';
+import godfreyImgSrc from '@/assets/erdb/icons/tools/170.png';
+import fireGiantImgSrc from '@/assets/erdb/icons/tools/174.png';
 import eldenBeastImgSrc from '@/assets/erdb/icons/tools/176.png';
 
 export function StoryBossSection() {
