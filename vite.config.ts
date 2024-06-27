@@ -21,8 +21,7 @@ export default defineConfig({
     }),
     ViteImageOptimizer({
       cache: true,
-      cacheLocation: 'node_modules/.cache/vite-plugin-image-optimizer',
-      exclude: ['src/assets/erdb/map/**/*', 'src/assets/erdb/icons/**/*'],
+      cacheLocation: './node_modules/.cache/vite-plugin-image-optimizer',
     }),
     wasm(),
     comlink(),

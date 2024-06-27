@@ -1,2 +1,0 @@
-. "$HOME/.bashrc"
-bunx lint-staged
