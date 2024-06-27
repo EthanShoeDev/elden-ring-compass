@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import wasm from 'vite-plugin-wasm';
 import { comlink } from 'vite-plugin-comlink';
-import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
+// import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
 
 export default defineConfig({
   server: {
@@ -19,11 +19,11 @@ export default defineConfig({
         plugins: [['babel-plugin-react-compiler', {}]],
       },
     }),
-    ViteImageOptimizer({
-      cache: true,
-      cacheLocation: 'node_modules/.cache/vite-plugin-image-optimizer',
-      exclude: ['src/assets/erdb/map/**'],
-    }),
+    // ViteImageOptimizer({
+    //   cache: true,
+    //   cacheLocation: 'node_modules/.cache/vite-plugin-image-optimizer',
+    //   exclude: ['src/assets/erdb/map/**'],
+    // }),
     wasm(),
     comlink(),
   ],
