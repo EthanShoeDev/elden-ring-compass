@@ -13,6 +13,10 @@ import { Button } from './ui/button';
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+
+const HITBOX_TEST = false as boolean;
+
 type Location = { x: number; y: number; type: 'pin' };
 type TransformState = {
   positionX: number;
@@ -90,16 +94,13 @@ export function InteractiveMap() {
     </div>
   );
 }
-type ZoomPanPinch = ReturnType<typeof useTransformContext>;
 function MapInner() {
-  const [instance, setInstance] = useState<null | ZoomPanPinch>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [placingOrigin, setPlacingOrigin] = useState<TransformState | null>(
     null
   );
   useTransformEffect(({ instance }) => {
     setIsPanning(instance.isPanning);
-    setInstance({ ...instance });
   });
   const transformState = useMapStore((state) => state.transformState);
   const originTransformState = useMapStore(
@@ -123,20 +124,31 @@ function MapInner() {
             <img src={aboveMapSrc} alt="4k Elden Ring Map" />
 
             <div
-              className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2"
+              className={cn(
+                'absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2',
+                HITBOX_TEST && 'border border-red-500'
+              )}
               style={{
                 top:
-                  -originTransformState.positionY *
-                  (1 / originTransformState.scale) *
-                  1.035,
+                  (360 - originTransformState.positionY) /
+                  originTransformState.scale,
                 left:
-                  -originTransformState.positionX *
-                  (1 / originTransformState.scale) *
-                  1.055,
+                  (380 - originTransformState.positionX) /
+                  originTransformState.scale,
               }}
             >
               <BetterKeepScale>
-                <PinIcon className="size-6 -translate-y-1/2" />
+                <Tooltip>
+                  <TooltipTrigger>
+                    <PinIcon
+                      className={cn(
+                        'size-6 -translate-y-1/2',
+                        HITBOX_TEST && 'border border-blue-400'
+                      )}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>Origin</TooltipContent>
+                </Tooltip>
               </BetterKeepScale>
             </div>
           </div>
@@ -169,18 +181,12 @@ function MapInner() {
           <FullscreenIcon />
         </Button>
       </div>
+      <div className="absolute left-4 top-4 flex flex-col font-mono leading-4">
+        <p>x: {transformState.positionX.toFixed(2)}</p>
+        <p>y: {transformState.positionY.toFixed(2)}</p>
+        <p>scale: {transformState.scale.toFixed(2)}</p>
+      </div>
       <div className="absolute bottom-4 left-4 flex gap-4">
-        <div className="flex flex-col font-mono leading-4">
-          <p>x: {transformState.positionX.toFixed(2)}</p>
-          <p>y: {transformState.positionY.toFixed(2)}</p>
-          <p>scale: {transformState.scale.toFixed(2)}</p>
-          <p>
-            bounds:{' '}
-            {Object.values(instance?.bounds ?? {})
-              .map((s) => s.toFixed(2))
-              .join(',')}
-          </p>
-        </div>
         <Button
           onClick={() => {
             setPlacingOrigin(originTransformState);
@@ -196,7 +202,7 @@ function MapInner() {
 
 function BetterKeepScale(props: HTMLAttributes<HTMLDivElement>) {
   const instance = useTransformContext();
-  const [scale, setScale] = useState(initTransformState.scale);
+  const [scale, setScale] = useState(instance.props.initialScale ?? 1);
 
   useTransformEffect(({ instance }) => {
     setScale(instance.transformState.scale);
