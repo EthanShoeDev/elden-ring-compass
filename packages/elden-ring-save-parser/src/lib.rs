@@ -58,6 +58,7 @@ struct JSEldenRingSave {
 }
 
 fn save_to_js(save: Save) -> JSEldenRingSave {
+    log!("save_to_js_start");
     let save_type = save.save_type;
     let active_slot_indexes = save_type.active_slots(); // [bool; 10]
     let mut slots = Vec::new();
@@ -73,6 +74,7 @@ fn save_to_js(save: Save) -> JSEldenRingSave {
         }
     }
 
+    log!("save_to_js_end");
     JSEldenRingSave {
         global_steam_id: save_type.get_global_steam_id(),
         character_steam_ids,

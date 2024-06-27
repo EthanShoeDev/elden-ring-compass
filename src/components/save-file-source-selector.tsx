@@ -32,8 +32,9 @@ export function SaveFileSourceSelector() {
   );
   return (
     <>
+      <SteamIdLabel />
+      <SlotSelector />
       {saveFileSource && <RefreshButton />}
-
       <Popover>
         <PopoverTrigger asChild>
           <Button className="flex gap-2">
@@ -163,8 +164,6 @@ cd (Join-Path "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" (Get-Child
           </div>
         </PopoverContent>
       </Popover>
-      <SlotSelector />
-      <SteamIdLabel />
     </>
   );
 }
