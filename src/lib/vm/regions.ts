@@ -1,4 +1,5 @@
 import { CLEAN_ELDEN_RING_DB } from '../elden-ring-raw-db/er-raw-db';
+import { MAP_DB_ITEMS } from '../map-db';
 import { Slot } from '../wasm-wrapper';
 
 export function regionsDbView(slot?: Readonly<Slot>) {
@@ -14,10 +15,11 @@ export function regionsDbView(slot?: Readonly<Slot>) {
     }
   }
 
-  const checkIfEventIsOn = <T>(e: T & { eventId: number }) => {
+  const checkIfEventIsOn = <T>(e: T & { eventId: number; name: string }) => {
     return {
       ...e,
       found: unlockedRegionSet.has(e.eventId),
+      map_data: MAP_DB_ITEMS.find((m) => m.name === e.name),
     };
   };
 

@@ -19,7 +19,6 @@ import {
 import { Button } from './ui/button';
 
 import { MAP_DB_ITEMS } from '@/lib/map-db';
-import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
@@ -121,7 +120,7 @@ function MapInner() {
           <div className="relative">
             <img src={aboveMapSrc} alt="4k Elden Ring Map" />
             <OriginPin />
-            <PlayerLocationPin />
+            {/* <PlayerLocationPin /> */}
             <SitesOfGraceWidgets />
           </div>
         </TransformComponent>
@@ -182,32 +181,26 @@ function OriginPin() {
       left={(380 - originTransformState.positionX) / originTransformState.scale}
     >
       <PinIcon
-        className={cn(
-          'size-6 -translate-y-1/2',
-          HITBOX_TEST && 'border border-blue-400'
-        )}
+        className={cn('size-6', HITBOX_TEST && 'border border-blue-400')}
       />
     </MapWidget>
   );
 }
 
-function PlayerLocationPin() {
-  const slot = useSelectedSlot();
-  if (!slot) return null;
+// function PlayerLocationPin() {
+//   const slot = useSelectedSlot();
+//   if (!slot) return null;
 
-  console.log(slot.player_coords);
+//   console.log(slot.player_coords);
 
-  return (
-    <MapWidget toolTipLabel="Player Location" top={0} left={0}>
-      <MapPinIcon
-        className={cn(
-          'size-6 -translate-y-1/2',
-          HITBOX_TEST && 'border border-blue-400'
-        )}
-      />
-    </MapWidget>
-  );
-}
+//   return (
+//     <MapWidget toolTipLabel="Player Location" top={0} left={0}>
+//       <MapPinIcon
+//         className={cn('size-6', HITBOX_TEST && 'border border-blue-400')}
+//       />
+//     </MapWidget>
+//   );
+// }
 
 function SitesOfGraceWidgets() {
   const sites = MAP_DB_ITEMS.filter((i) => i.category == 'Site of Grace');
@@ -237,22 +230,28 @@ function SitesOfGraceWidgets() {
         //   console.log(`const y = -parseFloat(site.x) * ${dy.toString()};`);
         // })();
 
-        const bx = -35;
-        const by = -56;
+        const bx = -47;
+        const by = -68.7;
 
-        const dx = (468.286549 - bx) / 156.395274;
-        const dy = (378.485546 - by) / 134.453125;
+        const dx = (456.4943455149 - bx) / 156.395274;
+        const dy = (363.695703125 - by) / 134.453125;
+
+        // const bx = 0;
+        // const by = 0;
+
+        // const dx = 2.91885;
+        // const dy = 2.705;
 
         const x = parseFloat(site.y) * dx + bx;
         const y = -parseFloat(site.x) * dy + by;
 
+        // if (site.name == 'Isolated Divine Tower')
+        //   console.log(`x: ${x} y: ${y}`);
+
         return (
           <MapWidget key={site.id} toolTipLabel={site.name} left={x} top={y}>
             <MapPinIcon
-              className={cn(
-                'size-6 -translate-y-1/2',
-                HITBOX_TEST && 'border border-blue-400'
-              )}
+              className={cn('size-6', HITBOX_TEST && 'border border-blue-400')}
             />
           </MapWidget>
         );
@@ -272,23 +271,22 @@ function MapWidget({
   left: number;
 } & PropsWithChildren) {
   return (
-    <div
+    <BetterKeepScale
+      // className={cn('z-50', HITBOX_TEST && 'border border-red-400')}
       className={cn(
-        'absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2',
-        HITBOX_TEST && 'border border-red-500'
+        'absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 touch-none',
+        HITBOX_TEST && 'outline outline-1 outline-green-500'
       )}
       style={{
         left,
         top,
       }}
     >
-      <BetterKeepScale>
-        <Tooltip>
-          <TooltipTrigger>{children}</TooltipTrigger>
-          <TooltipContent className="mb-3">{toolTipLabel}</TooltipContent>
-        </Tooltip>
-      </BetterKeepScale>
-    </div>
+      <Tooltip>
+        <TooltipTrigger className="-translate-y-1/2">{children}</TooltipTrigger>
+        <TooltipContent className="">{toolTipLabel}</TooltipContent>
+      </Tooltip>
+    </BetterKeepScale>
   );
 }
 

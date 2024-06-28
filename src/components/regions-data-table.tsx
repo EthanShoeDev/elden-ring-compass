@@ -55,4 +55,9 @@ const columns: Array<ColumnDef<Region>> = [
   commonAccessorColumnDef(columnHelper, 'isBoss', 'Is Boss'),
   commonAccessorColumnDef(columnHelper, 'isDungeon', 'Is Dungeon'),
   commonAccessorColumnDef(columnHelper, 'isOpenWorld', 'Is Open World'),
+  commonAccessorColumnDef(
+    columnHelper,
+    (row) => !!row.map_data,
+    'Has Coordinates'
+  ),
 ];
