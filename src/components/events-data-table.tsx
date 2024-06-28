@@ -28,8 +28,12 @@ export function EventsDataTable() {
       <CardHeader>
         <CardTitle>Events</CardTitle>
         <CardDescription>
-          {ownedCount} / {items.length} - (
-          {((ownedCount / items.length) * 100).toFixed(0)}% owned)
+          <p className="text-muted-foreground">
+            {ownedCount} / {items.length}
+          </p>
+          <p className="text-muted-foreground">
+            {((ownedCount / items.length) * 100).toFixed(0)}% owned
+          </p>
         </CardDescription>
       </CardHeader>
       <CardContent>

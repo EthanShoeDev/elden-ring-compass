@@ -232,7 +232,7 @@ function MapWidget({
       <BetterKeepScale>
         <Tooltip>
           <TooltipTrigger>{children}</TooltipTrigger>
-          <TooltipContent>{toolTipLabel}</TooltipContent>
+          <TooltipContent className="mb-3">{toolTipLabel}</TooltipContent>
         </Tooltip>
       </BetterKeepScale>
     </div>
