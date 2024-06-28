@@ -114,6 +114,7 @@ export function InventoryDataTableCard() {
     </Card>
   );
 }
+
 type Quantity = { quantity: number | undefined };
 type AmmoItem = Ammo & Quantity;
 const ammoColumns: Array<ColumnDef<AmmoItem>> = (() => {
@@ -122,7 +123,6 @@ const ammoColumns: Array<ColumnDef<AmmoItem>> = (() => {
   return [
     commonSelectColumnDef(columnHelper),
     commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-
     columnHelper.display({
       id: 'icon',
       header: 'Icon',

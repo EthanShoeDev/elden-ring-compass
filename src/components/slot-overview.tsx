@@ -59,7 +59,7 @@ export function SlotOverview({ className }: { className?: string }) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
           <div>Gender: {capitalizeFirstLetter(statsVm.gender)}</div>
           <Separator orientation="vertical" />
           <div>Weapon Level: {statsVm.match_making_weapon_level}</div>

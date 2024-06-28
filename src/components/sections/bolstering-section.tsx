@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '../ui/card';
+import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Separator } from '../ui/separator';
 import {
   Table,
@@ -159,7 +160,7 @@ export function BolsteringSection() {
         <CardTitle>Overview</CardTitle>
         <CardDescription></CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-wrap gap-4">
+      <CardContent className="flex flex-wrap gap-4 overflow-hidden p-2 sm:p-4">
         <SlotOverview />
         <Card className="">
           <CardHeader>
@@ -188,7 +189,7 @@ export function BolsteringSection() {
             />
           </CardContent>
         </Card>
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Upgrade Materials</CardTitle>
             <CardDescription>
@@ -197,143 +198,148 @@ export function BolsteringSection() {
               Materials
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Power</TableHead>
-                  <TableHead>Stone</TableHead>
-                  <TableHead>Somber</TableHead>
-                  <TableHead>Grave</TableHead>
-                  <TableHead>Ghost</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Array.from({ length: 10 }).map((_, i) => {
-                  const smithingStone =
-                    i < 9
-                      ? (ERDB.bolstering as Record<string, Bolstering>)[
-                          i == 8
-                            ? 'Ancient Dragon Smithing Stone'
-                            : `Smithing Stone [${(i + 1).toString()}]`
-                        ]
-                      : undefined;
-                  const somberSmithingStone =
-                    i < 10
-                      ? (ERDB.bolstering as Record<string, Bolstering>)[
-                          i == 9
-                            ? 'Somber Ancient Dragon Smithing Stone'
-                            : `Somber Smithing Stone [${(i + 1).toString()}]`
-                        ]
-                      : undefined;
-                  const ghostGlovewart =
-                    i < 10
-                      ? (ERDB.bolstering as Record<string, Bolstering>)[
-                          i == 9
-                            ? 'Great Ghost Glovewort'
-                            : `Ghost Glovewort [${(i + 1).toString()}]`
-                        ]
-                      : undefined;
-                  const graveGlovewart =
-                    i < 10
-                      ? (ERDB.bolstering as Record<string, Bolstering>)[
-                          i == 9
-                            ? 'Great Grave Glovewort'
-                            : `Grave Glovewort [${(i + 1).toString()}]`
-                        ]
-                      : undefined;
+          <CardContent className="max-w-full overflow-hidden">
+            <ScrollArea className="w-full">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Power</TableHead>
+                    <TableHead>Stone</TableHead>
+                    <TableHead>Somber</TableHead>
+                    <TableHead>Grave</TableHead>
+                    <TableHead>Ghost</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 10 }).map((_, i) => {
+                    const smithingStone =
+                      i < 9
+                        ? (ERDB.bolstering as Record<string, Bolstering>)[
+                            i == 8
+                              ? 'Ancient Dragon Smithing Stone'
+                              : `Smithing Stone [${(i + 1).toString()}]`
+                          ]
+                        : undefined;
+                    const somberSmithingStone =
+                      i < 10
+                        ? (ERDB.bolstering as Record<string, Bolstering>)[
+                            i == 9
+                              ? 'Somber Ancient Dragon Smithing Stone'
+                              : `Somber Smithing Stone [${(i + 1).toString()}]`
+                          ]
+                        : undefined;
+                    const ghostGlovewart =
+                      i < 10
+                        ? (ERDB.bolstering as Record<string, Bolstering>)[
+                            i == 9
+                              ? 'Great Ghost Glovewort'
+                              : `Ghost Glovewort [${(i + 1).toString()}]`
+                          ]
+                        : undefined;
+                    const graveGlovewart =
+                      i < 10
+                        ? (ERDB.bolstering as Record<string, Bolstering>)[
+                            i == 9
+                              ? 'Great Grave Glovewort'
+                              : `Grave Glovewort [${(i + 1).toString()}]`
+                          ]
+                        : undefined;
 
-                  return (
-                    <TableRow key={i}>
-                      <TableCell>+{i + 1}</TableCell>
-                      {[
-                        smithingStone,
-                        somberSmithingStone,
-                        graveGlovewart,
-                        ghostGlovewart,
-                      ].map((item, i) => {
-                        const bellBearingName =
-                          item && item.name in materialToBellBearings
-                            ? materialToBellBearings[
-                                item.name as keyof typeof materialToBellBearings
-                              ]
-                            : undefined;
+                    return (
+                      <TableRow key={i}>
+                        <TableCell>+{i + 1}</TableCell>
+                        {[
+                          smithingStone,
+                          somberSmithingStone,
+                          graveGlovewart,
+                          ghostGlovewart,
+                        ].map((item, i) => {
+                          const bellBearingName =
+                            item && item.name in materialToBellBearings
+                              ? materialToBellBearings[
+                                  item.name as keyof typeof materialToBellBearings
+                                ]
+                              : undefined;
 
-                        const bellBearing =
-                          bellBearingName && ERDB.shop[bellBearingName];
+                          const bellBearing =
+                            bellBearingName && ERDB.shop[bellBearingName];
 
-                        const bellLocation =
-                          bellBearing && bellNameLocation[bellBearingName];
-                        const bellOwned =
-                          ((bellBearing &&
-                            inventoryQuantityById.get(bellBearing.id)) ??
-                            0) > 0 ||
-                          (bellLocation &&
-                            'boss' in bellLocation &&
-                            bellLocation.boss.killed);
+                          const bellLocation =
+                            bellBearing && bellNameLocation[bellBearingName];
+                          const bellOwned =
+                            ((bellBearing &&
+                              inventoryQuantityById.get(bellBearing.id)) ??
+                              0) > 0 ||
+                            (bellLocation &&
+                              'boss' in bellLocation &&
+                              bellLocation.boss.killed);
 
-                        const imgSrc =
-                          item &&
-                          new URL(
-                            `../../assets/erdb/icons/bolstering-materials/${item.icon.toString()}.png`,
-                            import.meta.url
-                          ).href;
-                        return (
-                          <TableCell key={i} className={cn('p-2')}>
-                            <Tooltip>
-                              <TooltipTrigger
-                                className={cn(
-                                  'flex items-center rounded-lg p-1',
-                                  bellOwned ? 'border border-green-300/50' : ''
-                                )}
-                              >
-                                <div className="flex flex-wrap items-center justify-center gap-1">
-                                  {item && (
+                          const imgSrc =
+                            item &&
+                            new URL(
+                              `../../assets/erdb/icons/bolstering-materials/${item.icon.toString()}.png`,
+                              import.meta.url
+                            ).href;
+                          return (
+                            <TableCell key={i} className={cn('p-2')}>
+                              <Tooltip>
+                                <TooltipTrigger
+                                  className={cn(
+                                    'flex items-center rounded-lg p-1',
+                                    bellOwned
+                                      ? 'border border-green-300/50'
+                                      : ''
+                                  )}
+                                >
+                                  <div className="flex flex-wrap items-center justify-center gap-1">
+                                    {item && (
+                                      <>
+                                        <img className="size-8" src={imgSrc} />
+
+                                        <span className="w-10 whitespace-nowrap">
+                                          {inventoryQuantityById.get(item.id) ??
+                                            0}
+                                          {item.name ==
+                                            'Ancient Dragon Smithing Stone' &&
+                                            ' / 13'}
+                                          {item.name ==
+                                            'Somber Ancient Dragon Smithing Stone' &&
+                                            ' / 8'}
+                                          {item.name ==
+                                            'Great Grave Glovewort' && ' / 6'}
+                                          {item.name ==
+                                            'Great Ghost Glovewort' && ' / 4'}
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent className="flex max-w-72 flex-col items-center">
+                                  <img src={imgSrc} className="size-40" />
+                                  <p className="text-lg">{item?.name}</p>
+                                  {bellLocation && (
                                     <>
-                                      <img className="size-8" src={imgSrc} />
-
-                                      <span className="w-10 whitespace-nowrap">
-                                        {inventoryQuantityById.get(item.id) ??
-                                          0}
-                                        {item.name ==
-                                          'Ancient Dragon Smithing Stone' &&
-                                          ' / 13'}
-                                        {item.name ==
-                                          'Somber Ancient Dragon Smithing Stone' &&
-                                          ' / 8'}
-                                        {item.name == 'Great Grave Glovewort' &&
-                                          ' / 6'}
-                                        {item.name == 'Great Ghost Glovewort' &&
-                                          ' / 4'}
-                                      </span>
+                                      <br />
+                                      <p className="w-full text-wrap text-center">
+                                        Bell bearing found{' '}
+                                        {'boss' in bellLocation
+                                          ? `from boss ${bellLocation.boss.bossName}`
+                                          : `in ${bellLocation.location}`}
+                                      </p>
                                     </>
                                   )}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent className="flex max-w-72 flex-col items-center">
-                                <img src={imgSrc} className="size-40" />
-                                <p className="text-lg">{item?.name}</p>
-                                {bellLocation && (
-                                  <>
-                                    <br />
-                                    <p className="w-full text-wrap text-center">
-                                      Bell bearing found{' '}
-                                      {'boss' in bellLocation
-                                        ? `from boss ${bellLocation.boss.bossName}`
-                                        : `in ${bellLocation.location}`}
-                                    </p>
-                                  </>
-                                )}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           </CardContent>
         </Card>
       </CardContent>

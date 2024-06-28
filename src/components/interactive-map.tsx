@@ -8,7 +8,7 @@ import {
   ZoomInIcon,
   ZoomOutIcon,
 } from 'lucide-react';
-import React, { HTMLAttributes, useState } from 'react';
+import { HTMLAttributes, PropsWithChildren, useState } from 'react';
 import {
   TransformComponent,
   TransformWrapper,
@@ -18,10 +18,11 @@ import {
 } from 'react-zoom-pan-pinch';
 import { Button } from './ui/button';
 
+import { MAP_DB_ITEMS } from '@/lib/map-db';
+import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 const HITBOX_TEST = false as boolean;
 
@@ -121,6 +122,7 @@ function MapInner() {
             <img src={aboveMapSrc} alt="4k Elden Ring Map" />
             <OriginPin />
             <PlayerLocationPin />
+            <SitesOfGraceWidgets />
           </div>
         </TransformComponent>
       </div>
@@ -207,6 +209,58 @@ function PlayerLocationPin() {
   );
 }
 
+function SitesOfGraceWidgets() {
+  const sites = MAP_DB_ITEMS.filter((i) => i.category == 'Site of Grace');
+
+  return (
+    <>
+      {sites.map((site) => {
+        // Correct Isolated Divine Tower Result:
+        // site.y = 156.395274
+        // site.x = -134.453125
+
+        // Output x: 468.286549
+        // Output y: 378.485546
+
+        // dx =  (468.286549 - b) / 156.395274
+
+        // (() => {
+        //   const b = -25;
+        //   const dx = (468.286549 - b) / 156.395274;
+        //   console.log(
+        //     `const x = parseFloat(site.y) * ${dx.toString()} ${b.toString()};`
+        //   );
+        // })();
+        // (() => {
+        //   const b = -25;
+        //   const dy = (378.485546 - b) / 134.453125;
+        //   console.log(`const y = -parseFloat(site.x) * ${dy.toString()};`);
+        // })();
+
+        const bx = -35;
+        const by = -56;
+
+        const dx = (468.286549 - bx) / 156.395274;
+        const dy = (378.485546 - by) / 134.453125;
+
+        const x = parseFloat(site.y) * dx + bx;
+        const y = -parseFloat(site.x) * dy + by;
+
+        return (
+          <MapWidget key={site.id} toolTipLabel={site.name} left={x} top={y}>
+            <MapPinIcon
+              className={cn(
+                'size-6 -translate-y-1/2',
+                HITBOX_TEST && 'border border-blue-400'
+              )}
+            />
+          </MapWidget>
+        );
+      })}
+    </>
+  );
+}
+
 function MapWidget({
   toolTipLabel,
   top,
@@ -214,10 +268,9 @@ function MapWidget({
   children,
 }: {
   toolTipLabel: string;
-  children: React.ReactNode;
   top: number;
   left: number;
-}) {
+} & PropsWithChildren) {
   return (
     <div
       className={cn(

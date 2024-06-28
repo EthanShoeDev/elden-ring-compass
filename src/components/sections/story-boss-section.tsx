@@ -119,7 +119,7 @@ export function StoryBossSection() {
           {((bossesKilled / totalBosses) * 100).toFixed(0)}% defeated)
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex gap-4">
+      <CardContent className="flex flex-wrap gap-4">
         <Card>
           <CardHeader>
             <CardDescription>2 required</CardDescription>

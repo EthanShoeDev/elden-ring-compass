@@ -79,7 +79,7 @@ const handleOnChangeParam = <
   };
 };
 
-const createDataTableStore = (initProps: DataTableStoreProps) => {
+export const createDataTableStore = (initProps: DataTableStoreProps) => {
   return createStore<DataTableState>()(
     persist(
       (set, get) => ({

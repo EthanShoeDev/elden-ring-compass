@@ -21,19 +21,16 @@ type Event = ReturnType<typeof eventsDbView>[0];
 export function EventsDataTable() {
   const slot = useSelectedSlot();
   const items = useMemo(() => eventsDbView(slot), [slot]);
-
   const ownedCount = items.filter((item) => item.on).length;
+
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Events</CardTitle>
         <CardDescription>
-          <p className="text-muted-foreground">
-            {ownedCount} / {items.length}
-          </p>
-          <p className="text-muted-foreground">
-            {((ownedCount / items.length) * 100).toFixed(0)}% owned
-          </p>
+          {ownedCount} / {items.length}
+          <br />
+          {((ownedCount / items.length) * 100).toFixed(0)}% owned
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -55,4 +52,9 @@ const columns: Array<ColumnDef<Event>> = [
   commonAccessorColumnDef(columnHelper, 'name', 'Name'),
   commonAccessorColumnDef(columnHelper, 'on', 'Complete'),
   commonAccessorColumnDef(columnHelper, 'type', 'Type'),
+  commonAccessorColumnDef(
+    columnHelper,
+    (row) => !!row.map_data,
+    'Has Coordinates'
+  ),
 ];

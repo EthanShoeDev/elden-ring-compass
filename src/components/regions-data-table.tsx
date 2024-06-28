@@ -28,12 +28,9 @@ export function RegionsDataTable() {
       <CardHeader>
         <CardTitle>Regions</CardTitle>
         <CardDescription>
-          <p className="text-muted-foreground">
-            {ownedCount} / {items.length}
-          </p>
-          <p className="text-muted-foreground">
-            {((ownedCount / items.length) * 100).toFixed(0)}% owned
-          </p>
+          {ownedCount} / {items.length}
+          <br />
+          {((ownedCount / items.length) * 100).toFixed(0)}% owned
         </CardDescription>
       </CardHeader>
       <CardContent>
