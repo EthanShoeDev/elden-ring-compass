@@ -48,7 +48,7 @@ export function RegionsDataTable() {
 const columnHelper = createColumnHelper<Region>();
 const columns: Array<ColumnDef<Region>> = [
   commonSelectColumnDef(columnHelper),
-  commonAccessorColumnDef(columnHelper, 'eventId', 'ID', { size: 1 }),
+  commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
   commonAccessorColumnDef(columnHelper, 'name', 'Name'),
   commonAccessorColumnDef(columnHelper, 'found', 'Found'),
   commonAccessorColumnDef(columnHelper, 'map', 'Map'),
