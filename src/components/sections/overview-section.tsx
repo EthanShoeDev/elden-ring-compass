@@ -23,7 +23,7 @@ import {
 } from '../ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
-export function BolsteringSection() {
+export function OverviewSection() {
   const slot = useSelectedSlot();
 
   const inventoryQuantityById = new Map(
