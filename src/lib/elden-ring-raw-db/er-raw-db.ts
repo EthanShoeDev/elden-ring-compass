@@ -86,7 +86,7 @@ export const CLEAN_ELDEN_RING_DB = (() => {
           Object.values(gracesMap).map((tupleDetails) => ({
             regionName,
             map: tupleDetails[0],
-            eventId: tupleDetails[1],
+            id: tupleDetails[1],
             name: tupleDetails[2],
             type: 'grace',
           }))
@@ -94,14 +94,14 @@ export const CLEAN_ELDEN_RING_DB = (() => {
         .flat(),
       ...Object.values(RAW_ELDEN_RING_DB.WHETBLADES).map((tupleDetails) => ({
         type: 'whetblade',
-        eventId: tupleDetails[0],
+        id: tupleDetails[0],
         name: tupleDetails[1],
       })),
       ...Object.entries(RAW_ELDEN_RING_DB.COOKBOOKS)
         .map(([cookBookCategoryName, books]) =>
           Object.values(books).map((tupleDetails) => ({
             type: 'cookbook',
-            eventId: tupleDetails[0],
+            id: tupleDetails[0],
             name: tupleDetails[1],
             cookBookCategoryName,
           }))
@@ -110,7 +110,7 @@ export const CLEAN_ELDEN_RING_DB = (() => {
       ...Object.entries(RAW_ELDEN_RING_DB.MAPS).map(
         ([mapKey, tupleDetails]) => ({
           type: 'map',
-          eventId: tupleDetails[0],
+          id: tupleDetails[0],
           name: tupleDetails[1],
           mapKey,
         })
@@ -119,7 +119,7 @@ export const CLEAN_ELDEN_RING_DB = (() => {
         .map(([regionName, bossesMap]) =>
           Object.entries(bossesMap).map(([bossKey, tupleDetails]) => ({
             type: 'boss',
-            eventId: tupleDetails[0],
+            id: tupleDetails[0],
             name: tupleDetails[1],
             regionName,
             bossKey,
@@ -128,14 +128,14 @@ export const CLEAN_ELDEN_RING_DB = (() => {
         .flat(),
       {
         type: 'boss',
-        eventId: 310,
+        id: 310,
         name: 'Radahn',
         regionName: 'Caelid',
       },
       ...Object.entries(RAW_ELDEN_RING_DB.SUMMONING_POOLS).map(
         ([summonPoolKey, tupleDetails]) => ({
           type: 'summoningPool',
-          eventId: tupleDetails[0],
+          id: tupleDetails[0],
           name: `SummoningPool${tupleDetails[1]}`,
           summonPoolKey,
         })
@@ -143,7 +143,7 @@ export const CLEAN_ELDEN_RING_DB = (() => {
       ...Object.entries(RAW_ELDEN_RING_DB.COLOSSEUMS).map(
         ([colosseumKey, tupleDetails]) => ({
           type: 'colosseum',
-          eventId: tupleDetails[0],
+          id: tupleDetails[0],
           name: tupleDetails[1],
           colosseumKey,
         })
@@ -154,7 +154,7 @@ export const CLEAN_ELDEN_RING_DB = (() => {
       const map =
         RAW_ELDEN_RING_DB.MAP_NAMES[values[2] as keyof typeof MAP_NAMES];
       return {
-        eventId: values[0],
+        id: values[0],
         name: values[1],
         map: map,
         isOpenWorld: values[3],

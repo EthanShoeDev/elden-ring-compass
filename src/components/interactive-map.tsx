@@ -119,7 +119,14 @@ function MapInner() {
   const tableState = useDataTableStore((store) => store.tableState);
 
   const selectedMapItems = Object.values(tableState).reduce<Array<string>>(
-    (acc, table) => [...acc, ...Object.keys(table?.rowSelection ?? {})],
+    (acc, table) => [
+      ...acc,
+      ...Object.keys(table?.rowSelection ?? {}).map((s) => {
+        const name = s.split('___')[1];
+        if (!name) throw new Error(`Invalid row selection: ${s}`);
+        return name;
+      }),
+    ],
     []
   );
 

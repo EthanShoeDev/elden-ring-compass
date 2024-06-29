@@ -26,7 +26,7 @@ import { DataTablePagination } from './data-table-pagination';
 import { DataTableStateInitProps, useDataTableState } from './data-table-store';
 import { DataTableToolbar } from './data-table-toolbar';
 
-export function DataTable<TData extends { name: string }, TValue>({
+export function DataTable<TData extends { id: number; name: string }, TValue>({
   className,
   columns,
   data,
@@ -67,7 +67,7 @@ export function DataTable<TData extends { name: string }, TValue>({
     columnResizeMode: 'onChange',
     enableRowSelection: (row) =>
       !!(row.original as { map_data?: MapItem }).map_data,
-    getRowId: (row) => row.name,
+    getRowId: (row) => `${row.id.toString()}___${row.name}`,
     onRowSelectionChange: state.setRowSelection,
     onSortingChange: state.setSorting,
     onColumnSizingChange: state.setColumnSizing,

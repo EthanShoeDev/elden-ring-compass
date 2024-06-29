@@ -75,7 +75,7 @@ export function OverviewSection() {
     "Smithing-Stone Miner's Bell Bearing [1]": {
       boss: {
         bossName: 'Crystalian (Raya Lucaria Crystal Tunnel)',
-        killed: events.find((e) => e.eventId === 32020800)?.on === true,
+        killed: events.find((e) => e.id === 32020800)?.on === true,
       },
     },
     "Smithing-Stone Miner's Bell Bearing [2]": { location: 'Sealed Tunnel' },
@@ -83,19 +83,19 @@ export function OverviewSection() {
     "Smithing-Stone Miner's Bell Bearing [4]": {
       boss: {
         bossName: 'Godskin Duo',
-        killed: events.find((e) => e.eventId === 13000850)?.on === true,
+        killed: events.find((e) => e.id === 13000850)?.on === true,
       },
     },
     "Somberstone Miner's Bell Bearing [1]": {
       boss: {
         bossName: 'Fallingstar Beast (Sellia Crystal Tunnel)',
-        killed: events.find((e) => e.eventId === 32080800)?.on === true,
+        killed: events.find((e) => e.id === 32080800)?.on === true,
       },
     },
     "Somberstone Miner's Bell Bearing [2]": {
       boss: {
         bossName: 'Crystalian Spear and Crystalian Ringblade (Altus Tunnel)',
-        killed: events.find((e) => e.eventId === 32050800)?.on === true,
+        killed: events.find((e) => e.id === 32050800)?.on === true,
       },
     },
     "Somberstone Miner's Bell Bearing [3]": {

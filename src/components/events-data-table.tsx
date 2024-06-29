@@ -23,11 +23,11 @@ export function EventsDataTable() {
   const items = useMemo(() => eventsDbView(slot), [slot]);
   const ownedCount = items.filter((item) => item.on).length;
 
-  const initSelection = Object.fromEntries(
-    items
-      .filter((item) => item.type == 'grace' && item.map_data)
-      .map((item) => [item.name, true])
-  );
+  // const initSelection = Object.fromEntries(
+  //   items
+  //     .filter((item) => item.type == 'grace' && item.map_data)
+  //     .map((item) => [item.name, true])
+  // );
   return (
     <Card className="w-full">
       <CardHeader>
@@ -44,7 +44,7 @@ export function EventsDataTable() {
           className=""
           columns={columns}
           data={items}
-          initialRowSelection={initSelection}
+          // initialRowSelection={initSelection}
         />
       </CardContent>
     </Card>
@@ -54,7 +54,7 @@ export function EventsDataTable() {
 const columnHelper = createColumnHelper<Event>();
 const columns: Array<ColumnDef<Event>> = [
   commonSelectColumnDef(columnHelper),
-  commonAccessorColumnDef(columnHelper, 'eventId', 'ID', { size: 1 }),
+  commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
   commonAccessorColumnDef(columnHelper, 'name', 'Name', {
     filterFn: 'includesString',
   }),

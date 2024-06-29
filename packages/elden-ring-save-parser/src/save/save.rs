@@ -1119,7 +1119,7 @@ mod tests {
     }
     #[test]
     fn test_load_save_post_dlc() {
-        let path = PathBuf::from("test_data/ER0000.new.postDLC.sl2");
+        let path = PathBuf::from("test_data/ER0000.postDLC.sl2");
         let save = Save::from_path(&path).expect("Should have been able to load the save file");
 
         let save_type = &save.save_type;

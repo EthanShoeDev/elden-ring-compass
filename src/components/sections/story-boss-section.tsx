@@ -30,79 +30,75 @@ export function StoryBossSection() {
   const earlyBosses = [
     {
       name: 'Godrick',
-      eventId: 10000800,
+      id: 10000800,
       imgSrc: godrickImgSrc,
     },
     {
       name: 'Rennala',
-      eventId: 14000800,
+      id: 14000800,
       imgSrc: rennalaImgSrc,
     },
     {
       name: 'Radahn',
-      eventId: 310,
+      id: 310,
       imgSrc: radahnImgSrc,
     },
     {
       name: 'Mohg',
-      eventId: 35000800,
+      id: 35000800,
       imgSrc: mohgImgSrc,
     },
     {
       name: 'Rykard',
-      eventId: 16000800,
+      id: 16000800,
       imgSrc: rykardImgSrc,
     },
   ].map((boss) => ({
     ...boss,
-    killed: slot
-      ? events.find((e) => e.eventId === boss.eventId)?.on == true
-      : false,
+    killed: slot ? events.find((e) => e.id === boss.id)?.on == true : false,
   }));
 
   const sequentialBosses = [
     {
       name: 'Godfrey (Shade)',
-      eventId: 11000850,
+      id: 11000850,
     },
     {
       name: 'Morgott',
-      eventId: 11000800,
+      id: 11000800,
       imgSrc: morgottImgSrc,
     },
     {
       name: 'Fire Giant',
-      eventId: 1052520800,
+      id: 1052520800,
       imgSrc: fireGiantImgSrc,
     },
     {
       name: 'Godskin Duo',
-      eventId: 13000850,
+      id: 13000850,
     },
     {
       name: 'Maliketh',
-      eventId: 13000800,
+      id: 13000800,
       imgSrc: malikethImgSrc,
     },
     {
       name: 'Sir Gideon-Ofnir',
-      eventId: 11050850,
+      id: 11050850,
     },
     {
       name: 'Godfrey',
-      eventId: 11050800,
+      id: 11050800,
       imgSrc: godfreyImgSrc,
     },
     {
       name: 'Radagon',
-      eventId: 19000810,
+      id: 19000810,
       imgSrc: eldenBeastImgSrc,
     },
   ].map((boss) => ({
     ...boss,
-    killed: slot
-      ? events.find((e) => e.eventId === boss.eventId)?.on == true
-      : false,
+    killed: slot ? events.find((e) => e.id === boss.id)?.on == true : false,
   }));
 
   const bossesKilled =
@@ -148,12 +144,12 @@ export function StoryBossSection() {
 function Boss({
   name,
   imgSrc,
-  eventId,
+  id,
   killed,
 }: {
   name: string;
   imgSrc?: string;
-  eventId: number;
+  id: number;
   killed: boolean;
 }) {
   return (
@@ -176,7 +172,7 @@ function Boss({
         <img src={imgSrc} className="mb-2 size-72" />
         {killed && <strong>Defeated</strong>}
         <p>
-          Event Id: <span>{eventId}</span>
+          Event Id: <span>{id}</span>
         </p>
         <a
           className="hover:underline"
