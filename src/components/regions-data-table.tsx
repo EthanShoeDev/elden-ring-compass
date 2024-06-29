@@ -35,7 +35,7 @@ export function RegionsDataTable() {
       </CardHeader>
       <CardContent>
         <DataTable
-          tableId="events"
+          tableId="regions"
           className=""
           columns={columns}
           data={items}

@@ -1,36 +1,36 @@
-const categories = {
-  Armor: 'Armor',
-  AshesofWar: 'Ashes of War',
-  Bosses: 'Bosses',
-  Consumables: 'Consumables',
-  FlaskUpgrades: 'Flask Upgrades',
-  Key: 'Key',
-  Locations: 'Locations',
-  Maps: 'Maps',
-  Materials: 'Materials',
-  NPC: 'NPC',
-  NPCInvader: 'NPC Invader',
-  Remembrance: 'Remembrance',
-  Shields: 'Shields',
-  SiteofGrace: 'Site of Grace',
-  Spells: 'Spells',
-  SpiritAshes: 'Spirit Ashes',
-  Spiritsprings: 'Spiritsprings',
-  SummoningPool: 'Summoning Pool',
-  Talismans: 'Talismans',
-  UpgradeMaterials: 'Upgrade Materials',
-  Waygates: 'Waygates',
-  Weapons: 'Weapons',
-} as const;
-
-export const MAP_DB_ITEMS: Array<{
+// const categories = {
+//   Armor: 'Armor',
+//   AshesofWar: 'Ashes of War',
+//   Bosses: 'Bosses',
+//   Consumables: 'Consumables',
+//   FlaskUpgrades: 'Flask Upgrades',
+//   Key: 'Key',
+//   Locations: 'Locations',
+//   Maps: 'Maps',
+//   Materials: 'Materials',
+//   NPC: 'NPC',
+//   NPCInvader: 'NPC Invader',
+//   Remembrance: 'Remembrance',
+//   Shields: 'Shields',
+//   SiteofGrace: 'Site of Grace',
+//   Spells: 'Spells',
+//   SpiritAshes: 'Spirit Ashes',
+//   Spiritsprings: 'Spiritsprings',
+//   SummoningPool: 'Summoning Pool',
+//   Talismans: 'Talismans',
+//   UpgradeMaterials: 'Upgrade Materials',
+//   Waygates: 'Waygates',
+//   Weapons: 'Weapons',
+// } as const;
+export type MapItem = {
   id: number;
-  category: (typeof categories)[keyof typeof categories];
+  category: string;
   name: string;
-  x: string;
-  y: string;
+  x: number;
+  y: number;
   description: string;
-}> = [
+};
+export const MAP_DB_ITEMS: Array<MapItem> = [
   {
     id: 9829,
     category: 'Summoning Pool',
@@ -27816,4 +27816,4 @@ export const MAP_DB_ITEMS: Array<{
     description:
       'Armor Set comprised of \u003ca href\u003d"/Zamor+Mask" target\u003d"_blank"\u003eZamor Mask\u003c/a\u003e, \u003ca href\u003d"/Zamor+Armor" target\u003d"_blank"\u003eZamor Armor\u003c/a\u003e, \u003ca href\u003d"/Zamor+Bracelets" target\u003d"_blank"\u003eZamor Bracelets\u003c/a\u003e and \u003ca href\u003d"/Zamor+Legwraps" target\u003d"_blank"\u003eZamor Legwraps\u003c/a\u003e. Dropped by the \u003ca href\u003d"/Ancient+Hero+of+Zamor" target\u003d"_blank"\u003eAncient Hero of Zamor\u003c/a\u003e \u003ca target\u003d"blank" href\u003d"/bosses"\u003eBoss\u003c/a\u003e inside the \u003ca href\u003d"/Giant-Conquering+Hero\'s+Grave" target\u003d"_blank"\u003eGiant-Conquering Hero\'s Grave\u003c/a\u003e upon defeat. ',
   },
-];
+].map((i) => ({ ...i, x: parseFloat(i.x), y: parseFloat(i.y) }));

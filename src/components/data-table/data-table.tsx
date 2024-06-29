@@ -19,17 +19,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import { MapItem } from '@/lib/map-db';
 import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
-import {
-  DataTableProvider,
-  DataTableStoreProps,
-  useDataTableContext,
-} from './data-table-context';
 import { DataTablePagination } from './data-table-pagination';
+import { DataTableStateInitProps, useDataTableState } from './data-table-store';
 import { DataTableToolbar } from './data-table-toolbar';
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends { name: string }, TValue>({
   className,
   columns,
   data,
@@ -38,30 +35,14 @@ export function DataTable<TData, TValue>({
   className?: string;
   columns: Array<ColumnDef<TData, TValue>>;
   data: Array<TData>;
-} & DataTableStoreProps) {
-  return (
-    <DataTableProvider key={props.tableId} {...props}>
-      <DataTableInner className={className} columns={columns} data={data} />
-    </DataTableProvider>
-  );
-}
-
-function DataTableInner<TData, TValue>({
-  className,
-  columns,
-  data,
-}: {
-  className?: string;
-  columns: Array<ColumnDef<TData, TValue>>;
-  data: Array<TData>;
-}) {
+} & DataTableStateInitProps) {
   'use no memo';
   // const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   // const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
   //   initialColumnVisibility ?? {}
   // );
   // const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const state = useDataTableContext((state) => state);
+  const state = useDataTableState(props);
 
   const table = useReactTable({
     data,
@@ -83,8 +64,10 @@ function DataTableInner<TData, TValue>({
     defaultColumn: {
       minSize: 50,
     },
-    enableRowSelection: true,
     columnResizeMode: 'onChange',
+    enableRowSelection: (row) =>
+      !!(row.original as { map_data?: MapItem }).map_data,
+    getRowId: (row) => row.name,
     onRowSelectionChange: state.setRowSelection,
     onSortingChange: state.setSorting,
     onColumnSizingChange: state.setColumnSizing,

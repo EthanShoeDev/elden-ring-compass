@@ -30,7 +30,12 @@ import {
   Tool,
   useAllErdb,
 } from '@/lib/erdb';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { MapItem } from '@/lib/map-db';
+import {
+  ColumnDef,
+  ColumnHelper,
+  createColumnHelper,
+} from '@tanstack/react-table';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -114,46 +119,86 @@ export function InventoryDataTableCard() {
     </Card>
   );
 }
-
-type Quantity = { quantity: number | undefined };
-type AmmoItem = Ammo & Quantity;
-const ammoColumns: Array<ColumnDef<AmmoItem>> = (() => {
-  const columnHelper = createColumnHelper<AmmoItem>();
-
+type InfoFromSlot = { quantity: number; map_data?: MapItem };
+// type DefaultItem = {
+//   id: number;
+//   name: string;
+//   description: Array<string>;
+//   quantity: number;
+//   icon: number;
+//   rarity: string;
+// };
+type DefaultItem = (
+  | Ammo
+  | Armament
+  | Armor
+  | Ashes
+  | Bolstering
+  | Crafting
+  | Gesture
+  | Info
+  | KeyItem
+  | Shop
+  | Spell
+  | Spirit
+  | Talisman
+  | Tool
+) &
+  InfoFromSlot;
+function defaultColumns<T extends DefaultItem>(
+  columnHelperT: ColumnHelper<T>,
+  imgUrlFn: (icon: number) => string
+): Array<ColumnDef<T>> {
+  const columnHelperD = columnHelperT as unknown as ColumnHelper<DefaultItem>;
   return [
-    commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-    columnHelper.display({
+    commonSelectColumnDef(columnHelperD),
+    commonAccessorColumnDef(columnHelperD, 'id', 'ID', {
+      size: 1,
+    }),
+    columnHelperD.display({
       id: 'icon',
       header: 'Icon',
       size: 1,
       maxSize: 1,
       cell: (cell) => {
-        const imgUrl = new URL(
-          `../../assets/erdb/icons/ammo/${cell.row.original.icon.toString()}.png`,
-          import.meta.url
-        ).href;
         return (
           <div>
-            <TooltipImg imgSrc={imgUrl} alt={cell.row.original.name} />
+            <TooltipImg
+              imgSrc={imgUrlFn(cell.row.original.icon)}
+              alt={cell.row.original.name}
+            />
           </div>
         );
       },
       enableHiding: true,
     }),
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+    commonAccessorColumnDef(columnHelperD, 'name', 'Name', {
       filterFn: 'includesString',
     }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
-    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
+    commonAccessorColumnDef(columnHelperD, 'quantity', 'Quantity'),
+    commonAccessorColumnDef(columnHelperD, 'rarity', 'Rarity'),
     commonAccessorColumnDef(
-      columnHelper,
-      (row) => row.description.join('\n'),
-      'Description',
-      {
-        filterFn: 'includesString',
-      }
+      columnHelperD,
+      (row) => !!row.map_data,
+      'Has Coordinates'
     ),
+  ] as unknown as Array<ColumnDef<T>>;
+}
+
+type AmmoItem = Ammo & InfoFromSlot;
+const ammoColumns: Array<ColumnDef<AmmoItem>> = (() => {
+  const columnHelper = createColumnHelper<AmmoItem>();
+
+  return [
+    ...defaultColumns(
+      columnHelper,
+      (icon) =>
+        new URL(
+          `../../assets/erdb/icons/ammo/${icon.toString()}.png`,
+          import.meta.url
+        ).href
+    ),
+    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
     commonAccessorColumnDef(
       columnHelper,
       (row) =>
@@ -168,48 +213,22 @@ const ammoColumns: Array<ColumnDef<AmmoItem>> = (() => {
   ];
 })();
 
-type ArmamentItem = Armament & Quantity & { weapon_upgrade_level: number };
+type ArmamentItem = Armament & InfoFromSlot & { weapon_upgrade_level: number };
 const armColumns: Array<ColumnDef<ArmamentItem>> = (() => {
   const columnHelper = createColumnHelper<ArmamentItem>();
 
   return [
-    commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-    columnHelper.display({
-      id: 'icon',
-      header: 'Icon',
-      size: 1,
-      maxSize: 1,
-      cell: (cell) => {
-        const imgUrl = new URL(
-          `../../assets/erdb/icons/armaments/${cell.row.original.icon.toString()}.png`,
-          import.meta.url
-        ).href;
-        return (
-          <div>
-            <TooltipImg imgSrc={imgUrl} alt={cell.row.original.name} />
-          </div>
-        );
-      },
-      enableHiding: true,
-    }),
-
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
-    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
-    commonAccessorColumnDef(
+    ...defaultColumns(
       columnHelper,
-      (row) => row.description.join('\n'),
-      'Description',
-      {
-        filterFn: 'includesString',
-      }
+      (icon) =>
+        new URL(
+          `../../assets/erdb/icons/armaments/${icon.toString()}.png`,
+          import.meta.url
+        ).href
     ),
+    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
     commonAccessorColumnDef(columnHelper, 'allow_ash_of_war', 'Allow AOW'),
     commonAccessorColumnDef(columnHelper, 'is_buffable', 'Buffable'),
-    commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
     commonAccessorColumnDef(
       columnHelper,
       'weapon_upgrade_level',
@@ -235,46 +254,20 @@ const armColumns: Array<ColumnDef<ArmamentItem>> = (() => {
   ];
 })();
 
-type ArmorItem = Armor & Quantity;
+type ArmorItem = Armor & InfoFromSlot;
 const armorColumns: Array<ColumnDef<ArmorItem>> = (() => {
   const columnHelper = createColumnHelper<ArmorItem>();
 
   return [
-    commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-    columnHelper.display({
-      id: 'icon',
-      header: 'Icon',
-      size: 1,
-      maxSize: 1,
-      cell: (cell) => {
-        const imgUrl = new URL(
-          `../../assets/erdb/icons/armor/${cell.row.original.icon.toString()}.png`,
-          import.meta.url
-        ).href;
-        return (
-          <div>
-            <TooltipImg imgSrc={imgUrl} alt={cell.row.original.name} />
-          </div>
-        );
-      },
-      enableHiding: true,
-    }),
-
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
-    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
-    commonAccessorColumnDef(
+    ...defaultColumns(
       columnHelper,
-      (row) => row.description.join('\n'),
-      'Description',
-      {
-        filterFn: 'includesString',
-      }
+      (icon) =>
+        new URL(
+          `../../assets/erdb/icons/armor/${icon.toString()}.png`,
+          import.meta.url
+        ).href
     ),
-    commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
+    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
     commonAccessorColumnDef(columnHelper, 'weight', 'Weight'),
     commonAccessorColumnDef(
       columnHelper,
@@ -290,389 +283,155 @@ const armorColumns: Array<ColumnDef<ArmorItem>> = (() => {
   ];
 })();
 
-type AshesItem = Ashes & Quantity;
+type AshesItem = Ashes & InfoFromSlot;
 const ashesColumns: Array<ColumnDef<AshesItem>> = (() => {
   const columnHelper = createColumnHelper<AshesItem>();
 
   return [
-    commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-    columnHelper.display({
-      id: 'icon',
-      header: 'Icon',
-      size: 1,
-      maxSize: 1,
-      cell: (cell) => {
-        const imgUrl = new URL(
-          `../../assets/erdb/icons/ashes-of-war/${cell.row.original.icon.toString()}.png`,
+    ...defaultColumns(
+      columnHelper,
+      (icon) =>
+        new URL(
+          `../../assets/erdb/icons/ashes-of-war/${icon.toString()}.png`,
           import.meta.url
-        ).href;
-        return (
-          <div>
-            <TooltipImg imgSrc={imgUrl} alt={cell.row.original.name} />
-          </div>
-        );
-      },
-      enableHiding: true,
-    }),
-
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
+        ).href
+    ),
     commonAccessorColumnDef(
       columnHelper,
       (row) => row.armament_categories.join(', '),
       'Armament Categories'
     ),
-    commonAccessorColumnDef(
-      columnHelper,
-      (row) => row.description.join('\n'),
-      'Description',
-      {
-        filterFn: 'includesString',
-      }
-    ),
-    commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
   ];
 })();
 
-type BolsteringItem = Bolstering & Quantity;
+type BolsteringItem = Bolstering & InfoFromSlot;
 const bolsteringColumns: Array<ColumnDef<BolsteringItem>> = (() => {
   const columnHelper = createColumnHelper<BolsteringItem>();
 
   return [
-    commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-    columnHelper.display({
-      id: 'icon',
-      header: 'Icon',
-      size: 1,
-      maxSize: 1,
-      cell: (cell) => {
-        const imgUrl = new URL(
-          `../../assets/erdb/icons/bolstering-materials/${cell.row.original.icon.toString()}.png`,
-          import.meta.url
-        ).href;
-        return (
-          <div>
-            <TooltipImg imgSrc={imgUrl} alt={cell.row.original.name} />
-          </div>
-        );
-      },
-      enableHiding: true,
-    }),
-
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
-    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
-    commonAccessorColumnDef(
+    ...defaultColumns(
       columnHelper,
-      (row) => row.description.join('\n'),
-      'Description',
-      {
-        filterFn: 'includesString',
-      }
+      (icon) =>
+        new URL(
+          `../../assets/erdb/icons/bolstering-materials/${icon.toString()}.png`,
+          import.meta.url
+        ).href
     ),
-    commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
+    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
   ];
 })();
 
-type CraftingItem = Crafting & Quantity;
+type CraftingItem = Crafting & InfoFromSlot;
 const craftingColumns: Array<ColumnDef<CraftingItem>> = (() => {
   const columnHelper = createColumnHelper<CraftingItem>();
 
   return [
-    commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-    columnHelper.display({
-      id: 'icon',
-      header: 'Icon',
-      size: 1,
-      maxSize: 1,
-      cell: (cell) => {
-        const imgUrl = new URL(
-          `../../assets/erdb/icons/crafting-materials/${cell.row.original.icon.toString()}.png`,
-          import.meta.url
-        ).href;
-        return (
-          <div>
-            <TooltipImg imgSrc={imgUrl} alt={cell.row.original.name} />
-          </div>
-        );
-      },
-      enableHiding: true,
-    }),
-
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
-    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
-    commonAccessorColumnDef(
+    ...defaultColumns(
       columnHelper,
-      (row) => row.description.join('\n'),
-      'Description',
-      {
-        filterFn: 'includesString',
-      }
+      (icon) =>
+        new URL(
+          `../../assets/erdb/icons/crafting-materials/${icon.toString()}.png`,
+          import.meta.url
+        ).href
     ),
-    commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
+    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
   ];
 })();
 
-type GestureItem = Gesture & Quantity;
+type GestureItem = Gesture & InfoFromSlot;
 const gesturesColumns: Array<ColumnDef<GestureItem>> = (() => {
   const columnHelper = createColumnHelper<GestureItem>();
 
   return [
-    commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-    columnHelper.display({
-      id: 'icon',
-      header: 'Icon',
-      size: 1,
-      maxSize: 1,
-      cell: (cell) => {
-        const imgUrl = new URL(
-          `../../assets/erdb/icons/gestures/${cell.row.original.icon.toString()}.png`,
-          import.meta.url
-        ).href;
-        return (
-          <div>
-            <TooltipImg imgSrc={imgUrl} alt={cell.row.original.name} />
-          </div>
-        );
-      },
-      enableHiding: true,
-    }),
-
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
-    commonAccessorColumnDef(
+    ...defaultColumns(
       columnHelper,
-      (row) => row.description.join('\n'),
-      'Description',
-      {
-        filterFn: 'includesString',
-      }
+      (icon) =>
+        new URL(
+          `../../assets/erdb/icons/gestures/${icon.toString()}.png`,
+          import.meta.url
+        ).href
     ),
-    commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
   ];
 })();
-type InfoItem = Info & Quantity;
+type InfoItem = Info & InfoFromSlot;
 const infoColumns: Array<ColumnDef<InfoItem>> = (() => {
   const columnHelper = createColumnHelper<InfoItem>();
 
   return [
-    commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-    columnHelper.display({
-      id: 'icon',
-      header: 'Icon',
-      size: 1,
-      maxSize: 1,
-      cell: (cell) => {
-        const imgUrl = new URL(
-          `../../assets/erdb/icons/info/${cell.row.original.icon.toString()}.png`,
-          import.meta.url
-        ).href;
-        return (
-          <div>
-            <TooltipImg imgSrc={imgUrl} alt={cell.row.original.name} />
-          </div>
-        );
-      },
-      enableHiding: true,
-    }),
-
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
-    commonAccessorColumnDef(
+    ...defaultColumns(
       columnHelper,
-      (row) => row.description.join('\n'),
-      'Description',
-      {
-        filterFn: 'includesString',
-      }
+      (icon) =>
+        new URL(
+          `../../assets/erdb/icons/info/${icon.toString()}.png`,
+          import.meta.url
+        ).href
     ),
-    commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
   ];
 })();
-type KeyItemRow = KeyItem & Quantity;
+type KeyItemRow = KeyItem & InfoFromSlot;
 const keyColumns: Array<ColumnDef<InfoItem>> = (() => {
   const columnHelper = createColumnHelper<KeyItemRow>();
 
   return [
-    commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-    columnHelper.display({
-      id: 'icon',
-      header: 'Icon',
-      size: 1,
-      maxSize: 1,
-      cell: (cell) => {
-        const imgUrl = new URL(
-          `../../assets/erdb/icons/keys/${cell.row.original.icon.toString()}.png`,
-          import.meta.url
-        ).href;
-        return (
-          <div>
-            <TooltipImg imgSrc={imgUrl} alt={cell.row.original.name} />
-          </div>
-        );
-      },
-      enableHiding: true,
-    }),
-
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
-    commonAccessorColumnDef(
+    ...defaultColumns(
       columnHelper,
-      (row) => row.description.join('\n'),
-      'Description',
-      {
-        filterFn: 'includesString',
-      }
+      (icon) =>
+        new URL(
+          `../../assets/erdb/icons/keys/${icon.toString()}.png`,
+          import.meta.url
+        ).href
     ),
-    commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
   ];
 })();
-type ShopItem = Shop & Quantity;
+type ShopItem = Shop & InfoFromSlot;
 const shopColumns: Array<ColumnDef<ShopItem>> = (() => {
   const columnHelper = createColumnHelper<ShopItem>();
 
   return [
-    commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-    columnHelper.display({
-      id: 'icon',
-      header: 'Icon',
-      size: 1,
-      maxSize: 1,
-      cell: (cell) => {
-        const imgUrl = new URL(
-          `../../assets/erdb/icons/shop/${cell.row.original.icon.toString()}.png`,
-          import.meta.url
-        ).href;
-        return (
-          <div>
-            <TooltipImg imgSrc={imgUrl} alt={cell.row.original.name} />
-          </div>
-        );
-      },
-      enableHiding: true,
-    }),
-
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
-    commonAccessorColumnDef(
+    ...defaultColumns(
       columnHelper,
-      (row) => row.description.join('\n'),
-      'Description',
-      {
-        filterFn: 'includesString',
-      }
+      (icon) =>
+        new URL(
+          `../../assets/erdb/icons/shop/${icon.toString()}.png`,
+          import.meta.url
+        ).href
     ),
-    commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
   ];
 })();
-type SpellItem = Spell & Quantity;
+type SpellItem = Spell & InfoFromSlot;
 const spellColumns: Array<ColumnDef<SpellItem>> = (() => {
   const columnHelper = createColumnHelper<SpellItem>();
 
   return [
-    commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-    columnHelper.display({
-      id: 'icon',
-      header: 'Icon',
-      size: 1,
-      maxSize: 1,
-      cell: (cell) => {
-        const imgUrl = new URL(
-          `../../assets/erdb/icons/spells/${cell.row.original.icon.toString()}.png`,
-          import.meta.url
-        ).href;
-        return (
-          <div>
-            <TooltipImg imgSrc={imgUrl} alt={cell.row.original.name} />
-          </div>
-        );
-      },
-      enableHiding: true,
-    }),
-
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
-    commonAccessorColumnDef(
+    ...defaultColumns(
       columnHelper,
-      (row) => row.description.join('\n'),
-      'Description',
-      {
-        filterFn: 'includesString',
-      }
+      (icon) =>
+        new URL(
+          `../../assets/erdb/icons/spells/${icon.toString()}.png`,
+          import.meta.url
+        ).href
     ),
-    commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
     commonAccessorColumnDef(columnHelper, 'fp_cost', 'FP Cost'),
     commonAccessorColumnDef(columnHelper, 'sp_cost', 'SP Cost'),
     commonAccessorColumnDef(columnHelper, 'is_weapon_buff', 'Is Weapon Buff'),
   ];
 })();
-type SpiritItem = Spirit & Quantity;
+type SpiritItem = Spirit & InfoFromSlot;
 const spiritColumns: Array<ColumnDef<SpiritItem>> = (() => {
   const columnHelper = createColumnHelper<SpiritItem>();
 
   return [
-    commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-    columnHelper.display({
-      id: 'icon',
-      header: 'Icon',
-      size: 1,
-      maxSize: 1,
-      cell: (cell) => {
-        const imgUrl = new URL(
-          `../../assets/erdb/icons/spirit-ashes/${cell.row.original.icon.toString()}.png`,
-          import.meta.url
-        ).href;
-        return (
-          <div>
-            <TooltipImg imgSrc={imgUrl} alt={cell.row.original.name} />
-          </div>
-        );
-      },
-      enableHiding: true,
-    }),
-
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
-    commonAccessorColumnDef(
+    ...defaultColumns(
       columnHelper,
-      (row) => row.description.join('\n'),
-      'Description',
-      {
-        filterFn: 'includesString',
-      }
+      (icon) =>
+        new URL(
+          `../../assets/erdb/icons/spirit-ashes/${icon.toString()}.png`,
+          import.meta.url
+        ).href
     ),
-    commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
     commonAccessorColumnDef(columnHelper, 'hp_cost', 'HP Cost'),
     commonAccessorColumnDef(columnHelper, 'fp_cost', 'FP Cost'),
     commonAccessorColumnDef(
@@ -690,45 +449,19 @@ const spiritColumns: Array<ColumnDef<SpiritItem>> = (() => {
     ),
   ];
 })();
-type TalismanItem = Talisman & Quantity;
+type TalismanItem = Talisman & InfoFromSlot;
 const talismanColumns: Array<ColumnDef<TalismanItem>> = (() => {
   const columnHelper = createColumnHelper<TalismanItem>();
 
   return [
-    commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-    columnHelper.display({
-      id: 'icon',
-      header: 'Icon',
-      size: 1,
-      maxSize: 1,
-      cell: (cell) => {
-        const imgUrl = new URL(
-          `../../assets/erdb/icons/talismans/${cell.row.original.icon.toString()}.png`,
-          import.meta.url
-        ).href;
-        return (
-          <div>
-            <TooltipImg imgSrc={imgUrl} alt={cell.row.original.name} />
-          </div>
-        );
-      },
-      enableHiding: true,
-    }),
-
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
-    commonAccessorColumnDef(
+    ...defaultColumns(
       columnHelper,
-      (row) => row.description.join('\n'),
-      'Description',
-      {
-        filterFn: 'includesString',
-      }
+      (icon) =>
+        new URL(
+          `../../assets/erdb/icons/talismans/${icon.toString()}.png`,
+          import.meta.url
+        ).href
     ),
-    commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
     commonAccessorColumnDef(columnHelper, 'weight', 'Weight'),
     commonAccessorColumnDef(
       columnHelper,
@@ -748,45 +481,19 @@ const talismanColumns: Array<ColumnDef<TalismanItem>> = (() => {
     ),
   ];
 })();
-type ToolItem = Tool & Quantity;
+type ToolItem = Tool & InfoFromSlot;
 const toolColumns: Array<ColumnDef<ToolItem>> = (() => {
   const columnHelper = createColumnHelper<ToolItem>();
 
   return [
-    commonSelectColumnDef(columnHelper),
-    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-    columnHelper.display({
-      id: 'icon',
-      header: 'Icon',
-      size: 1,
-      maxSize: 1,
-      cell: (cell) => {
-        const imgUrl = new URL(
-          `../../assets/erdb/icons/tools/${cell.row.original.icon.toString()}.png`,
-          import.meta.url
-        ).href;
-        return (
-          <div>
-            <TooltipImg imgSrc={imgUrl} alt={cell.row.original.name} />
-          </div>
-        );
-      },
-      enableHiding: true,
-    }),
-
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
-    commonAccessorColumnDef(
+    ...defaultColumns(
       columnHelper,
-      (row) => row.description.join('\n'),
-      'Description',
-      {
-        filterFn: 'includesString',
-      }
+      (icon) =>
+        new URL(
+          `../../assets/erdb/icons/tools/${icon.toString()}.png`,
+          import.meta.url
+        ).href
     ),
-    commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
   ];
 })();
 

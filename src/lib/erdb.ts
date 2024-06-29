@@ -17,6 +17,7 @@ import spirit from '@/assets/erdb/json/spirit-ashes.json';
 import talismans from '@/assets/erdb/json/talismans.json';
 import tools from '@/assets/erdb/json/tools.json';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
+import { MAP_DB_ITEMS } from './map-db';
 import { inventoryDbView } from './vm/inventory';
 
 export type Ammo = {
@@ -427,6 +428,7 @@ export const useAllErdb = () => {
       upgrade_level: currentItem
         ? Math.max(currentItem.upgrade_level, item.upgrade_level)
         : item.upgrade_level,
+      map_data: currentItem ? currentItem.map_data : item.map_data,
     });
   }
 
@@ -452,6 +454,8 @@ export const useAllErdb = () => {
             weapon_upgrade_level > 0
               ? `${item.name} +${weapon_upgrade_level.toString()}`
               : item.name,
+          map_data:
+            invItem?.map_data ?? MAP_DB_ITEMS.find((s) => s.name == item.name),
         };
       });
       return [

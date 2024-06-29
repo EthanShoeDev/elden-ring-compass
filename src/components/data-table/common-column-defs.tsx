@@ -21,16 +21,19 @@ export const commonSelectColumnDef = <T,>(
         aria-label="Select all"
       />
     ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => {
-          row.toggleSelected(!!value);
-        }}
-        aria-label="Select row"
-        className="ml-2 translate-y-[2px]"
-      />
-    ),
+    cell: ({ row }) => {
+      return (
+        <Checkbox
+          disabled={!row.getCanSelect()}
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => {
+            row.toggleSelected(!!value);
+          }}
+          aria-label="Select row"
+          className="ml-2 translate-y-[2px]"
+        />
+      );
+    },
     enableSorting: true,
     enableHiding: false,
     enableResizing: true,
