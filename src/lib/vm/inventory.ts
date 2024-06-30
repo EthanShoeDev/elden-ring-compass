@@ -74,6 +74,9 @@ export function inventoryDbView(slot: Readonly<Slot>) {
     };
   }
 
+  const gaItemMap = new Map<number, GaItem>(
+    slot.ga_items.map((i) => [i.gaitem_handle, i])
+  );
   const fill_storage_type = (
     inventory_data: EquipInventoryData | StorageInventoryData
   ) => {
@@ -95,9 +98,7 @@ export function inventoryDbView(slot: Readonly<Slot>) {
               aow_gaitem_handle: 0xffffffff, // u32::MAX
               unk5: 0,
             }
-          : slot.ga_items.find(
-              (item) => item.gaitem_handle === commonItem.ga_item_handle
-            );
+          : gaItemMap.get(commonItem.ga_item_handle);
 
         if (!gaitem)
           throw new Error(

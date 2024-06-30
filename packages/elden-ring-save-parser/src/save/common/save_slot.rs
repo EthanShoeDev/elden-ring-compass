@@ -168,8 +168,10 @@ impl Write for UknownList {
 
 pub struct GaItem2 {
     pub id: u32,
+    #[serde(skip_serializing)]
     pub unk: u32,
     pub reinforce_type: u32,
+    #[serde(skip_serializing)]
     pub unk1: u32,
 }
 
@@ -1446,9 +1448,12 @@ impl Write for PlayerGameData {
 pub struct GaItem {
     pub gaitem_handle: u32,
     pub item_id: u32,
+    #[serde(skip_serializing)]
     pub unk2: i32,
+    #[serde(skip_serializing)]
     pub unk3: i32,
     pub aow_gaitem_handle: u32,
+    #[serde(skip_serializing)]
     pub unk5: u8,
 }
 

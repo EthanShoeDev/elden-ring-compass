@@ -23,7 +23,7 @@ export function useEldenRingSaveQuery() {
   return {
     query: useQuery({
       queryKey: ['er-save', src],
-      staleTime: 30 * 1000,
+      staleTime: 1000 * 60 * 5, // 5 minutes
       queryFn: async () => {
         if (!src) throw new Error('No source provided');
         if ('file' in src) {
@@ -43,7 +43,7 @@ export function useEldenRingSaveQuery() {
             const erData = await delayMs(10).then(() =>
               worker.parseEldenRingData(buffer)
             );
-    
+
             return erData;
           } catch (err) {
             console.error(err);
