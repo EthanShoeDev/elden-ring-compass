@@ -36,10 +36,10 @@ export function useEldenRingSaveQuery() {
           console.timeEnd(`fetch(sr.url)`);
           console.time(`res.arrayBuffer()`);
           const buffer = await res.arrayBuffer();
-          console.timeEnd(`arrayBuffer save`);
+          console.timeEnd(`res.arrayBuffer()`);
           try {
             setIsParsing(true);
-            console.timeEnd('parseEldenRingData');
+            console.time('parseEldenRingData()');
             const erData = await delayMs(10).then(() =>
               worker.parseEldenRingData(buffer)
             );
@@ -49,7 +49,9 @@ export function useEldenRingSaveQuery() {
             console.error(err);
             throw err instanceof Error ? err : new Error(String(err));
           } finally {
-            console.timeEnd('parseEldenRingData');
+            void delayMs(0).then(() => {
+              console.timeEnd('parseEldenRingData()');
+            });
             setIsParsing(false);
           }
         }

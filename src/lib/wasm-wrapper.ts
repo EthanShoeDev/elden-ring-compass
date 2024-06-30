@@ -375,7 +375,7 @@ export type GaItem2 = {
 };
 
 export type EventFlags = {
-  flags: Readonly<Array<number>>;
+  flags: Readonly<Uint8Array>;
 };
 
 export type UnkList = {

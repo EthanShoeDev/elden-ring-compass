@@ -211,6 +211,7 @@ impl Write for GaItem2 {
 #[derive(Clone, Serialize)]
 
 pub struct EventFlags {
+    #[serde(with = "serde_bytes")]
     pub flags: Vec<u8>,
 }
 
