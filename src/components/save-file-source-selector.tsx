@@ -90,33 +90,44 @@ export function SaveFileSourceSelector() {
               </ToggleGroupItem>
             </ToggleGroup>
             {type === 'file' ? (
-              saveFileSource && 'file' in saveFileSource ? (
-                <div className="flex items-center gap-2">
-                  File: {saveFileSource.file.name}
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setSaveFileSource(undefined);
+              <>
+                <a
+                  className="hover:underline"
+                  target="_blank"
+                  rel="noreferrer"
+                  href="https://store.steampowered.com/account/remotestorageapp/?appid=1245620"
+                >
+                  Steam Cloud Save Download Link
+                </a>
+
+                {saveFileSource && 'file' in saveFileSource ? (
+                  <div className="flex items-center gap-2">
+                    File: {saveFileSource.file.name}
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setSaveFileSource(undefined);
+                      }}
+                    >
+                      <EditIcon />
+                    </Button>
+                  </div>
+                ) : (
+                  <Input
+                    type="file"
+                    onChange={async (e) => {
+                      if (e.target.files) {
+                        setSaveFileSource({
+                          file: {
+                            buffer: await fileToArrBuffer(e.target.files[0]),
+                            name: e.target.files[0].name,
+                          },
+                        });
+                      }
                     }}
-                  >
-                    <EditIcon />
-                  </Button>
-                </div>
-              ) : (
-                <Input
-                  type="file"
-                  onChange={async (e) => {
-                    if (e.target.files) {
-                      setSaveFileSource({
-                        file: {
-                          buffer: await fileToArrBuffer(e.target.files[0]),
-                          name: e.target.files[0].name,
-                        },
-                      });
-                    }
-                  }}
-                />
-              )
+                  />
+                )}
+              </>
             ) : (
               <>
                 <p>

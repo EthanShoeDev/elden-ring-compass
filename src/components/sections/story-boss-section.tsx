@@ -45,7 +45,7 @@ export function StoryBossSection() {
     },
     {
       name: 'Mohg',
-      id: 35000800,
+      id: 12050800,
       imgSrc: mohgImgSrc,
     },
     {
