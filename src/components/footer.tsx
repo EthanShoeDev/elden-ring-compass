@@ -39,10 +39,7 @@ export function Footer() {
           Github
         </a>{' '}
         -
-        <a
-          className="hover:underline"
-          href="https://elden-ring-compass.vercel.app"
-        >
+        <a className="hover:underline" href="https://www.eldenringcompass.com">
           Website
         </a>
       </div>
