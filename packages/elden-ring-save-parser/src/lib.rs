@@ -52,13 +52,10 @@ struct JSEldenRingSave {
     global_steam_id: u64,
     character_steam_ids: Vec<u64>,
     profile_summaries: Vec<ProfileSummary>,
-    regulation: Vec<u8>,
     slots: Vec<SaveSlot>,
-    user_data_11: UserData11,
 }
 
 fn save_to_js(save: Save) -> JSEldenRingSave {
-    log!("save_to_js_start");
     let save_type = save.save_type;
     let active_slot_indexes = save_type.active_slots(); // [bool; 10]
     let mut slots = Vec::new();
@@ -74,14 +71,11 @@ fn save_to_js(save: Save) -> JSEldenRingSave {
         }
     }
 
-    log!("save_to_js_end");
     JSEldenRingSave {
         global_steam_id: save_type.get_global_steam_id(),
         character_steam_ids,
         profile_summaries,
-        regulation: save_type.get_regulation().to_vec(),
         slots,
-        user_data_11: save_type.get_user_data_11().clone(),
     }
 }
 

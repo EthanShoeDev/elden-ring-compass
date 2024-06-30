@@ -1554,11 +1554,13 @@ pub struct SaveSlot {
     _0x1d: [u8; 0x1d],
     pub event_flags: EventFlags,
     _0x1_1: u8,
+    #[serde(skip_serializing)]
     _unk_lists: Vec<UknownList>,
     pub player_coords: PlayerCoords,
     #[serde(skip_serializing)]
     _game_man_unkown_values: [u8; 0xf],
     _0x1_2: u32,
+    #[serde(skip_serializing)]
     _cs_net_data_chunks: Vec<u8>,
     pub world_area_weather: WorldAreaWeather,
     pub world_area_time: WorldAreaTime,
@@ -1571,6 +1573,7 @@ pub struct SaveSlot {
     _cs_dlc: [u8; 0x32],
     #[serde(skip_serializing)]
     _0x80: [u8; 0x80],
+    #[serde(skip_serializing)]
     _rest: Vec<u8>,
 }
 

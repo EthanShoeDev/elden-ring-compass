@@ -12,7 +12,8 @@ const worker = new ComlinkWorker<typeof import('./er-save-parser.js')>(
     type: 'module',
   }
 );
-// USE_WEB_WORKER ?
+// USE_WEB_WORKER
+//   ?
 // : await import('./er-save-parser.js');
 
 export function useEldenRingSaveQuery() {
@@ -30,24 +31,25 @@ export function useEldenRingSaveQuery() {
           return erData;
         }
         if ('url' in src) {
-          console.time(`fetch save`);
+          console.time(`fetch(sr.url)`);
           const res = await fetch(src.url);
-          console.timeEnd(`fetch save`);
-          console.time(`arrayBuffer save`);
+          console.timeEnd(`fetch(sr.url)`);
+          console.time(`res.arrayBuffer()`);
           const buffer = await res.arrayBuffer();
           console.timeEnd(`arrayBuffer save`);
           try {
             setIsParsing(true);
-            console.time('wasm call');
+            console.timeEnd('parseEldenRingData');
             const erData = await delayMs(10).then(() =>
               worker.parseEldenRingData(buffer)
             );
+    
             return erData;
           } catch (err) {
             console.error(err);
             throw err instanceof Error ? err : new Error(String(err));
           } finally {
-            console.timeEnd('wasm call');
+            console.timeEnd('parseEldenRingData');
             setIsParsing(false);
           }
         }

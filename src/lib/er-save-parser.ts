@@ -35,5 +35,26 @@ export async function parseEldenRingUrl(url: string) {
 export function parseEldenRingData(rawSaveData: Readonly<ArrayBuffer>) {
   const save = new Uint8Array(rawSaveData);
   const saveData = parse_save_wasm(save);
+  // console.log('saveData', saveData);
+  // const json = (o: object) =>
+  //   JSON.stringify(
+  //     o,
+  //     (_, v) => (typeof v === 'bigint' ? v.toString() : (v as string)),
+  //     2
+  //   );
+  // console.log('json', json(saveData).length.toLocaleString());
+  // console.log('slot0', json(saveData.slots[0]).length.toLocaleString());
+  // console.log('slot1', json(saveData.slots[1]).length.toLocaleString());
+  // console.log('slot2', json(saveData.slots[2]).length.toLocaleString());
+  // console.log('slot3', json(saveData.slots[3]).length.toLocaleString());
+  // console.log(
+  //   'profileSum',
+  //   json(saveData.profile_summaries[3]).length.toLocaleString()
+  // );
+  // console.log(
+  //   'w/o slots',
+  //   json({ ...saveData, slots: undefined }).length.toLocaleString()
+  // );
+
   return saveData;
 }

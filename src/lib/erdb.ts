@@ -454,8 +454,7 @@ export const useAllErdb = () => {
             weapon_upgrade_level > 0
               ? `${item.name} +${weapon_upgrade_level.toString()}`
               : item.name,
-          map_data:
-            invItem?.map_data ?? MAP_DB_ITEMS.find((s) => s.name == item.name),
+          map_data: invItem?.map_data ?? MAP_DB_ITEMS.get(item.name),
         };
       });
       return [

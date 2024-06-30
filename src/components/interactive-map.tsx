@@ -130,7 +130,6 @@ function MapInner() {
     []
   );
 
-  const mapNameToInfo = new Map(MAP_DB_ITEMS.map((m) => [m.name, m]));
   const clearPins = useDataTableStore((s) => s.clearAllRowSelection);
 
   return (
@@ -149,10 +148,11 @@ function MapInner() {
             <OriginPin />
             {selectedMapItems
               .map((name) => {
-                const item = mapNameToInfo.get(name);
+                const item = MAP_DB_ITEMS.get(name);
                 if (!item) throw new Error(`Map item not found: ${name}`);
                 return item;
               })
+              .flat()
               .toSorted((a, b) => b.x - a.x)
               .map((item, idx) => (
                 <MapDbWidget item={item} key={idx} />

@@ -151,7 +151,7 @@ export function inventoryDbView(slot: Readonly<Slot>) {
           equip_index,
           type: itemType,
           upgrade_level,
-          map_data: MAP_DB_ITEMS.find((s) => s.name == itemName),
+          map_data: MAP_DB_ITEMS.get(itemName),
         };
       })
       .filter((i) => i.item_id != -1 && i.item_id != 0);

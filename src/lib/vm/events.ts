@@ -21,7 +21,7 @@ export function eventsDbView(slot?: Readonly<Slot>) {
     return {
       ...e,
       on,
-      map_data: MAP_DB_ITEMS.find((s) => s.name == e.name),
+      map_data: MAP_DB_ITEMS.get(e.name),
     };
   };
 
