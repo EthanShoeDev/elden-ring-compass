@@ -310,11 +310,28 @@ export function MapDbWidget({ item }: { item: MapItem }) {
             className={cn('size-6', HITBOX_TEST && 'border border-blue-400')}
           />
         </TooltipTrigger>
-        <TooltipContent className="" avoidCollisions={false} side="top">
+        <TooltipContent
+          className="select-text"
+          avoidCollisions={false}
+          side="top"
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+          }}
+          onMouseUp={(e) => {
+            e.stopPropagation();
+          }}
+        >
           <div className="">
             <strong>{item.name}</strong>
+            <p>{item.category}</p>
             <p
-              className="max-w-sm"
+              className="prose max-w-sm dark:prose-invert"
               dangerouslySetInnerHTML={{ __html: item.description }}
             />
           </div>
