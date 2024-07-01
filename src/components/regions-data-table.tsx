@@ -1,8 +1,7 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 
+import { useDataTableData } from '@/lib/data-table-data';
 import { regionsDbView } from '@/lib/vm/regions';
-import { useSelectedSlot } from '@/stores/slot-selection-store';
-import { useMemo } from 'react';
 import {
   commonAccessorColumnDef,
   commonSelectColumnDef,
@@ -19,8 +18,7 @@ import {
 type Region = ReturnType<typeof regionsDbView>[0];
 
 export function RegionsDataTable() {
-  const slot = useSelectedSlot();
-  const items = useMemo(() => regionsDbView(slot), [slot]);
+  const items = useDataTableData('regions');
 
   const ownedCount = items.filter((item) => item.found).length;
   return (

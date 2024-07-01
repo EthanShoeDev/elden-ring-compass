@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Combobox } from '@/components/ui/combobox';
+import { useDataTableData } from '@/lib/data-table-data';
 import {
   Ammo,
   Armament,
@@ -40,8 +41,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 const useTableSelection = create<{
-  table: TableType;
-  setTableType: (table: TableType) => void;
+  table: InventoryTableType;
+  setTableType: (table: InventoryTableType) => void;
 }>()(
   persist(
     (set) => ({
@@ -60,7 +61,7 @@ export function InventoryDataTableCard() {
   const { table, setTableType } = useTableSelection();
   const allErdb = useAllErdb();
 
-  const items = allErdb[table].items;
+  const items = useDataTableData(table);
   const ownedCount = allErdb[table].ownedCount;
 
   return (
@@ -73,11 +74,12 @@ export function InventoryDataTableCard() {
               table,
               (val) => {
                 if (!val) return;
-                setTableType(val as TableType);
+                setTableType(val as InventoryTableType);
               },
             ]}
             emptyLabel=""
-            items={Object.entries(tables).map(([table, info]) => {
+            items={Object.entries(tables).map(([tableId, info]) => {
+              const table = tableId as keyof typeof ERDB;
               const ownedCount = allErdb[table].ownedCount;
               const items = allErdb[table].items;
               return {
@@ -119,15 +121,8 @@ export function InventoryDataTableCard() {
     </Card>
   );
 }
+
 type InfoFromSlot = { quantity: number; map_data?: MapItem };
-// type DefaultItem = {
-//   id: number;
-//   name: string;
-//   description: Array<string>;
-//   quantity: number;
-//   icon: number;
-//   rarity: string;
-// };
 type DefaultItem = (
   | Ammo
   | Armament
@@ -563,4 +558,4 @@ const tables: Record<
   },
 };
 
-type TableType = keyof typeof tables;
+export type InventoryTableType = keyof typeof tables;

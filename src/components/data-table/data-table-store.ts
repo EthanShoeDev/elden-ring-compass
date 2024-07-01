@@ -10,6 +10,7 @@ import {
 } from '@tanstack/react-table';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { InventoryTableType } from '../sections/inventory-data-table-card';
 
 const defaultTableState = (props: DataTableStateInitProps) => ({
   tableId: props.tableId,
@@ -28,7 +29,7 @@ const handleOnChangeParam = <
   key: K,
   set: (fn: (state: DataTableStore) => Partial<DataTableStore>) => void
 ) => {
-  return (tableId: string) => {
+  return (tableId: TableId) => {
     const childSet = (
       fn: (state: DataTableState) => Partial<DataTableState>
     ) => {
@@ -55,14 +56,16 @@ const handleOnChangeParam = <
   };
 };
 
+export type TableId = 'events' | 'regions' | InventoryTableType;
+
 export type DataTableStateInitProps = {
-  tableId: string;
+  tableId: TableId;
   initialColumnVisibility?: VisibilityState;
   initialRowSelection?: RowSelectionState;
 };
 
 export type DataTableState = {
-  tableId: string;
+  tableId: TableId;
   rowSelection: RowSelectionState;
   columnVisibility: VisibilityState;
   columnFilters: ColumnFiltersState;
@@ -72,15 +75,15 @@ export type DataTableState = {
 };
 
 type DataTableStore = {
-  setTableState: (state: Record<string, DataTableState | undefined>) => void;
-  tableState: Record<string, DataTableState | undefined>;
+  setTableState: (state: Record<TableId, DataTableState | undefined>) => void;
+  tableState: Record<TableId, DataTableState | undefined>;
   clearAllRowSelection: () => void;
-  setColumnVisibility: (tableId: string) => OnChangeFn<VisibilityState>;
-  setColumnFilters: (tableId: string) => OnChangeFn<ColumnFiltersState>;
-  setColumnSizing: (tableId: string) => OnChangeFn<ColumnSizingState>;
-  setSorting: (tableId: string) => OnChangeFn<SortingState>;
-  setRowSelection: (tableId: string) => OnChangeFn<RowSelectionState>;
-  setColumnOrder: (tableId: string) => OnChangeFn<ColumnOrderState>;
+  setColumnVisibility: (tableId: TableId) => OnChangeFn<VisibilityState>;
+  setColumnFilters: (tableId: TableId) => OnChangeFn<ColumnFiltersState>;
+  setColumnSizing: (tableId: TableId) => OnChangeFn<ColumnSizingState>;
+  setSorting: (tableId: TableId) => OnChangeFn<SortingState>;
+  setRowSelection: (tableId: TableId) => OnChangeFn<RowSelectionState>;
+  setColumnOrder: (tableId: TableId) => OnChangeFn<ColumnOrderState>;
 };
 
 export const useDataTableStore = create<DataTableStore>()(
@@ -89,19 +92,19 @@ export const useDataTableStore = create<DataTableStore>()(
       setTableState: (state) => {
         set({ tableState: state });
       },
-      tableState: {},
+      tableState: {} as Record<TableId, DataTableState | undefined>,
       clearAllRowSelection: () => {
         console.log('clearAllRowSelection', get().tableState);
         set((state) => ({
           tableState: Object.fromEntries(
             Object.entries(state.tableState).map(([tableId, tableState]) => [
-              tableId,
+              tableId as TableId,
               {
                 ...tableState,
                 rowSelection: {},
               } as DataTableState,
             ])
-          ),
+          ) as Record<TableId, DataTableState | undefined>,
         }));
       },
       setRowSelection: handleOnChangeParam('rowSelection', set),

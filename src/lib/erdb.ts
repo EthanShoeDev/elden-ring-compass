@@ -17,7 +17,7 @@ import spirit from '@/assets/erdb/json/spirit-ashes.json';
 import talismans from '@/assets/erdb/json/talismans.json';
 import tools from '@/assets/erdb/json/tools.json';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
-import { MAP_DB_ITEMS } from './map-db';
+import { MAP_DB_ITEMS, MapItem } from './map-db';
 import { inventoryDbView } from './vm/inventory';
 
 export type Ammo = {
@@ -406,7 +406,29 @@ export const ERDB = {
   tools: tools as Record<string, Tool>,
 } satisfies Record<string, Record<string, { id: number }>>;
 
-export const useAllErdb = () => {
+export type InventoryItem = {
+  name: string;
+  map_data: Array<MapItem> | undefined;
+  id: number;
+  old_category:
+    | 'ACCESSORY'
+    | 'ITEM'
+    | 'EMPTY'
+    | 'WEAPON'
+    | 'ARMOR'
+    | 'AOW'
+    | undefined;
+  weapon_upgrade_level: number;
+  quantity: number;
+};
+
+export const useAllErdb = (): Record<
+  keyof typeof ERDB,
+  {
+    items: Array<InventoryItem>;
+    ownedCount: number;
+  }
+> => {
   const slot = useSelectedSlot();
 
   // const inventory = slot ? inventoryDbView(slot).items : [];
@@ -465,7 +487,13 @@ export const useAllErdb = () => {
         },
       ];
     })
-  );
+  ) as Record<
+    keyof typeof ERDB,
+    {
+      items: Array<InventoryItem>;
+      ownedCount: number;
+    }
+  >;
 
   return slotErdb;
 };

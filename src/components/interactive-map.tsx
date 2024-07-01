@@ -1,6 +1,7 @@
 import aboveMapSrc from '@/assets/erdb/map/lod_0.jpeg';
 import { cn } from '@/lib/utils';
 import {
+  InfoIcon,
   LocateIcon,
   MapPinIcon,
   PinIcon,
@@ -17,10 +18,13 @@ import {
   useTransformEffect,
 } from 'react-zoom-pan-pinch';
 
-import { MAP_DB_ITEMS, MapItem } from '@/lib/map-db';
+import { useDataTableData } from '@/lib/data-table-data';
+import { ERDB, useAllErdb } from '@/lib/erdb';
+import { MapItem } from '@/lib/map-db';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useDataTableStore } from './data-table/data-table-store';
+import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { TooltipButton } from './ui/tooltip-button';
 
@@ -71,6 +75,11 @@ export function InteractiveMap() {
   const setTransformState = useMapStore((state) => state.setTransformState);
   const [smoothStep, setSmoothStep] = useState(0.002);
 
+  const tableStore = useDataTableStore();
+  const eventsItems = useDataTableData('events');
+
+  const setEventRowSelection = tableStore.setRowSelection('events');
+
   return (
     <>
       <div className="flex flex-col gap-2 p-4 sm:px-8 md:px-24 lg:px-32">
@@ -97,6 +106,81 @@ export function InteractiveMap() {
             <div className="pointer-events-none absolute bottom-1/2 top-0 w-full border border-blue-400" />
           )}
         </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              const graces = eventsItems.filter(
+                (e) => e.type == 'grace' && e.on && e.map_data
+              );
+              setEventRowSelection(
+                graces.reduce<Record<string, boolean>>((acc, e) => {
+                  acc[e.id.toString()] = true;
+                  return acc;
+                }, {})
+              );
+            }}
+          >
+            Discovered Graces
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              const graces = eventsItems.filter(
+                (e) => e.type == 'grace' && !e.on && e.map_data
+              );
+              setEventRowSelection(
+                graces.reduce<Record<string, boolean>>((acc, e) => {
+                  acc[e.id.toString()] = true;
+                  return acc;
+                }, {})
+              );
+            }}
+          >
+            Undiscovered Graces
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              const bosses = eventsItems.filter(
+                (e) => e.type == 'boss' && e.on && e.map_data
+              );
+              setEventRowSelection(
+                bosses.reduce<Record<string, boolean>>((acc, e) => {
+                  acc[e.id.toString()] = true;
+                  return acc;
+                }, {})
+              );
+            }}
+          >
+            Completed Bosses
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              const bosses = eventsItems.filter(
+                (e) => e.type == 'boss' && !e.on && e.map_data
+              );
+              setEventRowSelection(
+                bosses.reduce<Record<string, boolean>>((acc, e) => {
+                  acc[e.id.toString()] = true;
+                  return acc;
+                }, {})
+              );
+            }}
+          >
+            Incomplete Bosses
+          </Button>
+          <Tooltip>
+            <TooltipTrigger>
+              <InfoIcon />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Not all bosses or graces have map data.</p>
+              <p>Feel free to submit a PR to help correct the data!</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </div>
     </>
   );
@@ -117,15 +201,31 @@ function MapInner() {
   const { zoomIn, zoomOut, setTransform } = useControls();
 
   const tableState = useDataTableStore((store) => store.tableState);
+  const eventsItems = useDataTableData('events');
+  const regionItems = useDataTableData('regions');
+  const allErdb = useAllErdb();
 
-  const selectedMapItems = Object.values(tableState).reduce<Array<string>>(
-    (acc, table) => [
+  const selectedMapItems = Object.entries(tableState).reduce<Array<MapItem>>(
+    (acc, [tableId, tableState]) => [
       ...acc,
-      ...Object.keys(table?.rowSelection ?? {}).map((s) => {
-        const name = s.split('___')[1];
-        if (!name) throw new Error(`Invalid row selection: ${s}`);
-        return name;
-      }),
+      ...Object.entries(tableState?.rowSelection ?? {})
+        .filter(([, v]) => v)
+        .map(([id]) => {
+          if (tableId == 'events')
+            return (
+              eventsItems.find((e) => e.id.toString() == id)?.map_data ?? []
+            );
+          if (tableId == 'regions')
+            return (
+              regionItems.find((r) => r.id.toString() == id)?.map_data ?? []
+            );
+          return (
+            allErdb[tableId as keyof typeof ERDB].items.find(
+              (e) => e.id.toString() == id
+            )?.map_data ?? []
+          );
+        })
+        .flat(),
     ],
     []
   );
@@ -147,12 +247,6 @@ function MapInner() {
             <img src={aboveMapSrc} alt="4k Elden Ring Map" />
             <OriginPin />
             {selectedMapItems
-              .map((name) => {
-                const item = MAP_DB_ITEMS.get(name);
-                if (!item) throw new Error(`Map item not found: ${name}`);
-                return item;
-              })
-              .flat()
               .toSorted((a, b) => b.x - a.x)
               .map((item, idx) => (
                 <MapDbWidget item={item} key={idx} />
@@ -267,35 +361,17 @@ export function MapDbWidget({ item }: { item: MapItem }) {
   // site.y = 156.395274
   // site.x = -134.453125
 
-  // Output x: 468.286549
-  // Output y: 378.485546
-
-  // dx =  (468.286549 - b) / 156.395274
-
-  // (() => {
-  //   const b = -25;
-  //   const dx = (468.286549 - b) / 156.395274;
-  //   console.log(
-  //     `const x = parseFloat(site.y) * ${dx.toString()} ${b.toString()};`
-  //   );
-  // })();
-  // (() => {
-  //   const b = -25;
-  //   const dy = (378.485546 - b) / 134.453125;
-  //   console.log(`const y = -parseFloat(site.x) * ${dy.toString()};`);
-  // })();
-
   const bx = -46.5;
-  const by = -64.5;
+  const by = -65.5;
 
-  const dx = (456.2850979925 - bx) / 156.395274;
-  const dy = (366.75275000000005 - by) / 134.453125;
+  const dx = (456.126816621 - bx) / 156.395274;
+  const dy = (364.36796875 - by) / 134.453125;
 
   // const bx = 0;
   // const by = 0;
 
   // const dx = 2.9165;
-  // const dy = 2.744;
+  // const dy = 2.71;
 
   const x = item.y * dx + bx;
   const y = -item.x * dy + by;

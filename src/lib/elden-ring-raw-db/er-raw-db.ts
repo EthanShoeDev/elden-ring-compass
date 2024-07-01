@@ -48,6 +48,19 @@ export const RAW_ELDEN_RING_DB = {
   WHETBLADES,
 };
 
+export type BaseEvent = {
+  id: number;
+  name: string;
+  type:
+    | 'grace'
+    | 'whetblade'
+    | 'cookbook'
+    | 'map'
+    | 'boss'
+    | 'summoningPool'
+    | 'colosseum';
+};
+
 export const CLEAN_ELDEN_RING_DB = (() => {
   const inventory = [
     ...Object.entries(WEAPON_NAME).map(([id, name]) => ({
@@ -148,7 +161,7 @@ export const CLEAN_ELDEN_RING_DB = (() => {
           colosseumKey,
         })
       ),
-    ],
+    ] as Array<BaseEvent>,
     equipment: [],
     regions: Object.values(RAW_ELDEN_RING_DB.REGIONS).map((values) => {
       const map =

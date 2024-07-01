@@ -37,11 +37,6 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
   data: Array<TData>;
 } & DataTableStateInitProps) {
   'use no memo';
-  // const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  // const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-  //   initialColumnVisibility ?? {}
-  // );
-  // const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const state = useDataTableState(props);
 
   const table = useReactTable({
@@ -67,7 +62,7 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
     columnResizeMode: 'onChange',
     enableRowSelection: (row) =>
       !!(row.original as { map_data?: MapItem }).map_data,
-    getRowId: (row) => `${row.id.toString()}___${row.name}`,
+    getRowId: (row) => row.id.toString(),
     onRowSelectionChange: state.setRowSelection,
     onSortingChange: state.setSorting,
     onColumnSizingChange: state.setColumnSizing,

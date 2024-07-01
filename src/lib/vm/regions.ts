@@ -19,7 +19,9 @@ export function regionsDbView(slot?: Readonly<Slot>) {
     return {
       ...e,
       found: unlockedRegionSet.has(e.id),
-      map_data: MAP_DB_ITEMS.get(e.name),
+      map_data: MAP_DB_ITEMS.get(e.name)?.filter(
+        (m) => m.category != 'Site of Grace'
+      ),
     };
   };
 

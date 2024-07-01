@@ -1,8 +1,7 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 
+import { useDataTableData } from '@/lib/data-table-data';
 import { eventsDbView } from '@/lib/vm/events';
-import { useSelectedSlot } from '@/stores/slot-selection-store';
-import { useMemo } from 'react';
 import {
   commonAccessorColumnDef,
   commonSelectColumnDef,
@@ -19,15 +18,9 @@ import {
 type Event = ReturnType<typeof eventsDbView>[0];
 
 export function EventsDataTable() {
-  const slot = useSelectedSlot();
-  const items = useMemo(() => eventsDbView(slot), [slot]);
+  const items = useDataTableData('events');
   const ownedCount = items.filter((item) => item.on).length;
 
-  // const initSelection = Object.fromEntries(
-  //   items
-  //     .filter((item) => item.type == 'grace' && item.map_data)
-  //     .map((item) => [item.name, true])
-  // );
   return (
     <Card className="w-full">
       <CardHeader>
@@ -44,7 +37,6 @@ export function EventsDataTable() {
           className=""
           columns={columns}
           data={items}
-          // initialRowSelection={initSelection}
         />
       </CardContent>
     </Card>
