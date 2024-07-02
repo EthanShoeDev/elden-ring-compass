@@ -15,12 +15,22 @@ export function CopyButton({ value }: { value: string }) {
   };
 
   return (
-    <Button className="p-0.5" size="icon" onClick={handleClick}>
+    <Button className="size-6 p-0.5" size="icon" onClick={handleClick}>
       {isCopied ? (
         <CheckIcon className="size-4" />
       ) : (
         <CopyIcon className="size-4" />
       )}
     </Button>
+  );
+}
+
+export function CopyCodeSnippet({ snippet }: { snippet: string }) {
+  console.log('CopyCodeSnippet', snippet);
+  return (
+    <div className="flex items-center gap-2">
+      <span className="bg-secondary p-1">{snippet}</span>
+      <CopyButton value={snippet} />
+    </div>
   );
 }

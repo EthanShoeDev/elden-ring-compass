@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { CodeSnippet } from './misc/code-snippet';
-import { CopyButton } from './misc/copy-button';
+import { CopyCodeSnippet } from './misc/copy-button';
 import { Button } from './ui/button';
 import { Combobox } from './ui/combobox';
 import { Input } from './ui/input';
@@ -65,7 +65,7 @@ export function SaveFileSourceSelector() {
               ))}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[500px] max-w-full">
+        <PopoverContent className="w-[600px] max-w-full">
           <div className="flex flex-col items-start gap-4">
             <Label>Select source</Label>
             <ToggleGroup
@@ -91,14 +91,20 @@ export function SaveFileSourceSelector() {
             </ToggleGroup>
             {type === 'file' ? (
               <>
-                <a
-                  className="hover:underline"
-                  target="_blank"
-                  rel="noreferrer"
-                  href="https://store.steampowered.com/account/remotestorageapp/?appid=1245620"
-                >
-                  Steam Cloud Save Download Link
-                </a>
+                <div className="w-full">
+                  <a
+                    className="hover:underline"
+                    target="_blank"
+                    rel="noreferrer"
+                    href="https://store.steampowered.com/account/remotestorageapp/?appid=1245620"
+                  >
+                    Download save from Steam Cloud
+                  </a>
+                  <p>or upload the file located at:</p>
+                  <CopyCodeSnippet
+                    snippet={String.raw`%AppData%\EldenRing\YOUR_STEAM_ID\ER0000.sl2`}
+                  />
+                </div>
 
                 {saveFileSource && 'file' in saveFileSource ? (
                   <div className="flex items-center gap-2">
@@ -140,17 +146,11 @@ cd (Join-Path "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" (Get-Child
 `}
                 </CodeSnippet>
                 <p>Then paste the url below: </p>
-                <div className="flex items-center">
-                  <span className="bg-secondary p-1">
-                    http://localhost:8080/ER0000.sl2
-                  </span>
-                  <CopyButton value="http://localhost:8080/ER0000.sl2" />
-                </div>
+
+                <CopyCodeSnippet snippet="http://localhost:8080/ER0000.sl2" />
+
                 <p>Test save: </p>
-                <div className="flex items-center">
-                  <span className="bg-secondary p-1">/ER0000.sl2</span>
-                  <CopyButton value="/ER0000.sl2" />
-                </div>
+                <CopyCodeSnippet snippet="/ER0000.sl2" />
                 <Input
                   type="url"
                   placeholder="http://localhost:8080/ER0000.sl2"
