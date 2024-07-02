@@ -20,7 +20,7 @@ type SaveFileSourceStoreState = {
   setSaveFileSource: (val?: SaveFileSource) => void;
 };
 
-const cachedUrl = localStorage.getItem('saveFileSourceUrl') ?? '/ER0000.sl2';
+const cachedUrl = localStorage.getItem('saveFileSourceUrl');
 
 export const useSaveFileSourceStore = create<SaveFileSourceStoreState>()(
   (set) => ({
