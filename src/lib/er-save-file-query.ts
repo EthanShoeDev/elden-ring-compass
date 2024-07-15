@@ -2,8 +2,7 @@ import { useSaveFileSourceStore } from '@/stores/save-file-source-store';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { delayMs } from './utils';
-
-// const USE_WEB_WORKER = import.meta.env.USE_WEB_WORKER == 'true';
+// import * as worker from './er-save-parser';
 
 const worker = new ComlinkWorker<typeof import('./er-save-parser.js')>(
   new URL('./er-save-parser.js', import.meta.url),
@@ -12,9 +11,6 @@ const worker = new ComlinkWorker<typeof import('./er-save-parser.js')>(
     type: 'module',
   }
 );
-// USE_WEB_WORKER
-//   ?
-// : await import('./er-save-parser.js');
 
 export function useEldenRingSaveQuery() {
   const [isParsing, setIsParsing] = useState(false);

@@ -5,6 +5,7 @@ mod util;
 mod utils;
 mod vm;
 mod write;
+extern crate console_error_panic_hook;
 
 use save::common::save_slot::SaveSlot;
 use save::common::user_data_10::*;
@@ -23,30 +24,6 @@ macro_rules! log {
     }
 }
 
-// #[wasm_bindgen]
-// pub fn load_slots(save_data: &[u8]) -> Result<JsValue, JsValue> {
-//     let save_result = Save::from_contents(save_data.to_vec());
-//     let save = save_result.unwrap();
-//     let save_type = save.save_type;
-//     // save_type.get_character_steam_id(index)
-//     // save_type.get_profile_summary(index)
-//     let save_result = Save::from_contents(save_data.to_vec());
-//     let save = save_result.unwrap();
-//     let save_type = save.save_type;
-//     let active_slot_indexes = save_type.active_slots(); // [bool; 10]
-//     let mut slots = Vec::new();
-
-//     for (index, active) in active_slot_indexes.iter().enumerate() {
-//         if *active {
-//             let slot = save_type.get_slot(index);
-//             slots.push(slot);
-//         }
-//     }
-//     let serializer = Serializer::new().serialize_large_number_types_as_bigints(true);
-//     let js_value = slots.serialize(&serializer).unwrap();
-
-//     Ok(js_value)
-// }
 #[derive(Serialize)]
 struct JSEldenRingSave {
     global_steam_id: u64,
@@ -81,6 +58,8 @@ fn save_to_js(save: Save) -> JSEldenRingSave {
 
 #[wasm_bindgen]
 pub fn parse_save_internal_rust(save_data: &[u8]) -> Result<JsValue, JsValue> {
+    console_error_panic_hook::set_once();
+
     let save_result = Save::from_contents(save_data.to_vec());
     let save = save_result.unwrap();
     let js_save = save_to_js(save);

@@ -1651,7 +1651,12 @@ impl Read for SaveSlot {
         save_slot.map_id.copy_from_slice(br.read_bytes(4)?);
 
         // Uknown
-        save_slot._0x18.copy_from_slice(br.read_bytes(0x18)?);
+        // save_slot._0x18.copy_from_slice(br.read_bytes(0x18)?);
+        if save_slot.ver == 81 {
+            br.read_bytes(0x8);
+        } else {
+            br.read_bytes(0x18);
+        }
 
         // GaItem
         for i in 0..0x1400 {

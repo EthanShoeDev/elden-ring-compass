@@ -28,10 +28,13 @@ import { parse_save_internal_rust } from 'elden-ring-save-parser';
 // }
 
 export function parse_save_wasm(save_data: Uint8Array) {
-  console.time('parse_save_wasm');
-  const result = parse_save_internal_rust(save_data) as WasmEldenRingSave;
-  console.timeEnd('parse_save_wasm');
-  return result;
+  try {
+    const result = parse_save_internal_rust(save_data) as WasmEldenRingSave;
+    return result;
+  } catch (e) {
+    console.error(e);
+    throw new Error('wasm parsing failure', { cause: e });
+  }
 }
 
 export type WasmEldenRingSave = {

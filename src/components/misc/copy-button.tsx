@@ -26,7 +26,6 @@ export function CopyButton({ value }: { value: string }) {
 }
 
 export function CopyCodeSnippet({ snippet }: { snippet: string }) {
-  console.log('CopyCodeSnippet', snippet);
   return (
     <div className="flex items-center gap-2">
       <span className="bg-secondary p-1">{snippet}</span>
