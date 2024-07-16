@@ -23,10 +23,10 @@ import { ERDB, useAllErdb } from '@/lib/erdb';
 import { MapItem } from '@/lib/map-db';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { useDataTableStore } from './data-table/data-table-store';
-import { Button } from './ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { TooltipButton } from './ui/tooltip-button';
+import { useDataTableStore } from '../data-table/data-table-store';
+import { Button } from '../ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { TooltipButton } from '../ui/tooltip-button';
 
 const HITBOX_TEST = false as boolean;
 

@@ -1,30 +1,30 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 
 import { useDataTableData } from '@/lib/data-table-data';
-import { regionsDbView } from '@/lib/vm/regions';
+import { eventsDbView } from '@/lib/vm/events';
 import {
   commonAccessorColumnDef,
   commonSelectColumnDef,
-} from './data-table/common-column-defs';
-import { DataTable } from './data-table/data-table';
+} from '../data-table/common-column-defs';
+import { DataTable } from '../data-table/data-table';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from './ui/card';
+} from '../ui/card';
 
-type Region = ReturnType<typeof regionsDbView>[0];
+type Event = ReturnType<typeof eventsDbView>[0];
 
-export function RegionsDataTable() {
-  const items = useDataTableData('regions');
+export function EventsDataTable() {
+  const items = useDataTableData('events');
+  const ownedCount = items.filter((item) => item.on).length;
 
-  const ownedCount = items.filter((item) => item.found).length;
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Regions</CardTitle>
+        <CardTitle>Events</CardTitle>
         <CardDescription>
           {ownedCount} / {items.length}
           <br />
@@ -33,7 +33,7 @@ export function RegionsDataTable() {
       </CardHeader>
       <CardContent>
         <DataTable
-          tableId="regions"
+          tableId="events"
           className=""
           columns={columns}
           data={items}
@@ -43,16 +43,15 @@ export function RegionsDataTable() {
   );
 }
 
-const columnHelper = createColumnHelper<Region>();
-const columns: Array<ColumnDef<Region>> = [
+const columnHelper = createColumnHelper<Event>();
+const columns: Array<ColumnDef<Event>> = [
   commonSelectColumnDef(columnHelper),
   commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
-  commonAccessorColumnDef(columnHelper, 'name', 'Name'),
-  commonAccessorColumnDef(columnHelper, 'found', 'Found'),
-  commonAccessorColumnDef(columnHelper, 'map', 'Map'),
-  commonAccessorColumnDef(columnHelper, 'isBoss', 'Is Boss'),
-  commonAccessorColumnDef(columnHelper, 'isDungeon', 'Is Dungeon'),
-  commonAccessorColumnDef(columnHelper, 'isOpenWorld', 'Is Open World'),
+  commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+    filterFn: 'includesString',
+  }),
+  commonAccessorColumnDef(columnHelper, 'on', 'Complete'),
+  commonAccessorColumnDef(columnHelper, 'type', 'Type'),
   commonAccessorColumnDef(
     columnHelper,
     (row) => !!row.map_data,
