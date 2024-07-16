@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { eventsDbView } from '@/lib/vm/events';
 import { inventoryDbView } from '@/lib/vm/inventory';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
-import { SlotOverview } from '../slot-overview';
+import { SlotOverview } from './slot-overview';
 import {
   Card,
   CardContent,
@@ -22,6 +22,7 @@ import {
   TableRow,
 } from '../ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { TooltipImg } from '../misc/tooltip-img';
 
 export function OverviewSection() {
   const slot = useSelectedSlot();
@@ -315,7 +316,11 @@ export function OverviewSection() {
                                   </div>
                                 </TooltipTrigger>
                                 <TooltipContent className="flex max-w-72 flex-col items-center">
-                                  <img src={imgSrc} className="size-40" />
+                                  <img
+                                    loading="lazy"
+                                    src={imgSrc}
+                                    className="size-40"
+                                  />
                                   <p className="text-lg">{item?.name}</p>
                                   {bellLocation && (
                                     <>
@@ -369,14 +374,7 @@ function FlaskItem({
   ).href;
   return (
     <div className="flex items-center justify-between gap-10 rounded-lg transition-colors hover:bg-muted/50">
-      <Tooltip>
-        <TooltipTrigger>
-          <img className="size-12" src={imgSrc} />
-        </TooltipTrigger>
-        <TooltipContent>
-          <img className="size-40" src={imgSrc} />
-        </TooltipContent>
-      </Tooltip>
+      <TooltipImg imgSrc={imgSrc} />
       <div className="flex flex-col items-end p-2">
         <p>{item.name}</p>
         <p className="text-sm text-muted-foreground">

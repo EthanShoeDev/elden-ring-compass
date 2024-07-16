@@ -14,14 +14,14 @@ import {
   UnplugIcon,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { CodeSnippet } from './misc/code-snippet';
-import { CopyCodeSnippet } from './misc/copy-button';
-import { Button } from './ui/button';
-import { Combobox } from './ui/combobox';
-import { Input } from './ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import Spinner from './ui/spinner';
-import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
+import { CodeSnippet } from './code-snippet';
+import { CopyCodeSnippet } from './copy-button';
+import { Button } from '../ui/button';
+import { Combobox } from '../ui/combobox';
+import { Input } from '../ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import Spinner from '../ui/spinner';
+import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 
 export function SaveFileSourceSelector() {
   const { saveFileSource, setSaveFileSource } = useSaveFileSourceStore();

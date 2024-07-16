@@ -4,9 +4,9 @@ import {
   useSelectedSlot,
   useSlotNameSelection,
 } from '@/stores/slot-selection-store';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Separator } from './ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Separator } from '../ui/separator';
 // import { equipmentDbView } from '@/lib/vm/equipement';
 
 export function SlotOverview({ className }: { className?: string }) {
