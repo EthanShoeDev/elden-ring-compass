@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/\\.(png|sl2)$",
+      "source": "/\\.(png|sl2|jpeg)$",
       "headers": [
         {
           "key": "Cache-Control",
