@@ -7,22 +7,23 @@ mod vm;
 mod write;
 extern crate console_error_panic_hook;
 
+use std::path::PathBuf;
+
 use save::common::save_slot::SaveSlot;
 use save::common::user_data_10::*;
 use save::common::user_data_11::*;
 use save::save::save::*;
-use serde::Serialize;
-use serde_wasm_bindgen::Serializer;
+use serde::*;
 
-use wasm_bindgen::prelude::*;
+// use wasm_bindgen::prelude::*;
 
-extern crate web_sys;
+// extern crate web_sys;
 
-macro_rules! log {
-    ( $( $t:tt )* ) => {
-        web_sys::console::log_1(&format!( $( $t )* ).into());
-    }
-}
+// macro_rules! log {
+//     ( $( $t:tt )* ) => {
+//         web_sys::console::log_1(&format!( $( $t )* ).into());
+//     }
+// }
 
 #[derive(Serialize)]
 struct JSEldenRingSave {
@@ -56,15 +57,28 @@ fn save_to_js(save: Save) -> JSEldenRingSave {
     }
 }
 
-#[wasm_bindgen]
-pub fn parse_save_internal_rust(save_data: &[u8]) -> Result<JsValue, JsValue> {
-    console_error_panic_hook::set_once();
+// // #[wasm_bindgen]
+// pub fn parse_save_internal_rust(save_data: &[u8]) -> Result<JsValue, JsValue> {
+//     // console_error_panic_hook::set_once();
 
-    let save_result = Save::from_contents(save_data.to_vec());
-    let save = save_result.unwrap();
+//     let save = Save::from_contents(save_data.to_vec()).unwrap();
+//     let js_save = save_to_js(save);
+
+//     let serializer = Serializer::new().serialize_large_number_types_as_bigints(true);
+
+//     Ok(js_save.serialize(serializer))
+// }
+
+// #[wasm_bindgen]
+pub fn parse_save_internal_rust_path(file: &str) -> String {
+    // console_error_panic_hook::set_once();
+
+    let path = PathBuf::from(file);
+    let save = Save::from_path(&path).unwrap();
     let js_save = save_to_js(save);
-    let serializer = Serializer::new().serialize_large_number_types_as_bigints(true);
-    let js_value = js_save.serialize(&serializer).unwrap();
+    // let serializer = Serializer::new().serialize_large_number_types_as_bigints(true);
 
-    Ok(js_value)
+    // Ok(js_save.serialize(&serializer).unwrap())
+    let json = serde_json::to_string(&js_save).unwrap();
+    json
 }

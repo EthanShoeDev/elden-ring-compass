@@ -1,0 +1,48 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'elden-ring-save-parser-cli'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=elden-ring-save-parser-cli",
+                    "--package=elden-ring-save-parser-cli"
+                ],
+                "filter": {
+                    "name": "elden-ring-save-parser-cli",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "--save-file",
+                "/home/ethan/elden-ring-compass/packages/elden-ring-save-parser/test_data/ER0000.postDLC.sl2"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'elden-ring-save-parser-cli'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=elden-ring-save-parser-cli",
+                    "--package=elden-ring-save-parser-cli"
+                ],
+                "filter": {
+                    "name": "elden-ring-save-parser-cli",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
