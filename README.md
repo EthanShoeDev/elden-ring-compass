@@ -35,3 +35,23 @@ No, this site has no ability to make changes to the save. For edits to be possib
 Elden Ring is fine with other programs reading or copying the save. Steam does this repeatedly to make cloud backups.
 
 Let me know what you think!
+
+## Contributing
+
+1. Build the Wasm Parser Library
+
+```bash
+bun run build:wasm-parser
+```
+
+2. Install Dependencies
+
+```bash
+bun i
+```
+
+3. Finally, run the development server:
+
+```bash
+bun run dev
+```
