@@ -22,7 +22,6 @@ export default defineConfig({
     ViteImageOptimizer({
       cache: true,
       cacheLocation: './node_modules/.cache/vite-plugin-image-optimizer',
-      exclude: /^[01234].*/, // Exclude odd-numbered images
     }),
     wasm(),
     comlink(),
