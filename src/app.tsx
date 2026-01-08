@@ -1,15 +1,11 @@
-import { AppBar } from './components/app-bar';
-import { Footer } from './components/footer';
-import { MainContent } from './components/main-content';
+import { RouterProvider } from "@tanstack/react-router";
+import { getRouter } from "./router";
+import "./index.css";
 
 function App() {
-  return (
-    <div className="flex h-screen flex-col">
-      <AppBar />
-      <MainContent />
-      <Footer />
-    </div>
-  );
+  const router = getRouter();
+
+  return <RouterProvider router={router} />;
 }
 
 export default App;

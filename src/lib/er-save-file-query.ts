@@ -1,16 +1,15 @@
-import { useSaveFileSourceStore } from '@/stores/save-file-source-store';
-import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import { delayMs } from './utils';
-// import * as worker from './er-save-parser';
+import * as Comlink from "comlink";
+import { useSaveFileSourceStore } from "@/stores/save-file-source-store";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { delayMs } from "./utils";
 
-const worker = new ComlinkWorker<typeof import('./er-save-parser.js')>(
-  new URL('./er-save-parser.js', import.meta.url),
-  {
-    name: 'EldenRingSaveParser',
-    type: 'module',
-  }
-);
+const worker = new Worker(new URL("./er-save-parser.js", import.meta.url), {
+  name: "EldenRingSaveParser",
+  type: "module",
+});
+
+const workerApi = Comlink.wrap(worker);
 
 export function useEldenRingSaveQuery() {
   const [isParsing, setIsParsing] = useState(false);
@@ -18,15 +17,15 @@ export function useEldenRingSaveQuery() {
   const src = saveFileSource;
   return {
     query: useQuery({
-      queryKey: ['er-save', src],
+      queryKey: ["er-save", src],
       staleTime: 1000 * 60 * 5, // 5 minutes
       queryFn: async () => {
-        if (!src) throw new Error('No source provided');
-        if ('file' in src) {
-          const erData = worker.parseEldenRingData(src.file.buffer);
+        if (!src) throw new Error("No source provided");
+        if ("file" in src) {
+          const erData = await workerApi.parseEldenRingData(src.file.buffer);
           return erData;
         }
-        if ('url' in src) {
+        if ("url" in src) {
           console.time(`fetch(sr.url)`);
           const res = await fetch(src.url);
           console.timeEnd(`fetch(sr.url)`);
@@ -35,9 +34,9 @@ export function useEldenRingSaveQuery() {
           console.timeEnd(`res.arrayBuffer()`);
           try {
             setIsParsing(true);
-            console.time('parseEldenRingData()');
+            console.time("parseEldenRingData()");
             const erData = await delayMs(10).then(() =>
-              worker.parseEldenRingData(buffer)
+              workerApi.parseEldenRingData(buffer),
             );
 
             return erData;
@@ -46,12 +45,12 @@ export function useEldenRingSaveQuery() {
             throw err instanceof Error ? err : new Error(String(err));
           } finally {
             void delayMs(0).then(() => {
-              console.timeEnd('parseEldenRingData()');
+              console.timeEnd("parseEldenRingData()");
             });
             setIsParsing(false);
           }
         }
-        throw new Error('Invalid source');
+        throw new Error("Invalid source");
       },
       enabled: !!src,
     }),

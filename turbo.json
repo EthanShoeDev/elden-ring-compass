@@ -1,0 +1,18 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["build:wasm-parser"],
+      "outputs": ["dist/**"]
+    },
+    "build:wasm-parser": {
+      "cache": false,
+      "outputs": ["packages/elden-ring-save-parser/pkg/**"]
+    },
+    "lint": {
+      "dependsOn": ["fmt:write", "typecheck"]
+    },
+    "fmt:write": {},
+    "typecheck": {}
+  }
+}

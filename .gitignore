@@ -21,4 +21,9 @@ dist-ssr
 *.sln
 *.sw?
 package-lock.json
-.eslintcache
+
+# Turbo
+.turbo
+
+# Vite
+*.local

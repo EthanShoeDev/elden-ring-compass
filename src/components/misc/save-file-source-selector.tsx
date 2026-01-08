@@ -1,10 +1,10 @@
-import { Label } from '@/components/ui/label';
-import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
-import { useEldenRingSaveQuery } from '@/lib/er-save-file-query';
-import { fileToArrBuffer } from '@/lib/er-save-parser';
-import { useSaveFileSourceStore } from '@/stores/save-file-source-store';
-import { useSlotNameSelection } from '@/stores/slot-selection-store';
-import { formatDistance } from 'date-fns';
+import { Label } from "@/components/ui/label";
+import { playerNameBytesToString } from "@/lib/elden-ring-raw-db/er-raw-db";
+import { useEldenRingSaveQuery } from "@/lib/er-save-file-query";
+import { fileToArrBuffer } from "@/lib/er-save-parser";
+import { useSaveFileSourceStore } from "@/stores/save-file-source-store";
+import { useSlotNameSelection } from "@/stores/slot-selection-store";
+import { formatDistance } from "date-fns";
 import {
   EditIcon,
   FileCheckIcon,
@@ -12,23 +12,23 @@ import {
   LinkIcon,
   RefreshCcwIcon,
   UnplugIcon,
-} from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { CodeSnippet } from './code-snippet';
-import { CopyCodeSnippet } from './copy-button';
-import { Button } from '../ui/button';
-import { Combobox } from '../ui/combobox';
-import { Input } from '../ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import Spinner from '../ui/spinner';
-import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { CodeSnippet } from "./code-snippet";
+import { CopyCodeSnippet } from "./copy-button";
+import { Button } from "../ui/button";
+import { Combobox } from "../ui/combobox";
+import { Input } from "../ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import Spinner from "../ui/spinner";
+import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 
 export function SaveFileSourceSelector() {
   const { saveFileSource, setSaveFileSource } = useSaveFileSourceStore();
   const { query, isParsing } = useEldenRingSaveQuery();
 
-  const [type, setType] = useState<'file' | 'url'>(
-    saveFileSource && 'url' in saveFileSource ? 'url' : 'file'
+  const [type, setType] = useState<"file" | "url">(
+    saveFileSource && "url" in saveFileSource ? "url" : "file",
   );
   return (
     <>
@@ -44,14 +44,14 @@ export function SaveFileSourceSelector() {
                 Connect your save file
               </>
             )}
-            {saveFileSource && 'file' in saveFileSource && (
+            {saveFileSource && "file" in saveFileSource && (
               <>
                 <FileCheckIcon />
                 File Uploaded
               </>
             )}
             {saveFileSource &&
-              'url' in saveFileSource &&
+              "url" in saveFileSource &&
               (query.error ? (
                 <>
                   <Link2OffIcon />
@@ -73,7 +73,7 @@ export function SaveFileSourceSelector() {
               type="single"
               value={type}
               onValueChange={(v) => {
-                setType(v as 'file' | 'url');
+                setType(v as "file" | "url");
               }}
             >
               <ToggleGroupItem
@@ -89,7 +89,7 @@ export function SaveFileSourceSelector() {
                 Url
               </ToggleGroupItem>
             </ToggleGroup>
-            {type === 'file' ? (
+            {type === "file" ? (
               <>
                 <div className="w-full">
                   <a
@@ -106,7 +106,7 @@ export function SaveFileSourceSelector() {
                   />
                 </div>
 
-                {saveFileSource && 'file' in saveFileSource ? (
+                {saveFileSource && "file" in saveFileSource ? (
                   <div className="flex items-center gap-2">
                     File: {saveFileSource.file.name}
                     <Button
@@ -155,9 +155,9 @@ cd (Join-Path "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" (Get-Child
                   type="url"
                   placeholder="http://localhost:8080/ER0000.sl2"
                   value={
-                    saveFileSource && 'url' in saveFileSource
+                    saveFileSource && "url" in saveFileSource
                       ? saveFileSource.url
-                      : ''
+                      : ""
                   }
                   onChange={(e) => {
                     setSaveFileSource({ url: e.target.value });
@@ -166,7 +166,7 @@ cd (Join-Path "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" (Get-Child
               </>
             )}
             {query.isLoading ? (
-              <div>{isParsing ? 'Parsing' : 'Loading'}...</div>
+              <div>{isParsing ? "Parsing" : "Loading"}...</div>
             ) : query.isError ? (
               <div>Error: {query.error.message}</div>
             ) : query.isSuccess ? (
@@ -191,10 +191,10 @@ function SlotSelector() {
       triggerButtonClassName="w-[200px]"
       popoverContentClassName="w-[200px]"
       items={query.data.slots
-        .map((slot) =>
-          playerNameBytesToString(slot.player_game_data.character_name)
+        .map((slot: any) =>
+          playerNameBytesToString(slot.player_game_data.character_name),
         )
-        .map((s) => ({
+        .map((s: string) => ({
           label: s,
           value: s,
         }))}
@@ -227,7 +227,7 @@ function RefreshButton() {
     <Button
       variant="ghost"
       disabled={
-        query.isFetching || (saveFileSource && 'file' in saveFileSource)
+        query.isFetching || (saveFileSource && "file" in saveFileSource)
       }
       className="flex gap-2"
       onClick={() => {
@@ -237,18 +237,18 @@ function RefreshButton() {
       {query.isFetching ? (
         <>
           <Spinner />
-          {isParsing ? 'Parsing...' : 'Loading...'}
+          {isParsing ? "Parsing..." : "Loading..."}
         </>
       ) : (
         <>
           <RefreshCcwIcon />
-          Updated{' '}
+          Updated{" "}
           {query.data
             ? formatDistance(query.dataUpdatedAt, now, {
                 addSuffix: true,
                 includeSeconds: true,
               })
-            : 'never'}
+            : "never"}
         </>
       )}
     </Button>
