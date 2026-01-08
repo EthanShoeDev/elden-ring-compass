@@ -65,8 +65,8 @@ const useMapStore = create<{
     }),
     {
       name: 'elden-ring-db-map',
-    }
-  )
+    },
+  ),
 );
 
 const initTransformState = useMapStore.getState().transformState;
@@ -82,8 +82,8 @@ export function InteractiveMap() {
 
   return (
     <>
-      <div className="flex flex-col gap-2 p-4 sm:px-8 md:px-24 lg:px-32">
-        <div className="relative flex w-full justify-center overflow-hidden rounded-lg border border-muted">
+      <div className='flex flex-col gap-2 p-4 sm:px-8 md:px-24 lg:px-32'>
+        <div className='relative flex w-full justify-center overflow-hidden rounded-lg border border-muted'>
           <TransformWrapper
             maxScale={250.0}
             minScale={1}
@@ -100,72 +100,64 @@ export function InteractiveMap() {
             <MapInner />
           </TransformWrapper>
           {HITBOX_TEST && (
-            <div className="pointer-events-none absolute left-0 right-1/2 h-full border border-blue-400" />
+            <div className='pointer-events-none absolute left-0 right-1/2 h-full border border-blue-400' />
           )}
           {HITBOX_TEST && (
-            <div className="pointer-events-none absolute bottom-1/2 top-0 w-full border border-blue-400" />
+            <div className='pointer-events-none absolute bottom-1/2 top-0 w-full border border-blue-400' />
           )}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className='flex flex-wrap gap-2'>
           <Button
-            variant="secondary"
+            variant='secondary'
             onClick={() => {
-              const graces = eventsItems.filter(
-                (e) => e.type == 'grace' && e.on && e.map_data
-              );
+              const graces = eventsItems.filter((e) => e.type == 'grace' && e.on && e.map_data);
               setEventRowSelection(
                 graces.reduce<Record<string, boolean>>((acc, e) => {
                   acc[e.id.toString()] = true;
                   return acc;
-                }, {})
+                }, {}),
               );
             }}
           >
             Discovered Graces
           </Button>
           <Button
-            variant="secondary"
+            variant='secondary'
             onClick={() => {
-              const graces = eventsItems.filter(
-                (e) => e.type == 'grace' && !e.on && e.map_data
-              );
+              const graces = eventsItems.filter((e) => e.type == 'grace' && !e.on && e.map_data);
               setEventRowSelection(
                 graces.reduce<Record<string, boolean>>((acc, e) => {
                   acc[e.id.toString()] = true;
                   return acc;
-                }, {})
+                }, {}),
               );
             }}
           >
             Undiscovered Graces
           </Button>
           <Button
-            variant="secondary"
+            variant='secondary'
             onClick={() => {
-              const bosses = eventsItems.filter(
-                (e) => e.type == 'boss' && e.on && e.map_data
-              );
+              const bosses = eventsItems.filter((e) => e.type == 'boss' && e.on && e.map_data);
               setEventRowSelection(
                 bosses.reduce<Record<string, boolean>>((acc, e) => {
                   acc[e.id.toString()] = true;
                   return acc;
-                }, {})
+                }, {}),
               );
             }}
           >
             Completed Bosses
           </Button>
           <Button
-            variant="secondary"
+            variant='secondary'
             onClick={() => {
-              const bosses = eventsItems.filter(
-                (e) => e.type == 'boss' && !e.on && e.map_data
-              );
+              const bosses = eventsItems.filter((e) => e.type == 'boss' && !e.on && e.map_data);
               setEventRowSelection(
                 bosses.reduce<Record<string, boolean>>((acc, e) => {
                   acc[e.id.toString()] = true;
                   return acc;
-                }, {})
+                }, {}),
               );
             }}
           >
@@ -192,12 +184,8 @@ function MapInner() {
     setIsPanning(instance.isPanning);
   });
   const transformState = useMapStore((state) => state.transformState);
-  const originTransformState = useMapStore(
-    (state) => state.originTransformState
-  );
-  const setOriginTransformState = useMapStore(
-    (state) => state.setOriginTransformState
-  );
+  const originTransformState = useMapStore((state) => state.originTransformState);
+  const setOriginTransformState = useMapStore((state) => state.setOriginTransformState);
   const { zoomIn, zoomOut, setTransform } = useControls();
 
   const tableState = useDataTableStore((store) => store.tableState);
@@ -212,22 +200,17 @@ function MapInner() {
         .filter(([, v]) => v)
         .map(([id]) => {
           if (tableId == 'events')
-            return (
-              eventsItems.find((e) => e.id.toString() == id)?.map_data ?? []
-            );
+            return eventsItems.find((e) => e.id.toString() == id)?.map_data ?? [];
           if (tableId == 'regions')
-            return (
-              regionItems.find((r) => r.id.toString() == id)?.map_data ?? []
-            );
+            return regionItems.find((r) => r.id.toString() == id)?.map_data ?? [];
           return (
-            allErdb[tableId as keyof typeof ERDB].items.find(
-              (e) => e.id.toString() == id
-            )?.map_data ?? []
+            allErdb[tableId as keyof typeof ERDB].items.find((e) => e.id.toString() == id)
+              ?.map_data ?? []
           );
         })
         .flat(),
     ],
-    []
+    [],
   );
 
   const clearPins = useDataTableStore((s) => s.clearAllRowSelection);
@@ -238,13 +221,13 @@ function MapInner() {
         className={cn(
           'relative aspect-[19/18] h-[720px] min-h-[720px] w-[760px] min-w-[760px] overflow-visible',
           HITBOX_TEST && 'border border-red-400',
-          isPanning && 'cursor-grabbing'
+          isPanning && 'cursor-grabbing',
           // placingOrigin && 'cursor-crosshair'
         )}
       >
-        <TransformComponent wrapperClass="!overflow-visible">
-          <div id="er-map">
-            <img src={aboveMapSrc} alt="4k Elden Ring Map" />
+        <TransformComponent wrapperClass='!overflow-visible'>
+          <div id='er-map'>
+            <img src={aboveMapSrc} alt='4k Elden Ring Map' />
             <OriginPin />
             {selectedMapItems
               .toSorted((a, b) => b.x - a.x)
@@ -254,9 +237,9 @@ function MapInner() {
           </div>
         </TransformComponent>
       </div>
-      <div className="absolute bottom-4 right-4 flex gap-4">
+      <div className='absolute bottom-4 right-4 flex gap-4'>
         <TooltipButton
-          tooltip="Zoom In"
+          tooltip='Zoom In'
           onClick={() => {
             zoomIn();
           }}
@@ -264,7 +247,7 @@ function MapInner() {
           <ZoomInIcon />
         </TooltipButton>
         <TooltipButton
-          tooltip="Zoom Out"
+          tooltip='Zoom Out'
           onClick={() => {
             zoomOut();
           }}
@@ -272,33 +255,33 @@ function MapInner() {
           <ZoomOutIcon />
         </TooltipButton>
         <TooltipButton
-          tooltip="Reset Position"
+          tooltip='Reset Position'
           onClick={() => {
             setTransform(
               originTransformState.positionX,
               originTransformState.positionY,
-              originTransformState.scale
+              originTransformState.scale,
             );
           }}
         >
           <LocateIcon />
         </TooltipButton>
       </div>
-      <div className="absolute left-4 top-4 flex flex-col font-mono leading-4">
+      <div className='absolute left-4 top-4 flex flex-col font-mono leading-4'>
         <p>x: {transformState.positionX.toFixed(2)}</p>
         <p>y: {transformState.positionY.toFixed(2)}</p>
         <p>scale: {transformState.scale.toFixed(2)}</p>
       </div>
-      <div className="absolute bottom-4 left-4 flex gap-4">
+      <div className='absolute bottom-4 left-4 flex gap-4'>
         <TooltipButton
-          tooltip="Set Origin"
+          tooltip='Set Origin'
           onClick={() => {
             setOriginTransformState(transformState);
           }}
         >
           <PinIcon />
         </TooltipButton>
-        <TooltipButton tooltip="Clear Pins" onClick={clearPins}>
+        <TooltipButton tooltip='Clear Pins' onClick={clearPins}>
           <Trash2Icon />
         </TooltipButton>
       </div>
@@ -307,31 +290,19 @@ function MapInner() {
 }
 
 function OriginPin() {
-  const originTransformState = useMapStore(
-    (state) => state.originTransformState
-  );
+  const originTransformState = useMapStore((state) => state.originTransformState);
   return (
     <MapWidget
-      top={
-        (360 - originTransformState.positionY) / originTransformState.scale - 15
-      }
-      left={
-        (380 - originTransformState.positionX) / originTransformState.scale - 12
-      }
+      top={(360 - originTransformState.positionY) / originTransformState.scale - 15}
+      left={(380 - originTransformState.positionX) / originTransformState.scale - 12}
     >
       <Tooltip>
         <TooltipTrigger
-          className={cn(
-            '-translate-y-1/2',
-            HITBOX_TEST && 'outline outline-1 outline-red-400'
-          )}
+          className={cn('-translate-y-1/2', HITBOX_TEST && 'outline outline-1 outline-red-400')}
         >
           {
             <PinIcon
-              className={cn(
-                'size-6',
-                HITBOX_TEST && 'outline outline-1 outline-blue-400'
-              )}
+              className={cn('size-6', HITBOX_TEST && 'outline outline-1 outline-blue-400')}
             />
           }
         </TooltipTrigger>
@@ -381,15 +352,13 @@ export function MapDbWidget({ item }: { item: MapItem }) {
   return (
     <MapWidget left={x} top={y}>
       <Tooltip>
-        <TooltipTrigger className="-translate-y-1/2">
-          <MapPinIcon
-            className={cn('size-6', HITBOX_TEST && 'border border-blue-400')}
-          />
+        <TooltipTrigger className='-translate-y-1/2'>
+          <MapPinIcon className={cn('size-6', HITBOX_TEST && 'border border-blue-400')} />
         </TooltipTrigger>
         <TooltipContent
-          className="select-text"
+          className='select-text'
           avoidCollisions={false}
-          side="top"
+          side='top'
           onDoubleClick={(e) => {
             e.stopPropagation();
           }}
@@ -403,11 +372,11 @@ export function MapDbWidget({ item }: { item: MapItem }) {
             e.stopPropagation();
           }}
         >
-          <div className="">
+          <div className=''>
             <strong>{item.name}</strong>
             <p>{item.category}</p>
             <p
-              className="prose max-w-sm dark:prose-invert"
+              className='prose max-w-sm dark:prose-invert'
               dangerouslySetInnerHTML={{ __html: item.description }}
             />
           </div>
@@ -427,10 +396,7 @@ function MapWidget({
 } & PropsWithChildren) {
   return (
     <BetterKeepScale
-      className={cn(
-        'absolute',
-        HITBOX_TEST && 'outline outline-1 outline-green-500'
-      )}
+      className={cn('absolute', HITBOX_TEST && 'outline outline-1 outline-green-500')}
       style={{
         left,
         top,

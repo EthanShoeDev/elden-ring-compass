@@ -9,7 +9,7 @@ import { StoryBossSection } from './sections/story-boss-section';
 
 export function MainContent() {
   return (
-    <main className="flex flex-1 flex-col gap-4 bg-background p-2 md:p-4">
+    <main className='flex flex-1 flex-col gap-4 bg-background p-2 md:p-4'>
       <InteractiveMap />
       {/* <BolsteringCharts /> */}
       <StoryBossSection />

@@ -19,7 +19,5 @@
     }
   },
   "postCreateCommand": "./.devcontainer/setup.sh",
-  "mounts": [
-    "source=${localEnv:HOME}/.config/gh/,target=/home/node/.config/gh/,type=bind"
-  ]
+  "mounts": ["source=${localEnv:HOME}/.config/gh/,target=/home/node/.config/gh/,type=bind"]
 }

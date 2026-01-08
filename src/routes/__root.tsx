@@ -1,25 +1,20 @@
-import {
-  createRootRoute,
-  HeadContent,
-  Scripts,
-  Outlet,
-} from "@tanstack/react-router";
-import { AppBar } from "@/components/app-bar";
-import { Footer } from "@/components/footer";
-import "../index.css";
+import { createRootRoute, HeadContent, Scripts, Outlet } from '@tanstack/react-router';
+import { AppBar } from '@/components/app-bar';
+import { Footer } from '@/components/footer';
+import '../index.css';
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
       {
-        charSet: "utf-8",
+        charSet: 'utf-8',
       },
       {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
+        name: 'viewport',
+        content: 'width=device-width, initial-scale=1',
       },
       {
-        title: "Elden Ring Compass",
+        title: 'Elden Ring Compass',
       },
     ],
   }),
@@ -29,12 +24,12 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <html lang="en">
+    <html lang='en'>
       <head>
         <HeadContent />
       </head>
       <body>
-        <div className="flex h-screen flex-col">
+        <div className='flex h-screen flex-col'>
           <AppBar />
           <Outlet />
           <Footer />

@@ -22,17 +22,12 @@ const defaultTableState = (props: DataTableStateInitProps) => ({
   columnOrder: [],
 });
 
-const handleOnChangeParam = <
-  T extends DataTableState[K],
-  K extends keyof DataTableState,
->(
+const handleOnChangeParam = <T extends DataTableState[K], K extends keyof DataTableState>(
   key: K,
-  set: (fn: (state: DataTableStore) => Partial<DataTableStore>) => void
+  set: (fn: (state: DataTableStore) => Partial<DataTableStore>) => void,
 ) => {
   return (tableId: TableId) => {
-    const childSet = (
-      fn: (state: DataTableState) => Partial<DataTableState>
-    ) => {
+    const childSet = (fn: (state: DataTableState) => Partial<DataTableState>) => {
       set((state) => ({
         tableState: {
           ...state.tableState,
@@ -103,7 +98,7 @@ export const useDataTableStore = create<DataTableStore>()(
                 ...tableState,
                 rowSelection: {},
               } as DataTableState,
-            ])
+            ]),
           ) as Record<TableId, DataTableState | undefined>,
         }));
       },
@@ -116,8 +111,8 @@ export const useDataTableStore = create<DataTableStore>()(
     }),
     {
       name: 'data-table-store',
-    }
-  )
+    },
+  ),
 );
 
 export const useDataTableState = (initProps: DataTableStateInitProps) => {

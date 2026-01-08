@@ -4,13 +4,7 @@ import {
 } from '@/components/data-table/common-column-defs';
 import { DataTable } from '@/components/data-table/data-table';
 import { TooltipImg } from '@/components/misc/tooltip-img';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Combobox } from '@/components/ui/combobox';
 import { useDataTableData } from '@/lib/data-table-data';
 import {
@@ -32,11 +26,7 @@ import {
   useAllErdb,
 } from '@/lib/erdb';
 import { MapItem } from '@/lib/map-db';
-import {
-  ColumnDef,
-  ColumnHelper,
-  createColumnHelper,
-} from '@tanstack/react-table';
+import { ColumnDef, ColumnHelper, createColumnHelper } from '@tanstack/react-table';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -53,8 +43,8 @@ const useTableSelection = create<{
     }),
     {
       name: 'inventory-table-selection',
-    }
-  )
+    },
+  ),
 );
 
 export function InventoryDataTableCard() {
@@ -65,11 +55,11 @@ export function InventoryDataTableCard() {
   const ownedCount = allErdb[table].ownedCount;
 
   return (
-    <Card className="w-full">
+    <Card className='w-full'>
       <CardHeader>
         <CardTitle>
           <Combobox
-            placeholder="Filter by category"
+            placeholder='Filter by category'
             valueState={[
               table,
               (val) => {
@@ -77,7 +67,7 @@ export function InventoryDataTableCard() {
                 setTableType(val as InventoryTableType);
               },
             ]}
-            emptyLabel=""
+            emptyLabel=''
             items={Object.entries(tables).map(([tableId, info]) => {
               const table = tableId as keyof typeof ERDB;
               const ownedCount = allErdb[table].ownedCount;
@@ -88,18 +78,16 @@ export function InventoryDataTableCard() {
                 dropDownItem: (
                   <>
                     <span>{info.label}</span>
-                    <span className="ml-auto font-mono text-muted-foreground">
+                    <span className='ml-auto font-mono text-muted-foreground'>
                       {ownedCount}/{items.length} (
-                      {((ownedCount / items.length) * 100)
-                        .toFixed(0)
-                        .padStart(2, ' ')}
+                      {((ownedCount / items.length) * 100).toFixed(0).padStart(2, ' ')}
                       %)
                     </span>
                   </>
                 ),
               };
             })}
-            triggerButtonClassName="text-2xl font-semibold h-auto"
+            triggerButtonClassName='text-2xl font-semibold h-auto'
           />
         </CardTitle>
         <CardDescription>
@@ -142,7 +130,7 @@ type DefaultItem = (
   InfoFromSlot;
 function defaultColumns<T extends DefaultItem>(
   columnHelperT: ColumnHelper<T>,
-  imgUrlFn: (icon: number) => string
+  imgUrlFn: (icon: number) => string,
 ): Array<ColumnDef<T>> {
   const columnHelperD = columnHelperT as unknown as ColumnHelper<DefaultItem>;
   return [
@@ -158,10 +146,7 @@ function defaultColumns<T extends DefaultItem>(
       cell: (cell) => {
         return (
           <div>
-            <TooltipImg
-              imgSrc={imgUrlFn(cell.row.original.icon)}
-              alt={cell.row.original.name}
-            />
+            <TooltipImg imgSrc={imgUrlFn(cell.row.original.icon)} alt={cell.row.original.name} />
           </div>
         );
       },
@@ -172,11 +157,7 @@ function defaultColumns<T extends DefaultItem>(
     }),
     commonAccessorColumnDef(columnHelperD, 'quantity', 'Quantity'),
     commonAccessorColumnDef(columnHelperD, 'rarity', 'Rarity'),
-    commonAccessorColumnDef(
-      columnHelperD,
-      (row) => !!row.map_data,
-      'Has Coordinates'
-    ),
+    commonAccessorColumnDef(columnHelperD, (row) => !!row.map_data, 'Has Coordinates'),
   ] as unknown as Array<ColumnDef<T>>;
 }
 
@@ -188,10 +169,7 @@ const ammoColumns: Array<ColumnDef<AmmoItem>> = (() => {
     ...defaultColumns(
       columnHelper,
       (icon) =>
-        new URL(
-          `../../assets/erdb/icons/ammo/${icon.toString()}.png`,
-          import.meta.url
-        ).href
+        new URL(`../../assets/erdb/icons/ammo/${icon.toString()}.png`, import.meta.url).href,
     ),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
     commonAccessorColumnDef(
@@ -200,10 +178,10 @@ const ammoColumns: Array<ColumnDef<AmmoItem>> = (() => {
         row.effects
           .map(
             (e) =>
-              `${e.attribute} ${e.type == 'positive' ? (e.model == 'additive' ? '+' : '* ') : e.model == 'additive' ? '-' : '* -'}${e.value.toString()}${e.conditions ? ` ${e.conditions.join(',')}` : ''}`
+              `${e.attribute} ${e.type == 'positive' ? (e.model == 'additive' ? '+' : '* ') : e.model == 'additive' ? '-' : '* -'}${e.value.toString()}${e.conditions ? ` ${e.conditions.join(',')}` : ''}`,
           )
           .join('\n'),
-      'Effects'
+      'Effects',
     ),
   ];
 })();
@@ -216,35 +194,24 @@ const armColumns: Array<ColumnDef<ArmamentItem>> = (() => {
     ...defaultColumns(
       columnHelper,
       (icon) =>
-        new URL(
-          `../../assets/erdb/icons/armaments/${icon.toString()}.png`,
-          import.meta.url
-        ).href
+        new URL(`../../assets/erdb/icons/armaments/${icon.toString()}.png`, import.meta.url).href,
     ),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
     commonAccessorColumnDef(columnHelper, 'allow_ash_of_war', 'Allow AOW'),
     commonAccessorColumnDef(columnHelper, 'is_buffable', 'Buffable'),
-    commonAccessorColumnDef(
-      columnHelper,
-      'weapon_upgrade_level',
-      'Upgrade Level'
-    ),
+    commonAccessorColumnDef(columnHelper, 'weapon_upgrade_level', 'Upgrade Level'),
     commonAccessorColumnDef(columnHelper, 'weight', 'Weight'),
-    commonAccessorColumnDef(
-      columnHelper,
-      'upgrade_material',
-      'Upgrade Material'
-    ),
+    commonAccessorColumnDef(columnHelper, 'upgrade_material', 'Upgrade Material'),
     commonAccessorColumnDef(
       columnHelper,
       (row) =>
         row.effects
           .map(
             (e) =>
-              `${e.attribute} ${e.type == 'positive' ? (e.model == 'additive' ? '+' : '* ') : e.model == 'additive' ? '-' : '* -'}${e.value.toString()}${e.conditions ? ` ${e.conditions.join(',')}` : ''}`
+              `${e.attribute} ${e.type == 'positive' ? (e.model == 'additive' ? '+' : '* ') : e.model == 'additive' ? '-' : '* -'}${e.value.toString()}${e.conditions ? ` ${e.conditions.join(',')}` : ''}`,
           )
           .join('\n'),
-      'Effects'
+      'Effects',
     ),
   ];
 })();
@@ -257,10 +224,7 @@ const armorColumns: Array<ColumnDef<ArmorItem>> = (() => {
     ...defaultColumns(
       columnHelper,
       (icon) =>
-        new URL(
-          `../../assets/erdb/icons/armor/${icon.toString()}.png`,
-          import.meta.url
-        ).href
+        new URL(`../../assets/erdb/icons/armor/${icon.toString()}.png`, import.meta.url).href,
     ),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
     commonAccessorColumnDef(columnHelper, 'weight', 'Weight'),
@@ -270,10 +234,10 @@ const armorColumns: Array<ColumnDef<ArmorItem>> = (() => {
         row.effects
           .map(
             (e) =>
-              `${e.attribute} ${e.type == 'positive' ? (e.model == 'additive' ? '+' : '* ') : e.model == 'additive' ? '-' : '* -'}${e.value.toString()}${e.conditions ? ` ${e.conditions.join(',')}` : ''}`
+              `${e.attribute} ${e.type == 'positive' ? (e.model == 'additive' ? '+' : '* ') : e.model == 'additive' ? '-' : '* -'}${e.value.toString()}${e.conditions ? ` ${e.conditions.join(',')}` : ''}`,
           )
           .join('\n'),
-      'Effects'
+      'Effects',
     ),
   ];
 })();
@@ -286,15 +250,13 @@ const ashesColumns: Array<ColumnDef<AshesItem>> = (() => {
     ...defaultColumns(
       columnHelper,
       (icon) =>
-        new URL(
-          `../../assets/erdb/icons/ashes-of-war/${icon.toString()}.png`,
-          import.meta.url
-        ).href
+        new URL(`../../assets/erdb/icons/ashes-of-war/${icon.toString()}.png`, import.meta.url)
+          .href,
     ),
     commonAccessorColumnDef(
       columnHelper,
       (row) => row.armament_categories.join(', '),
-      'Armament Categories'
+      'Armament Categories',
     ),
   ];
 })();
@@ -309,8 +271,8 @@ const bolsteringColumns: Array<ColumnDef<BolsteringItem>> = (() => {
       (icon) =>
         new URL(
           `../../assets/erdb/icons/bolstering-materials/${icon.toString()}.png`,
-          import.meta.url
-        ).href
+          import.meta.url,
+        ).href,
     ),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
   ];
@@ -326,8 +288,8 @@ const craftingColumns: Array<ColumnDef<CraftingItem>> = (() => {
       (icon) =>
         new URL(
           `../../assets/erdb/icons/crafting-materials/${icon.toString()}.png`,
-          import.meta.url
-        ).href
+          import.meta.url,
+        ).href,
     ),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
   ];
@@ -341,10 +303,7 @@ const gesturesColumns: Array<ColumnDef<GestureItem>> = (() => {
     ...defaultColumns(
       columnHelper,
       (icon) =>
-        new URL(
-          `../../assets/erdb/icons/gestures/${icon.toString()}.png`,
-          import.meta.url
-        ).href
+        new URL(`../../assets/erdb/icons/gestures/${icon.toString()}.png`, import.meta.url).href,
     ),
   ];
 })();
@@ -356,10 +315,7 @@ const infoColumns: Array<ColumnDef<InfoItem>> = (() => {
     ...defaultColumns(
       columnHelper,
       (icon) =>
-        new URL(
-          `../../assets/erdb/icons/info/${icon.toString()}.png`,
-          import.meta.url
-        ).href
+        new URL(`../../assets/erdb/icons/info/${icon.toString()}.png`, import.meta.url).href,
     ),
   ];
 })();
@@ -371,10 +327,7 @@ const keyColumns: Array<ColumnDef<InfoItem>> = (() => {
     ...defaultColumns(
       columnHelper,
       (icon) =>
-        new URL(
-          `../../assets/erdb/icons/keys/${icon.toString()}.png`,
-          import.meta.url
-        ).href
+        new URL(`../../assets/erdb/icons/keys/${icon.toString()}.png`, import.meta.url).href,
     ),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
   ];
@@ -387,10 +340,7 @@ const shopColumns: Array<ColumnDef<ShopItem>> = (() => {
     ...defaultColumns(
       columnHelper,
       (icon) =>
-        new URL(
-          `../../assets/erdb/icons/shop/${icon.toString()}.png`,
-          import.meta.url
-        ).href
+        new URL(`../../assets/erdb/icons/shop/${icon.toString()}.png`, import.meta.url).href,
     ),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
   ];
@@ -403,10 +353,7 @@ const spellColumns: Array<ColumnDef<SpellItem>> = (() => {
     ...defaultColumns(
       columnHelper,
       (icon) =>
-        new URL(
-          `../../assets/erdb/icons/spells/${icon.toString()}.png`,
-          import.meta.url
-        ).href
+        new URL(`../../assets/erdb/icons/spells/${icon.toString()}.png`, import.meta.url).href,
     ),
     commonAccessorColumnDef(columnHelper, 'category', 'Category'),
     commonAccessorColumnDef(columnHelper, 'fp_cost', 'FP Cost'),
@@ -422,26 +369,16 @@ const spiritColumns: Array<ColumnDef<SpiritItem>> = (() => {
     ...defaultColumns(
       columnHelper,
       (icon) =>
-        new URL(
-          `../../assets/erdb/icons/spirit-ashes/${icon.toString()}.png`,
-          import.meta.url
-        ).href
+        new URL(`../../assets/erdb/icons/spirit-ashes/${icon.toString()}.png`, import.meta.url)
+          .href,
     ),
     commonAccessorColumnDef(columnHelper, 'hp_cost', 'HP Cost'),
     commonAccessorColumnDef(columnHelper, 'fp_cost', 'FP Cost'),
-    commonAccessorColumnDef(
-      columnHelper,
-      'upgrade_material',
-      'Upgrade Material'
-    ),
+    commonAccessorColumnDef(columnHelper, 'upgrade_material', 'Upgrade Material'),
     commonAccessorColumnDef(columnHelper, 'summon_name', 'Summon Name', {
       filterFn: 'includesString',
     }),
-    commonAccessorColumnDef(
-      columnHelper,
-      (row) => row.abilities.join(', '),
-      'Abilities'
-    ),
+    commonAccessorColumnDef(columnHelper, (row) => row.abilities.join(', '), 'Abilities'),
   ];
 })();
 type TalismanItem = Talisman & InfoFromSlot;
@@ -452,10 +389,7 @@ const talismanColumns: Array<ColumnDef<TalismanItem>> = (() => {
     ...defaultColumns(
       columnHelper,
       (icon) =>
-        new URL(
-          `../../assets/erdb/icons/talismans/${icon.toString()}.png`,
-          import.meta.url
-        ).href
+        new URL(`../../assets/erdb/icons/talismans/${icon.toString()}.png`, import.meta.url).href,
     ),
     commonAccessorColumnDef(columnHelper, 'weight', 'Weight'),
     commonAccessorColumnDef(
@@ -464,16 +398,12 @@ const talismanColumns: Array<ColumnDef<TalismanItem>> = (() => {
         row.effects
           .map(
             (e) =>
-              `${e.attribute} ${e.type == 'positive' ? (e.model == 'additive' ? '+' : '* ') : e.model == 'additive' ? '-' : '* -'}${e.value.toString()}`
+              `${e.attribute} ${e.type == 'positive' ? (e.model == 'additive' ? '+' : '* ') : e.model == 'additive' ? '-' : '* -'}${e.value.toString()}`,
           )
           .join('\n'),
-      'Effects'
+      'Effects',
     ),
-    commonAccessorColumnDef(
-      columnHelper,
-      (row) => row.conflicts.join(', '),
-      'Conflicts'
-    ),
+    commonAccessorColumnDef(columnHelper, (row) => row.conflicts.join(', '), 'Conflicts'),
   ];
 })();
 type ToolItem = Tool & InfoFromSlot;
@@ -484,10 +414,7 @@ const toolColumns: Array<ColumnDef<ToolItem>> = (() => {
     ...defaultColumns(
       columnHelper,
       (icon) =>
-        new URL(
-          `../../assets/erdb/icons/tools/${icon.toString()}.png`,
-          import.meta.url
-        ).href
+        new URL(`../../assets/erdb/icons/tools/${icon.toString()}.png`, import.meta.url).href,
     ),
   ];
 })();

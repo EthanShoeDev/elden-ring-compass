@@ -1,16 +1,19 @@
 {
   "name": "elden-ring-compass",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "type": "module",
-  "packageManager": "bun@1.1.26",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
     "build:wasm-parser": "cd packages/elden-ring-save-parser && wasm-pack build --target web",
     "start": "vite preview",
-    "lint": "oxlint .",
-    "format": "oxfmt --write .",
+    "lint": "turbo lint",
+    "lint:oxlint": "oxlint src/",
+    "lint:oxlint:fix": "oxlint src/ --fix",
+    "lint:oxlint:fix:fix-suggestions": "oxlint src/ --fix --fix-suggestions",
+    "fmt:write": "oxfmt --write src/",
+    "fmt:check": "oxfmt --check src/",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -68,6 +71,7 @@
     "autoprefixer": "^10.4.20",
     "oxfmt": "^0.21.0",
     "oxlint": "^1.36.0",
+    "oxlint-tsgolint": "^0.10.1",
     "postcss": "^8.4.44",
     "sharp": "^0.33.5",
     "svgo": "^3.3.2",
@@ -81,5 +85,6 @@
   "overrides": {
     "@types/react": "npm:types-react@rc",
     "@types/react-dom": "npm:types-react-dom@rc"
-  }
+  },
+  "packageManager": "bun@1.1.26"
 }

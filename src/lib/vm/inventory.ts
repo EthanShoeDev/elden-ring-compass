@@ -1,11 +1,6 @@
 import { RAW_ELDEN_RING_DB } from '../elden-ring-raw-db/er-raw-db';
 import { MAP_DB_ITEMS } from '../map-db';
-import {
-  EquipInventoryData,
-  GaItem,
-  Slot,
-  StorageInventoryData,
-} from '../wasm-wrapper';
+import { EquipInventoryData, GaItem, Slot, StorageInventoryData } from '../wasm-wrapper';
 
 // For converting gaitem.item_id to item
 export const InventoryItemTypeToOffset = {
@@ -27,14 +22,10 @@ export const InventoryGaItemTypeToOffset = {
 } as const;
 export type InventoryItemType = keyof typeof InventoryItemTypeToOffset;
 
-export const inventoryItemTypes: Array<string> = Object.keys(
-  InventoryItemTypeToOffset
-);
+export const inventoryItemTypes: Array<string> = Object.keys(InventoryItemTypeToOffset);
 
 export function inventoryDbView(slot: Readonly<Slot>) {
-  function itemTypeFromGaHandle(
-    gaHandle: number
-  ): keyof typeof InventoryGaItemTypeToOffset {
+  function itemTypeFromGaHandle(gaHandle: number): keyof typeof InventoryGaItemTypeToOffset {
     const itemType = (gaHandle & 0xf0000000) >>> 0;
 
     if (itemType === -1) return 'EMPTY';
@@ -74,22 +65,14 @@ export function inventoryDbView(slot: Readonly<Slot>) {
     };
   }
 
-  const gaItemMap = new Map<number, GaItem>(
-    slot.ga_items.map((i) => [i.gaitem_handle, i])
-  );
-  const fill_storage_type = (
-    inventory_data: EquipInventoryData | StorageInventoryData
-  ) => {
+  const gaItemMap = new Map<number, GaItem>(slot.ga_items.map((i) => [i.gaitem_handle, i]));
+  const fill_storage_type = (inventory_data: EquipInventoryData | StorageInventoryData) => {
     return inventory_data.common_items
       .map((commonItem, idx) => {
         const itemType = itemTypeFromGaHandle(commonItem.ga_item_handle);
         const equip_index = idx + 0x180;
 
-        const gaitem: GaItem | undefined = [
-          'ACCESSORY',
-          'ITEM',
-          'EMPTY',
-        ].includes(itemType)
+        const gaitem: GaItem | undefined = ['ACCESSORY', 'ITEM', 'EMPTY'].includes(itemType)
           ? {
               gaitem_handle: 0,
               item_id: 0,
@@ -102,7 +85,7 @@ export function inventoryDbView(slot: Readonly<Slot>) {
 
         if (!gaitem)
           throw new Error(
-            `Could not find gaitem for common item: ${commonItem.ga_item_handle.toString()}`
+            `Could not find gaitem for common item: ${commonItem.ga_item_handle.toString()}`,
           );
 
         const itemId = ['ACCESSORY', 'ITEM', 'EMPTY'].includes(itemType)
@@ -113,32 +96,23 @@ export function inventoryDbView(slot: Readonly<Slot>) {
         const itemName = (() => {
           if (itemType === 'WEAPON') {
             const idStr = (itemId - upgrade_level).toString();
-            const weaponName =
-              RAW_ELDEN_RING_DB.WEAPON_NAME[idStr] ?? `[UNKOWN_${idStr}]`;
+            const weaponName = RAW_ELDEN_RING_DB.WEAPON_NAME[idStr] ?? `[UNKOWN_${idStr}]`;
 
-            return upgrade_level > 0
-              ? `${weaponName} +${upgrade_level.toString()}`
-              : weaponName;
+            return upgrade_level > 0 ? `${weaponName} +${upgrade_level.toString()}` : weaponName;
           } else if (itemType === 'ARMOR') {
             return (
-              RAW_ELDEN_RING_DB.ARMOR_NAME[itemId.toString()] ??
-              `[UNKOWN_${itemId.toString()}]`
+              RAW_ELDEN_RING_DB.ARMOR_NAME[itemId.toString()] ?? `[UNKOWN_${itemId.toString()}]`
             );
           } else if (itemType === 'ACCESSORY') {
             return (
-              RAW_ELDEN_RING_DB.ACCESSORY_NAME[itemId.toString()] ??
-              `[UNKOWN_${itemId.toString()}]`
+              RAW_ELDEN_RING_DB.ACCESSORY_NAME[itemId.toString()] ?? `[UNKOWN_${itemId.toString()}]`
             );
           } else if (itemType === 'ITEM') {
             return (
-              RAW_ELDEN_RING_DB.ITEM_NAMES[itemId.toString()] ??
-              `[UNKOWN_${itemId.toString()}]`
+              RAW_ELDEN_RING_DB.ITEM_NAMES[itemId.toString()] ?? `[UNKOWN_${itemId.toString()}]`
             );
           } else if (itemType === 'AOW') {
-            return (
-              RAW_ELDEN_RING_DB.AOW_NAME[itemId.toString()] ??
-              `[UNKOWN_${itemId.toString()}]`
-            );
+            return RAW_ELDEN_RING_DB.AOW_NAME[itemId.toString()] ?? `[UNKOWN_${itemId.toString()}]`;
           }
           return 'Unknown';
         })();

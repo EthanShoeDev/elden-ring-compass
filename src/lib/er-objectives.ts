@@ -45,11 +45,7 @@ export function objectiveType(obj: Objective): string {
   return 'generic';
 }
 
-type Objective =
-  | NPCObjective
-  | LocationObjective
-  | BossObjective
-  | GenericObjective;
+type Objective = NPCObjective | LocationObjective | BossObjective | GenericObjective;
 
 export type EldenRingObjectiveItem = {
   name: string;
@@ -169,8 +165,7 @@ export const ELDEN_RING_OBJECTIVES: Array<Region> = [
             label: 'Speak with Boc the Seamster',
             npc: 'Boc the Seamster',
             tags: ['NPC', 'Side Quest'],
-            notes:
-              'Hit the small tree once near Gatefront Ruins. You can hear him shout.',
+            notes: 'Hit the small tree once near Gatefront Ruins. You can hear him shout.',
           },
           {
             label: 'Discover location Coastal Cave',
@@ -222,8 +217,7 @@ export const ELDEN_RING_OBJECTIVES: Array<Region> = [
           },
           {
             label: 'Complete Stormveil Castle',
-            notes:
-              'To complete Roderika quest, complete before Roundtable Hold',
+            notes: 'To complete Roderika quest, complete before Roundtable Hold',
           },
         ],
       },

@@ -4,23 +4,10 @@ import { eventsDbView } from '@/lib/vm/events';
 import { inventoryDbView } from '@/lib/vm/inventory';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { SlotOverview } from './slot-overview';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '../ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Separator } from '../ui/separator';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { TooltipImg } from '../misc/tooltip-img';
 
@@ -28,9 +15,7 @@ export function OverviewSection() {
   const slot = useSelectedSlot();
 
   const inventoryQuantityById = new Map(
-    slot
-      ? inventoryDbView(slot).items.map((item) => [item.item_id, item.quantity])
-      : []
+    slot ? inventoryDbView(slot).items.map((item) => [item.item_id, item.quantity]) : [],
   );
   const events = slot ? eventsDbView(slot) : [];
 
@@ -130,78 +115,61 @@ export function OverviewSection() {
   };
 
   const maxPowerMaterialOwned =
-    (inventoryQuantityById.get(
-      ERDB.bolstering['Ancient Dragon Smithing Stone'].id
-    ) ?? 0) +
-    (inventoryQuantityById.get(
-      ERDB.bolstering['Ancient Dragon Smithing Stone'].id
-    ) ?? 0) +
-    (inventoryQuantityById.get(ERDB.bolstering['Great Ghost Glovewort'].id) ??
-      0) +
-    (inventoryQuantityById.get(ERDB.bolstering['Great Grave Glovewort'].id) ??
-      0);
+    (inventoryQuantityById.get(ERDB.bolstering['Ancient Dragon Smithing Stone'].id) ?? 0) +
+    (inventoryQuantityById.get(ERDB.bolstering['Ancient Dragon Smithing Stone'].id) ?? 0) +
+    (inventoryQuantityById.get(ERDB.bolstering['Great Ghost Glovewort'].id) ?? 0) +
+    (inventoryQuantityById.get(ERDB.bolstering['Great Grave Glovewort'].id) ?? 0);
 
   const baseFlaskItem = ERDB.tools['Flask of Crimson Tears'];
 
   const usersFlask =
     Array.from({ length: 12 })
-      .map(
-        (_, i) =>
-          ERDB.tools[
-            `${baseFlaskItem.name}${i == 0 ? '' : ` +${(i + 1).toString()}`}`
-          ]
-      )
+      .map((_, i) => ERDB.tools[`${baseFlaskItem.name}${i == 0 ? '' : ` +${(i + 1).toString()}`}`])
       .toReversed()
-      .find((flask) => (inventoryQuantityById.get(flask.id) ?? 0) > 0) ??
-    baseFlaskItem;
+      .find((flask) => (inventoryQuantityById.get(flask.id) ?? 0) > 0) ?? baseFlaskItem;
 
   return (
-    <Card className="w-full">
+    <Card className='w-full'>
       <CardHeader>
         <CardTitle>Overview</CardTitle>
         <CardDescription></CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-wrap gap-4 overflow-hidden p-2 sm:p-4">
+      <CardContent className='flex flex-wrap gap-4 overflow-hidden p-2 sm:p-4'>
         <SlotOverview />
-        <Card className="">
+        <Card className=''>
           <CardHeader>
             <CardTitle>Flasks</CardTitle>
             <CardDescription>5 / 20 - (35%)</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-1">
-            <FlaskItem item={usersFlask} iconType="tools" max={14} />
+          <CardContent className='flex flex-col gap-1'>
+            <FlaskItem item={usersFlask} iconType='tools' max={14} />
             <Separator />
-            <FlaskItem
-              item={ERDB.tools['Flask of Cerulean Tears']}
-              iconType="tools"
-              max={14}
-            />
+            <FlaskItem item={ERDB.tools['Flask of Cerulean Tears']} iconType='tools' max={14} />
             <Separator />
             <FlaskItem
               item={ERDB.bolstering['Golden Seed']}
-              iconType="bolstering-materials"
+              iconType='bolstering-materials'
               max={30}
             />
             <Separator />
             <FlaskItem
               item={ERDB.bolstering['Sacred Tear']}
-              iconType="bolstering-materials"
+              iconType='bolstering-materials'
               max={12}
             />
           </CardContent>
         </Card>
-        <Card className="overflow-hidden">
+        <Card className='overflow-hidden'>
           <CardHeader>
             <CardTitle>Upgrade Materials</CardTitle>
             <CardDescription>
-              {maxPowerMaterialOwned} / 31 - (
-              {Math.round((maxPowerMaterialOwned / 31) * 100)}%) Max Power
-              Materials
+              {maxPowerMaterialOwned} / 31 - ({Math.round((maxPowerMaterialOwned / 31) * 100)}%) Max
+              Power Materials
             </CardDescription>
           </CardHeader>
-          <CardContent className="max-w-full overflow-hidden">
-            <ScrollArea className="w-full">
-              <Table className="w-full">
+          <CardContent className='max-w-full overflow-hidden'>
+            <ScrollArea className='w-full'>
+              <Table className='w-full'>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Power</TableHead>
@@ -249,101 +217,82 @@ export function OverviewSection() {
                     return (
                       <TableRow key={i}>
                         <TableCell>+{i + 1}</TableCell>
-                        {[
-                          smithingStone,
-                          somberSmithingStone,
-                          graveGlovewart,
-                          ghostGlovewart,
-                        ].map((item, i) => {
-                          const bellBearingName =
-                            item && item.name in materialToBellBearings
-                              ? materialToBellBearings[
-                                  item.name as keyof typeof materialToBellBearings
-                                ]
-                              : undefined;
+                        {[smithingStone, somberSmithingStone, graveGlovewart, ghostGlovewart].map(
+                          (item, i) => {
+                            const bellBearingName =
+                              item && item.name in materialToBellBearings
+                                ? materialToBellBearings[
+                                    item.name as keyof typeof materialToBellBearings
+                                  ]
+                                : undefined;
 
-                          const bellBearing =
-                            bellBearingName && ERDB.shop[bellBearingName];
+                            const bellBearing = bellBearingName && ERDB.shop[bellBearingName];
 
-                          const bellLocation =
-                            bellBearing && bellNameLocation[bellBearingName];
-                          const bellOwned =
-                            ((bellBearing &&
-                              inventoryQuantityById.get(bellBearing.id)) ??
-                              0) > 0 ||
-                            (bellLocation &&
-                              'boss' in bellLocation &&
-                              bellLocation.boss.killed);
+                            const bellLocation = bellBearing && bellNameLocation[bellBearingName];
+                            const bellOwned =
+                              ((bellBearing && inventoryQuantityById.get(bellBearing.id)) ?? 0) >
+                                0 ||
+                              (bellLocation && 'boss' in bellLocation && bellLocation.boss.killed);
 
-                          const imgSrc =
-                            item &&
-                            new URL(
-                              `../../assets/erdb/icons/bolstering-materials/${item.icon.toString()}.png`,
-                              import.meta.url
-                            ).href;
-                          return (
-                            <TableCell key={i} className={cn('p-2')}>
-                              <Tooltip>
-                                <TooltipTrigger
-                                  className={cn(
-                                    'flex items-center rounded-lg p-1',
-                                    bellOwned
-                                      ? 'border border-green-300/50'
-                                      : ''
-                                  )}
-                                >
-                                  <div className="flex flex-wrap items-center justify-center gap-1">
-                                    {item && (
+                            const imgSrc =
+                              item &&
+                              new URL(
+                                `../../assets/erdb/icons/bolstering-materials/${item.icon.toString()}.png`,
+                                import.meta.url,
+                              ).href;
+                            return (
+                              <TableCell key={i} className={cn('p-2')}>
+                                <Tooltip>
+                                  <TooltipTrigger
+                                    className={cn(
+                                      'flex items-center rounded-lg p-1',
+                                      bellOwned ? 'border border-green-300/50' : '',
+                                    )}
+                                  >
+                                    <div className='flex flex-wrap items-center justify-center gap-1'>
+                                      {item && (
+                                        <>
+                                          <img className='size-8' src={imgSrc} />
+
+                                          <span className='w-10 whitespace-nowrap'>
+                                            {inventoryQuantityById.get(item.id) ?? 0}
+                                            {item.name == 'Ancient Dragon Smithing Stone' &&
+                                              ' / 13'}
+                                            {item.name == 'Somber Ancient Dragon Smithing Stone' &&
+                                              ' / 8'}
+                                            {item.name == 'Great Grave Glovewort' && ' / 6'}
+                                            {item.name == 'Great Ghost Glovewort' && ' / 4'}
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent className='flex max-w-72 flex-col items-center'>
+                                    <img loading='lazy' src={imgSrc} className='size-40' />
+                                    <p className='text-lg'>{item?.name}</p>
+                                    {bellLocation && (
                                       <>
-                                        <img className="size-8" src={imgSrc} />
-
-                                        <span className="w-10 whitespace-nowrap">
-                                          {inventoryQuantityById.get(item.id) ??
-                                            0}
-                                          {item.name ==
-                                            'Ancient Dragon Smithing Stone' &&
-                                            ' / 13'}
-                                          {item.name ==
-                                            'Somber Ancient Dragon Smithing Stone' &&
-                                            ' / 8'}
-                                          {item.name ==
-                                            'Great Grave Glovewort' && ' / 6'}
-                                          {item.name ==
-                                            'Great Ghost Glovewort' && ' / 4'}
-                                        </span>
+                                        <br />
+                                        <p className='w-full text-wrap text-center'>
+                                          Bell bearing found{' '}
+                                          {'boss' in bellLocation
+                                            ? `from boss ${bellLocation.boss.bossName}`
+                                            : `in ${bellLocation.location}`}
+                                        </p>
                                       </>
                                     )}
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent className="flex max-w-72 flex-col items-center">
-                                  <img
-                                    loading="lazy"
-                                    src={imgSrc}
-                                    className="size-40"
-                                  />
-                                  <p className="text-lg">{item?.name}</p>
-                                  {bellLocation && (
-                                    <>
-                                      <br />
-                                      <p className="w-full text-wrap text-center">
-                                        Bell bearing found{' '}
-                                        {'boss' in bellLocation
-                                          ? `from boss ${bellLocation.boss.bossName}`
-                                          : `in ${bellLocation.location}`}
-                                      </p>
-                                    </>
-                                  )}
-                                </TooltipContent>
-                              </Tooltip>
-                            </TableCell>
-                          );
-                        })}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TableCell>
+                            );
+                          },
+                        )}
                       </TableRow>
                     );
                   })}
                 </TableBody>
               </Table>
-              <ScrollBar orientation="horizontal" />
+              <ScrollBar orientation='horizontal' />
             </ScrollArea>
           </CardContent>
         </Card>
@@ -363,21 +312,19 @@ function FlaskItem({
 }) {
   const slot = useSelectedSlot();
   const inventoryQuantityById = new Map(
-    slot
-      ? inventoryDbView(slot).items.map((item) => [item.item_id, item.quantity])
-      : []
+    slot ? inventoryDbView(slot).items.map((item) => [item.item_id, item.quantity]) : [],
   );
 
   const imgSrc = new URL(
     `../../assets/erdb/icons/${iconType == 'tools' ? 'tools' : 'bolstering-materials'}/${item.icon.toString()}.png`,
-    import.meta.url
+    import.meta.url,
   ).href;
   return (
-    <div className="flex items-center justify-between gap-10 rounded-lg transition-colors hover:bg-muted/50">
+    <div className='flex items-center justify-between gap-10 rounded-lg transition-colors hover:bg-muted/50'>
       <TooltipImg imgSrc={imgSrc} />
-      <div className="flex flex-col items-end p-2">
+      <div className='flex flex-col items-end p-2'>
         <p>{item.name}</p>
-        <p className="text-sm text-muted-foreground">
+        <p className='text-sm text-muted-foreground'>
           {inventoryQuantityById.get(item.id) ?? 0} / {max}
         </p>
       </div>

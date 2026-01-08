@@ -2,18 +2,9 @@ import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 
 import { useDataTableData } from '@/lib/data-table-data';
 import { regionsDbView } from '@/lib/vm/regions';
-import {
-  commonAccessorColumnDef,
-  commonSelectColumnDef,
-} from '../data-table/common-column-defs';
+import { commonAccessorColumnDef, commonSelectColumnDef } from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '../ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
 type Region = ReturnType<typeof regionsDbView>[0];
 
@@ -22,7 +13,7 @@ export function RegionsDataTable() {
 
   const ownedCount = items.filter((item) => item.found).length;
   return (
-    <Card className="w-full">
+    <Card className='w-full'>
       <CardHeader>
         <CardTitle>Regions</CardTitle>
         <CardDescription>
@@ -32,12 +23,7 @@ export function RegionsDataTable() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable
-          tableId="regions"
-          className=""
-          columns={columns}
-          data={items}
-        />
+        <DataTable tableId='regions' className='' columns={columns} data={items} />
       </CardContent>
     </Card>
   );
@@ -53,9 +39,5 @@ const columns: Array<ColumnDef<Region>> = [
   commonAccessorColumnDef(columnHelper, 'isBoss', 'Is Boss'),
   commonAccessorColumnDef(columnHelper, 'isDungeon', 'Is Dungeon'),
   commonAccessorColumnDef(columnHelper, 'isOpenWorld', 'Is Open World'),
-  commonAccessorColumnDef(
-    columnHelper,
-    (row) => !!row.map_data,
-    'Has Coordinates'
-  ),
+  commonAccessorColumnDef(columnHelper, (row) => !!row.map_data, 'Has Coordinates'),
 ];

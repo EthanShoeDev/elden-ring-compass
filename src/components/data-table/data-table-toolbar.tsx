@@ -12,25 +12,18 @@ type DataTableToolbarProps<TData> = {
   table: Table<TData>;
 };
 
-export function DataTableToolbar<TData>({
-  table,
-}: DataTableToolbarProps<TData>) {
+export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>) {
   'use no memo';
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="mr-10 flex flex-1 flex-wrap items-center gap-2">
+    <div className='flex items-center justify-between'>
+      <div className='mr-10 flex flex-1 flex-wrap items-center gap-2'>
         <Input
           placeholder={'Search'}
-          value={
-            (table.getColumn('Name')?.getFilterValue() as string | undefined) ??
-            ''
-          }
-          onChange={(event) =>
-            table.getColumn('Name')?.setFilterValue(event.target.value)
-          }
-          className="h-8 w-[150px] lg:w-[250px]"
+          value={(table.getColumn('Name')?.getFilterValue() as string | undefined) ?? ''}
+          onChange={(event) => table.getColumn('Name')?.setFilterValue(event.target.value)}
+          className='h-8 w-[150px] lg:w-[250px]'
         />
         {table
           .getAllLeafColumns()
@@ -41,18 +34,12 @@ export function DataTableToolbar<TData>({
                 col.getFilterFn() as FilterFn<unknown> & {
                   [defaultFacetedFilterFnSymbol]?: boolean;
                 }
-              )[defaultFacetedFilterFnSymbol]
+              )[defaultFacetedFilterFnSymbol],
           )
           .map((column) => {
-            const options = Array.from(
-              column.getFacetedUniqueValues().keys()
-            ).map((value) => ({
+            const options = Array.from(column.getFacetedUniqueValues().keys()).map((value) => ({
               label:
-                typeof value != 'string'
-                  ? value == null
-                    ? 'NA'
-                    : JSON.stringify(value)
-                  : value,
+                typeof value != 'string' ? (value == null ? 'NA' : JSON.stringify(value)) : value,
               value: value as unknown,
             }));
             return (
@@ -66,14 +53,14 @@ export function DataTableToolbar<TData>({
           })}
         {isFiltered && (
           <Button
-            variant="ghost"
+            variant='ghost'
             onClick={() => {
               table.resetColumnFilters();
             }}
-            className="h-8 px-2 lg:px-3"
+            className='h-8 px-2 lg:px-3'
           >
             Reset
-            <Cross2Icon className="ml-2 size-4" />
+            <Cross2Icon className='ml-2 size-4' />
           </Button>
         )}
       </div>

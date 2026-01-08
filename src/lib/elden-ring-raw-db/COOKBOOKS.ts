@@ -44,22 +44,10 @@ export const COOKBOOKS: Record<string, Record<string, [number, string]>> = {
     ArmorersCookbook7: [67250, "Armorer's Cookbook[7]"],
   },
   "Ancient Dragon Apostle's Cookbook": {
-    AncientDragonApostlesCookbook1: [
-      68000,
-      "Ancient Dragon Apostle's Cookbook[1]",
-    ],
-    AncientDragonApostlesCookbook2: [
-      68010,
-      "Ancient Dragon Apostle's Cookbook[2]",
-    ],
-    AncientDragonApostlesCookbook3: [
-      68030,
-      "Ancient Dragon Apostle's Cookbook[3]",
-    ],
-    AncientDragonApostlesCookbook4: [
-      68020,
-      "Ancient Dragon Apostle's Cookbook[4]",
-    ],
+    AncientDragonApostlesCookbook1: [68000, "Ancient Dragon Apostle's Cookbook[1]"],
+    AncientDragonApostlesCookbook2: [68010, "Ancient Dragon Apostle's Cookbook[2]"],
+    AncientDragonApostlesCookbook3: [68030, "Ancient Dragon Apostle's Cookbook[3]"],
+    AncientDragonApostlesCookbook4: [68020, "Ancient Dragon Apostle's Cookbook[4]"],
   },
   "Fevor's Cookbook": {
     FevorsCookbook1: [68200, 'Fevors Cookbook[1]'],

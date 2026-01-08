@@ -45,28 +45,24 @@ export function DataTableColumnHeader<TData, TValue>({
     <div className={cn('flex items-center space-x-2', className)}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-3 h-8 data-[state=open]:bg-accent"
-          >
+          <Button variant='ghost' size='sm' className='-ml-3 h-8 data-[state=open]:bg-accent'>
             <span>{title}</span>
             {column.getIsSorted() === 'desc' ? (
-              <ArrowDownIcon className="ml-2 size-4" />
+              <ArrowDownIcon className='ml-2 size-4' />
             ) : column.getIsSorted() === 'asc' ? (
-              <ArrowUpIcon className="ml-2 size-4" />
+              <ArrowUpIcon className='ml-2 size-4' />
             ) : (
-              <CaretSortIcon className="ml-2 size-4" />
+              <CaretSortIcon className='ml-2 size-4' />
             )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
+        <DropdownMenuContent align='start'>
           <DropdownMenuItem
             onClick={() => {
               column.toggleSorting(false);
             }}
           >
-            <ArrowUpIcon className="mr-2 size-3.5 text-muted-foreground/70" />
+            <ArrowUpIcon className='mr-2 size-3.5 text-muted-foreground/70' />
             Asc
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -74,7 +70,7 @@ export function DataTableColumnHeader<TData, TValue>({
               column.toggleSorting(true);
             }}
           >
-            <ArrowDownIcon className="mr-2 size-3.5 text-muted-foreground/70" />
+            <ArrowDownIcon className='mr-2 size-3.5 text-muted-foreground/70' />
             Desc
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -83,13 +79,13 @@ export function DataTableColumnHeader<TData, TValue>({
               column.toggleVisibility(false);
             }}
           >
-            <EyeNoneIcon className="mr-2 size-3.5 text-muted-foreground/70" />
+            <EyeNoneIcon className='mr-2 size-3.5 text-muted-foreground/70' />
             Hide
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <div className="flex">
+          <div className='flex'>
             <DropdownMenuItem
-              className="grow"
+              className='grow'
               disabled={leafColumns.map((c) => c.id).indexOf(column.id) === 0}
               onClick={() => {
                 const newOrder = leafColumns.map((c) => c.id);
@@ -99,14 +95,11 @@ export function DataTableColumnHeader<TData, TValue>({
                 table.setColumnOrder(newOrder);
               }}
             >
-              <ArrowLeftIcon className="mr-2 size-3.5 text-muted-foreground/70" />
+              <ArrowLeftIcon className='mr-2 size-3.5 text-muted-foreground/70' />
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="grow justify-end"
-              disabled={
-                leafColumns.map((c) => c.id).indexOf(column.id) ===
-                leafColumns.length - 1
-              }
+              className='grow justify-end'
+              disabled={leafColumns.map((c) => c.id).indexOf(column.id) === leafColumns.length - 1}
               onClick={() => {
                 const newOrder = leafColumns.map((c) => c.id);
                 const currentIndex = newOrder.indexOf(column.id);
@@ -115,7 +108,7 @@ export function DataTableColumnHeader<TData, TValue>({
                 table.setColumnOrder(newOrder);
               }}
             >
-              <ArrowRightIcon className="ml-2 size-3.5 text-muted-foreground/70" />
+              <ArrowRightIcon className='ml-2 size-3.5 text-muted-foreground/70' />
             </DropdownMenuItem>
           </div>
         </DropdownMenuContent>

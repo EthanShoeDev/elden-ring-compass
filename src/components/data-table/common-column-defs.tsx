@@ -3,22 +3,19 @@ import { CheckIcon, XIcon } from 'lucide-react';
 import { Checkbox } from '../ui/checkbox';
 import { DataTableColumnHeader } from './data-table-column-header';
 
-export const commonSelectColumnDef = <T,>(
-  columnHelper: ColumnHelper<T>
-): ColumnDef<T> =>
+export const commonSelectColumnDef = <T,>(columnHelper: ColumnHelper<T>): ColumnDef<T> =>
   columnHelper.display({
     id: 'select',
     size: 1,
     header: ({ table }) => (
       <Checkbox
         checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
+          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')
         }
         onCheckedChange={(value) => {
           table.toggleAllPageRowsSelected(!!value);
         }}
-        aria-label="Select all"
+        aria-label='Select all'
       />
     ),
     cell: ({ row }) => {
@@ -29,8 +26,8 @@ export const commonSelectColumnDef = <T,>(
           onCheckedChange={(value) => {
             row.toggleSelected(!!value);
           }}
-          aria-label="Select row"
-          className="ml-2 translate-y-[2px]"
+          aria-label='Select row'
+          className='ml-2 translate-y-[2px]'
         />
       );
     },
@@ -41,11 +38,7 @@ export const commonSelectColumnDef = <T,>(
   });
 
 export const defaultFacetedFilterFnSymbol = Symbol('defaultFacetedFilterFn');
-function defaultFacetedFilterFn<T>(
-  row: Row<T>,
-  columnId: string,
-  filterVal: Array<T>
-) {
+function defaultFacetedFilterFn<T>(row: Row<T>, columnId: string, filterVal: Array<T>) {
   return filterVal.includes(row.getValue(columnId));
 }
 defaultFacetedFilterFn[defaultFacetedFilterFnSymbol] = true;
@@ -54,13 +47,11 @@ export const commonAccessorColumnDef = <T,>(
   columnHelper: ColumnHelper<T>,
   accessor: Parameters<ColumnHelper<T>['accessor']>[0],
   label: string,
-  overrides?: Parameters<ColumnHelper<T>['accessor']>[1]
+  overrides?: Parameters<ColumnHelper<T>['accessor']>[1],
 ): ColumnDef<T> =>
   columnHelper.accessor(accessor, {
     id: label,
-    header: ({ column, table }) => (
-      <DataTableColumnHeader table={table} column={column} />
-    ),
+    header: ({ column, table }) => <DataTableColumnHeader table={table} column={column} />,
     cell: (cell) => {
       const value = cell.renderValue();
       const renderValue =
@@ -70,9 +61,9 @@ export const commonAccessorColumnDef = <T,>(
           'NA'
         ) : typeof value == 'boolean' ? (
           value ? (
-            <CheckIcon className="size-4 text-green-300" />
+            <CheckIcon className='size-4 text-green-300' />
           ) : (
-            <XIcon className="size-4 text-red-300" />
+            <XIcon className='size-4 text-red-300' />
           )
         ) : (
           JSON.stringify(value)

@@ -582,14 +582,8 @@ export const ITEMS = {
     [0x40001c98, `Frenzied Burst`],
     [0x40001ca2, `Howl of Shabriri`],
     [0x40001d4c, `Aspects of the Crucible 00000001 00000000 FFFFFFFF //  Tail`],
-    [
-      0x40001d56,
-      `Aspects of the Crucible 00000001 00000000 FFFFFFFF //  Horns`,
-    ],
-    [
-      0x40001d60,
-      `Aspects of the Crucible 00000001 00000000 FFFFFFFF //  Breath`,
-    ],
+    [0x40001d56, `Aspects of the Crucible 00000001 00000000 FFFFFFFF //  Horns`],
+    [0x40001d60, `Aspects of the Crucible 00000001 00000000 FFFFFFFF //  Breath`],
     [0x40001d6a, `Black Blade`],
     [0x40001edc, `Fire's Deadly Sin`],
     [0x40001edf, `Golden Lightning Fortification`],

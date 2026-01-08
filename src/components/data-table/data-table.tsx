@@ -60,8 +60,7 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
       minSize: 50,
     },
     columnResizeMode: 'onChange',
-    enableRowSelection: (row) =>
-      !!(row.original as { map_data?: MapItem }).map_data,
+    enableRowSelection: (row) => !!(row.original as { map_data?: MapItem }).map_data,
     getRowId: (row) => row.id.toString(),
     onRowSelectionChange: state.setRowSelection,
     onSortingChange: state.setSorting,
@@ -80,8 +79,8 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
     <div className={cn('space-y-4', className)}>
       <DataTableToolbar table={table} />
       <ScrollArea>
-        <div className="rounded-md border">
-          <Table className="min-w-full">
+        <div className='rounded-md border'>
+          <Table className='min-w-full'>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
@@ -90,17 +89,14 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
                       <TableHead
                         key={header.id}
                         colSpan={header.colSpan}
-                        className="relative"
+                        className='relative'
                         style={{
                           width: header.getSize(),
                         }}
                       >
                         {header.isPlaceholder
                           ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                          : flexRender(header.column.columnDef.header, header.getContext())}
                         {header.column.getCanResize() && (
                           <div
                             onMouseDown={header.getResizeHandler()}
@@ -109,7 +105,7 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
                               'absolute inset-y-0 right-0 z-10 w-2 cursor-col-resize touch-none select-none border-r hover:bg-muted',
                               header.column.getIsResizing()
                                 ? 'bg-secondary-foreground/20 hover:bg-secondary-foreground/20'
-                                : ''
+                                : '',
                             )}
                           ></div>
                         )}
@@ -122,26 +118,17 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
             <TableBody>
               {table.getRowModel().rows.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                  >
+                  <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="has-[img]:p-0">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                      <TableCell key={cell.id} className='has-[img]:p-0'>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
+                  <TableCell colSpan={columns.length} className='h-24 text-center'>
                     No results.
                   </TableCell>
                 </TableRow>
@@ -149,7 +136,7 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
             </TableBody>
           </Table>
         </div>
-        <ScrollBar orientation="horizontal" />
+        <ScrollBar orientation='horizontal' />
       </ScrollArea>
       <DataTablePagination table={table} />
     </div>

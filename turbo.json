@@ -10,9 +10,16 @@
       "outputs": ["packages/elden-ring-save-parser/pkg/**"]
     },
     "lint": {
-      "dependsOn": ["fmt:write", "typecheck"]
+      "dependsOn": ["lint:oxlint:fix", "fmt:write", "typecheck"]
     },
+    "lint:check": {
+      "with": ["fmt:check", "lint:oxlint", "typecheck"]
+    },
+    "lint:oxlint": {},
+    "lint:oxlint:fix": {},
+    "lint:oxlint:fix:fix-suggestions": {},
     "fmt:write": {},
+    "fmt:check": {},
     "typecheck": {}
   }
 }

@@ -410,14 +410,7 @@ export type InventoryItem = {
   name: string;
   map_data: Array<MapItem> | undefined;
   id: number;
-  old_category:
-    | 'ACCESSORY'
-    | 'ITEM'
-    | 'EMPTY'
-    | 'WEAPON'
-    | 'ARMOR'
-    | 'AOW'
-    | undefined;
+  old_category: 'ACCESSORY' | 'ITEM' | 'EMPTY' | 'WEAPON' | 'ARMOR' | 'AOW' | undefined;
   weapon_upgrade_level: number;
   quantity: number;
 };
@@ -444,9 +437,7 @@ export const useAllErdb = (): Record<
     const currentItem = inventoryById.get(item.item_id);
     inventoryById.set(item.item_id, {
       ...item,
-      quantity: currentItem
-        ? item.quantity + currentItem.quantity
-        : item.quantity,
+      quantity: currentItem ? item.quantity + currentItem.quantity : item.quantity,
       upgrade_level: currentItem
         ? Math.max(currentItem.upgrade_level, item.upgrade_level)
         : item.upgrade_level,
@@ -463,7 +454,7 @@ export const useAllErdb = (): Record<
             name: string;
             id: number;
           }
-        >
+        >,
       ).map((item) => {
         const invItem = inventoryById.get(item.id);
         const weapon_upgrade_level = invItem?.upgrade_level ?? 0;
@@ -486,7 +477,7 @@ export const useAllErdb = (): Record<
           ownedCount: items.filter((item) => item.quantity > 0).length,
         },
       ];
-    })
+    }),
   ) as Record<
     keyof typeof ERDB,
     {

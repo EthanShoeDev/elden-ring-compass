@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 type FileData = {
   name: string;
@@ -21,13 +21,11 @@ type SaveFileSourceStoreState = {
 };
 
 const getCachedUrl = () => {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("saveFileSourceUrl");
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('saveFileSourceUrl');
 };
 
-export const useSaveFileSourceStore = create<SaveFileSourceStoreState>()((
-  set,
-) => {
+export const useSaveFileSourceStore = create<SaveFileSourceStoreState>()((set) => {
   const cachedUrl = getCachedUrl();
   return {
     saveFileSource: cachedUrl
@@ -36,10 +34,10 @@ export const useSaveFileSourceStore = create<SaveFileSourceStoreState>()((
         }
       : undefined,
     setSaveFileSource: (val) => {
-      if (val && "url" in val) {
-        localStorage.setItem("saveFileSourceUrl", val.url);
+      if (val && 'url' in val) {
+        localStorage.setItem('saveFileSourceUrl', val.url);
       } else {
-        localStorage.removeItem("saveFileSourceUrl");
+        localStorage.removeItem('saveFileSourceUrl');
       }
       set({ saveFileSource: val });
     },

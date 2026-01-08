@@ -11,46 +11,43 @@ import { useState } from 'react';
 
 export function Footer() {
   return (
-    <footer className="flex flex-col items-center py-10">
-      <h3 className="mb-2 text-lg font-bold">Huge thanks to these projects:</h3>
-      <ul className="prose list-inside list-disc dark:prose-invert">
+    <footer className='flex flex-col items-center py-10'>
+      <h3 className='mb-2 text-lg font-bold'>Huge thanks to these projects:</h3>
+      <ul className='prose list-inside list-disc dark:prose-invert'>
         <li>
           <a
-            href="https://github.com/elden-ring-progression-tracker/elden-ring-progression-tracker.github.io"
-            target="_blank"
-            rel="noopener noreferrer"
+            href='https://github.com/elden-ring-progression-tracker/elden-ring-progression-tracker.github.io'
+            target='_blank'
+            rel='noopener noreferrer'
           >
             Elden Ring Progression Tracker
           </a>
         </li>
         <li>
           <a
-            href="https://github.com/ClayAmore/ER-Save-Editor"
-            target="_blank"
-            rel="noopener noreferrer"
+            href='https://github.com/ClayAmore/ER-Save-Editor'
+            target='_blank'
+            rel='noopener noreferrer'
           >
             ER Save Editor
           </a>
         </li>
         <li>
           <a
-            href="https://github.com/EldenRingDatabase/erdb"
-            target="_blank"
-            rel="noopener noreferrer"
+            href='https://github.com/EldenRingDatabase/erdb'
+            target='_blank'
+            rel='noopener noreferrer'
           >
             ERDB
           </a>
         </li>
       </ul>
-      <div className="flex w-full flex-wrap justify-center gap-2 py-8 text-2xl">
-        <a
-          className="hover:underline"
-          href="https://github.com/EthanShoeDev/elden-ring-compass"
-        >
+      <div className='flex w-full flex-wrap justify-center gap-2 py-8 text-2xl'>
+        <a className='hover:underline' href='https://github.com/EthanShoeDev/elden-ring-compass'>
           Github
         </a>{' '}
         -
-        <a className="hover:underline" href="https://www.eldenringcompass.com">
+        <a className='hover:underline' href='https://www.eldenringcompass.com'>
           Website
         </a>
       </div>
@@ -95,9 +92,7 @@ function CopySaveAsJsonButton() {
         regions: regionsVm[0],
         events: {
           known_events: eventsVm,
-          event_buffer: uint8ArrayToBase64(
-            trimTrailingZeros(slot.event_flags.flags)
-          ),
+          event_buffer: uint8ArrayToBase64(trimTrailingZeros(slot.event_flags.flags)),
         },
         inventory: inventoryVm.items,
         equipment: equipmentVm,
@@ -108,8 +103,8 @@ function CopySaveAsJsonButton() {
           result,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           (_, value) => (typeof value === 'bigint' ? value.toString() : value),
-          2
-        )
+          2,
+        ),
       );
     },
     onSuccess: () => {
@@ -126,10 +121,10 @@ function CopySaveAsJsonButton() {
       onClick={() => {
         copyMutation.mutate();
       }}
-      className="flex gap-4"
+      className='flex gap-4'
     >
       {copyMutation.isPending && <Spinner />}
-      {recentSuccess && <span className="text-green-500">✔</span>}
+      {recentSuccess && <span className='text-green-500'>✔</span>}
       {copyMutation.error ? copyMutation.error.message : 'Copy Save as JSON'}
     </Button>
   );

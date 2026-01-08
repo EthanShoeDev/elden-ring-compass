@@ -30,11 +30,10 @@ export function ThemeProvider({
   'use no memo';
   const [themePreference, setThemePreference] = useState<ThemePreference>(
     () =>
-      (localStorage.getItem(storageKey) as ThemePreference | undefined) ??
-      defaultThemePreference
+      (localStorage.getItem(storageKey) as ThemePreference | undefined) ?? defaultThemePreference,
   );
   const [theme, setTheme] = useState<Theme>(
-    themePreference === 'system' ? 'light' : themePreference
+    themePreference === 'system' ? 'light' : themePreference,
   );
 
   useEffect(() => {
@@ -43,8 +42,7 @@ export function ThemeProvider({
     root.classList.remove('light', 'dark');
 
     if (themePreference === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
-        .matches
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
         ? 'dark'
         : 'light';
 

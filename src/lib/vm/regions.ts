@@ -3,9 +3,7 @@ import { MAP_DB_ITEMS } from '../map-db';
 import { Slot } from '../wasm-wrapper';
 
 export function regionsDbView(slot?: Readonly<Slot>) {
-  const regionIdMap = new Map(
-    CLEAN_ELDEN_RING_DB.regions.map((r) => [r.id, r])
-  );
+  const regionIdMap = new Map(CLEAN_ELDEN_RING_DB.regions.map((r) => [r.id, r]));
   const unlockedRegionSet = new Set();
   for (let i = 0; slot && i < slot.regions.unlocked_regions_count; i++) {
     const key = slot.regions.unlocked_regions[i];
@@ -19,9 +17,7 @@ export function regionsDbView(slot?: Readonly<Slot>) {
     return {
       ...e,
       found: unlockedRegionSet.has(e.id),
-      map_data: MAP_DB_ITEMS.get(e.name)?.filter(
-        (m) => m.category != 'Site of Grace'
-      ),
+      map_data: MAP_DB_ITEMS.get(e.name)?.filter((m) => m.category != 'Site of Grace'),
     };
   };
 

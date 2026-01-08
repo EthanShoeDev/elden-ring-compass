@@ -6,21 +6,12 @@ import { InventoryItem, useAllErdb } from './erdb';
 import { eventsDbView } from './vm/events';
 import { regionsDbView } from './vm/regions';
 
+export function useDataTableData(tableId: 'events'): ReturnType<typeof eventsDbView>;
+export function useDataTableData(tableId: 'regions'): ReturnType<typeof regionsDbView>;
+export function useDataTableData(tableId: InventoryTableType): Array<InventoryItem>;
 export function useDataTableData(
-  tableId: 'events'
-): ReturnType<typeof eventsDbView>;
-export function useDataTableData(
-  tableId: 'regions'
-): ReturnType<typeof regionsDbView>;
-export function useDataTableData(
-  tableId: InventoryTableType
-): Array<InventoryItem>;
-export function useDataTableData(
-  tableId: TableId
-):
-  | ReturnType<typeof eventsDbView>
-  | ReturnType<typeof regionsDbView>
-  | Array<InventoryItem> {
+  tableId: TableId,
+): ReturnType<typeof eventsDbView> | ReturnType<typeof regionsDbView> | Array<InventoryItem> {
   const slot = useSelectedSlot();
   const allErdb = useAllErdb();
 

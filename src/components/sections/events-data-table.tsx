@@ -2,18 +2,9 @@ import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 
 import { useDataTableData } from '@/lib/data-table-data';
 import { eventsDbView } from '@/lib/vm/events';
-import {
-  commonAccessorColumnDef,
-  commonSelectColumnDef,
-} from '../data-table/common-column-defs';
+import { commonAccessorColumnDef, commonSelectColumnDef } from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '../ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
 type Event = ReturnType<typeof eventsDbView>[0];
 
@@ -22,7 +13,7 @@ export function EventsDataTable() {
   const ownedCount = items.filter((item) => item.on).length;
 
   return (
-    <Card className="w-full">
+    <Card className='w-full'>
       <CardHeader>
         <CardTitle>Events</CardTitle>
         <CardDescription>
@@ -32,12 +23,7 @@ export function EventsDataTable() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable
-          tableId="events"
-          className=""
-          columns={columns}
-          data={items}
-        />
+        <DataTable tableId='events' className='' columns={columns} data={items} />
       </CardContent>
     </Card>
   );
@@ -52,9 +38,5 @@ const columns: Array<ColumnDef<Event>> = [
   }),
   commonAccessorColumnDef(columnHelper, 'on', 'Complete'),
   commonAccessorColumnDef(columnHelper, 'type', 'Type'),
-  commonAccessorColumnDef(
-    columnHelper,
-    (row) => !!row.map_data,
-    'Has Coordinates'
-  ),
+  commonAccessorColumnDef(columnHelper, (row) => !!row.map_data, 'Has Coordinates'),
 ];

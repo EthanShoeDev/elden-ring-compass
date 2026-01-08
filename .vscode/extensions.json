@@ -11,6 +11,7 @@
     "ms-vsliveshare.vsliveshare",
     "pomdtr.excalidraw-editor",
     "meganrogge.template-string-converter",
-    "yoavbls.pretty-ts-errors"
+    "yoavbls.pretty-ts-errors",
+    "oxc.oxc-vscode"
   ]
 }
