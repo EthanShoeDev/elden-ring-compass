@@ -2,18 +2,12 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "build": {
-      "dependsOn": ["build:wasm-parser"],
+      "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
-    "build:wasm-parser": {
+    "dev": {
       "cache": false,
-      "outputs": ["packages/elden-ring-save-parser/pkg/**"]
-    },
-    "lint": {
-      "dependsOn": ["lint:oxlint:fix", "fmt:write", "typecheck"]
-    },
-    "lint:check": {
-      "with": ["fmt:check", "lint:oxlint", "typecheck"]
+      "persistent": true
     },
     "lint:oxlint": {},
     "lint:oxlint:fix": {},

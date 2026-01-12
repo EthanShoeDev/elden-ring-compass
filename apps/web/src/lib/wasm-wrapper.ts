@@ -1,4 +1,4 @@
-import { parse_save_internal_rust } from 'elden-ring-save-parser';
+import { parse_save_internal_rust } from '@elden-ring-compass/save-parser';
 
 // function prettyPrint(obj: object) {
 //   const prettyArray = (arr: any[]) => {

@@ -6,13 +6,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Critical Context (Read First)
 - **Project**: Elden Ring Compass - Save file viewer and progression tracking website
 - **URL**: https://www.eldenringcompass.com
-- **Tech Stack**: TanStack Start, React 19 (RC), Vite 7, Tailwind CSS v4, Rust/WASM
-- **Main Files**: `src/routes/index.tsx` (main page), `src/lib/map-db.ts` (1.2MB map data)
+- **Tech Stack**: TanStack Start, React 19 (RC), Vite 7, Tailwind CSS v4, Rust/WASM, Bun
+- **Monorepo Structure**: Bun workspaces with Turborepo
+- **Main App**: `apps/web` - TanStack Start web application
 - **Core Mechanic**: Parse Elden Ring save files via WASM and display progression/inventory data
-- **Key Integration**: Rust WASM save parser in `packages/elden-ring-save-parser`
+- **Key Package**: `@elden-ring-compass/save-parser` - Rust WASM save parser
 - **Platform Support**: Static web deployment, runs entirely client-side
 - **Package Manager**: Bun (bun.lockb)
-- **DO NOT**: Modify game data files in `src/assets/erdb/` or `src/lib/elden-ring-raw-db/` without understanding the data source
+- **DO NOT**: Modify game data files in `apps/web/src/assets/erdb/` or `apps/web/src/lib/elden-ring-raw-db/`
+
+## Monorepo Structure
+```
+elden-ring-compass/
+├── apps/
+│   └── web/                    # TanStack Start web app (@elden-ring-compass/web)
+│       ├── src/
+│       │   ├── components/     # React components
+│       │   ├── lib/            # Utilities and game data
+│       │   ├── routes/         # TanStack Router pages
+│       │   └── stores/         # Zustand stores
+│       ├── public/             # Static assets
+│       └── vite.config.ts
+├── packages/
+│   └── elden-ring-save-parser/ # Rust WASM parser (@elden-ring-compass/save-parser)
+│       ├── src/                # Rust source
+│       └── pkg/                # WASM build output
+├── turbo.json                  # Turborepo config
+└── package.json                # Workspace root
+```
 
 ## Session Startup Checklist
 **IMPORTANT**: At the start of each session, check these items:
@@ -35,16 +56,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 12. [Task Management](TASKS.md) - Active tasks, phase tracking, context preservation
 
 ## Quick Reference
-**Router Config**: `src/router.tsx:1-20` - TanStack Router setup
-**Root Layout**: `src/routes/__root.tsx:1-41` - App shell with AppBar/Footer
-**Main Page**: `src/routes/index.tsx:1-26` - All major sections composed here
-**WASM Parser**: `src/lib/wasm-wrapper.ts:1-414` - TypeScript types for Rust WASM
-**Save File Store**: `src/stores/save-file-source-store.ts:1-45` - Zustand store for save source
-**Map Database**: `src/lib/map-db.ts` - 1.2MB of map marker data
-**Game Data**: `src/lib/elden-ring-raw-db/*.ts` - Static game data (items, bosses, regions)
-**UI Components**: `src/components/ui/*.tsx` - Shadcn/Radix UI components
-**Sections**: `src/components/sections/*.tsx` - Major page sections (map, bosses, inventory)
-**CSS Theme**: `src/index.css:1-210` - Tailwind v4 theme with dark mode support
+**Router Config**: `apps/web/src/router.tsx:1-20` - TanStack Router setup
+**Root Layout**: `apps/web/src/routes/__root.tsx:1-41` - App shell with AppBar/Footer
+**Main Page**: `apps/web/src/routes/index.tsx:1-26` - All major sections composed here
+**WASM Parser**: `apps/web/src/lib/wasm-wrapper.ts:1-414` - TypeScript types for Rust WASM
+**Save File Store**: `apps/web/src/stores/save-file-source-store.ts:1-45` - Zustand store for save source
+**Map Database**: `apps/web/src/lib/map-db.ts` - 1.2MB of map marker data
+**Game Data**: `apps/web/src/lib/elden-ring-raw-db/*.ts` - Static game data (items, bosses, regions)
+**UI Components**: `apps/web/src/components/ui/*.tsx` - Shadcn/Radix UI components
+**Sections**: `apps/web/src/components/sections/*.tsx` - Major page sections (map, bosses, inventory)
+**CSS Theme**: `apps/web/src/index.css:1-210` - Tailwind v4 theme with dark mode support
 
 ## Current State
 - [x] Interactive map with zoom/pan
@@ -54,6 +75,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [x] Events/regions data tables
 - [x] Dark mode support
 - [x] Local storage persistence
+- [x] Bun monorepo with Turborepo
 - [ ] Quest section (planned - see `quests-section.tsx`)
 - [ ] Save file editing (WASM supports it, not implemented in UI)
 
@@ -61,16 +83,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 1. Enter Nix dev shell: `nix develop` (or `direnv allow`)
 2. Install deps: `bun i`
 3. Build WASM parser (first time): `bun run build:wasm-parser`
-4. Start dev server: `bun run dev`
-5. Lint: `bun run lint:oxlint` / Format: `bun run fmt:write`
-6. Type check: `bun run typecheck`
-7. Build for production: `bun run build`
+4. Start dev server: `bun run dev` (runs via Turbo)
+5. Lint/format: `bun run lint` (runs oxlint, oxfmt, typecheck via Turbo)
+6. Build for production: `bun run build`
 
 ## Build Commands
 ```bash
+# Root commands (via Turborepo)
 bun run dev              # Start dev server on port 5173
 bun run build            # Production build
 bun run build:wasm-parser # Compile Rust to WASM
+bun run lint             # Lint, format, and typecheck
+bun run lint:check       # Check without fixing
+bun run deps:check       # Check for dependency updates
+bun run deps:update      # Update dependencies in package.json
+
+# App-specific commands (from apps/web/)
+cd apps/web
+bun run dev              # Start dev server
 bun run lint:oxlint      # Run oxlint
 bun run fmt:write        # Format with oxfmt
 bun run typecheck        # TypeScript type checking
@@ -78,30 +108,37 @@ bun run typecheck        # TypeScript type checking
 
 ## Task Templates
 ### 1. Add New Data Table Section
-1. Create component in `src/components/sections/`
-2. Define columns using patterns from `src/components/data-table/common-column-defs.tsx`
-3. Add to `src/routes/index.tsx` imports and JSX
-4. Wire up data from save file via `src/lib/vm/*.ts` view models
+1. Create component in `apps/web/src/components/sections/`
+2. Define columns using patterns from `apps/web/src/components/data-table/common-column-defs.tsx`
+3. Add to `apps/web/src/routes/index.tsx` imports and JSX
+4. Wire up data from save file via `apps/web/src/lib/vm/*.ts` view models
 
 ### 2. Add New Game Data
-1. Add data file to `src/lib/elden-ring-raw-db/`
-2. Export from `src/lib/elden-ring-raw-db/er-raw-db.ts`
-3. Create view model in `src/lib/vm/` if needed
+1. Add data file to `apps/web/src/lib/elden-ring-raw-db/`
+2. Export from `apps/web/src/lib/elden-ring-raw-db/er-raw-db.ts`
+3. Create view model in `apps/web/src/lib/vm/` if needed
 4. Update relevant UI components
 
 ### 3. Modify WASM Parser
 1. Edit Rust code in `packages/elden-ring-save-parser/src/`
 2. Rebuild: `bun run build:wasm-parser`
-3. Update TypeScript types in `src/lib/wasm-wrapper.ts`
+3. Update TypeScript types in `apps/web/src/lib/wasm-wrapper.ts`
 4. Test with a real save file
 
+### 4. Add New Workspace Package
+1. Create `packages/new-package/` with `package.json`
+2. Name it `@elden-ring-compass/new-package`
+3. Add as dependency: `"@elden-ring-compass/new-package": "workspace:*"`
+4. Run `bun install` to link
+
 ## Anti-Patterns (Avoid These)
-- **Don't edit `src/assets/erdb/`** - This is generated data from erdb project
+- **Don't edit `apps/web/src/assets/erdb/`** - This is generated data from erdb project
 - **Don't use npm/yarn** - Project uses Bun exclusively
 - **Don't skip WASM build** - App won't work without compiled parser
 - **Don't ignore TypeScript errors** - Strict mode is enabled
 - **Don't modify Shadcn components directly** - Customize via CSS variables in `index.css`
 - **Don't add server-side logic** - This is a client-only static site
+- **Don't install deps in wrong package.json** - Root for workspace tools, apps/web for app deps
 
 ## Journal Update Requirements
 **IMPORTANT**: Update JOURNAL.md regularly throughout our work sessions:
@@ -121,6 +158,7 @@ bun run typecheck        # TypeScript type checking
 
 ## Version History
 - **v0.0.0** - Initial release with save parsing and progression tracking
+- **v0.1.0** - Restructured to Bun monorepo with apps/ and packages/
 
 ## Keywords <!-- #keywords -->
 - elden ring
@@ -132,3 +170,5 @@ bun run typecheck        # TypeScript type checking
 - react
 - compass
 - game tracker
+- monorepo
+- turborepo
