@@ -8,6 +8,7 @@ import { defineConfig } from 'vite';
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
 import wasm from 'vite-plugin-wasm';
 import tailwindcss from '@tailwindcss/vite';
+import { nitro } from 'nitro/vite';
 
 export default defineConfig({
   test: {
@@ -36,6 +37,7 @@ export default defineConfig({
         enabled: false,
       },
     }),
+    nitro(),
     viteReact(),
   ],
   resolve: {
