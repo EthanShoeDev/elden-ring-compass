@@ -1,8 +1,10 @@
 import * as Comlink from 'comlink';
-import { useSaveFileSourceStore } from '@/stores/save-file-source-store';
+import { useSaveFileSourceStore, isSharedSource } from '@/stores/save-file-source-store';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { delayMs } from './utils';
+import { reconstructSlot } from './share/decode';
+import type { WasmEldenRingSave } from './wasm-wrapper';
 
 // Only create worker in browser environment
 const getWorkerApi = () => {
@@ -22,12 +24,31 @@ export function useEldenRingSaveQuery() {
   const [isParsing, setIsParsing] = useState(false);
   const { saveFileSource } = useSaveFileSourceStore();
   const src = saveFileSource;
+
   return {
     query: useQuery({
       queryKey: ['er-save', src],
       staleTime: 1000 * 60 * 5, // 5 minutes
-      queryFn: async () => {
+      queryFn: async (): Promise<WasmEldenRingSave> => {
         if (!src) throw new Error('No source provided');
+
+        // Handle shared data source - reconstruct slot from compressed data
+        if (isSharedSource(src)) {
+          const reconstructedSlot = reconstructSlot(src.sharedData);
+          // Return a minimal WasmEldenRingSave with just the reconstructed slot
+          return {
+            global_steam_id: '',
+            character_steam_ids: [],
+            profile_summaries: [],
+            regulation: [],
+            slots: [reconstructedSlot as any],
+            user_data_11: {
+              unk: [],
+              regulation: [],
+              rest: [],
+            },
+          };
+        }
 
         // Initialize worker API lazily in browser
         if (!workerApi) {
@@ -70,5 +91,6 @@ export function useEldenRingSaveQuery() {
       enabled: !!src && typeof window !== 'undefined',
     }),
     isParsing,
+    isSharedView: isSharedSource(src),
   };
 }

@@ -38,6 +38,16 @@ export function inventoryDbView(slot: Readonly<Slot>) {
   }
   // Wont need this function, its mostly for writing to save
   function getNextItemIndexes(slot: Readonly<Slot>) {
+    // Handle empty ga_items (e.g., shared view data)
+    if (!slot.ga_items || slot.ga_items.length === 0) {
+      return {
+        next_gaitem_handle: 0,
+        part_gaitem_handle: 0,
+        next_aow_index: 0,
+        next_armament_or_armor_index: 0,
+      };
+    }
+
     let next_gaitem_handle = 0;
     let part_gaitem_handle = 0;
     let next_aow_index = 0;
@@ -65,7 +75,7 @@ export function inventoryDbView(slot: Readonly<Slot>) {
     };
   }
 
-  const gaItemMap = new Map<number, GaItem>(slot.ga_items.map((i) => [i.gaitem_handle, i]));
+  const gaItemMap = new Map<number, GaItem>((slot.ga_items || []).map((i) => [i.gaitem_handle, i]));
   const fill_storage_type = (inventory_data: EquipInventoryData | StorageInventoryData) => {
     return inventory_data.common_items
       .map((commonItem, idx) => {
@@ -83,10 +93,10 @@ export function inventoryDbView(slot: Readonly<Slot>) {
             }
           : gaItemMap.get(commonItem.ga_item_handle);
 
-        if (!gaitem)
-          throw new Error(
-            `Could not find gaitem for common item: ${commonItem.ga_item_handle.toString()}`,
-          );
+        // For shared view data, ga_items may be empty - skip items that can't be resolved
+        if (!gaitem) {
+          return null;
+        }
 
         const itemId = ['ACCESSORY', 'ITEM', 'EMPTY'].includes(itemType)
           ? commonItem.ga_item_handle ^ InventoryGaItemTypeToOffset[itemType]
@@ -129,7 +139,7 @@ export function inventoryDbView(slot: Readonly<Slot>) {
           map_data: MAP_DB_ITEMS.get(itemName),
         };
       })
-      .filter((i) => i.item_id != -1 && i.item_id != 0);
+      .filter((i): i is NonNullable<typeof i> => i !== null && i.item_id != -1 && i.item_id != 0);
   };
 
   const equip_inventory = fill_storage_type(slot.equip_inventory_data);

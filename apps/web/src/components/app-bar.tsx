@@ -1,6 +1,7 @@
 import { SwordIcon } from 'lucide-react';
 import { DarkModeToggle } from './misc/dark-mode-toggle';
 import { SaveFileSourceSelector } from './misc/save-file-source-selector';
+import { ShareButton } from './misc/share-button';
 
 export function AppBar() {
   return (
@@ -14,6 +15,7 @@ export function AppBar() {
         </div>
         <div className='flex flex-wrap items-center gap-2 md:gap-4'>
           <SaveFileSourceSelector />
+          <ShareButton />
           <DarkModeToggle />
         </div>
       </div>

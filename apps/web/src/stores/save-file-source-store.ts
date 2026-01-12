@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { ShareableProgression } from '@/lib/share/types';
 
 type FileData = {
   name: string;
@@ -13,7 +14,11 @@ type UrlSource = {
   url: string;
 };
 
-export type SaveFileSource = FileUploadSource | UrlSource;
+type SharedDataSource = {
+  sharedData: ShareableProgression;
+};
+
+export type SaveFileSource = FileUploadSource | UrlSource | SharedDataSource;
 
 type SaveFileSourceStoreState = {
   saveFileSource?: SaveFileSource;
@@ -43,3 +48,12 @@ export const useSaveFileSourceStore = create<SaveFileSourceStoreState>()((set) =
     },
   };
 });
+
+// Type guards
+export const isFileSource = (src?: SaveFileSource): src is FileUploadSource =>
+  !!src && 'file' in src;
+
+export const isUrlSource = (src?: SaveFileSource): src is UrlSource => !!src && 'url' in src;
+
+export const isSharedSource = (src?: SaveFileSource): src is SharedDataSource =>
+  !!src && 'sharedData' in src;

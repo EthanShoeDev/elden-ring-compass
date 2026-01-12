@@ -1,6 +1,7 @@
 import { createRootRoute, HeadContent, Scripts, Outlet } from '@tanstack/react-router';
 import { AppBar } from '@/components/app-bar';
 import { Footer } from '@/components/footer';
+import { SharedViewBanner } from '@/components/misc/shared-view-banner';
 import '../index.css';
 
 export const Route = createRootRoute({
@@ -31,6 +32,7 @@ function RootComponent() {
       <body>
         <div className='flex h-screen flex-col'>
           <AppBar />
+          <SharedViewBanner />
           <Outlet />
           <Footer />
         </div>
