@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { devtools } from '@tanstack/devtools-vite';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact from '@vitejs/plugin-react';
@@ -9,6 +10,12 @@ import wasm from 'vite-plugin-wasm';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}'],
+    setupFiles: ['./src/test/setup.ts'],
+  },
   server: {
     port: 3000,
     strictPort: false,
