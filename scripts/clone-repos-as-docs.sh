@@ -23,3 +23,6 @@ gh repo clone TanStack/tanstack.com
 gh repo clone tailwindlabs/tailwindcss
 gh repo clone tailwindlabs/tailwindcss.com
 
+# Elden Ring
+gh repo clone EldenRingDatabase/erdb
+gh repo clone ClayAmore/ER-Save-Editor
