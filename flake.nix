@@ -21,6 +21,7 @@
 
           # WASM compilation
           wasm-pack
+          lld  # LLVM linker required for WASM target
 
           # Node.js runtime
           nodejs_22

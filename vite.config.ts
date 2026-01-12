@@ -26,9 +26,7 @@ export default defineConfig({
     tailwindcss(),
     tanstackStart({
       prerender: {
-        enabled: true,
-        crawlLinks: true,
-        autoStaticPathsDiscovery: true,
+        enabled: false,
       },
     }),
     viteReact(),
@@ -36,6 +34,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      'elden-ring-save-parser': path.resolve(
+        __dirname,
+        './packages/elden-ring-save-parser/pkg',
+      ),
     },
   },
 });
