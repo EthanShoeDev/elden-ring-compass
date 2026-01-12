@@ -20,8 +20,6 @@
   },
   "editor.formatOnSave": true,
   "workbench.sideBar.location": "right",
-  "workbench.colorTheme": "Default Dark+",
-  "workbench.iconTheme": "vscode-icons",
   "editor.stickyScroll.enabled": true,
   "git.autofetch": true,
   "tailwindCSS.classAttributes": ["class", "className", "ngClass", "class:list", ".*ClassName"]
