@@ -27,3 +27,11 @@ package-lock.json
 
 # Vite
 *.local
+.vercel
+.env*.local
+
+# Nitro build output
+.output
+
+# Cloned documentation repos
+docs/cloned-repos-as-docs/
