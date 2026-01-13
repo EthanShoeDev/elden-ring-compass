@@ -10,12 +10,12 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "lint:oxlint": "oxlint src/",
-    "lint:oxlint:fix": "oxlint src/ --fix",
-    "lint:oxlint:fix:fix-suggestions": "oxlint src/ --fix --fix-suggestions",
+    "lint:oxlint": "oxlint src/ --type-aware --type-check",
+    "lint:oxlint:fix": "oxlint src/ --fix --type-aware --type-check",
+    "lint:oxlint:fix:fix-suggestions": "oxlint src/ --fix --fix-suggestions --type-aware --type-check",
     "fmt:write": "oxfmt --write src/",
     "fmt:check": "oxfmt --check src/",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
     "@elden-ring-compass/save-parser": "workspace:*",
@@ -85,8 +85,9 @@
     "sharp": "^0.33.5",
     "svgo": "^3.3.2",
     "tailwindcss": "^4.1.0",
+    "@typescript/native-preview": "^7.0.0-dev.20260112.1",
     "typescript": "^5.5.4",
-    "vite": "^7.3.1",
+    "vite": "^8.0.0-beta.7",
     "vite-plugin-image-optimizer": "^1.1.8",
     "vite-tsconfig-paths": "^6.0.3",
     "vitest": "^4.0.16"

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { isFileSource, isUrlSource, isSharedSource, type SaveFileSource } from './save-file-source-store';
+import {
+  isFileSource,
+  isUrlSource,
+  isSharedSource,
+  type SaveFileSource,
+} from './save-file-source-store';
 import { SHAREABLE_VERSION } from '@/lib/share/types';
 
 describe('SaveFileSource type guards', () => {
