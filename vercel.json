@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "./scripts/ci-setup.sh && bun run build:wasm-parser && bun i",
-  "buildCommand": "turbo run build",
+  "installCommand": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && source $HOME/.cargo/env && curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh && bun i",
+  "buildCommand": "source $HOME/.cargo/env && turbo run build",
   "outputDirectory": "apps/web/.output"
 }
