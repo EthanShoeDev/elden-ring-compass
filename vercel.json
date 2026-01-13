@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "./scripts/ci-setup.sh && bun run build:wasm-parser && bun i",
-  "buildCommand": "cd apps/web && bun run build",
+  "buildCommand": "turbo run build",
   "outputDirectory": "apps/web/.output"
 }
