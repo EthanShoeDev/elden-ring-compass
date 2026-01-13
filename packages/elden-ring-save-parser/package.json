@@ -11,5 +11,8 @@
       "types": "./pkg/elden_ring_save_parser.d.ts"
     }
   },
-  "files": ["pkg"]
+  "files": ["pkg"],
+  "scripts": {
+    "build": "wasm-pack build --target web"
+  }
 }
