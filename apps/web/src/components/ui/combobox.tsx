@@ -39,16 +39,18 @@ export function Combobox({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant='outline'
-          role='combobox'
-          aria-expanded={open}
-          className={cn('justify-between', triggerButtonClassName)}
-        >
-          {value ? items.find((item) => item.value === value)?.label : placeholder}
-          <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            variant='outline'
+            role='combobox'
+            aria-expanded={open}
+            className={cn('justify-between', triggerButtonClassName)}
+          />
+        }
+      >
+        {value ? items.find((item) => item.value === value)?.label : placeholder}
+        <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
       </PopoverTrigger>
       <PopoverContent className={cn('p-0', popoverContentClassName)}>
         <Command>

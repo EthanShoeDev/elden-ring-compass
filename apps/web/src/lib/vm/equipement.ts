@@ -1,4 +1,3 @@
-import { assertDefined } from '../utils';
 import { CLEAN_ELDEN_RING_DB } from '../elden-ring-raw-db/er-raw-db';
 import { Slot } from '../wasm-wrapper';
 import { InventoryGaItemTypeToOffset, InventoryItemTypeToOffset } from './inventory';
@@ -47,12 +46,10 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
 
   const weapon_arms = (side: 'left' | 'right') =>
     Array.from({ length: 3 }, (_, i) => {
-      const gaitem_handle = assertDefined(
-        side == 'left'
+      const gaitem_handle =
+        (side == 'left'
           ? slot.chr_asm2.left_hand_armaments[i]
-          : slot.chr_asm2.right_hand_armaments[i],
-        'weapon armament index out of range',
-      );
+          : slot.chr_asm2.right_hand_armaments[i]) ?? 0;
       const id = gaHandleToGaItemId.get(gaitem_handle);
       const equip_index = equip_index_from_ga_handle(gaitem_handle);
       return {
@@ -67,7 +64,7 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
   const right_hand_armaments = weapon_arms('right');
 
   const arrows = Array.from({ length: 2 }, (_, i) => {
-    const gaitem_handle = assertDefined(slot.chr_asm2.arrows[i], 'arrow index out of range');
+    const gaitem_handle = slot.chr_asm2.arrows[i] ?? 0;
     const id = gaHandleToGaItemId.get(gaitem_handle) ?? 0;
     const equip_index = equip_index_from_ga_handle(gaitem_handle);
     return {
@@ -98,7 +95,7 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
   const legs = armor_fn(slot.chr_asm2.legs);
 
   const talismans = Array.from({ length: 4 }, (_, i) => {
-    const gaitem_handle = assertDefined(slot.chr_asm2.talismans[i], 'talisman index out of range');
+    const gaitem_handle = slot.chr_asm2.talismans[i] ?? 0;
     const item_id = gaHandleToGaItemId.get(gaitem_handle) ?? 0;
     const talisman_id = item_id != 0 ? item_id ^ InventoryGaItemTypeToOffset.ACCESSORY : 0;
     const equip_index = equip_index_from_ga_handle(gaitem_handle);

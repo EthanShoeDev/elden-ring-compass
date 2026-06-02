@@ -1,4 +1,4 @@
-import { MixerHorizontalIcon } from '@radix-ui/react-icons';
+import { SlidersHorizontal as MixerHorizontalIcon } from 'lucide-react';
 import { Table } from '@tanstack/react-table';
 
 import { Button } from '@/components/ui/button';
@@ -19,11 +19,13 @@ export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps
   'use no memo';
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant='outline' size='sm' className='ml-auto hidden h-8 lg:flex'>
-          <MixerHorizontalIcon className='mr-2 size-4' />
-          View
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button variant='outline' size='sm' className='ml-auto hidden h-8 lg:flex' />
+        }
+      >
+        <MixerHorizontalIcon className='mr-2 size-4' />
+        View
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end' className='w-[150px]'>
         <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>

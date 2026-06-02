@@ -47,10 +47,7 @@ export const saveAtom = Atom.make((get) =>
       return {
         global_steam_id: '',
         character_steam_ids: [],
-        profile_summaries: [],
-        regulation: [],
         slots: [slot as never],
-        user_data_11: { unk: [], regulation: [], rest: [] },
       } satisfies WasmEldenRingSave;
     }
 

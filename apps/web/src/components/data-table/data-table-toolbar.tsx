@@ -1,4 +1,4 @@
-import { Cross2Icon } from '@radix-ui/react-icons';
+import { X as Cross2Icon } from 'lucide-react';
 import { FilterFn, Table } from '@tanstack/react-table';
 
 import { Button } from '@/components/ui/button';

@@ -1,11 +1,11 @@
 import {
-  ArrowDownIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  ArrowUpIcon,
-  CaretSortIcon,
-  EyeNoneIcon,
-} from '@radix-ui/react-icons';
+  ArrowDown as ArrowDownIcon,
+  ArrowLeft as ArrowLeftIcon,
+  ArrowRight as ArrowRightIcon,
+  ArrowUp as ArrowUpIcon,
+  ChevronsUpDown as CaretSortIcon,
+  EyeOff as EyeNoneIcon,
+} from 'lucide-react';
 import { Column, Table } from '@tanstack/react-table';
 
 import { Button } from '@/components/ui/button';
@@ -44,9 +44,12 @@ export function DataTableColumnHeader<TData, TValue>({
   return (
     <div className={cn('flex items-center space-x-2', className)}>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant='ghost' size='sm' className='-ml-3 h-8 data-[state=open]:bg-accent'>
-            <span>{title}</span>
+        <DropdownMenuTrigger
+          render={
+            <Button variant='ghost' size='sm' className='-ml-3 h-8 data-[state=open]:bg-accent' />
+          }
+        >
+          <span>{title}</span>
             {column.getIsSorted() === 'desc' ? (
               <ArrowDownIcon className='ml-2 size-4' />
             ) : column.getIsSorted() === 'asc' ? (
@@ -54,7 +57,6 @@ export function DataTableColumnHeader<TData, TValue>({
             ) : (
               <CaretSortIcon className='ml-2 size-4' />
             )}
-          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='start'>
           <DropdownMenuItem

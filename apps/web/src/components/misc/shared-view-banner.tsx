@@ -3,7 +3,6 @@ import { useAtomSet } from '@effect/atom-react';
 import { Button } from '../ui/button';
 import { useEldenRingSave } from '@/lib/atoms/save';
 import { saveFileSourceAtom } from '@/stores/save-file-source-store';
-import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
 
 export function SharedViewBanner() {
   const { data, isSharedView } = useEldenRingSave();
@@ -15,9 +14,7 @@ export function SharedViewBanner() {
 
   // Get the character name from the shared data
   const slot = data.slots[0];
-  const characterName = slot
-    ? playerNameBytesToString(slot.player_game_data.character_name)
-    : 'Unknown';
+  const characterName = slot ? slot.player_game_data.character_name : 'Unknown';
 
   const handleLoadOwn = () => {
     setSaveFileSource(undefined);

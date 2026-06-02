@@ -5,7 +5,7 @@ import { eventsDbView } from '@/lib/vm/events';
 import { regionsDbView } from '@/lib/vm/regions';
 import { statsDbView } from '@/lib/vm/stats';
 import { equipmentDbView } from '@/lib/vm/equipement';
-import Spinner from './ui/spinner';
+import { Spinner } from './ui/spinner';
 import { useState } from 'react';
 
 export function Footer() {

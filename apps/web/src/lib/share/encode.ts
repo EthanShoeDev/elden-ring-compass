@@ -1,8 +1,6 @@
 import LZString from 'lz-string';
 import { EVENT_FLAGS } from '@/lib/elden-ring-raw-db/EVENT_FLAGS';
-import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
 import type { Slot } from '@/lib/wasm-wrapper';
-import { assertDefined } from '@/lib/utils';
 import { type ShareableProgression, SHAREABLE_VERSION } from './types';
 
 function get_bit(byte: number, bit_pos: number): boolean {
@@ -25,10 +23,7 @@ export function extractShareableData(slot: Readonly<Slot>): ShareableProgression
   completedEventIds.sort((a, b) => a - b);
   const deltaEncodedEvents = completedEventIds.map((id, i) => {
     if (i === 0) return id;
-    const previousId = assertDefined(
-      completedEventIds[i - 1],
-      'delta encode: previous event id missing',
-    );
+    const previousId = completedEventIds[i - 1] ?? 0;
     return id - previousId;
   });
 
@@ -42,10 +37,9 @@ export function extractShareableData(slot: Readonly<Slot>): ShareableProgression
     ),
   ];
 
-  // Extract GA items for upgrade levels
-  const gaItems: [number, number][] = slot.ga_item_data.ga_items.map(
-    (g) => [g.id, g.reinforce_type] as [number, number],
-  );
+  // GA items (upgrade levels) were never read by the shared-view renderer; the new lean
+  // parser drops the redundant GaitemGameData table, so this is intentionally empty.
+  const gaItems: [number, number][] = [];
 
   // Extract unlocked region IDs
   const unlockedRegions: number[] = [];
@@ -57,7 +51,7 @@ export function extractShareableData(slot: Readonly<Slot>): ShareableProgression
 
   return {
     v: SHAREABLE_VERSION,
-    n: playerNameBytesToString(slot.player_game_data.character_name),
+    n: slot.player_game_data.character_name,
     s: {
       l: slot.player_game_data.level,
       v: slot.player_game_data.vigor,

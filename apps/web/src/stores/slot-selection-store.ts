@@ -2,10 +2,8 @@ import { Schema } from 'effect';
 import { Atom } from 'effect/unstable/reactivity';
 import { useAtom } from '@effect/atom-react';
 import { useEffect } from 'react';
-import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
 import { useEldenRingSave } from '@/lib/atoms/save';
 import { browserKvsRuntime } from '@/lib/atoms/kvs';
-import { assertDefined } from '@/lib/utils';
 
 // In-session selected slot name (effect-atom; replaced the Zustand store).
 const selectedSlotNameAtom = Atom.make<string | undefined>(undefined);
@@ -30,14 +28,12 @@ export const useSlotNameSelection = () => {
       const cached = slotMemory[steamId];
       if (
         cached &&
-        data.slots.some(
-          (s) => playerNameBytesToString(s.player_game_data.character_name) === cached,
-        )
+        data.slots.some((s) => s.player_game_data.character_name === cached)
       ) {
         setSelectedSlotName(cached);
       } else {
-        const firstSlot = assertDefined(data.slots[0], 'expected at least one save slot');
-        setSelectedSlotName(playerNameBytesToString(firstSlot.player_game_data.character_name));
+        const firstSlot = data.slots[0];
+        if (firstSlot) setSelectedSlotName(firstSlot.player_game_data.character_name);
       }
     }
   }, [data, selectedSlotName, slotMemory, setSelectedSlotName]);
@@ -56,7 +52,5 @@ export const useSelectedSlot = () => {
   const [slotName] = useSlotNameSelection();
   const { data } = useEldenRingSave();
   if (!data) return;
-  return data.slots.find(
-    (slot) => slotName === playerNameBytesToString(slot.player_game_data.character_name),
-  );
+  return data.slots.find((slot) => slotName === slot.player_game_data.character_name);
 };

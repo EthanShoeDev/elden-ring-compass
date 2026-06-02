@@ -3,6 +3,7 @@ import { RegistryProvider } from '@effect/atom-react';
 import { AppBar } from '@/components/app-bar';
 import { Footer } from '@/components/footer';
 import { SharedViewBanner } from '@/components/misc/shared-view-banner';
+import { Providers } from '@/components/providers/providers';
 import '../index.css';
 
 export const Route = createRootRoute({
@@ -26,18 +27,20 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <html lang='en'>
+    <html lang='en' suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body>
         <RegistryProvider>
-          <div className='flex h-screen flex-col'>
-            <AppBar />
-            <SharedViewBanner />
-            <Outlet />
-            <Footer />
-          </div>
+          <Providers>
+            <div className='flex h-screen flex-col'>
+              <AppBar />
+              <SharedViewBanner />
+              <Outlet />
+              <Footer />
+            </div>
+          </Providers>
         </RegistryProvider>
         <Scripts />
       </body>

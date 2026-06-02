@@ -2,13 +2,14 @@ import { ComponentProps } from 'react';
 import { Button } from './button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip';
 
-export function TooltipButton(props: ComponentProps<typeof Button> & { tooltip: string }) {
+export function TooltipButton({
+  tooltip,
+  ...props
+}: ComponentProps<typeof Button> & { tooltip: string }) {
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <Button {...props} />
-      </TooltipTrigger>
-      <TooltipContent sideOffset={8}>{props.tooltip}</TooltipContent>
+      <TooltipTrigger render={<Button {...props} />} />
+      <TooltipContent sideOffset={8}>{tooltip}</TooltipContent>
     </Tooltip>
   );
 }

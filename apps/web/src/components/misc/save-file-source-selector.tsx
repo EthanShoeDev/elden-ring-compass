@@ -1,5 +1,4 @@
 import { Label } from '@/components/ui/label';
-import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
 import { useEldenRingSave } from '@/lib/atoms/save';
 import { fileToArrBuffer } from '@/lib/er-save-parser';
 import { saveFileSourceAtom } from '@/stores/save-file-source-store';
@@ -21,7 +20,7 @@ import { Button } from '../ui/button';
 import { Combobox } from '../ui/combobox';
 import { Input } from '../ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import Spinner from '../ui/spinner';
+import { Spinner } from '../ui/spinner';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 
 export function SaveFileSourceSelector() {
@@ -38,44 +37,42 @@ export function SaveFileSourceSelector() {
       <SlotSelector />
       {saveFileSource && <RefreshButton />}
       <Popover>
-        <PopoverTrigger asChild>
-          <Button className='flex gap-2'>
-            {!saveFileSource && (
+        <PopoverTrigger render={<Button className='flex gap-2' />}>
+          {!saveFileSource && (
+            <>
+              <UnplugIcon />
+              Connect your save file
+            </>
+          )}
+          {saveFileSource && 'file' in saveFileSource && (
+            <>
+              <FileCheckIcon />
+              File Uploaded
+            </>
+          )}
+          {saveFileSource &&
+            'url' in saveFileSource &&
+            (save.isError ? (
               <>
-                <UnplugIcon />
-                Connect your save file
+                <Link2OffIcon />
+                Url Error
               </>
-            )}
-            {saveFileSource && 'file' in saveFileSource && (
+            ) : (
               <>
-                <FileCheckIcon />
-                File Uploaded
+                <LinkIcon />
+                Url Connected
               </>
-            )}
-            {saveFileSource &&
-              'url' in saveFileSource &&
-              (save.isError ? (
-                <>
-                  <Link2OffIcon />
-                  Url Error
-                </>
-              ) : (
-                <>
-                  <LinkIcon />
-                  Url Connected
-                </>
-              ))}
-          </Button>
+            ))}
         </PopoverTrigger>
         <PopoverContent className='w-[600px] max-w-full'>
           <div className='flex flex-col items-start gap-4'>
             <Label>Select source</Label>
             <ToggleGroup
               className='rounded-md border'
-              type='single'
-              value={type}
+              value={[type]}
               onValueChange={(v) => {
-                setType(v as 'file' | 'url');
+                const next = v[v.length - 1];
+                if (next) setType(next as 'file' | 'url');
               }}
             >
               <ToggleGroupItem
@@ -188,7 +185,7 @@ function SlotSelector() {
       triggerButtonClassName='w-[200px]'
       popoverContentClassName='w-[200px]'
       items={data.slots
-        .map((slot) => playerNameBytesToString(slot.player_game_data.character_name))
+        .map((slot) => slot.player_game_data.character_name)
         .map((s) => ({
           label: s,
           value: s,

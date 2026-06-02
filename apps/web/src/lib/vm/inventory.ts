@@ -89,10 +89,7 @@ export function inventoryDbView(slot: Readonly<Slot>) {
           ? {
               gaitem_handle: 0,
               item_id: 0,
-              unk2: -1,
-              unk3: -1,
-              aow_gaitem_handle: 0xffffffff, // u32::MAX
-              unk5: 0,
+              gem_gaitem_handle: 0,
             }
           : gaItemMap.get(commonItem.ga_item_handle);
 
