@@ -1,4 +1,4 @@
-import { Data, Effect, Runtime } from 'effect';
+import { Data, Effect } from 'effect';
 
 import { unpackInstall } from '../archive/dvdbnd.ts';
 import { PipelineContext } from '../domain/context.ts';
@@ -20,15 +20,15 @@ export const unpack = Effect.gen(function* () {
     `dvdbnd → ${ctx.gameRoot}${ctx.clean ? ' (--clean)' : ''}`,
   );
   // Bridge the unpacker's progress callback to Effect's logger via the
-  // surrounding runtime (the hot loop stays plain async, not per-file Effects).
-  // The captured runtime carries the `stage` log annotation set in pipeline.ts.
-  const runtime = yield* Effect.runtime<never>();
+  // surrounding context (the hot loop stays plain async, not per-file Effects).
+  // The captured context carries the `stage` log annotation set in pipeline.ts.
+  const context = yield* Effect.context<never>();
   const summary = yield* Effect.tryPromise({
     try: () =>
       unpackInstall({
         gameRoot: ctx.gameRoot,
         clean: ctx.clean,
-        log: (msg) => Runtime.runSync(runtime)(Effect.logInfo(msg)),
+        log: (msg) => Effect.runSyncWith(context)(Effect.logInfo(msg)),
       }),
     catch: (cause) => new UnpackError({ detail: String(cause) }),
   });

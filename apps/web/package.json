@@ -14,6 +14,8 @@
     "clean": "rm -rf .turbo .output .nitro dist *.tsbuildinfo"
   },
   "dependencies": {
+    "@effect/atom-react": "catalog:",
+    "@elden-ring-compass/data": "workspace:*",
     "@elden-ring-compass/save-parser": "workspace:*",
     "@faker-js/faker": "catalog:",
     "@radix-ui/react-accordion": "catalog:",
@@ -45,12 +47,14 @@
     "cmdk": "catalog:",
     "comlink": "catalog:",
     "date-fns": "catalog:",
+    "effect": "catalog:",
     "lucide-react": "catalog:",
     "lz-string": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-markdown": "catalog:",
     "react-zoom-pan-pinch": "catalog:",
+    "scheduler": "*",
     "tailwind-merge": "catalog:",
     "zustand": "catalog:"
   },

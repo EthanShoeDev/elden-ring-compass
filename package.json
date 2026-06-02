@@ -8,11 +8,10 @@
       "packages/*"
     ],
     "catalog": {
-      "@effect/cli": "^0.75.1",
+      "@effect/atom-react": "4.0.0-beta.75",
       "@effect/language-service": "0.86.2",
-      "@effect/platform": "^0.96.1",
-      "@effect/platform-bun": "^0.89.0",
-      "@effect/tsgo": "0.13.0",
+      "@effect/platform-bun": "4.0.0-beta.75",
+      "@effect/tsgo": "0.13.1",
       "@faker-js/faker": "^10.4.0",
       "@radix-ui/react-accordion": "^1.2.12",
       "@radix-ui/react-avatar": "^1.1.11",
@@ -60,7 +59,7 @@
       "comlink": "^4.4.2",
       "cross-env": "^10.1.0",
       "date-fns": "^4.4.0",
-      "effect": "^3.21.2",
+      "effect": "4.0.0-beta.75",
       "jscpd": "^4.2.4",
       "jsdom": "^29.1.1",
       "lucide-react": "^1.17.0",
@@ -112,9 +111,7 @@
     "prepare": "effect-tsgo patch"
   },
   "devDependencies": {
-    "@effect/cli": "catalog:",
     "@effect/language-service": "catalog:",
-    "@effect/platform": "catalog:",
     "@effect/platform-bun": "catalog:",
     "@effect/tsgo": "catalog:",
     "@elden-ring-compass/config": "workspace:*",

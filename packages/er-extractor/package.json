@@ -18,10 +18,9 @@
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
-    "@effect/cli": "catalog:",
-    "@effect/platform": "catalog:",
     "@effect/platform-bun": "catalog:",
-    "effect": "catalog:"
+    "effect": "catalog:",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@elden-ring-compass/config": "workspace:*",

@@ -27,6 +27,7 @@ export interface PipelineContextValue {
  * tag rather than taking a `ctx` parameter; `cli.ts` provides it once at the top
  * via `Effect.provideService`.
  */
-export class PipelineContext extends Context.Tag(
-  'er-extractor/PipelineContext',
-)<PipelineContext, PipelineContextValue>() {}
+export class PipelineContext extends Context.Service<
+  PipelineContext,
+  PipelineContextValue
+>()('er-extractor/PipelineContext') {}
