@@ -2,7 +2,7 @@
 
 > **Scope**: This is bigger than DLC. It is a **complete overhaul of the site's data backend.** Today every data file (`apps/web/src/lib/elden-ring-raw-db/*.ts`, the Rust `db/*.rs`, `map-db.ts`, and `assets/erdb/`) is hand-/erdb-generated and frozen at game v1.10. We replace all of it with **one repeatable command you point at your Elden Ring install dir** that re-exports *everything* the site needs — items, equipment, event flags (graces/bosses), regions, map markers, and map images — making the extractor the single source of truth. DLC (Shadow of the Erdtree) is the forcing function and first payoff; future patches become a one-command refresh.
 
-> **Status (2026-06-02)**: Research + tooling survey complete; reference repos cloned. **Decided:** extractor = **Effect-TS on Bun** (§5); **runs on native Windows** so `bun:ffi` can load the game's Oodle DLL (§1). **Phase 0 scaffold done** — `packages/er-extractor/` typechecks, lints, and runs (stub stages). No site data changed yet. **Next:** re-clone on Windows and run the Phase 1 Oodle spike (§9).
+> **Status (2026-06-02)**: Research + tooling survey complete; reference repos cloned (incl. **SoulsFormatsNEXT** + **UXM-Selective-Unpack** on Windows). **Decided:** extractor = **Effect-TS on Bun** (§5); **runs on native Windows** so `bun:ffi` can load the game's Oodle DLL (§1). **Phase 0 scaffold done.** **Phase 1 in progress, two gates PASSED on the real install:** (a) **Oodle** — `bun:ffi` loads `oo2core_6_win64.dll` (v6, not v9) and does a Kraken roundtrip; impl in `src/external/oodle.ts`. (b) **dvdbnd unpack** — the game files are inside encrypted **BHD5/BDT** archives (no loose `msg/`/`menu/`/`map/`), so we built a full **UXM-parity unpacker** in TS (`src/archive/dvdbnd.ts` + `crypto/rsa.ts`, `formats/bhd5.ts`, vendored keys/dictionary): RSA-decrypt `.bhd` → parse BHD5 → hash-match → AES-128-ECB → `.bdt` slice. Verified by extracting real `item.msgbnd.dcx`. Idempotent (skip-if-exists), `--clean` re-extracts; full unpack run = 130,781 files. (c) **DCX** — `src/formats/dcx.ts` decompresses `DCX_KRAK`(Oodle)/`DCX_ZSTD`/`DCX_DFLT`(zlib); verified `item.msgbnd.dcx` → BND4 (note: DCX headers are **big-endian**, unlike BHD5). **Next:** BND4 container parse → FMG (names) + PARAM (Phase 2).
 
 ---
 
@@ -118,7 +118,7 @@ Gives the preferred language now and a clear path to the ideal, blocked on no ot
 
 ## 6. Pipeline stages (language-agnostic)
 
-1. **Locate & unpack** — given install dir, decrypt/decompress `regulation.bin`, unpack needed `msgbnd`/`tpf`/`msb`.
+1. **Locate & unpack** — game files live in encrypted **BHD5/BDT** archives (`Data0-3`/`DLC`/`sd`). `src/archive/dvdbnd.ts` ports UXM's Selective Unpacker (RSA `.bhd` → BHD5 → AES → `.bdt`) to write loose files into the game dir; idempotent skip-if-exists + `--clean`. `regulation.bin` is loose (DCX_ZSTD) and read directly by the params stage.
 2. **Params** — extract EquipParamWeapon/Protector/Goods/Accessory/Gem, BonfireWarpParam, WorldMapPoint → rows by id.
 3. **Text (FMG)** — extract weapon/protector/goods/accessory/arts/place names + captions → id→string.
 4. **Join** — params ⨝ text → item/equipment records (base + DLC together).
@@ -175,6 +175,9 @@ Under `docs/cloned-repos-as-docs/dlc-data-sources/` (shallow, gitignored):
 | `erdb` | Python | original generator of `assets/erdb/`; icon/map/JSON output shape |
 | `eldenring-practice-tool` | Rust/YAML | DLC item ids (hex handles — superseded by ER-Save-Lib for names) |
 | `ER-Save-Editor` | Rust | save *format*/offset reference only (db stale, no DLC) |
+| `SoulsFormatsNEXT` | C# | **authoritative BHD5/DCX/BND/FMG/TPF/MSB layouts** — porting source (BHD5.cs ported → `formats/bhd5.ts`) |
+| `UXM-Selective-Unpack` | C# | dvdbnd unpacker we ported: **vendored** its `ArchiveKeys.cs` (RSA keys) + `EldenRingDictionary.txt` (path→hash) into `src/vendor/` |
+| `Paramdex` (soulsmods) | XML/data | reverse-engineered PARAMDEF field schemas (not in the game). `ER/Defs` vendored into `src/vendor/paramdex/` via `bun run update-paramdex`, pinned by commit |
 | `elden-ring-eventparam` | — | gh-pages index only in clone |
 | `Impalers-Archive` | text | DLC names/descriptions, no ids |
 
@@ -185,7 +188,14 @@ Not cloned (GUI/large): **Smithbox** (vawser) — DLC MSB/regulation/FMG/TPF GUI
 ## 9. Phased implementation plan
 
 - **Phase 0 — Scaffold.** ✅ Done — `packages/er-extractor/` (`@elden-ring-compass/er-extractor`): Bun + Effect-TS, `@effect/cli` arg parsing, `@effect/platform` `Command` for external tools, `Path` service (no `node:` builtins), 8 stub stages. Typechecks, lints, runs.
-- **Phase 1 — Spike (go/no-go), run on native Windows.** Re-clone the repo on the Windows side (the extractor runs there so `bun:ffi` can load the win64 Oodle DLL — see §1/§5). Prove, against the real install: (a) `bun:ffi` → game's `oo2core_*_win64.dll` Oodle-decompresses one `msgbnd` *(the only real feasibility gate)*; (b) parse that FMG → a DLC item name; (c) zstd-unpack `regulation.bin` → one DLC weapon param row; (d) MSB → x,y for one DLC entity (port stub *or* WitchyBND); (e) one DLC boss flag (CT overlay for now). If (a) works, the pure-TS path is green.
+- **Phase 1 — Spike (go/no-go), run on native Windows.** Runs on Windows so `bun:ffi` can load the win64 Oodle DLL (§1/§5).
+  - ✅ (a) **Oodle gate** — `bun:ffi` loads `oo2core_6_win64.dll`, Kraken roundtrip works (`src/external/oodle.ts`). The pure-TS path is green.
+  - ✅ **dvdbnd unpack** (discovered necessary: no loose game files — all inside encrypted BHD5/BDT). Full UXM-parity unpacker ported to TS (`src/archive/dvdbnd.ts`); extracts real `item.msgbnd.dcx`. Idempotent + `--clean`. **Running it is a ~50 GB write into the game dir** (`bun src/bin.ts extract -g <install>`), so it's run on demand.
+  - ✅ **DCX** (`src/formats/dcx.ts`) — `DCX_KRAK`→Oodle, `DCX_ZSTD`, `DCX_DFLT`→zlib; `item.msgbnd.dcx` → BND4 verified. DCX headers are big-endian.
+  - ✅ **(b) BND4 + FMG → DLC item name.** `src/formats/{binary-reader,bnd4,fmg}.ts` + `src/game/item-text.ts` merge base + `_dlc01`/`_dlc02` FMGs per category. Verified: `WeaponName` 4625 entries, **`Milady` (id 67500000, SotE) resolves**. The `text` stage now emits real name counts + the DLC sample. KEY: DLC names live in `item_dlc01/02.msgbnd` (which carry both base FMGs *and* `*_dlc01.fmg` variants), not the base `item.msgbnd`.
+  - ✅ **(c) params + join.** `regulation.bin` → AES-256-CBC decrypt (key vendored from ER-Save-Lib, IV = first 16 bytes) → `DCX_ZSTD` → BND4 → 194 param files. `src/formats/param.ts` parses the PARAM header + row table; `src/game/regulation.ts` `loadRegulationParams`. The `params` stage returns the `name→bytes` map; `join` pairs `EquipParamWeapon` rows ⨝ `WeaponName` FMG → records. Verified: 3554 weapon rows, **3333 joined (name+row), Milady 67500000 resolves to both**. Pipeline now threads stage outputs (params→join, text→join).
+  - ✅ **PARAMDEF (real stat fields).** PARAMDEF (field schema) is NOT in the install — ER strips paramdefs (0 found in the unpacked game); only param row DATA ships. So it's **vendored** (plan §7): `bun run update-paramdex` sparse-clones `ER/Defs` (194 defs) from **soulsmods/Paramdex** into `src/vendor/paramdex/ER/Defs/`, pinned by commit in `PROVENANCE.md`. `src/formats/paramdef.ts` parses a def's `Def=` attrs → field layout; `decodeRow` in `param.ts` ports SoulsFormats bit-packing/`dummy8`/`fixstr` rules; the `join` stage decodes weapon stats + warns on def-vs-param `DataVersion` drift. Verified: **Milady (67500000) = weight 6.5, phys atk 116, req Str 12 / Dex 17** (matches in-game).
+  - ◐ Next: (d) MSB → x,y (port *or* WitchyBND); (e) one DLC boss flag (CT overlay). [tasks tracked]
 - **Phase 2 — Items.** Names + stats + icons for DLC weapons/armor/goods/talismans/AoW → site `.ts` + Rust db. (Lowest risk; ER-Save-Lib has clean tables if we want a quick win before the FMG parser lands.)
 - **Phase 3 — Own the save parser.** Port ER-Save-Lib's save-format + event-flag-bit logic into our Rust/WASM parser (replacing the stale ER-Save-Editor copy); vendor Paramdex/EMEDF/AES key. Verify inventory + flags against the **real DLC save**.
 - **Phase 4 — Progression.** DLC graces (from `BonfireWarpParam`) + boss defeat flags (CT overlay → later EMEVD) + Shadow Realm regions.

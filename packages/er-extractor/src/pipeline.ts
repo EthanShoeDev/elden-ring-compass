@@ -1,6 +1,6 @@
 import { Effect } from 'effect';
 
-import type { PipelineContext } from './domain/context.ts';
+import { PipelineContext } from './domain/context.ts';
 import { codegen } from './stages/codegen.ts';
 import { flags } from './stages/flags.ts';
 import { images } from './stages/images.ts';
@@ -11,24 +11,26 @@ import { text } from './stages/text.ts';
 import { unpack } from './stages/unpack.ts';
 
 /**
- * The end-to-end extraction pipeline (plan §6). Every stage is currently a
- * stub that logs what it will do; fill them in per the phased plan. Stages are
- * sequenced here, but most are independent and can later fan out with
- * `Effect.all({ concurrency })` once they return real artifacts.
+ * The end-to-end extraction pipeline (plan §6). Stages are `Effect`s that pull
+ * what they need from the `PipelineContext` tag (provided in cli.ts) — no `ctx`
+ * is threaded through. Each step is wrapped with `Effect.annotateLogs('stage',
+ * …)` so every log line it emits is tagged with its stage. Currently most stages
+ * are stubs that log what they will do; they're sequenced here but, being
+ * independent, can later fan out with `Effect.all({ concurrency })`.
  */
-export const runPipeline = (ctx: PipelineContext) =>
-  Effect.gen(function* () {
-    yield* Effect.logInfo(`er-extractor — game: ${ctx.gameRoot}`);
-    yield* Effect.logInfo(`er-extractor — out:  ${ctx.outDir}`);
+export const runPipeline = Effect.gen(function* () {
+  const ctx = yield* PipelineContext;
+  yield* Effect.logInfo(`install: ${ctx.gameRoot}`);
+  yield* Effect.logInfo(`out (codegen artifacts): ${ctx.outDir}`);
 
-    yield* unpack(ctx);
-    yield* params(ctx);
-    yield* text(ctx);
-    yield* join(ctx);
-    yield* markers(ctx);
-    yield* flags(ctx);
-    yield* images(ctx);
-    yield* codegen(ctx);
+  yield* unpack.pipe(Effect.annotateLogs('stage', '1-unpack'));
+  const paramFiles = yield* params.pipe(Effect.annotateLogs('stage', '2-params'));
+  const names = yield* text.pipe(Effect.annotateLogs('stage', '3-text'));
+  yield* join(paramFiles, names).pipe(Effect.annotateLogs('stage', '4-join'));
+  yield* markers.pipe(Effect.annotateLogs('stage', '5-markers'));
+  yield* flags.pipe(Effect.annotateLogs('stage', '6-flags'));
+  yield* images.pipe(Effect.annotateLogs('stage', '7-images'));
+  yield* codegen.pipe(Effect.annotateLogs('stage', '8-codegen'));
 
-    yield* Effect.logInfo('Done (scaffold — every stage is a stub).');
-  });
+  yield* Effect.logInfo('Done (scaffold — every stage is a stub).');
+});

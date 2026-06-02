@@ -2,7 +2,17 @@ import { Command, Options } from '@effect/cli';
 import { Path } from '@effect/platform';
 import { Effect } from 'effect';
 
+import { PipelineContext } from './domain/context.ts';
 import { runPipeline } from './pipeline.ts';
+
+// `--clean`: re-extract the dvdbnd archives from scratch — restore backups and
+// delete previously-unpacked dirs first (e.g. to refresh after a game patch).
+const clean = Options.boolean('clean').pipe(
+  Options.withDefault(false),
+  Options.withDescription(
+    'Re-extract from scratch: restore backups + delete previously-unpacked dirs.',
+  ),
+);
 
 // `--game-dir` / `-g`: the Elden Ring install folder (the one containing `Game/`),
 // e.g. `C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING`.
@@ -22,15 +32,18 @@ const outDir = Options.directory('out', { exists: 'either' }).pipe(
 
 const extract = Command.make(
   'extract',
-  { gameDir, outDir },
-  ({ gameDir, outDir }) =>
+  { gameDir, outDir, clean },
+  ({ gameDir, outDir, clean }) =>
     Effect.gen(function* () {
       const path = yield* Path.Path;
-      yield* runPipeline({
-        gameDir,
-        gameRoot: path.join(gameDir, 'Game'),
-        outDir,
-      });
+      yield* runPipeline.pipe(
+        Effect.provideService(PipelineContext, {
+          gameDir,
+          gameRoot: path.join(gameDir, 'Game'),
+          outDir,
+          clean,
+        }),
+      );
     }),
 );
 
