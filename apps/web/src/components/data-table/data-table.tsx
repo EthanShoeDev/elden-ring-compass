@@ -98,6 +98,7 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
                           ? null
                           : flexRender(header.column.columnDef.header, header.getContext())}
                         {header.column.getCanResize() && (
+                          // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- column-resize grip is a pointer-only drag affordance with no keyboard equivalent
                           <div
                             onMouseDown={header.getResizeHandler()}
                             onTouchStart={header.getResizeHandler()}

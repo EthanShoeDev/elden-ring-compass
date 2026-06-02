@@ -5,11 +5,14 @@ import { Slot } from '../wasm-wrapper';
 export function regionsDbView(slot?: Readonly<Slot>) {
   const regionIdMap = new Map(CLEAN_ELDEN_RING_DB.regions.map((r) => [r.id, r]));
   const unlockedRegionSet = new Set();
-  for (let i = 0; slot && i < slot.regions.unlocked_regions_count; i++) {
-    const key = slot.regions.unlocked_regions[i];
-    const region = regionIdMap.get(key);
-    if (region) {
-      unlockedRegionSet.add(region.id);
+  if (slot) {
+    for (let i = 0; i < slot.regions.unlocked_regions_count; i++) {
+      const key = slot.regions.unlocked_regions[i];
+      if (key === undefined) break;
+      const region = regionIdMap.get(key);
+      if (region) {
+        unlockedRegionSet.add(region.id);
+      }
     }
   }
 

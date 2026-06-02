@@ -168,10 +168,11 @@ export function playerNameBytesToString(bytes: Readonly<Array<number>>) {
   const character_name = bytes;
   const character_name_trimmed: Array<number> = [];
   for (let i = 0; i < 0x10; i++) {
-    if (character_name[i] == 0) {
+    const byte = character_name[i];
+    if (byte === undefined || byte == 0) {
       break;
     }
-    character_name_trimmed.push(character_name[i]);
+    character_name_trimmed.push(byte);
   }
   return String.fromCharCode(...character_name_trimmed);
 }

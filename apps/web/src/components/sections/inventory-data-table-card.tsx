@@ -132,6 +132,7 @@ function defaultColumns<T extends DefaultItem>(
   columnHelperT: ColumnHelper<T>,
   imgUrlFn: (icon: number) => string,
 ): Array<ColumnDef<T>> {
+  // oxlint-disable-next-line unknown-cast/forbidden -- TanStack ColumnHelper is invariant in its row type; we deliberately reuse one helper across the shared DefaultItem shape
   const columnHelperD = columnHelperT as unknown as ColumnHelper<DefaultItem>;
   return [
     commonSelectColumnDef(columnHelperD),
@@ -158,6 +159,7 @@ function defaultColumns<T extends DefaultItem>(
     commonAccessorColumnDef(columnHelperD, 'quantity', 'Quantity'),
     commonAccessorColumnDef(columnHelperD, 'rarity', 'Rarity'),
     commonAccessorColumnDef(columnHelperD, (row) => !!row.map_data, 'Has Coordinates'),
+    // oxlint-disable-next-line unknown-cast/forbidden -- columns built against DefaultItem are structurally valid for the caller's narrower T
   ] as unknown as Array<ColumnDef<T>>;
 }
 
@@ -422,7 +424,6 @@ const toolColumns: Array<ColumnDef<ToolItem>> = (() => {
 const tables: Record<
   keyof typeof ERDB,
   {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     columns: Array<ColumnDef<any>>;
     label: string;
   }

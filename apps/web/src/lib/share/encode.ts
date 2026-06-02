@@ -2,6 +2,7 @@ import LZString from 'lz-string';
 import { EVENT_FLAGS } from '@/lib/elden-ring-raw-db/EVENT_FLAGS';
 import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
 import type { Slot } from '@/lib/wasm-wrapper';
+import { assertDefined } from '@/lib/utils';
 import { type ShareableProgression, SHAREABLE_VERSION } from './types';
 
 function get_bit(byte: number, bit_pos: number): boolean {
@@ -15,16 +16,21 @@ export function extractShareableData(slot: Readonly<Slot>): ShareableProgression
   // Extract completed event IDs
   const completedEventIds: number[] = [];
   for (const [eventId, [byteOffset, bitPos]] of EVENT_FLAGS) {
-    if (get_bit(slot.event_flags.flags[byteOffset], bitPos)) {
+    if (get_bit(slot.event_flags.flags[byteOffset] ?? 0, bitPos)) {
       completedEventIds.push(eventId);
     }
   }
 
   // Sort and delta-encode for better compression
   completedEventIds.sort((a, b) => a - b);
-  const deltaEncodedEvents = completedEventIds.map((id, i) =>
-    i === 0 ? id : id - completedEventIds[i - 1],
-  );
+  const deltaEncodedEvents = completedEventIds.map((id, i) => {
+    if (i === 0) return id;
+    const previousId = assertDefined(
+      completedEventIds[i - 1],
+      'delta encode: previous event id missing',
+    );
+    return id - previousId;
+  });
 
   // Extract inventory (combine equip + storage)
   const inventoryItems: [number, number][] = [
@@ -44,7 +50,9 @@ export function extractShareableData(slot: Readonly<Slot>): ShareableProgression
   // Extract unlocked region IDs
   const unlockedRegions: number[] = [];
   for (let i = 0; i < slot.regions.unlocked_regions_count; i++) {
-    unlockedRegions.push(slot.regions.unlocked_regions[i]);
+    const regionId = slot.regions.unlocked_regions[i];
+    if (regionId === undefined) break;
+    unlockedRegions.push(regionId);
   }
 
   return {

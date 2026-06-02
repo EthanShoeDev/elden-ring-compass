@@ -22,5 +22,11 @@
   "workbench.sideBar.location": "right",
   "editor.stickyScroll.enabled": true,
   "git.autofetch": true,
-  "tailwindCSS.classAttributes": ["class", "className", "ngClass", "class:list", ".*ClassName"]
+  "tailwindCSS.classAttributes": [
+    "class",
+    "className",
+    "ngClass",
+    "class:list",
+    ".*ClassName"
+  ]
 }

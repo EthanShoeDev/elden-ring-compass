@@ -61,7 +61,10 @@ export function inventoryDbView(slot: Readonly<Slot>) {
         next_armament_or_armor_index = index;
       }
     }
-    part_gaitem_handle = ((slot.ga_items[0].gaitem_handle >> 16) & 0xff) >>> 0;
+    const firstGaItem = slot.ga_items[0];
+    if (firstGaItem) {
+      part_gaitem_handle = ((firstGaItem.gaitem_handle >> 16) & 0xff) >>> 0;
+    }
 
     next_gaitem_handle = next_gaitem_handle + 1;
     next_aow_index = next_aow_index + 1;

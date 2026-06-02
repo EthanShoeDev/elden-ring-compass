@@ -1,3 +1,4 @@
+import { assertDefined } from '../utils';
 import { CLEAN_ELDEN_RING_DB } from '../elden-ring-raw-db/er-raw-db';
 import { Slot } from '../wasm-wrapper';
 import { InventoryGaItemTypeToOffset, InventoryItemTypeToOffset } from './inventory';
@@ -28,6 +29,7 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
     let count = 1;
     for (let i = 0; i < slot.equip_inventory_data.key_inventory_items_distinct_count; i++) {
       const key_item = slot.equip_inventory_data.key_items[i];
+      if (!key_item) continue;
       if ((key_item.ga_item_handle ^ InventoryGaItemTypeToOffset.ITEM) == 10040) {
         count = Math.min(1 + key_item.quantity, 4);
       }
@@ -45,10 +47,12 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
 
   const weapon_arms = (side: 'left' | 'right') =>
     Array.from({ length: 3 }, (_, i) => {
-      const gaitem_handle =
+      const gaitem_handle = assertDefined(
         side == 'left'
           ? slot.chr_asm2.left_hand_armaments[i]
-          : slot.chr_asm2.right_hand_armaments[i];
+          : slot.chr_asm2.right_hand_armaments[i],
+        'weapon armament index out of range',
+      );
       const id = gaHandleToGaItemId.get(gaitem_handle);
       const equip_index = equip_index_from_ga_handle(gaitem_handle);
       return {
@@ -63,7 +67,7 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
   const right_hand_armaments = weapon_arms('right');
 
   const arrows = Array.from({ length: 2 }, (_, i) => {
-    const gaitem_handle = slot.chr_asm2.arrows[i];
+    const gaitem_handle = assertDefined(slot.chr_asm2.arrows[i], 'arrow index out of range');
     const id = gaHandleToGaItemId.get(gaitem_handle) ?? 0;
     const equip_index = equip_index_from_ga_handle(gaitem_handle);
     return {
@@ -94,7 +98,7 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
   const legs = armor_fn(slot.chr_asm2.legs);
 
   const talismans = Array.from({ length: 4 }, (_, i) => {
-    const gaitem_handle = slot.chr_asm2.talismans[i];
+    const gaitem_handle = assertDefined(slot.chr_asm2.talismans[i], 'talisman index out of range');
     const item_id = gaHandleToGaItemId.get(gaitem_handle) ?? 0;
     const talisman_id = item_id != 0 ? item_id ^ InventoryGaItemTypeToOffset.ACCESSORY : 0;
     const equip_index = equip_index_from_ga_handle(gaitem_handle);
@@ -121,13 +125,14 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
   };
 
   const quickslots = Array.from({ length: 10 }, (_, i) => {
-    const gaitem_handle = slot.equip_item_data.quick_slot_items[i]?.item_id;
+    // An absent/empty quick slot reads as handle 0, which itemFn renders as 'Empty'.
+    const gaitem_handle = slot.equip_item_data.quick_slot_items[i]?.item_id ?? 0;
 
     return itemFn(gaitem_handle);
   });
 
   const pouch = Array.from({ length: 8 }, (_, i) =>
-    itemFn(slot.equip_item_data.pouch_items[i]?.item_id),
+    itemFn(slot.equip_item_data.pouch_items[i]?.item_id ?? 0),
   );
 
   return {

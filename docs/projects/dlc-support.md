@@ -6,23 +6,23 @@
 
 ### Dependencies Status
 
-| Package | Version | DLC Support | Notes |
-|---------|---------|-------------|-------|
-| [erdb](https://github.com/EldenRingDatabase/erdb) | v0.4.0 | ❌ None | Last updated July 2023 with 1.10.0 gamedata (pre-DLC). No activity since. |
-| [ER-Save-Editor](https://github.com/ClayAmore/ER-Save-Editor) | 0.0.21 | ⚠️ Partial | Can READ DLC save files (updated offsets June 2024), but db/ has NO DLC item data |
+| Package                                                       | Version | DLC Support | Notes                                                                             |
+| ------------------------------------------------------------- | ------- | ----------- | --------------------------------------------------------------------------------- |
+| [erdb](https://github.com/EldenRingDatabase/erdb)             | v0.4.0  | ❌ None     | Last updated July 2023 with 1.10.0 gamedata (pre-DLC). No activity since.         |
+| [ER-Save-Editor](https://github.com/ClayAmore/ER-Save-Editor) | 0.0.21  | ⚠️ Partial  | Can READ DLC save files (updated offsets June 2024), but db/ has NO DLC item data |
 
 ### What Data We Need
 
-| Data Type | Current Source | Used For |
-|-----------|---------------|----------|
-| Item IDs & Names | ER-Save-Editor `db/item_name.rs` | Inventory display |
-| Weapon IDs & Names | ER-Save-Editor `db/weapon_name.rs` | Inventory display |
-| Armor IDs & Names | ER-Save-Editor `db/armor_name.rs` | Inventory display |
-| Bosses & Event Flags | ER-Save-Editor `db/bosses.rs` | Boss tracker |
-| Graces | ER-Save-Editor `db/graces.rs` | Grace tracker |
-| Regions | ER-Save-Editor `db/regions.rs` | Region completion |
-| Event Flags | ER-Save-Editor `db/event_flags.rs` | Progression tracking |
-| Map Data | Custom `map-db.ts` | Interactive map |
+| Data Type            | Current Source                     | Used For             |
+| -------------------- | ---------------------------------- | -------------------- |
+| Item IDs & Names     | ER-Save-Editor `db/item_name.rs`   | Inventory display    |
+| Weapon IDs & Names   | ER-Save-Editor `db/weapon_name.rs` | Inventory display    |
+| Armor IDs & Names    | ER-Save-Editor `db/armor_name.rs`  | Inventory display    |
+| Bosses & Event Flags | ER-Save-Editor `db/bosses.rs`      | Boss tracker         |
+| Graces               | ER-Save-Editor `db/graces.rs`      | Grace tracker        |
+| Regions              | ER-Save-Editor `db/regions.rs`     | Region completion    |
+| Event Flags          | ER-Save-Editor `db/event_flags.rs` | Progression tracking |
+| Map Data             | Custom `map-db.ts`                 | Interactive map      |
 
 ---
 
@@ -120,13 +120,13 @@ erdb
 
 ### What Would Break If You Fork erdb?
 
-| Component | Status | Issue |
-|-----------|--------|-------|
-| Python code | ✅ Should work | Pure Python, well-structured |
-| ERExporter | ⚠️ Risk | Last updated 2022, may not read DLC regulation.bin |
-| Yabber | ⚠️ Risk | Old, may not handle DLC archive format changes |
-| Param definitions | ❌ Missing | DLC adds new params, need updated Paramdex |
-| Game version detection | ❌ Needs update | Hardcoded versions only go to 1.10 |
+| Component              | Status          | Issue                                              |
+| ---------------------- | --------------- | -------------------------------------------------- |
+| Python code            | ✅ Should work  | Pure Python, well-structured                       |
+| ERExporter             | ⚠️ Risk         | Last updated 2022, may not read DLC regulation.bin |
+| Yabber                 | ⚠️ Risk         | Old, may not handle DLC archive format changes     |
+| Param definitions      | ❌ Missing      | DLC adds new params, need updated Paramdex         |
+| Game version detection | ❌ Needs update | Hardcoded versions only go to 1.10                 |
 
 ### Modern Alternative: WitchyBND
 
@@ -141,12 +141,12 @@ erdb
 
 ### Comparison: Forking erdb vs Other Options
 
-| Approach | Effort | Completeness | Maintainability | Risk |
-|----------|--------|--------------|-----------------|------|
-| **Fork erdb + update tools** | High (1-2 weeks) | Complete | Best | ERExporter may be broken |
-| **Fork erdb + use WitchyBND** | Very High (2-4 weeks) | Complete | Best | Major rewrite needed |
-| **Scrape from multiple sources** | Medium (1-2 days) | Good (80%) | Poor | Data inconsistencies |
-| **Manual data entry** | Low-Medium | Partial | Poor | Human error, tedious |
+| Approach                         | Effort                | Completeness | Maintainability | Risk                     |
+| -------------------------------- | --------------------- | ------------ | --------------- | ------------------------ |
+| **Fork erdb + update tools**     | High (1-2 weeks)      | Complete     | Best            | ERExporter may be broken |
+| **Fork erdb + use WitchyBND**    | Very High (2-4 weeks) | Complete     | Best            | Major rewrite needed     |
+| **Scrape from multiple sources** | Medium (1-2 days)     | Good (80%)   | Poor            | Data inconsistencies     |
+| **Manual data entry**            | Low-Medium            | Partial      | Poor            | Human error, tedious     |
 
 ### Recommendation
 
@@ -168,18 +168,18 @@ erdb
 
 Even if erdb worked perfectly, it **doesn't provide** all the data we use:
 
-| Data Type | erdb Provides? | We Need It? | Alternative Source |
-|-----------|---------------|-------------|-------------------|
-| Weapons (stats, scaling) | ✅ Yes | ✅ Yes | - |
-| Armor (stats, weight) | ✅ Yes | ✅ Yes | - |
-| Items (consumables) | ✅ Yes | ✅ Yes | - |
-| Talismans | ✅ Yes | ✅ Yes | - |
-| Ashes of War | ✅ Yes | ✅ Yes | - |
-| Spells/Incantations | ✅ Yes | ✅ Yes | - |
-| **Bosses + Event Flags** | ❌ No | ✅ Yes | Grand Archives CT, Debug Tool |
-| **Graces + IDs** | ❌ No | ✅ Yes | Grand Archives CT, Debug Tool |
-| **Regions** | ❌ No | ✅ Yes | Manual curation |
-| **Map coordinates** | ❌ No | ✅ Yes | Manual curation / game extraction |
+| Data Type                | erdb Provides? | We Need It? | Alternative Source                |
+| ------------------------ | -------------- | ----------- | --------------------------------- |
+| Weapons (stats, scaling) | ✅ Yes         | ✅ Yes      | -                                 |
+| Armor (stats, weight)    | ✅ Yes         | ✅ Yes      | -                                 |
+| Items (consumables)      | ✅ Yes         | ✅ Yes      | -                                 |
+| Talismans                | ✅ Yes         | ✅ Yes      | -                                 |
+| Ashes of War             | ✅ Yes         | ✅ Yes      | -                                 |
+| Spells/Incantations      | ✅ Yes         | ✅ Yes      | -                                 |
+| **Bosses + Event Flags** | ❌ No          | ✅ Yes      | Grand Archives CT, Debug Tool     |
+| **Graces + IDs**         | ❌ No          | ✅ Yes      | Grand Archives CT, Debug Tool     |
+| **Regions**              | ❌ No          | ✅ Yes      | Manual curation                   |
+| **Map coordinates**      | ❌ No          | ✅ Yes      | Manual curation / game extraction |
 
 **Bottom line**: erdb is great for item/equipment data but we'd still need to source boss/grace/region data from elsewhere, regardless of which approach we take.
 
@@ -195,6 +195,7 @@ Even if erdb worked perfectly, it **doesn't provide** all the data we use:
 - **Format**: YAML with hex IDs
 
 **What it has**:
+
 - ✅ All DLC weapons (Milady, Backhand Blade, etc.)
 - ✅ All DLC armor (Messmer's, Gaius's, etc.)
 - ✅ All DLC items (Euporia, etc.)
@@ -204,11 +205,12 @@ Even if erdb worked perfectly, it **doesn't provide** all the data we use:
 - ❌ No regions
 
 **Sample data**:
+
 ```yaml
 weapons:
-  "Milady": 0x0405F7E0
-  "Backhand Blade": 0x03D83120
-  "Euporia": 0x00A037A0
+  'Milady': 0x0405F7E0
+  'Backhand Blade': 0x03D83120
+  'Euporia': 0x00A037A0
 armor:
   "Messmer's Helm": 0x104FA6A0
   "Gaius's Armor": 0x102DEE34
@@ -225,6 +227,7 @@ armor:
 - **Format**: Cheat Engine XML/Lua
 
 **What it has**:
+
 - ✅ DLC graces with IDs
 - ✅ DLC boss defeat flags
 - ✅ Warp coordinates
@@ -241,6 +244,7 @@ armor:
 - **Format**: C# source code
 
 **What it has**:
+
 - ✅ DLC items
 - ✅ DLC graces
 - ⚠️ Item event flags NOT working for DLC yet
@@ -257,6 +261,7 @@ armor:
 - **Format**: Web/JSON
 
 **What it has**:
+
 - ✅ Comprehensive event flag database
 - ❓ DLC coverage unknown (needs verification)
 
@@ -271,6 +276,7 @@ armor:
 - **Format**: Raw text files
 
 **What it has**:
+
 - ✅ All DLC item/weapon/armor names and descriptions
 - ❌ No IDs
 - ❌ No event flags
@@ -289,6 +295,7 @@ Use tools to extract directly from game files:
 - **SoulsFormats**: https://github.com/JKAnderson/SoulsFormats
 
 **What you'd get**:
+
 - ✅ Complete, authoritative data
 - ✅ All items, bosses, graces, event flags
 - ❌ Requires owning the game + DLC on PC
@@ -306,6 +313,7 @@ Use tools to extract directly from game files:
 **Data source**: eldenring-practice-tool `item_ids.yml`
 
 **Steps**:
+
 1. Download `item_ids.yml` from practice-tool repo
 2. Write parser script to convert YAML → TypeScript
 3. Merge with existing `ITEM_NAMES.ts`, `WEAPON_NAME.ts`, `ARMOR_NAME.ts`
@@ -322,11 +330,13 @@ Use tools to extract directly from game files:
 **Scope**: Add DLC items AND basic progression (graces discovered, bosses defeated)
 
 **Data sources**:
+
 - eldenring-practice-tool for items
 - The Grand Archives CT for graces and boss flags
 - Manual research for missing pieces
 
 **Steps**:
+
 1. Extract items from practice-tool (Option A)
 2. Parse Grand Archives CE table for grace IDs and boss event flags
 3. Research/verify DLC region structure
@@ -354,6 +364,7 @@ Use tools to extract directly from game files:
 **Data sources**: Multiple sources + manual verification
 
 **Steps**:
+
 1. Complete Option B
 2. Add DLC map markers (if map images available)
 3. Add DLC cookbooks
@@ -372,11 +383,13 @@ Use tools to extract directly from game files:
 **Scope**: Extract all data directly from game files
 
 **Requirements**:
+
 - Elden Ring + DLC installed on PC
 - Python environment for erdb
 - Understanding of FromSoft param files
 
 **Steps**:
+
 1. Fork erdb repository
 2. Update erdb to support 1.12+ game versions
 3. Run extraction against your game installation
@@ -394,32 +407,32 @@ Use tools to extract directly from game files:
 
 ### DLC Regions (Shadow Realm)
 
-| Region | Sub-areas |
-|--------|-----------|
-| Gravesite Plain | Belurat area, Castle Ensis approach |
-| Scadu Altus | Fort of Reprimand, Moorth Ruins, Church District |
-| Shadow Keep | Main keep, Specimen Storehouse, Dark Chamber |
-| Rauh Base | Rauh Ancient Ruins, Temple Town |
-| Abyssal Woods | Midra's Manse area |
-| Cerulean Coast | Southern coastal area |
-| Charo's Hidden Grave | Underground area |
-| Stone Coffin Fissure | Vertical dungeon |
-| Finger Ruins | Metyr boss area |
+| Region               | Sub-areas                                        |
+| -------------------- | ------------------------------------------------ |
+| Gravesite Plain      | Belurat area, Castle Ensis approach              |
+| Scadu Altus          | Fort of Reprimand, Moorth Ruins, Church District |
+| Shadow Keep          | Main keep, Specimen Storehouse, Dark Chamber     |
+| Rauh Base            | Rauh Ancient Ruins, Temple Town                  |
+| Abyssal Woods        | Midra's Manse area                               |
+| Cerulean Coast       | Southern coastal area                            |
+| Charo's Hidden Grave | Underground area                                 |
+| Stone Coffin Fissure | Vertical dungeon                                 |
+| Finger Ruins         | Metyr boss area                                  |
 
 ### Major DLC Bosses
 
-| Boss | Location |
-|------|----------|
-| Divine Beast Dancing Lion | Belurat |
-| Rellana, Twin Moon Knight | Castle Ensis |
-| Golden Hippopotamus | Shadow Keep |
-| Messmer the Impaler | Shadow Keep |
-| Romina, Saint of the Bud | Rauh Ancient Ruins |
-| Putrescent Knight | Stone Coffin Fissure |
-| Midra, Lord of Frenzied Flame | Midra's Manse |
-| Metyr, Mother of Fingers | Finger Ruins |
-| Bayle the Dread | Jagged Peak |
-| Promised Consort Radahn | Enir-Ilim |
+| Boss                          | Location             |
+| ----------------------------- | -------------------- |
+| Divine Beast Dancing Lion     | Belurat              |
+| Rellana, Twin Moon Knight     | Castle Ensis         |
+| Golden Hippopotamus           | Shadow Keep          |
+| Messmer the Impaler           | Shadow Keep          |
+| Romina, Saint of the Bud      | Rauh Ancient Ruins   |
+| Putrescent Knight             | Stone Coffin Fissure |
+| Midra, Lord of Frenzied Flame | Midra's Manse        |
+| Metyr, Mother of Fingers      | Finger Ruins         |
+| Bayle the Dread               | Jagged Peak          |
+| Promised Consort Radahn       | Enir-Ilim            |
 
 ### DLC Grace Count
 
@@ -445,14 +458,14 @@ Use tools to extract directly from game files:
 
 ## Data File Mapping
 
-| Data Type | Rust Parser File | Web App File |
-|-----------|-----------------|--------------|
-| Items | `packages/elden-ring-save-parser/src/db/item_name.rs` | `apps/web/src/lib/elden-ring-raw-db/ITEM_NAMES.ts` |
-| Weapons | `packages/elden-ring-save-parser/src/db/weapon_name.rs` | `apps/web/src/lib/elden-ring-raw-db/WEAPON_NAME.ts` |
-| Armor | `packages/elden-ring-save-parser/src/db/armor_name.rs` | `apps/web/src/lib/elden-ring-raw-db/ARMOR_NAME.ts` |
-| Bosses | `packages/elden-ring-save-parser/src/db/bosses.rs` | `apps/web/src/lib/elden-ring-raw-db/BOSSES.ts` |
-| Graces | `packages/elden-ring-save-parser/src/db/graces.rs` | `apps/web/src/lib/elden-ring-raw-db/GRACES.ts` |
-| Regions | `packages/elden-ring-save-parser/src/db/regions.rs` | `apps/web/src/lib/elden-ring-raw-db/REGIONS.ts` |
+| Data Type   | Rust Parser File                                        | Web App File                                        |
+| ----------- | ------------------------------------------------------- | --------------------------------------------------- |
+| Items       | `packages/elden-ring-save-parser/src/db/item_name.rs`   | `apps/web/src/lib/elden-ring-raw-db/ITEM_NAMES.ts`  |
+| Weapons     | `packages/elden-ring-save-parser/src/db/weapon_name.rs` | `apps/web/src/lib/elden-ring-raw-db/WEAPON_NAME.ts` |
+| Armor       | `packages/elden-ring-save-parser/src/db/armor_name.rs`  | `apps/web/src/lib/elden-ring-raw-db/ARMOR_NAME.ts`  |
+| Bosses      | `packages/elden-ring-save-parser/src/db/bosses.rs`      | `apps/web/src/lib/elden-ring-raw-db/BOSSES.ts`      |
+| Graces      | `packages/elden-ring-save-parser/src/db/graces.rs`      | `apps/web/src/lib/elden-ring-raw-db/GRACES.ts`      |
+| Regions     | `packages/elden-ring-save-parser/src/db/regions.rs`     | `apps/web/src/lib/elden-ring-raw-db/REGIONS.ts`     |
 | Event Flags | `packages/elden-ring-save-parser/src/db/event_flags.rs` | `apps/web/src/lib/elden-ring-raw-db/EVENT_FLAGS.ts` |
 
 ---

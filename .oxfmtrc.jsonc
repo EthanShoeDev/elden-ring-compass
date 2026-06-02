@@ -1,0 +1,40 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 80,
+  "tabWidth": 2,
+  "useTabs": false,
+  "singleQuote": true,
+  "jsxSingleQuote": true,
+  "trailingComma": "all",
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "experimentalTailwindcss": {
+    "functions": ["cn", "clsx", "cva"],
+    "attributes": ["class", "className", "ngClass", ".*className"],
+    "stylesheet": "apps/web/src/index.css",
+  },
+  "ignorePatterns": [
+    "docs/cloned-repos-as-docs/**",
+    "**/*.gen.*",
+    "**/routeTree.gen.ts",
+    "**/*.vendored.*",
+    // shadcn/ui components are vendored from the registry; keep them verbatim
+    // so `shadcn add --diff` stays clean. Mirrors the oxlint ignore.
+    "**/components/ui/**",
+    // Generated game data from the erdb project.
+    "apps/web/src/assets/erdb/**",
+    "apps/web/src/lib/elden-ring-raw-db/**",
+    "**/dist/**",
+    "**/pkg/**",
+    "**/.output/**",
+    "**/.nitro/**",
+    "**/.turbo/**",
+    "packages/ER-Save-Editor/**",
+    "CLAUDE.md",
+    ".agents/**",
+    ".claude/skills/**",
+    ".cursor/**",
+    ".opencode/**",
+    ".github/skills/**",
+  ],
+}

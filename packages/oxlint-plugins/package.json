@@ -1,0 +1,33 @@
+{
+  "name": "@elden-ring-compass/oxlint-plugins",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./forbidden-unknown-cast": "./src/forbidden-unknown-cast.ts",
+    "./prefer-effect": "./src/prefer-effect.ts",
+    "./require-disable-description": "./src/require-disable-description.ts",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "exports": {
+      "./forbidden-unknown-cast": "./dist/forbidden-unknown-cast.mjs",
+      "./prefer-effect": "./dist/prefer-effect.mjs",
+      "./require-disable-description": "./dist/require-disable-description.mjs",
+      "./package.json": "./package.json"
+    }
+  },
+  "scripts": {
+    "clean": "rm -rf .turbo dist *.tsbuildinfo",
+    "build": "tsdown",
+    "typecheck": "tsgo --noEmit"
+  },
+  "devDependencies": {
+    "@elden-ring-compass/config": "workspace:*",
+    "@types/eslint": "catalog:",
+    "tsdown": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:"
+  }
+}

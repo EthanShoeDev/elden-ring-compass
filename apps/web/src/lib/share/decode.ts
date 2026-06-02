@@ -15,7 +15,7 @@ export function decodeFromUrl(encoded: string): ShareableProgression | null {
 
     // Validate version
     if (data.v !== SHAREABLE_VERSION) {
-      console.warn(`Unknown share data version: ${data.v}`);
+      console.warn(`Unknown share data version: ${String(data.v)}`);
       return null;
     }
 
@@ -45,7 +45,7 @@ export function reconstructSlot(data: ShareableProgression): Partial<Slot> {
     const mapping = eventIdToOffsetMap.get(currentId);
     if (mapping) {
       const [byteOffset, bitPos] = mapping;
-      flags[byteOffset] |= 1 << bitPos;
+      flags[byteOffset] = (flags[byteOffset] ?? 0) | (1 << bitPos);
     }
   }
 

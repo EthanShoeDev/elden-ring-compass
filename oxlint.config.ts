@@ -1,0 +1,132 @@
+import { defineConfig } from 'oxlint';
+
+export default defineConfig({
+  plugins: [
+    'eslint',
+    'typescript',
+    'unicorn',
+    'oxc',
+    'import',
+    'jsdoc',
+    'node',
+    'promise',
+    'react',
+    'react-perf',
+    'jsx-a11y',
+  ],
+  // Custom JS plugins built from packages/oxlint-plugins. They are referenced
+  // by their package export paths and resolved through the bun workspace.
+  jsPlugins: [
+    '@elden-ring-compass/oxlint-plugins/require-disable-description',
+    '@elden-ring-compass/oxlint-plugins/forbidden-unknown-cast',
+    '@elden-ring-compass/oxlint-plugins/prefer-effect',
+  ],
+  env: {
+    browser: true,
+  },
+  categories: {
+    correctness: 'error',
+    perf: 'error',
+    suspicious: 'error',
+  },
+  ignorePatterns: [
+    'docs/cloned-repos-as-docs/**',
+    '**/dist/**',
+    '**/pkg/**',
+    '**/.output/**',
+    '**/.nitro/**',
+    '**/.turbo/**',
+    '**/*.gen.*',
+    '**/routeTree.gen.ts',
+    '**/*.vendored.*',
+    // Generated game data from the erdb project; not hand-linted.
+    'apps/web/src/assets/erdb/**',
+    'apps/web/src/lib/elden-ring-raw-db/**',
+    // shadcn/ui components are vendored from the registry; we don't hand-lint them.
+    '**/components/ui/**',
+    // Rust/WASM build output and git submodule.
+    'packages/elden-ring-save-parser/pkg/**',
+    'packages/ER-Save-Editor/**',
+    'CLAUDE.md',
+    '.agents/**',
+    '.claude/skills/**',
+    '.cursor/**',
+    '.opencode/**',
+    '.github/skills/**',
+  ],
+  /*
+   * When we deviate from a default, leave a comment explaining why.
+   * Do not add a rule without a comment.
+   */
+  rules: {
+    // Effect.gen generators yield* as the final expression; oxlint reads that
+    // as a missing return. Off across the repo.
+    'typescript/consistent-return': 'off',
+    // oxfmt owns import ordering.
+    'sort-imports': 'off',
+    // Default-exported configs/routes are idiomatic here (vite, tanstack).
+    'import/no-default-export': 'off',
+    // We use the automatic JSX runtime (jsx: 'react-jsx'), so React does not
+    // need to be imported into scope.
+    'react/react-in-jsx-scope': 'off',
+    // Type-aware assertions are used deliberately at JSON/ESLint-AST
+    // boundaries (catalog-check, the oxlint plugins). `unknown-cast/forbidden`
+    // already guards the dangerous `as unknown as` form with a required reason.
+    'typescript/no-unsafe-type-assertion': 'off',
+    // The non-null assertion (`!`) silently bypasses strict null checks; narrow
+    // with an `if` guard or `assertDefined(...)` (which throws) instead.
+    'typescript/no-non-null-assertion': 'error',
+
+    // --- Rule deviations mirrored from the reference monorepos (fressh,
+    // listening-astro). These fire pervasively and were judged not worth
+    // enforcing there; we keep parity so the configs stay portable. ---
+    // react-perf flags every inline handler/object/array prop. That is
+    // premature optimization; rely on the React Compiler / profiling instead.
+    'react-perf/jsx-no-new-function-as-prop': 'off',
+    'react-perf/jsx-no-new-object-as-prop': 'off',
+    'react-perf/jsx-no-new-array-as-prop': 'off',
+    'react-perf/jsx-no-jsx-as-prop': 'off',
+    // Shadowing an outer name in a nested scope (e.g. `state`) is readable here.
+    'no-shadow': 'off',
+    // Leading/trailing underscores mark intentionally-unused bindings.
+    'no-underscore-dangle': 'off',
+    // CSS and test-setup side-effect imports have no binding to assign.
+    'import/no-unassigned-import': 'off',
+    // Index keys are acceptable for the static, non-reordered lists used here.
+    'react/no-array-index-key': 'off',
+    // Small helper closures are fine where they are defined.
+    'unicorn/consistent-function-scoping': 'off',
+    // Spreading inside map() is idiomatic for the view-model builders.
+    'oxc/no-map-spread': 'off',
+    // Not every then() callback needs to return a value.
+    'promise/always-return': 'off',
+    // Memoizing every context value is not required for this app.
+    'react/jsx-no-constructed-context-values': 'off',
+
+    // --- Custom plugin rules ---
+    // Disable directives (eslint-disable / @ts-expect-error) must carry a reason.
+    'disable-comments/require-description': 'error',
+    // `as unknown as` double-casts bypass the type system; opt in explicitly.
+    'unknown-cast/forbidden': 'error',
+    // Prefer @effect/platform over raw node:fs / node:path.
+    'prefer-effect/no-node-path': 'error',
+    'prefer-effect/no-node-fs': 'error',
+  },
+  overrides: [
+    {
+      // Config files, scripts, and the oxlint plugins themselves legitimately
+      // touch the filesystem and use default exports.
+      files: [
+        'scripts/**',
+        'packages/oxlint-plugins/**',
+        '**/*.config.{ts,js,mjs}',
+        'oxlint.config.ts',
+      ],
+      rules: {
+        'prefer-effect/no-node-path': 'off',
+        'prefer-effect/no-node-fs': 'off',
+        'no-console': 'off',
+      },
+    },
+  ],
+});

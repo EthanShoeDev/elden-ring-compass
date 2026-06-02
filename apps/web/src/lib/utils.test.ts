@@ -8,7 +8,9 @@ describe('cn (className utility)', () => {
   });
 
   it('should handle conditional classes', () => {
-    const result = cn('base', true && 'included', false && 'excluded');
+    const include = true;
+    const exclude = false;
+    const result = cn('base', include && 'included', exclude && 'excluded');
     expect(result).toBe('base included');
   });
 
@@ -48,7 +50,7 @@ describe('delayMs', () => {
 
     // Should not resolve immediately
     let resolved = false;
-    promise.then(() => {
+    void promise.then(() => {
       resolved = true;
     });
 

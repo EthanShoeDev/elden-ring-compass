@@ -91,10 +91,10 @@ export function InteractiveMap() {
             initialPositionY={initTransformState.positionY}
             initialScale={initTransformState.scale}
             smooth={true}
-            wheel={{ smoothStep }}
-            onTransformed={(transform) => {
-              setTransformState(transform.state);
-              setSmoothStep(transform.state.scale * 0.0004754385);
+            wheel={{ step: smoothStep }}
+            onTransform={(_ref, state) => {
+              setTransformState(state);
+              setSmoothStep(state.scale * 0.0004754385);
             }}
           >
             <MapInner />
@@ -193,12 +193,11 @@ function MapInner() {
   const regionItems = useDataTableData('regions');
   const allErdb = useAllErdb();
 
-  const selectedMapItems = Object.entries(tableState).reduce<Array<MapItem>>(
-    (acc, [tableId, tableState]) => [
-      ...acc,
-      ...Object.entries(tableState?.rowSelection ?? {})
+  const selectedMapItems: Array<MapItem> = Object.entries(tableState).flatMap(
+    ([tableId, tableSelectionState]) =>
+      Object.entries(tableSelectionState?.rowSelection ?? {})
         .filter(([, v]) => v)
-        .map(([id]) => {
+        .flatMap(([id]) => {
           if (tableId == 'events')
             return eventsItems.find((e) => e.id.toString() == id)?.map_data ?? [];
           if (tableId == 'regions')
@@ -207,10 +206,7 @@ function MapInner() {
             allErdb[tableId as keyof typeof ERDB].items.find((e) => e.id.toString() == id)
               ?.map_data ?? []
           );
-        })
-        .flat(),
-    ],
-    [],
+        }),
   );
 
   const clearPins = useDataTableStore((s) => s.clearAllRowSelection);
@@ -411,8 +407,8 @@ function BetterKeepScale(props: HTMLAttributes<HTMLDivElement>) {
   const instance = useTransformContext();
   const [scale, setScale] = useState(instance.props.initialScale ?? 1);
 
-  useTransformEffect(({ instance }) => {
-    setScale(instance.transformState.scale);
+  useTransformEffect(({ state }) => {
+    setScale(state.scale);
   });
 
   const transform = instance.handleTransformStyles(0, 0, 1 / scale);

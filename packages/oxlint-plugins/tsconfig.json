@@ -1,0 +1,10 @@
+{
+  "extends": "@elden-ring-compass/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["node", "bun-types"]
+  },
+  "include": ["src/**/*", "tsdown.config.ts"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,0 +1,13 @@
+{
+  "extends": "@elden-ring-compass/config/tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node", "bun-types"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "noUnusedLocals": false,
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": ["scripts/**/*.ts", "oxlint.config.ts", "./*.ts"],
+  "exclude": ["node_modules", "dist", "apps", "packages"]
+}

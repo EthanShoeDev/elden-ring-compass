@@ -122,11 +122,12 @@ export function SaveFileSourceSelector() {
                   <Input
                     type='file'
                     onChange={async (e) => {
-                      if (e.target.files) {
+                      const file = e.target.files?.[0];
+                      if (file) {
                         setSaveFileSource({
                           file: {
-                            buffer: await fileToArrBuffer(e.target.files[0]),
-                            name: e.target.files[0].name,
+                            buffer: await fileToArrBuffer(file),
+                            name: file.name,
                           },
                         });
                       }

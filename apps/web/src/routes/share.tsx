@@ -15,7 +15,7 @@ export const Route = createFileRoute('/share')({
 });
 
 function SharePage() {
-  const { d } = useSearch({ from: '/share' }) as ShareSearchParams;
+  const { d } = useSearch({ from: '/share' });
   const { setSaveFileSource } = useSaveFileSourceStore();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);

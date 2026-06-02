@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import ammo from '@/assets/erdb/json/ammo.json';
 import armaments from '@/assets/erdb/json/armaments.json';
 import armor from '@/assets/erdb/json/armor.json';
@@ -458,17 +457,21 @@ export const useAllErdb = (): Record<
       ).map((item) => {
         const invItem = inventoryById.get(item.id);
         const weapon_upgrade_level = invItem?.upgrade_level ?? 0;
-        return {
-          old_category: invItem?.type,
-          weapon_upgrade_level,
-          quantity: invItem?.quantity ?? 0,
-          ...item,
-          name:
-            weapon_upgrade_level > 0
-              ? `${item.name} +${weapon_upgrade_level.toString()}`
-              : item.name,
-          map_data: invItem?.map_data ?? MAP_DB_ITEMS.get(item.name),
-        };
+        return Object.assign(
+          {
+            old_category: invItem?.type,
+            weapon_upgrade_level,
+            quantity: invItem?.quantity ?? 0,
+          },
+          item,
+          {
+            name:
+              weapon_upgrade_level > 0
+                ? `${item.name} +${weapon_upgrade_level.toString()}`
+                : item.name,
+            map_data: invItem?.map_data ?? MAP_DB_ITEMS.get(item.name),
+          },
+        );
       });
       return [
         key,

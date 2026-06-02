@@ -1,27 +1,83 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "globalPassThroughEnv": ["NIX_*"],
+
+  // Task-inheritance pattern (mirrors the reference monorepos):
+  //   "^task"        -> run `task` in all DEPENDENCY packages first
+  //   "with": [...]  -> run these tasks in parallel for the SAME package
+  //   "//#task"      -> a root-only task (defined in root package.json)
+  // Turbo uses shallow extend: a package overriding a task must copy the
+  // whole definition, it is not merged with the root one.
   "tasks": {
+    // === Base package tasks (inherited by every workspace package) ===
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "pkg/**"]
+      "outputs": ["dist/**", ".output/**", ".nitro/**", "pkg/**"],
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "dependsOn": ["^build"],
+    },
+    "typecheck": {
+      "dependsOn": ["^build", "//#typecheck"],
     },
     "test": {
-      "cache": false,
-      "persistent": true
+      "dependsOn": ["^build"],
     },
-    "test:run": {},
+    "test:run": {
+      "dependsOn": ["^build"],
+    },
     "test:coverage": {
-      "outputs": ["coverage/**"]
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
     },
-    "lint:oxlint": {},
-    "lint:oxlint:fix": {},
-    "lint:oxlint:fix:fix-suggestions": {},
-    "fmt:write": {},
-    "fmt:check": {},
-    "typecheck": {}
-  }
+    "clean": {
+      "cache": false,
+      "dependsOn": ["^clean"],
+    },
+
+    // `lint` runs the full local pipeline for a package: typecheck plus the
+    // root-only checks (oxfmt, jscpd, oxlint, catalog).
+    "lint": {
+      "dependsOn": ["^build"],
+      "with": ["typecheck", "//#lint:root"],
+    },
+    "lint:check": {
+      "dependsOn": ["^build"],
+      "with": ["typecheck", "//#lint:check:root"],
+    },
+
+    // === Root-only tasks (the bodies live in root package.json scripts) ===
+    "//#typecheck": {},
+    "//#lint:root": {
+      "with": [
+        "//#oxfmt:fix",
+        "//#jscpd:check",
+        "//#oxlint:fix",
+        "//#catalog:fix",
+      ],
+    },
+    "//#lint:check:root": {
+      "with": [
+        "//#oxfmt:check",
+        "//#jscpd:check",
+        "//#oxlint:check",
+        "//#catalog:check",
+      ],
+    },
+    "//#oxfmt:fix": {},
+    "//#oxfmt:check": {},
+    "//#jscpd:check": {},
+    "//#catalog:fix": {},
+    "//#catalog:check": {},
+    // oxlint must wait for the custom plugins to be compiled.
+    "//#oxlint:fix": {
+      "dependsOn": ["@elden-ring-compass/oxlint-plugins#build"],
+    },
+    "//#oxlint:check": {
+      "dependsOn": ["@elden-ring-compass/oxlint-plugins#build"],
+    },
+  },
 }

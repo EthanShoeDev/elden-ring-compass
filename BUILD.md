@@ -1,6 +1,7 @@
 # BUILD.md
 
 ## Prerequisites
+
 - [Runtime requirements]
 - [Development tools needed]
 - [Environment setup]
@@ -8,6 +9,7 @@
 ## Build Commands
 
 ### Development
+
 ```bash
 # Start development server
 npm run dev
@@ -17,6 +19,7 @@ npm run watch
 ```
 
 ### Production
+
 ```bash
 # Build for production
 npm run build
@@ -26,6 +29,7 @@ npm start
 ```
 
 ### Testing
+
 ```bash
 # Run all tests
 npm test
@@ -38,6 +42,7 @@ npm test -- filename
 ```
 
 ### Linting & Formatting
+
 ```bash
 # Lint code
 npm run lint
@@ -52,6 +57,7 @@ npm run format
 ## CI/CD Pipeline
 
 ### GitHub Actions
+
 ```yaml
 # .github/workflows/main.yml
 name: CI/CD
@@ -73,15 +79,18 @@ jobs:
 ## Deployment
 
 ### Staging
+
 1. [Deployment steps]
 2. [Verification steps]
 
 ### Production
+
 1. [Pre-deployment checklist]
 2. [Deployment steps]
 3. [Post-deployment verification]
 
 ## Rollback Procedures
+
 1. [Emergency rollback steps]
 2. [Database rollback if needed]
 3. [Verification steps]
@@ -89,13 +98,16 @@ jobs:
 ## Troubleshooting
 
 ### Common Issues
+
 **Issue**: [Problem description]
 **Solution**: [How to fix]
 
 ### Build Failures
+
 - [Common build errors and solutions]
 
 ## Keywords <!-- #keywords -->
+
 - build
 - deployment
 - ci/cd

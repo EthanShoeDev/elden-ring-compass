@@ -29,13 +29,13 @@
           # Build tools
           bun
 
-          # Formatters/Linters
-          oxlint
-          oxfmt
+          # oxlint/oxfmt are provided via the Bun catalog (packages/config),
+          # not nixpkgs, so the whole team pins the exact same versions.
 
           # Utilities
           just
           tree
+          jq
         ];
 
         # Enable Rust features

@@ -32,6 +32,18 @@ package-lock.json
 
 # Nitro build output
 .output
+.nitro
+
+# TypeScript / tsgo
+*.tsbuildinfo
+
+# Test coverage
+coverage
+
+# oxlint-plugins build output
+packages/oxlint-plugins/dist
 
 # Cloned documentation repos
 docs/cloned-repos-as-docs/
+
+.direnv/

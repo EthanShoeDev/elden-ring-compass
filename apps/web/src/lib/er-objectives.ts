@@ -1,4 +1,4 @@
-/* eslint-disable no-useless-escape */
+/* eslint-disable no-useless-escape -- objective strings below contain intentional regex/path escapes */
 type Region = {
   name: string;
   level: string;

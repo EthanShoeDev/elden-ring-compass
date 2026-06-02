@@ -160,7 +160,7 @@ function Boss({
         <span className='text-center text-xs text-muted-foreground'>{name}</span>
       </TooltipTrigger>
       <TooltipContent>
-        <img src={imgSrc} className='mb-2 size-72' />
+        <img src={imgSrc} className='mb-2 size-72' alt={name} />
         {killed && <strong>Defeated</strong>}
         <p>
           Event Id: <span>{id}</span>

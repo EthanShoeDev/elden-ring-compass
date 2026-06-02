@@ -8,79 +8,79 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as ShareRouteImport } from './routes/share'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as rootRouteImport } from './routes/__root';
+import { Route as ShareRouteImport } from './routes/share';
+import { Route as IndexRouteImport } from './routes/index';
 
 const ShareRoute = ShareRouteImport.update({
   id: '/share',
   path: '/share',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/share': typeof ShareRoute
+  '/': typeof IndexRoute;
+  '/share': typeof ShareRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/share': typeof ShareRoute
+  '/': typeof IndexRoute;
+  '/share': typeof ShareRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/share': typeof ShareRoute
+  __root__: typeof rootRouteImport;
+  '/': typeof IndexRoute;
+  '/share': typeof ShareRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/share'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/share'
-  id: '__root__' | '/' | '/share'
-  fileRoutesById: FileRoutesById
+  fileRoutesByFullPath: FileRoutesByFullPath;
+  fullPaths: '/' | '/share';
+  fileRoutesByTo: FileRoutesByTo;
+  to: '/' | '/share';
+  id: '__root__' | '/' | '/share';
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  ShareRoute: typeof ShareRoute
+  IndexRoute: typeof IndexRoute;
+  ShareRoute: typeof ShareRoute;
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/share': {
-      id: '/share'
-      path: '/share'
-      fullPath: '/share'
-      preLoaderRoute: typeof ShareRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/share';
+      path: '/share';
+      fullPath: '/share';
+      preLoaderRoute: typeof ShareRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/';
+      path: '/';
+      fullPath: '/';
+      preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ShareRoute: ShareRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
+import type { getRouter } from './router.tsx';
+import type { createStart } from '@tanstack/react-start';
 declare module '@tanstack/react-start' {
   interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
+    ssr: true;
+    router: Awaited<ReturnType<typeof getRouter>>;
   }
 }

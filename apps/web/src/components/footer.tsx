@@ -72,9 +72,8 @@ function CopySaveAsJsonButton() {
 
       function uint8ArrayToBase64(uint8Array: Uint8Array) {
         let binary = '';
-        const len = uint8Array.length;
-        for (let i = 0; i < len; i++) {
-          binary += String.fromCharCode(uint8Array[i]);
+        for (const byte of uint8Array) {
+          binary += String.fromCharCode(byte);
         }
         return btoa(binary);
       }
@@ -101,7 +100,6 @@ function CopySaveAsJsonButton() {
       await navigator.clipboard.writeText(
         JSON.stringify(
           result,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           (_, value) => (typeof value === 'bigint' ? value.toString() : value),
           2,
         ),

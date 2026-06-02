@@ -1,5 +1,5 @@
 import { Bolstering, ERDB, Tool } from '@/lib/erdb';
-import { cn } from '@/lib/utils';
+import { assertDefined, cn } from '@/lib/utils';
 import { eventsDbView } from '@/lib/vm/events';
 import { inventoryDbView } from '@/lib/vm/inventory';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
@@ -120,13 +120,22 @@ export function OverviewSection() {
     (inventoryQuantityById.get(ERDB.bolstering['Great Ghost Glovewort'].id) ?? 0) +
     (inventoryQuantityById.get(ERDB.bolstering['Great Grave Glovewort'].id) ?? 0);
 
-  const baseFlaskItem = ERDB.tools['Flask of Crimson Tears'];
+  const baseFlaskItem = assertDefined(
+    ERDB.tools['Flask of Crimson Tears'],
+    'Flask of Crimson Tears missing from ERDB',
+  );
 
   const usersFlask =
     Array.from({ length: 12 })
       .map((_, i) => ERDB.tools[`${baseFlaskItem.name}${i == 0 ? '' : ` +${(i + 1).toString()}`}`])
+      .filter((flask) => flask !== undefined)
       .toReversed()
       .find((flask) => (inventoryQuantityById.get(flask.id) ?? 0) > 0) ?? baseFlaskItem;
+
+  const ceruleanFlask = assertDefined(
+    ERDB.tools['Flask of Cerulean Tears'],
+    'Flask of Cerulean Tears missing from ERDB',
+  );
 
   return (
     <Card className='w-full'>
@@ -144,7 +153,7 @@ export function OverviewSection() {
           <CardContent className='flex flex-col gap-1'>
             <FlaskItem item={usersFlask} iconType='tools' max={14} />
             <Separator />
-            <FlaskItem item={ERDB.tools['Flask of Cerulean Tears']} iconType='tools' max={14} />
+            <FlaskItem item={ceruleanFlask} iconType='tools' max={14} />
             <Separator />
             <FlaskItem
               item={ERDB.bolstering['Golden Seed']}
@@ -252,7 +261,7 @@ export function OverviewSection() {
                                     <div className='flex flex-wrap items-center justify-center gap-1'>
                                       {item && (
                                         <>
-                                          <img className='size-8' src={imgSrc} />
+                                          <img className='size-8' src={imgSrc} alt={item.name} />
 
                                           <span className='w-10 whitespace-nowrap'>
                                             {inventoryQuantityById.get(item.id) ?? 0}
@@ -268,7 +277,12 @@ export function OverviewSection() {
                                     </div>
                                   </TooltipTrigger>
                                   <TooltipContent className='flex max-w-72 flex-col items-center'>
-                                    <img loading='lazy' src={imgSrc} className='size-40' />
+                                    <img
+                                      loading='lazy'
+                                      src={imgSrc}
+                                      className='size-40'
+                                      alt={item?.name ?? ''}
+                                    />
                                     <p className='text-lg'>{item?.name}</p>
                                     {bellLocation && (
                                       <>

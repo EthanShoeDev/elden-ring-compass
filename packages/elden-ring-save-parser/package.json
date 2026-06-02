@@ -2,6 +2,9 @@
   "name": "@elden-ring-compass/save-parser",
   "version": "0.1.0",
   "private": true,
+  "files": [
+    "pkg"
+  ],
   "type": "module",
   "main": "./pkg/elden_ring_save_parser.js",
   "types": "./pkg/elden_ring_save_parser.d.ts",
@@ -11,8 +14,8 @@
       "types": "./pkg/elden_ring_save_parser.d.ts"
     }
   },
-  "files": ["pkg"],
   "scripts": {
-    "build": "wasm-pack build --target web"
+    "build": "wasm-pack build --target web",
+    "clean": "rm -rf .turbo *.tsbuildinfo"
   }
 }

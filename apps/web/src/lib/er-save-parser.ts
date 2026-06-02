@@ -3,16 +3,15 @@ import { parse_save_wasm } from './wasm-wrapper';
 export function fileToArrBuffer(file: File) {
   return new Promise<ArrayBuffer>((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const buffer = e.target?.result;
+    reader.addEventListener('load', () => {
+      const buffer = reader.result;
       if (buffer instanceof ArrayBuffer) {
-        try {
-          resolve(buffer);
-        } catch (err) {
-          reject(err instanceof Error ? err : new Error(String(err)));
-        }
+        resolve(buffer);
       }
-    };
+    });
+    reader.addEventListener('error', () => {
+      reject(reader.error ?? new Error('Failed to read file'));
+    });
     reader.readAsArrayBuffer(file);
   });
 }
