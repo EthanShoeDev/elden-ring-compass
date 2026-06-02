@@ -1,9 +1,10 @@
 import { Label } from '@/components/ui/label';
 import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
-import { useEldenRingSaveQuery } from '@/lib/er-save-file-query';
+import { useEldenRingSave } from '@/lib/atoms/save';
 import { fileToArrBuffer } from '@/lib/er-save-parser';
-import { useSaveFileSourceStore } from '@/stores/save-file-source-store';
+import { saveFileSourceAtom } from '@/stores/save-file-source-store';
 import { useSlotNameSelection } from '@/stores/slot-selection-store';
+import { useAtomSet, useAtomValue } from '@effect/atom-react';
 import { formatDistance } from 'date-fns';
 import {
   EditIcon,
@@ -24,8 +25,9 @@ import Spinner from '../ui/spinner';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 
 export function SaveFileSourceSelector() {
-  const { saveFileSource, setSaveFileSource } = useSaveFileSourceStore();
-  const { query, isParsing } = useEldenRingSaveQuery();
+  const saveFileSource = useAtomValue(saveFileSourceAtom);
+  const setSaveFileSource = useAtomSet(saveFileSourceAtom);
+  const save = useEldenRingSave();
 
   const [type, setType] = useState<'file' | 'url'>(
     saveFileSource && 'url' in saveFileSource ? 'url' : 'file',
@@ -52,7 +54,7 @@ export function SaveFileSourceSelector() {
             )}
             {saveFileSource &&
               'url' in saveFileSource &&
-              (query.error ? (
+              (save.isError ? (
                 <>
                   <Link2OffIcon />
                   Url Error
@@ -160,11 +162,11 @@ cd (Join-Path "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" (Get-Child
                 />
               </>
             )}
-            {query.isLoading ? (
-              <div>{isParsing ? 'Parsing' : 'Loading'}...</div>
-            ) : query.isError ? (
-              <div>Error: {query.error.message}</div>
-            ) : query.isSuccess ? (
+            {save.isLoading ? (
+              <div>Loading...</div>
+            ) : save.isError ? (
+              <div>Error: {save.error?.message}</div>
+            ) : save.isSuccess ? (
               <div>Success!</div>
             ) : null}
           </div>
@@ -175,9 +177,9 @@ cd (Join-Path "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" (Get-Child
 }
 
 function SlotSelector() {
-  const { query } = useEldenRingSaveQuery();
+  const { data } = useEldenRingSave();
   const slotState = useSlotNameSelection();
-  if (!query.data) return <></>;
+  if (!data) return <></>;
   return (
     <Combobox
       valueState={slotState}
@@ -185,9 +187,9 @@ function SlotSelector() {
       placeholder='Select slot from save file'
       triggerButtonClassName='w-[200px]'
       popoverContentClassName='w-[200px]'
-      items={query.data.slots
-        .map((slot: any) => playerNameBytesToString(slot.player_game_data.character_name))
-        .map((s: string) => ({
+      items={data.slots
+        .map((slot) => playerNameBytesToString(slot.player_game_data.character_name))
+        .map((s) => ({
           label: s,
           value: s,
         }))}
@@ -196,16 +198,15 @@ function SlotSelector() {
 }
 
 function SteamIdLabel() {
-  const { query } = useEldenRingSaveQuery();
-  if (!query.data) return <></>;
-  return <Label>Steam ID: {query.data.global_steam_id}</Label>;
+  const { data } = useEldenRingSave();
+  if (!data) return <></>;
+  return <Label>Steam ID: {data.global_steam_id}</Label>;
 }
 
 function RefreshButton() {
-  const { saveFileSource } = useSaveFileSourceStore();
-
-  const { query, isParsing } = useEldenRingSaveQuery();
-  const [now, setNow] = useState<number>(Date.now());
+  const saveFileSource = useAtomValue(saveFileSourceAtom);
+  const save = useEldenRingSave();
+  const [now, setNow] = useState<number>(() => Date.now());
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -219,23 +220,23 @@ function RefreshButton() {
   return (
     <Button
       variant='ghost'
-      disabled={query.isFetching || (saveFileSource && 'file' in saveFileSource)}
+      disabled={save.isFetching || (!!saveFileSource && 'file' in saveFileSource)}
       className='flex gap-2'
       onClick={() => {
-        void query.refetch();
+        save.refresh();
       }}
     >
-      {query.isFetching ? (
+      {save.isFetching ? (
         <>
           <Spinner />
-          {isParsing ? 'Parsing...' : 'Loading...'}
+          Loading...
         </>
       ) : (
         <>
           <RefreshCcwIcon />
           Updated{' '}
-          {query.data
-            ? formatDistance(query.dataUpdatedAt, now, {
+          {save.data && save.dataUpdatedAt
+            ? formatDistance(save.dataUpdatedAt, now, {
                 addSuffix: true,
                 includeSeconds: true,
               })

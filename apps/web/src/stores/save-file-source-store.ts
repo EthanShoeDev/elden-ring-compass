@@ -1,4 +1,6 @@
-import { create } from 'zustand';
+import { Schema } from 'effect';
+import { Atom } from 'effect/unstable/reactivity';
+import { browserKvsRuntime } from '@/lib/atoms/kvs';
 import type { ShareableProgression } from '@/lib/share/types';
 
 type FileData = {
@@ -20,34 +22,39 @@ type SharedDataSource = {
 
 export type SaveFileSource = FileUploadSource | UrlSource | SharedDataSource;
 
-type SaveFileSourceStoreState = {
-  saveFileSource?: SaveFileSource;
-  setSaveFileSource: (val?: SaveFileSource) => void;
-};
-
-const getCachedUrl = () => {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('saveFileSourceUrl');
-};
-
-export const useSaveFileSourceStore = create<SaveFileSourceStoreState>()((set) => {
-  const cachedUrl = getCachedUrl();
-  return {
-    saveFileSource: cachedUrl
-      ? {
-          url: cachedUrl,
-        }
-      : undefined,
-    setSaveFileSource: (val) => {
-      if (val && 'url' in val) {
-        localStorage.setItem('saveFileSourceUrl', val.url);
-      } else {
-        localStorage.removeItem('saveFileSourceUrl');
-      }
-      set({ saveFileSource: val });
-    },
-  };
+// Only the `url` source is durable — file buffers and shared payloads are
+// session-only. We persist the url string (schema-validated) and keep the live
+// source (file/shared/url) in a transient atom that takes precedence.
+const persistedUrlAtom = Atom.kvs({
+  runtime: browserKvsRuntime,
+  key: 'saveFileSourceUrl',
+  schema: Schema.String,
+  defaultValue: () => '',
 });
+
+const transientSourceAtom = Atom.make<SaveFileSource | undefined>(undefined);
+
+/**
+ * Current save-file source (effect-atom; replaced the Zustand store). Reads the
+ * in-session source if set, otherwise restores a persisted url. Writing persists
+ * the url (or clears it) and updates the live source — the save-parse atom
+ * (`@/lib/atoms/save`) derives from this directly.
+ */
+export const saveFileSourceAtom = Atom.writable<
+  SaveFileSource | undefined,
+  SaveFileSource | undefined
+>(
+  (get) => {
+    const transient = get(transientSourceAtom);
+    if (transient !== undefined) return transient;
+    const url = get(persistedUrlAtom);
+    return url ? { url } : undefined;
+  },
+  (ctx, value) => {
+    ctx.set(persistedUrlAtom, value && 'url' in value ? value.url : '');
+    ctx.set(transientSourceAtom, value);
+  },
+);
 
 // Type guards
 export const isFileSource = (src?: SaveFileSource): src is FileUploadSource =>

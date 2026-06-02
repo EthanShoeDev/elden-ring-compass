@@ -20,7 +20,7 @@
   "dependencies": {
     "@effect/platform-bun": "catalog:",
     "effect": "catalog:",
-    "sharp": "^0.34.5"
+    "sharp": "catalog:"
   },
   "devDependencies": {
     "@elden-ring-compass/config": "workspace:*",

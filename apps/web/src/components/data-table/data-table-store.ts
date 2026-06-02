@@ -51,7 +51,7 @@ const handleOnChangeParam = <T extends DataTableState[K], K extends keyof DataTa
   };
 };
 
-export type TableId = 'events' | 'regions' | InventoryTableType;
+export type TableId = 'events' | 'regions' | 'weapons' | InventoryTableType;
 
 export type DataTableStateInitProps = {
   tableId: TableId;

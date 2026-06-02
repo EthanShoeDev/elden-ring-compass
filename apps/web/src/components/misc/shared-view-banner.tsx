@@ -1,19 +1,20 @@
 import { EyeIcon, UploadIcon } from 'lucide-react';
+import { useAtomSet } from '@effect/atom-react';
 import { Button } from '../ui/button';
-import { useEldenRingSaveQuery } from '@/lib/er-save-file-query';
-import { useSaveFileSourceStore } from '@/stores/save-file-source-store';
+import { useEldenRingSave } from '@/lib/atoms/save';
+import { saveFileSourceAtom } from '@/stores/save-file-source-store';
 import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
 
 export function SharedViewBanner() {
-  const { query, isSharedView } = useEldenRingSaveQuery();
-  const { setSaveFileSource } = useSaveFileSourceStore();
+  const { data, isSharedView } = useEldenRingSave();
+  const setSaveFileSource = useAtomSet(saveFileSourceAtom);
 
-  if (!isSharedView || !query.data) {
+  if (!isSharedView || !data) {
     return null;
   }
 
   // Get the character name from the shared data
-  const slot = query.data.slots[0];
+  const slot = data.slots[0];
   const characterName = slot
     ? playerNameBytesToString(slot.player_game_data.character_name)
     : 'Unknown';

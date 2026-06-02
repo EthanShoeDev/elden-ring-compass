@@ -2,14 +2,14 @@ import { CheckIcon, ShareIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../ui/button';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
-import { useEldenRingSaveQuery } from '@/lib/er-save-file-query';
+import { useEldenRingSave } from '@/lib/atoms/save';
 import { generateShareUrl } from '@/lib/share/encode';
 
 export function ShareButton() {
   const [isCopied, setIsCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const slot = useSelectedSlot();
-  const { isSharedView } = useEldenRingSaveQuery();
+  const { isSharedView } = useEldenRingSave();
 
   // Don't show share button when already viewing shared data
   if (isSharedView || !slot) {

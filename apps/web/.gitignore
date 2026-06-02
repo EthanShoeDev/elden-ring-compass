@@ -1,1 +1,4 @@
 .vercel
+
+# Generated: map tiles synced from @elden-ring-compass/data (see scripts/sync-map-tiles.ts)
+public/map-tiles/

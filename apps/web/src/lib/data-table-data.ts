@@ -18,6 +18,9 @@ export function useDataTableData(
   const items = useMemo(() => {
     if (tableId == 'events') return eventsDbView(slot);
     if (tableId == 'regions') return regionsDbView(slot);
+    // 'weapons' is served by its own effect-atom (see weapons-data-table.tsx),
+    // not the save-driven inventory join, so it never reaches this hook.
+    if (tableId == 'weapons') return [];
     return allErdb[tableId].items;
   }, [slot, tableId, allErdb]);
 

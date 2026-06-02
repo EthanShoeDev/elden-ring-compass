@@ -1,60 +1,62 @@
-import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
-import { useEldenRingSaveQuery } from '@/lib/er-save-file-query';
-import { assertDefined } from '@/lib/utils';
+import { Schema } from 'effect';
+import { Atom } from 'effect/unstable/reactivity';
+import { useAtom } from '@effect/atom-react';
 import { useEffect } from 'react';
-import { create } from 'zustand';
+import { playerNameBytesToString } from '@/lib/elden-ring-raw-db/er-raw-db';
+import { useEldenRingSave } from '@/lib/atoms/save';
+import { browserKvsRuntime } from '@/lib/atoms/kvs';
+import { assertDefined } from '@/lib/utils';
 
-type SlotSelectionStoreState = {
-  selectedSlotName?: string;
-  setSelectedSlotName: (val?: string) => void;
-};
+// In-session selected slot name (effect-atom; replaced the Zustand store).
+const selectedSlotNameAtom = Atom.make<string | undefined>(undefined);
 
-const useSlotSelectionStore = create<SlotSelectionStoreState>()((set) => ({
-  selectedSlotName: undefined,
-  setSelectedSlotName: (val) => {
-    set({ selectedSlotName: val });
-  },
-}));
+// Persisted memory of the chosen slot per save, keyed by steam id (typesafe kvs,
+// not raw localStorage).
+const slotMemoryAtom = Atom.kvs({
+  runtime: browserKvsRuntime,
+  key: 'selectedSlotBySteamId',
+  schema: Schema.Record(Schema.String, Schema.String),
+  defaultValue: () => ({}) as Record<string, string>,
+});
 
 export const useSlotNameSelection = () => {
-  const { query } = useEldenRingSaveQuery();
-  const store = useSlotSelectionStore();
+  const { data } = useEldenRingSave();
+  const [selectedSlotName, setSelectedSlotName] = useAtom(selectedSlotNameAtom);
+  const [slotMemory, setSlotMemory] = useAtom(slotMemoryAtom);
 
   useEffect(() => {
-    if (store.selectedSlotName === undefined && query.data && query.data.slots.length > 0) {
-      const steamId = query.data.global_steam_id;
-      const cachedSlotName = localStorage.getItem(`selectedSlot-${steamId}`);
+    if (selectedSlotName === undefined && data && data.slots.length > 0) {
+      const steamId = data.global_steam_id;
+      const cached = slotMemory[steamId];
       if (
-        cachedSlotName &&
-        query.data.slots.some(
-          (s: any) => playerNameBytesToString(s.player_game_data.character_name) === cachedSlotName,
+        cached &&
+        data.slots.some(
+          (s) => playerNameBytesToString(s.player_game_data.character_name) === cached,
         )
       ) {
-        store.setSelectedSlotName(cachedSlotName);
+        setSelectedSlotName(cached);
       } else {
-        const firstSlot = assertDefined(query.data.slots[0], 'expected at least one save slot');
-        store.setSelectedSlotName(
-          playerNameBytesToString(firstSlot.player_game_data.character_name),
-        );
+        const firstSlot = assertDefined(data.slots[0], 'expected at least one save slot');
+        setSelectedSlotName(playerNameBytesToString(firstSlot.player_game_data.character_name));
       }
     }
-  }, [query.data, store]);
+  }, [data, selectedSlotName, slotMemory, setSelectedSlotName]);
 
   const setSelectedSlot = (val?: string) => {
-    if (!query.data) return;
-    const steamId = query.data.global_steam_id;
-    if (val) localStorage.setItem(`selectedSlot-${steamId}`, val);
-    store.setSelectedSlotName(val);
+    if (!data) return;
+    const steamId = data.global_steam_id;
+    if (val) setSlotMemory({ ...slotMemory, [steamId]: val });
+    setSelectedSlotName(val);
   };
 
-  return [store.selectedSlotName, setSelectedSlot] as const;
+  return [selectedSlotName, setSelectedSlot] as const;
 };
 
 export const useSelectedSlot = () => {
   const [slotName] = useSlotNameSelection();
-  const { query } = useEldenRingSaveQuery();
-  if (!query.data) return;
-  return query.data.slots.find(
-    (slot: any) => slotName === playerNameBytesToString(slot.player_game_data.character_name),
+  const { data } = useEldenRingSave();
+  if (!data) return;
+  return data.slots.find(
+    (slot) => slotName === playerNameBytesToString(slot.player_game_data.character_name),
   );
 };

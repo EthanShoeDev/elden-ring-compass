@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router';
+import { useAtomSet } from '@effect/atom-react';
 import { useEffect, useState } from 'react';
 import { decodeFromUrl } from '@/lib/share/decode';
-import { useSaveFileSourceStore } from '@/stores/save-file-source-store';
+import { saveFileSourceAtom } from '@/stores/save-file-source-store';
 
 type ShareSearchParams = {
   d?: string;
@@ -16,7 +17,7 @@ export const Route = createFileRoute('/share')({
 
 function SharePage() {
   const { d } = useSearch({ from: '/share' });
-  const { setSaveFileSource } = useSaveFileSourceStore();
+  const setSaveFileSource = useAtomSet(saveFileSourceAtom);
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 

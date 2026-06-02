@@ -12,13 +12,13 @@ const DATA_PACKAGE_DIR = Bun.fileURLToPath(
 );
 
 /**
- * Stage 7 — images. Decodes the game's TPF textures: all ~28k overworld map
- * tiles (base + DLC, from the 71_maptile BHF4/BDF4 archive) for the tiled map
- * view, plus menu/item icon sheets. Rust (`er-image-codec`, via bun:ffi) does
- * the BCn decode → lossless PNG; `Bun.Image` re-encodes to the configured format
- * (default WebP) so we ship compressed assets and re-extract rather than commit
- * full-res. Output under `packages/elden-ring-data/images/`; skip-if-exists
- * makes reruns cheap.
+ * Stage 7 — images. Decodes the game's TPF textures from the 71_maptile
+ * BHF4/BDF4 archive (base + DLC) plus menu/item icon sheets. Rust
+ * (`er-image-codec`, via bun:ffi) does the BCn decode → lossless PNG. Map tiles
+ * are then stitched + re-tiled by `sharp` into a clean power-of-2 `{z}/{y}/{x}`
+ * pyramid per map/layer (see `game/map-pyramid.ts`); icons go through `Bun.Image`.
+ * Output under `packages/elden-ring-data/images/` (tiles + `manifest.json`);
+ * skip-if-exists makes reruns cheap.
  */
 export const images = Effect.gen(function* () {
   const ctx = yield* PipelineContext;

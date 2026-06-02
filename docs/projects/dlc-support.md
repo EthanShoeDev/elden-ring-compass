@@ -205,6 +205,12 @@ Not cloned (GUI/large): **Smithbox** (vawser) — DLC MSB/regulation/FMG/TPF GUI
   - ◐ Next: (d) MSB → x,y (port _or_ WitchyBND); (e) one DLC boss flag (CT overlay). [tasks tracked]
 - **Phase 2 — Items.** Names + stats + icons for DLC weapons/armor/goods/talismans/AoW → site `.ts` + Rust db. (Lowest risk; ER-Save-Lib has clean tables if we want a quick win before the FMG parser lands.)
 - **Phase 3 — Own the save parser.** Port ER-Save-Lib's save-format + event-flag-bit logic into our Rust/WASM parser (replacing the stale ER-Save-Editor copy); vendor Paramdex/EMEDF/AES key. Verify inventory + flags against the **real DLC save**.
+
+  > **PENDING TASK (not started):** Compile **ER-Save-Lib** → WASM and integrate it into the web app, replacing the current stale parser in `packages/elden-ring-save-parser/`. ClayAmore reorganized the save parser into a **new repo** ([ER-Save-Lib](https://github.com/ClayAmore/ER-Save-Lib)), already cloned at `docs/cloned-repos-as-docs/dlc-data-sources/ER-Save-Lib`.
+  >
+  > - **Fork likely needed.** For the *old* repo (used in the previous version of the site) we had to **fork it and make small changes to get it to compile to WASM** — the upstream crate wasn't `wasm32`-ready out of the box (crate-type, `wasm-bindgen` bindings, and pruning/feature-gating any non-WASM deps like `std::fs`/native I/O). Whether ER-Save-Lib needs the same is **unconfirmed** — scope it: check `Cargo.toml` crate-type + deps for `wasm32-unknown-unknown` compatibility, add `wasm-bindgen` glue, build with `wasm-pack`.
+  > - **Integration:** wire the resulting WASM into `apps/web` behind the existing `wasm-wrapper.ts` interface (the save-source store / parser query), then verify inventory item names + discovered DLC graces/bosses against the real DLC save.
+  > - This is the **one intrinsic, non-self-updating dependency** (§7): the save byte-layout is RE'd, not described in the install dir.
 - **Phase 4 — Progression.** DLC graces (from `BonfireWarpParam`) + boss defeat flags (CT overlay → later EMEVD) + Shadow Realm regions.
 - **Phase 5 — Map.** Land of Shadow map image (TPF→DDS→JPEG) + DLC markers with coordinates calibrated to the affine transform (`interactive-map.tsx:331-344`).
 - **Phase 6 — One-command + verify.** Wire stages into a single `bun run extract --game-dir <path>`; verify end-to-end against the DLC save; write the patch-refresh runbook.

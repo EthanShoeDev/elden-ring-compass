@@ -5,7 +5,6 @@ import { eventsDbView } from '@/lib/vm/events';
 import { regionsDbView } from '@/lib/vm/regions';
 import { statsDbView } from '@/lib/vm/stats';
 import { equipmentDbView } from '@/lib/vm/equipement';
-import { useMutation } from '@tanstack/react-query';
 import Spinner from './ui/spinner';
 import { useState } from 'react';
 
@@ -59,11 +58,14 @@ export function Footer() {
 function CopySaveAsJsonButton() {
   const slot = useSelectedSlot();
   const [recentSuccess, setRecentSuccess] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  const copyMutation = useMutation({
-    mutationFn: async () => {
-      if (!slot) return;
-
+  const handleCopy = async () => {
+    if (!slot) return;
+    setIsPending(true);
+    setError(null);
+    try {
       const equipmentVm = equipmentDbView(slot);
       const eventsVm = eventsDbView(slot);
       const inventoryVm = inventoryDbView(slot);
@@ -104,26 +106,22 @@ function CopySaveAsJsonButton() {
           2,
         ),
       );
-    },
-    onSuccess: () => {
       setRecentSuccess(true);
       setTimeout(() => {
         setRecentSuccess(false);
       }, 2000);
-    },
-  });
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   return (
-    <Button
-      disabled={!slot || copyMutation.isPending}
-      onClick={() => {
-        copyMutation.mutate();
-      }}
-      className='flex gap-4'
-    >
-      {copyMutation.isPending && <Spinner />}
+    <Button disabled={!slot || isPending} onClick={() => void handleCopy()} className='flex gap-4'>
+      {isPending && <Spinner />}
       {recentSuccess && <span className='text-green-500'>✔</span>}
-      {copyMutation.error ? copyMutation.error.message : 'Copy Save as JSON'}
+      {error ? error.message : 'Copy Save as JSON'}
     </Button>
   );
 }
