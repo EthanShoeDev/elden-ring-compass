@@ -2,7 +2,7 @@ import { Command, Options } from '@effect/cli';
 import { Path } from '@effect/platform';
 import { Effect } from 'effect';
 
-import { PipelineContext } from './domain/context.ts';
+import { type ImageFormat, PipelineContext } from './domain/context.ts';
 import { runPipeline } from './pipeline.ts';
 
 // `--clean`: re-extract the dvdbnd archives from scratch — restore backups and
@@ -30,10 +30,28 @@ const outDir = Options.directory('out', { exists: 'either' }).pipe(
   Options.withDescription('Directory to write extracted artifacts into.'),
 );
 
+// `--image-format` / `--image-quality`: encoding for the images stage. WebP at
+// q80 keeps tiles small; png is lossless; avif is smallest but slowest.
+const imageFormat = Options.choice('image-format', [
+  'webp',
+  'png',
+  'jpeg',
+  'avif',
+]).pipe(
+  Options.withDefault('webp' as ImageFormat),
+  Options.withDescription('Output format for extracted images (default webp).'),
+);
+const imageQuality = Options.integer('image-quality').pipe(
+  Options.withDefault(80),
+  Options.withDescription(
+    'Quality 1–100 for lossy image formats (default 80).',
+  ),
+);
+
 const extract = Command.make(
   'extract',
-  { gameDir, outDir, clean },
-  ({ gameDir, outDir, clean }) =>
+  { gameDir, outDir, clean, imageFormat, imageQuality },
+  ({ gameDir, outDir, clean, imageFormat, imageQuality }) =>
     Effect.gen(function* () {
       const path = yield* Path.Path;
       yield* runPipeline.pipe(
@@ -42,6 +60,8 @@ const extract = Command.make(
           gameRoot: path.join(gameDir, 'Game'),
           outDir,
           clean,
+          imageFormat,
+          imageQuality,
         }),
       );
     }),

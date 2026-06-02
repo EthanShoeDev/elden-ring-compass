@@ -12,6 +12,7 @@
   "scripts": {
     "start": "bun src/bin.ts",
     "extract": "bun src/bin.ts extract",
+    "build:image-codec": "cargo build --release --manifest-path ../er-image-codec/Cargo.toml",
     "update-paramdex": "bun scripts/update-paramdex.ts",
     "clean": "rm -rf .turbo dist *.tsbuildinfo",
     "typecheck": "tsgo --noEmit"

@@ -8,12 +8,18 @@ import { Context } from 'effect';
  *              and the `oo2core_*.dll` Oodle decoder live (also the unpack target).
  * `outDir`   — scratch + artifact output directory (used by the codegen stage).
  * `clean`    — re-extract from scratch (restore backups + delete unpacked dirs).
+ * `imageFormat`/`imageQuality` — output encoding for the images stage
+ *              (webp/png/jpeg/avif; quality 1–100, ignored for png).
  */
+export type ImageFormat = 'webp' | 'png' | 'jpeg' | 'avif';
+
 export interface PipelineContextValue {
   readonly gameDir: string;
   readonly gameRoot: string;
   readonly outDir: string;
   readonly clean: boolean;
+  readonly imageFormat: ImageFormat;
+  readonly imageQuality: number;
 }
 
 /**

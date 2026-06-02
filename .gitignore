@@ -47,3 +47,9 @@ packages/oxlint-plugins/dist
 docs/cloned-repos-as-docs/
 
 .direnv/
+
+# Rust build output (er-image-codec cdylib — rebuilt via `bun run build:image-codec`)
+target/
+
+# Extractor output (unpacked artifacts, generated images) — re-extracted on demand
+.er-extractor-out/
