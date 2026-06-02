@@ -28,11 +28,24 @@ export const runPipeline = Effect.gen(function* () {
     Effect.annotateLogs('stage', '2-params'),
   );
   const names = yield* text.pipe(Effect.annotateLogs('stage', '3-text'));
-  yield* join(paramFiles, names).pipe(Effect.annotateLogs('stage', '4-join'));
-  yield* markers.pipe(Effect.annotateLogs('stage', '5-markers'));
-  yield* flags(paramFiles).pipe(Effect.annotateLogs('stage', '6-flags'));
+  const { weapons, armor } = yield* join(paramFiles, names).pipe(
+    Effect.annotateLogs('stage', '4-join'),
+  );
+  const markerEntities = yield* markers.pipe(
+    Effect.annotateLogs('stage', '5-markers'),
+  );
+  const { graces, bosses } = yield* flags(paramFiles).pipe(
+    Effect.annotateLogs('stage', '6-flags'),
+  );
   yield* images.pipe(Effect.annotateLogs('stage', '7-images'));
-  yield* codegen.pipe(Effect.annotateLogs('stage', '8-codegen'));
+  yield* codegen({
+    graces,
+    bosses,
+    weapons,
+    armor,
+    markers: markerEntities,
+    names,
+  }).pipe(Effect.annotateLogs('stage', '8-codegen'));
 
-  yield* Effect.logInfo('Done (scaffold — every stage is a stub).');
+  yield* Effect.logInfo('Done.');
 });
