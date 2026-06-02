@@ -33,15 +33,21 @@ export type RowValue = number | string | Uint8Array;
 const FLAG_LONG_DATA_OFFSET = 0x04;
 const FLAG_OFFSET_PARAM_TYPE = 0x80;
 
-export const parseParam = (bytes: Uint8Array): Effect.Effect<Param, ParamError> =>
+export const parseParam = (
+  bytes: Uint8Array,
+): Effect.Effect<Param, ParamError> =>
   Effect.gen(function* () {
     if (bytes.length < 0x40) {
-      return yield* new ParamError({ detail: `PARAM too short (${bytes.length} bytes)` });
+      return yield* new ParamError({
+        detail: `PARAM too short (${bytes.length} bytes)`,
+      });
     }
     const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     const endByte = bytes[0x2c];
     if (endByte !== 0x00 && endByte !== 0xff) {
-      return yield* new ParamError({ detail: `bad endian flag 0x${endByte!.toString(16)} at 0x2C` });
+      return yield* new ParamError({
+        detail: `bad endian flag 0x${endByte!.toString(16)} at 0x2C`,
+      });
     }
     const little = endByte === 0x00;
     const format2d = bytes[0x2d]!;
@@ -91,10 +97,21 @@ export const parseParam = (bytes: Uint8Array): Effect.Effect<Param, ParamError> 
 // PARAM.Row.ReadCells / ParamUtil. ---
 
 const isBitType = (t: DefType): boolean =>
-  t === 's8' || t === 'u8' || t === 's16' || t === 'u16' || t === 's32' || t === 'u32' || t === 'dummy8';
-const isSignedBit = (t: DefType): boolean => t === 's8' || t === 's16' || t === 's32';
+  t === 's8' ||
+  t === 'u8' ||
+  t === 's16' ||
+  t === 'u16' ||
+  t === 's32' ||
+  t === 'u32' ||
+  t === 'dummy8';
+const isSignedBit = (t: DefType): boolean =>
+  t === 's8' || t === 's16' || t === 's32';
 const bitLimitOf = (t: DefType): number =>
-  t === 's8' || t === 'u8' || t === 'dummy8' ? 8 : t === 's16' || t === 'u16' ? 16 : 32;
+  t === 's8' || t === 'u8' || t === 'dummy8'
+    ? 8
+    : t === 's16' || t === 'u16'
+      ? 16
+      : 32;
 
 const BIT_VALUE_SIZE = 64n;
 
@@ -128,13 +145,27 @@ export const decodeRow = (
     else if (type === 'fixstrW') value = r.fixStrW(arrayLength * 2);
     else if (isBitType(type) && bitSize === -1) {
       switch (type) {
-        case 's8': value = r.i8(); break;
-        case 'u8': value = arrayLength > 1 ? r.bytes(arrayLength) : r.u8(); break;
-        case 's16': value = r.i16(); break;
-        case 'u16': value = r.u16(); break;
-        case 's32': value = r.i32(); break;
-        case 'u32': value = r.u32(); break;
-        case 'dummy8': value = r.bytes(arrayLength); break;
+        case 's8':
+          value = r.i8();
+          break;
+        case 'u8':
+          value = arrayLength > 1 ? r.bytes(arrayLength) : r.u8();
+          break;
+        case 's16':
+          value = r.i16();
+          break;
+        case 'u16':
+          value = r.u16();
+          break;
+        case 's32':
+          value = r.i32();
+          break;
+        case 'u32':
+          value = r.u32();
+          break;
+        case 'dummy8':
+          value = r.bytes(arrayLength);
+          break;
       }
     }
 
@@ -143,10 +174,16 @@ export const decodeRow = (
     } else {
       // Packed bitfield (incl. dummy8 bit padding).
       const limit = bitLimitOf(type);
-      if (bitOffset === -1 || limit !== bitLimit || bitOffset + bitSize > bitLimit) {
+      if (
+        bitOffset === -1 ||
+        limit !== bitLimit ||
+        bitOffset + bitSize > bitLimit
+      ) {
         bitOffset = 0;
         bitLimit = limit;
-        bitValue = BigInt(limit === 8 ? r.u8() : limit === 16 ? r.u16() : r.u32());
+        bitValue = BigInt(
+          limit === 8 ? r.u8() : limit === 16 ? r.u16() : r.u32(),
+        );
       }
       const bs = BigInt(bitSize);
       const leftShift = BIT_VALUE_SIZE - bs - BigInt(bitOffset);

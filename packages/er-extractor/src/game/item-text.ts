@@ -28,7 +28,11 @@ export type ItemNameCategory = (typeof ITEM_NAME_CATEGORIES)[number];
 export type ItemText = Record<ItemNameCategory, Map<number, string>>;
 
 // Read base + DLC message archives; later ones layer on top.
-const MSGBNDS = ['item.msgbnd.dcx', 'item_dlc01.msgbnd.dcx', 'item_dlc02.msgbnd.dcx'];
+const MSGBNDS = [
+  'item.msgbnd.dcx',
+  'item_dlc01.msgbnd.dcx',
+  'item_dlc02.msgbnd.dcx',
+];
 
 // "…/WeaponName_dlc01.fmg" → "WeaponName" ('_' is not in the name char class,
 // so the lazy group stops before the optional "_dlcNN" suffix).
@@ -51,7 +55,9 @@ export const loadItemText = (
     for (const rel of MSGBNDS) {
       const path = `${gameRoot}/msg/engus/${rel}`;
       if (!(yield* Effect.promise(() => Bun.file(path).exists()))) continue;
-      const dcx = new Uint8Array(yield* Effect.promise(() => Bun.file(path).arrayBuffer()));
+      const dcx = new Uint8Array(
+        yield* Effect.promise(() => Bun.file(path).arrayBuffer()),
+      );
       const entries = yield* parseBnd4(yield* dcxDecompress(dcx, oo2corePath));
       for (const entry of entries) {
         const category = categoryOf(entry.name);

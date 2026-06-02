@@ -11,7 +11,10 @@ import { createPublicKey } from 'node:crypto';
  */
 
 function b64urlToBig(b64url: string): bigint {
-  const bytes = Buffer.from(b64url.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
+  const bytes = Buffer.from(
+    b64url.replace(/-/g, '+').replace(/_/g, '/'),
+    'base64',
+  );
   let v = 0n;
   for (const byte of bytes) v = (v << 8n) | BigInt(byte);
   return v;
@@ -41,7 +44,10 @@ function parsePublicKey(pem: string): { n: bigint; e: bigint; bits: number } {
  * Decrypt a full encrypted `.bhd` buffer with the given PKCS#1 PEM public key.
  * Returns the decrypted header bytes (starts with the `BHD5` magic).
  */
-export function decryptBhdHeader(encrypted: Uint8Array, pem: string): Uint8Array {
+export function decryptBhdHeader(
+  encrypted: Uint8Array,
+  pem: string,
+): Uint8Array {
   const { n, e, bits } = parsePublicKey(pem);
   const inBlock = Math.ceil(bits / 8); // modulus byte size (256 for 2048-bit)
   const outBlock = inBlock - 1; // BouncyCastle RSA decrypt output block size
@@ -55,7 +61,8 @@ export function decryptBhdHeader(encrypted: Uint8Array, pem: string): Uint8Array
   for (let i = 0; i < blocks; i++) {
     let c = 0n;
     const base = i * inBlock;
-    for (let j = 0; j < inBlock; j++) c = (c << 8n) | BigInt(encrypted[base + j]!);
+    for (let j = 0; j < inBlock; j++)
+      c = (c << 8n) | BigInt(encrypted[base + j]!);
     let m = modpow(c, e, n);
     for (let j = outBlock - 1; j >= 0; j--) {
       out[i * outBlock + j] = Number(m & 0xffn);

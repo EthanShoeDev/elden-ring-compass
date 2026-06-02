@@ -23,14 +23,17 @@ export class OodleError extends Data.TaggedError('OodleError')<{
  * Locate the game's `oo2core_*_win64.dll` in the install dir (version varies by
  * game: ER ships v6). Returns the absolute path.
  */
-export const findOodleDll = (gameRoot: string): Effect.Effect<string, OodleError> =>
+export const findOodleDll = (
+  gameRoot: string,
+): Effect.Effect<string, OodleError> =>
   Effect.tryPromise({
     try: async () => {
       const glob = new Bun.Glob('oo2core_*_win64.dll');
       for await (const rel of glob.scan(gameRoot)) return `${gameRoot}/${rel}`;
       throw new Error(`no oo2core_*_win64.dll in ${gameRoot}`);
     },
-    catch: (cause) => new OodleError({ detail: `locating Oodle DLL: ${String(cause)}` }),
+    catch: (cause) =>
+      new OodleError({ detail: `locating Oodle DLL: ${String(cause)}` }),
   });
 
 // Oodle enum values (oodle2.h), matching soulstruct's ctypes wrapper.

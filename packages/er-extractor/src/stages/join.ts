@@ -64,7 +64,9 @@ export const join = (paramFiles: Map<string, Uint8Array>, names: ItemText) =>
       });
     }
 
-    yield* Effect.logInfo(`joined ${records.length} weapons (name ⨝ EquipParamWeapon, stats decoded)`);
+    yield* Effect.logInfo(
+      `joined ${records.length} weapons (name ⨝ EquipParamWeapon, stats decoded)`,
+    );
     const milady = records.find((r) => r.id === 67500000);
     yield* Effect.logInfo(
       milady

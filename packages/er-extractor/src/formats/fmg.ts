@@ -12,7 +12,9 @@ export class FmgError extends Data.TaggedError('FmgError')<{
   readonly detail: string;
 }> {}
 
-export const parseFmg = (data: Uint8Array): Effect.Effect<Map<number, string>, FmgError> =>
+export const parseFmg = (
+  data: Uint8Array,
+): Effect.Effect<Map<number, string>, FmgError> =>
   Effect.gen(function* () {
     const r = new BinaryReader(data);
 
@@ -56,7 +58,10 @@ export const parseFmg = (data: Uint8Array): Effect.Effect<Map<number, string>, F
         if (md5) stringOffset += 16;
         if (stringOffset > 0) {
           const id = firstID + j;
-          map.set(id, unicode ? r.getUTF16(stringOffset) : r.getShiftJIS(stringOffset));
+          map.set(
+            id,
+            unicode ? r.getUTF16(stringOffset) : r.getShiftJIS(stringOffset),
+          );
         }
       }
       r.stepOut();

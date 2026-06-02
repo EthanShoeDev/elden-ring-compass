@@ -22,18 +22,30 @@ export class RegulationError extends Data.TaggedError('RegulationError')<{
 export const loadRegulationParams = (
   gameRoot: string,
   oo2corePath: string,
-): Effect.Effect<Map<string, Uint8Array>, RegulationError | DcxError | OodleError | Bnd4Error> =>
+): Effect.Effect<
+  Map<string, Uint8Array>,
+  RegulationError | DcxError | OodleError | Bnd4Error
+> =>
   Effect.gen(function* () {
     const enc = new Uint8Array(
-      yield* Effect.promise(() => Bun.file(`${gameRoot}/regulation.bin`).arrayBuffer()),
+      yield* Effect.promise(() =>
+        Bun.file(`${gameRoot}/regulation.bin`).arrayBuffer(),
+      ),
     );
     const decrypted = yield* Effect.try({
       try: () => {
-        const decipher = createDecipheriv('aes-256-cbc', ER_REGULATION_KEY, enc.subarray(0, 16));
+        const decipher = createDecipheriv(
+          'aes-256-cbc',
+          ER_REGULATION_KEY,
+          enc.subarray(0, 16),
+        );
         decipher.setAutoPadding(false);
-        return new Uint8Array(Buffer.concat([decipher.update(enc.subarray(16)), decipher.final()]));
+        return new Uint8Array(
+          Buffer.concat([decipher.update(enc.subarray(16)), decipher.final()]),
+        );
       },
-      catch: (cause) => new RegulationError({ detail: `AES decrypt failed: ${String(cause)}` }),
+      catch: (cause) =>
+        new RegulationError({ detail: `AES decrypt failed: ${String(cause)}` }),
     });
     // The decrypted payload is DCX_ZSTD (no Oodle needed, but pass the path anyway).
     const bnd = yield* dcxDecompress(decrypted, oo2corePath);

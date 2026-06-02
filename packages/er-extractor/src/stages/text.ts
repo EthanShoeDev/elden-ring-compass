@@ -22,6 +22,8 @@ export const text = Effect.gen(function* () {
   // Phase 1(b) proof: a real DLC weapon name (Milady, a Shadow of the Erdtree
   // light greatsword) resolves out of the merged FMGs.
   const milady = names.WeaponName.get(67500000);
-  yield* Effect.logInfo(`DLC sample — weapon 67500000 = ${milady ?? '(missing)'}`);
+  yield* Effect.logInfo(
+    `DLC sample — weapon 67500000 = ${milady ?? '(missing)'}`,
+  );
   return names;
 });

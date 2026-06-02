@@ -37,7 +37,9 @@ for (const sub of SUBDIRS) {
   await cp(resolve(tmp, sub), resolve(vendor, sub), { recursive: true });
 }
 
-const defs = (await readdir(resolve(vendor, 'ER', 'Defs'))).filter((f) => f.endsWith('.xml'));
+const defs = (await readdir(resolve(vendor, 'ER', 'Defs'))).filter((f) =>
+  f.endsWith('.xml'),
+);
 const provenance = `# Vendored Paramdex (DO NOT EDIT BY HAND)
 
 These PARAMDEF field-layout definitions are **reverse-engineered community data**,
@@ -56,4 +58,6 @@ patch, re-run this and watch for the param-def version drift warning at decode.
 await writeFile(resolve(vendor, 'PROVENANCE.md'), provenance);
 await rm(tmp, { recursive: true, force: true });
 
-console.log(`vendored ${defs.length} ER defs @ ${sha.slice(0, 10)} → src/vendor/paramdex/ER/Defs`);
+console.log(
+  `vendored ${defs.length} ER defs @ ${sha.slice(0, 10)} → src/vendor/paramdex/ER/Defs`,
+);

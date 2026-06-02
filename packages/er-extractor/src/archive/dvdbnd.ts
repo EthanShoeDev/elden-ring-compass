@@ -44,7 +44,8 @@ const pathExists = (p: string) =>
 // (UXM recurses through DCX/BND here; we only need the dictionary-known files,
 // so the unidentified remainder gets a best-effort extension.)
 function guessExtension(b: Uint8Array): string {
-  const a = (o: number, n: number) => new TextDecoder('latin1').decode(b.subarray(o, o + n));
+  const a = (o: number, n: number) =>
+    new TextDecoder('latin1').decode(b.subarray(o, o + n));
   if (b.length >= 4 && a(0, 4) === 'DCX\0') return '.dcx';
   if (b.length >= 3 && a(0, 3) === 'GFX') return '.gfx';
   if (b.length >= 4 && a(0, 4) === 'FSB5') return '.fsb';
@@ -76,7 +77,10 @@ async function loadDictionary(): Promise<Map<bigint, string>> {
 }
 
 /** `--clean`: restore backed-up dirs and remove previously-unpacked dirs. */
-async function cleanInstall(gameRoot: string, log: (m: string) => void): Promise<void> {
+async function cleanInstall(
+  gameRoot: string,
+  log: (m: string) => void,
+): Promise<void> {
   for (const dir of ER_GAME_INFO.backupDirs) {
     const backup = `${gameRoot}/_backup/${dir}`;
     if (await pathExists(backup)) {
@@ -98,7 +102,10 @@ async function cleanInstall(gameRoot: string, log: (m: string) => void): Promise
 }
 
 /** Copy `backupDirs` to `_backup/` once, before unpacking into them. */
-async function backupDirs(gameRoot: string, log: (m: string) => void): Promise<void> {
+async function backupDirs(
+  gameRoot: string,
+  log: (m: string) => void,
+): Promise<void> {
   for (const dir of ER_GAME_INFO.backupDirs) {
     const src = `${gameRoot}/${dir}`;
     const dst = `${gameRoot}/_backup/${dir}`;
@@ -120,12 +127,21 @@ async function unpackArchive(
   const bdtPath = `${gameRoot}/${archive}.bdt`;
   if (!((await pathExists(bhdPath)) && (await pathExists(bdtPath)))) {
     log(`${archive}: not present (skipped)`);
-    return { archive, present: false, total: 0, extracted: 0, skipped: 0, unknown: 0 };
+    return {
+      archive,
+      present: false,
+      total: 0,
+      extracted: 0,
+      skipped: 0,
+      unknown: 0,
+    };
   }
 
   const raw = new Uint8Array(await Bun.file(bhdPath).arrayBuffer());
   const isPlain = new TextDecoder().decode(raw.subarray(0, 4)) === 'BHD5';
-  const header = isPlain ? raw : decryptBhdHeader(raw, ER_ARCHIVE_KEYS[archive]!);
+  const header = isPlain
+    ? raw
+    : decryptBhdHeader(raw, ER_ARCHIVE_KEYS[archive]!);
   const entries = parseBhd5(header);
 
   const isSd = SD_ARCHIVES.has(archive);
@@ -151,7 +167,9 @@ async function unpackArchive(
     }
 
     let bytes = new Uint8Array(
-      await bdt.slice(entry.offset, entry.offset + entry.paddedSize).arrayBuffer(),
+      await bdt
+        .slice(entry.offset, entry.offset + entry.paddedSize)
+        .arrayBuffer(),
     );
     if (entry.aes) decryptAesRanges(bytes, entry.aes);
     // sd files keep their padding in the slab; trim to the real size (UXM parity).
@@ -181,7 +199,9 @@ async function unpackArchive(
 
   const total = entries.length;
   if (extracted === 0 && unknown === 0) {
-    log(`${archive}: all ${total} files already present (use --clean to re-extract)`);
+    log(
+      `${archive}: all ${total} files already present (use --clean to re-extract)`,
+    );
   } else {
     log(
       `${archive}: extracted ${extracted}, skipped ${skipped} already-present` +
@@ -196,7 +216,9 @@ async function unpackArchive(
  * Selective Unpacker: per-file "skip if already extracted" idempotency, with
  * `--clean` performing UXM's Restore (un-backup + delete unpacked dirs) first.
  */
-export async function unpackInstall(opts: UnpackOptions): Promise<UnpackSummary> {
+export async function unpackInstall(
+  opts: UnpackOptions,
+): Promise<UnpackSummary> {
   const { gameRoot, clean, log } = opts;
   const dictionary = await loadDictionary();
 
@@ -206,7 +228,9 @@ export async function unpackInstall(opts: UnpackOptions): Promise<UnpackSummary>
   const mkdirCache = new Set<string>();
   const archives: ArchiveSummary[] = [];
   for (const archive of ER_GAME_INFO.archives) {
-    archives.push(await unpackArchive(gameRoot, archive, dictionary, mkdirCache, log));
+    archives.push(
+      await unpackArchive(gameRoot, archive, dictionary, mkdirCache, log),
+    );
   }
 
   const sum = (k: keyof ArchiveSummary) =>

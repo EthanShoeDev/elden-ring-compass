@@ -31,7 +31,9 @@ class Reader {
     this.dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
   }
   ascii(n: number): string {
-    const s = new TextDecoder().decode(this.buf.subarray(this.pos, this.pos + n));
+    const s = new TextDecoder().decode(
+      this.buf.subarray(this.pos, this.pos + n),
+    );
     this.pos += n;
     return s;
   }
@@ -59,7 +61,9 @@ class Reader {
 export function parseBhd5(buf: Uint8Array): Bhd5FileHeader[] {
   const r = new Reader(buf);
   if (r.ascii(4) !== 'BHD5') {
-    throw new Error('not a BHD5 header (bad magic — wrong key or not decrypted?)');
+    throw new Error(
+      'not a BHD5 header (bad magic — wrong key or not decrypted?)',
+    );
   }
   r.u8(); // 0 or -1 endian flag (ER is little-endian)
   r.u8(); // Unk05

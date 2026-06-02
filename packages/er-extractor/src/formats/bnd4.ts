@@ -37,7 +37,9 @@ const readFormat = (raw: number, bitBigEndian: boolean): number => {
 const readFileFlags = (raw: number, bitBigEndian: boolean): number =>
   bitBigEndian ? raw : reverseBits(raw);
 
-export const parseBnd4 = (data: Uint8Array): Effect.Effect<Bnd4Entry[], Bnd4Error> =>
+export const parseBnd4 = (
+  data: Uint8Array,
+): Effect.Effect<Bnd4Entry[], Bnd4Error> =>
   Effect.gen(function* () {
     const r = new BinaryReader(data);
     if (r.ascii(4) !== 'BND4') {
@@ -92,7 +94,11 @@ export const parseBnd4 = (data: Uint8Array): Effect.Effect<Bnd4Entry[], Bnd4Erro
           detail: 'compressed BND4 entries are not supported yet',
         });
       }
-      entries.push({ id, name, bytes: data.subarray(dataOffset, dataOffset + compressedSize) });
+      entries.push({
+        id,
+        name,
+        bytes: data.subarray(dataOffset, dataOffset + compressedSize),
+      });
     }
     return entries;
   });

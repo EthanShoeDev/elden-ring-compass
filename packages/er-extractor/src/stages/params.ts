@@ -25,7 +25,9 @@ export const params = Effect.gen(function* () {
         `${weapon.rows.length} rows; DLC row 67500000: ${hasMilady ? 'present' : 'missing'}`,
     );
   } else {
-    yield* Effect.logInfo(`regulation: ${paramFiles.size} params (EquipParamWeapon not found)`);
+    yield* Effect.logInfo(
+      `regulation: ${paramFiles.size} params (EquipParamWeapon not found)`,
+    );
   }
   return paramFiles;
 });

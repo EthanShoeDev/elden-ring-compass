@@ -24,11 +24,13 @@ export const runPipeline = Effect.gen(function* () {
   yield* Effect.logInfo(`out (codegen artifacts): ${ctx.outDir}`);
 
   yield* unpack.pipe(Effect.annotateLogs('stage', '1-unpack'));
-  const paramFiles = yield* params.pipe(Effect.annotateLogs('stage', '2-params'));
+  const paramFiles = yield* params.pipe(
+    Effect.annotateLogs('stage', '2-params'),
+  );
   const names = yield* text.pipe(Effect.annotateLogs('stage', '3-text'));
   yield* join(paramFiles, names).pipe(Effect.annotateLogs('stage', '4-join'));
   yield* markers.pipe(Effect.annotateLogs('stage', '5-markers'));
-  yield* flags.pipe(Effect.annotateLogs('stage', '6-flags'));
+  yield* flags(paramFiles).pipe(Effect.annotateLogs('stage', '6-flags'));
   yield* images.pipe(Effect.annotateLogs('stage', '7-images'));
   yield* codegen.pipe(Effect.annotateLogs('stage', '8-codegen'));
 

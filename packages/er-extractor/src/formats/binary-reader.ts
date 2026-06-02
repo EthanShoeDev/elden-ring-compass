@@ -113,8 +113,11 @@ export class BinaryReader {
     const raw = this.buf.subarray(this.pos, this.pos + byteLen);
     this.pos += byteLen;
     let end = 0;
-    while (end + 1 < raw.length && !(raw[end] === 0 && raw[end + 1] === 0)) end += 2;
-    return new TextDecoder(this.little ? 'utf-16le' : 'utf-16be').decode(raw.subarray(0, end));
+    while (end + 1 < raw.length && !(raw[end] === 0 && raw[end + 1] === 0))
+      end += 2;
+    return new TextDecoder(this.little ? 'utf-16le' : 'utf-16be').decode(
+      raw.subarray(0, end),
+    );
   }
 
   /** Null-terminated Shift-JIS read inline (advances by `byteLen`). */
@@ -139,15 +142,40 @@ export class BinaryReader {
 
   /** Fixed-length ASCII, advancing the cursor by exactly `n`. */
   ascii(n: number): string {
-    const s = new TextDecoder('latin1').decode(this.buf.subarray(this.pos, this.pos + n));
+    const s = new TextDecoder('latin1').decode(
+      this.buf.subarray(this.pos, this.pos + n),
+    );
     this.pos += n;
     return s;
+  }
+
+  /** Slice `n` bytes at an absolute offset (does not move cursor). */
+  getBytes(offset: number, n: number): Uint8Array {
+    return this.buf.subarray(offset, offset + n);
+  }
+
+  /** u32 at an absolute offset (does not move cursor). */
+  getU32(offset: number): number {
+    return this.dv.getUint32(offset, this.little);
+  }
+
+  /** i64 at an absolute offset, narrowed to number (does not move cursor). */
+  getI64(offset: number): number {
+    return Number(this.dv.getBigInt64(offset, this.little));
+  }
+
+  /** f32 at an absolute offset (does not move cursor). */
+  getF32(offset: number): number {
+    return this.dv.getFloat32(offset, this.little);
   }
 
   /** Null-terminated UTF-16 string at an absolute offset (does not move cursor). */
   getUTF16(offset: number): string {
     let end = offset;
-    while (end + 1 < this.buf.length && !(this.buf[end] === 0 && this.buf[end + 1] === 0)) {
+    while (
+      end + 1 < this.buf.length &&
+      !(this.buf[end] === 0 && this.buf[end + 1] === 0)
+    ) {
       end += 2;
     }
     return new TextDecoder(this.little ? 'utf-16le' : 'utf-16be').decode(

@@ -16,7 +16,9 @@ export class UnpackError extends Data.TaggedError('UnpackError')<{
  */
 export const unpack = Effect.gen(function* () {
   const ctx = yield* PipelineContext;
-  yield* Effect.logInfo(`dvdbnd → ${ctx.gameRoot}${ctx.clean ? ' (--clean)' : ''}`);
+  yield* Effect.logInfo(
+    `dvdbnd → ${ctx.gameRoot}${ctx.clean ? ' (--clean)' : ''}`,
+  );
   // Bridge the unpacker's progress callback to Effect's logger via the
   // surrounding runtime (the hot loop stays plain async, not per-file Effects).
   // The captured runtime carries the `stage` log annotation set in pipeline.ts.
