@@ -4,7 +4,12 @@ import type { BossArea } from '../game/bosses.ts';
 import type { Grace } from '../game/graces.ts';
 import type { ItemText } from '../game/item-text.ts';
 import type { MapEntity } from '../game/map-markers.ts';
-import type { ArmorRecord, WeaponRecord } from './join.ts';
+import type {
+  ArmorRecord,
+  GoodRecord,
+  TalismanRecord,
+  WeaponRecord,
+} from './join.ts';
 
 /**
  * Stage 8 — codegen. Writes the extracted datasets as typed `.ts` files into the
@@ -20,9 +25,11 @@ export interface CodegenInput {
   readonly bosses: readonly BossArea[];
   readonly weapons: readonly WeaponRecord[];
   readonly armor: readonly ArmorRecord[];
+  readonly talismans: readonly TalismanRecord[];
+  readonly goods: readonly GoodRecord[];
   readonly markers: readonly MapEntity[];
-  // Name tables for categories without a decoded stat record (talismans, ashes
-  // of war, goods/consumables/spells, weapon arts) — emitted as {id, name}.
+  // Name tables for the remaining categories without a decoded stat record
+  // (ashes of war, weapon arts) — emitted as {id, name}.
   readonly names: ItemText;
 }
 
@@ -175,17 +182,50 @@ export const codegen = (input: CodegenInput) =>
       ),
     );
 
-    // Name-only categories (stats are SpEffect-driven; not decoded). Each is an
-    // {id, name} table covering base + DLC.
+    const talismans = [...input.talismans].sort((a, b) => a.id - b.id);
+    yield* write(
+      'talismans.ts',
+      renderDataset(
+        'Talisman',
+        [
+          'readonly id: number;',
+          'readonly name: string;',
+          'readonly weight: number;',
+        ],
+        'TALISMANS',
+        talismans.map((t) => ({ ...t })),
+      ),
+    );
+
+    // Goods (consumables, materials, spells, spirit ashes, key items, …) — one
+    // table tagged with a derived category from EquipParamGoods.goodsType.
+    const goods = [...input.goods].sort((a, b) => a.id - b.id);
+    yield* write(
+      'goods.ts',
+      renderDataset(
+        'Good',
+        [
+          'readonly id: number;',
+          'readonly name: string;',
+          'readonly category: string;',
+          'readonly weight: number;',
+          'readonly maxHeld: number;',
+          'readonly sellValue: number;',
+        ],
+        'GOODS',
+        goods.map((g) => ({ ...g })),
+      ),
+    );
+
+    // Remaining categories are SpEffect/behaviour-driven; emit as {id, name}
+    // (base + DLC). Ashes of war = EquipParamGem; arts = SwordArtsParam.
     const nameTables: readonly [
       string,
       string,
       string,
       ReadonlyMap<number, string>,
     ][] = [
-      ['talismans.ts', 'Talisman', 'TALISMANS', input.names.AccessoryName],
       ['ashes-of-war.ts', 'AshOfWar', 'ASHES_OF_WAR', input.names.GemName],
-      ['goods.ts', 'Good', 'GOODS', input.names.GoodsName],
       ['arts.ts', 'WeaponArt', 'ARTS', input.names.ArtsName],
     ];
     const nameFields = ['readonly id: number;', 'readonly name: string;'];
@@ -247,7 +287,7 @@ export const codegen = (input: CodegenInput) =>
 
     yield* Effect.logInfo(
       `codegen → @elden-ring-compass/data: ${graces.length} graces, ${bosses.length} bosses, ` +
-        `${weapons.length} weapons, ${armor.length} armor, ${markers.length} markers, ` +
-        `+ talisman/ashes/goods/arts name tables`,
+        `${weapons.length} weapons, ${armor.length} armor, ${talismans.length} talismans, ` +
+        `${goods.length} goods, ${markers.length} markers (+ ashes-of-war/arts name tables)`,
     );
   });

@@ -10,12 +10,12 @@ import { loadParamdef, type ParamdefError } from '../formats/paramdef.ts';
 import type { ItemText } from '../game/item-text.ts';
 
 /**
- * Stage 4 — join. Pairs equipment PARAM rows ⨝ their name FMG and decodes the
- * stat fields (via the vendored PARAMDEF) into the records the site consumes —
- * base + DLC together. Consumes the prior stages' outputs (param files from
- * `params`, name tables from `text`) rather than re-loading. Categories whose
- * "stats" are SpEffect-driven (talismans, goods, ashes of war) are emitted as
- * name-only tables by codegen and aren't decoded here.
+ * Stage 4 — join. Pairs item PARAM rows ⨝ their name FMG and decodes the useful
+ * fields (via the vendored PARAMDEF) into the records the site consumes — base +
+ * DLC together. Covers weapons, armor, talismans, and goods (the latter tagged
+ * with a category from `goodsType`). Consumes the prior stages' outputs (param
+ * files from `params`, name tables from `text`) rather than re-loading. Ashes of
+ * war + weapon arts stay name-only (codegen emits them straight from `text`).
  */
 
 export interface WeaponRecord {
@@ -55,10 +55,49 @@ export interface ArmorRecord {
   readonly poise: number;
 }
 
-export interface EquipmentTables {
+export interface TalismanRecord {
+  readonly id: number;
+  readonly name: string;
+  readonly weight: number;
+}
+
+export interface GoodRecord {
+  readonly id: number;
+  readonly name: string;
+  readonly category: string; // derived from EquipParamGoods.goodsType
+  readonly weight: number;
+  readonly maxHeld: number;
+  readonly sellValue: number;
+}
+
+export interface ItemTables {
   readonly weapons: WeaponRecord[];
   readonly armor: ArmorRecord[];
+  readonly talismans: TalismanRecord[];
+  readonly goods: GoodRecord[];
 }
+
+// EquipParamGoods.goodsType → display category. Derived empirically by grouping
+// the named rows (the enum isn't in the vendored Paramdex Defs). Sorceries and
+// incantations each span two types (offensive + utility); spirit ashes span two.
+const GOODS_CATEGORY: Record<number, string> = {
+  0: 'Consumable',
+  1: 'Key Item',
+  2: 'Crafting Material',
+  3: 'Remembrance',
+  5: 'Sorcery',
+  7: 'Spirit Ash',
+  8: 'Spirit Ash',
+  9: 'Wondrous Physick',
+  10: 'Crystal Tear',
+  11: 'Crafting Tool',
+  12: 'Info Item',
+  14: 'Upgrade Material',
+  15: 'Great Rune',
+  16: 'Incantation',
+  17: 'Sorcery',
+  18: 'Incantation',
+};
 
 type Row = Map<string, RowValue>;
 const num = (row: Row, key: string): number => {
@@ -106,7 +145,7 @@ const decodeCategory = <T>(
 export const join = (
   paramFiles: Map<string, Uint8Array>,
   names: ItemText,
-): Effect.Effect<EquipmentTables, ParamError | ParamdefError> =>
+): Effect.Effect<ItemTables, ParamError | ParamdefError> =>
   Effect.gen(function* () {
     const weapons = yield* decodeCategory(
       paramFiles,
@@ -155,15 +194,39 @@ export const join = (
       }),
     );
 
-    yield* Effect.logInfo(
-      `joined ${weapons.length} weapons + ${armor.length} armor (stats decoded)`,
+    const talismans = yield* decodeCategory(
+      paramFiles,
+      'EquipParamAccessory',
+      names.AccessoryName,
+      (id, name, f) => ({ id, name, weight: num(f, 'weight') }),
     );
-    const milady = weapons.find((r) => r.id === 67500000);
-    yield* Effect.logInfo(
-      milady
-        ? `DLC sample — ${milady.id} ${milady.name}: wt ${milady.weight}, phys ${milady.attackPhysical}, ` +
-            `req Str ${milady.reqStrength}/Dex ${milady.reqDexterity}`
-        : 'Milady not joined',
+
+    const goods = yield* decodeCategory(
+      paramFiles,
+      'EquipParamGoods',
+      names.GoodsName,
+      (id, name, f) => ({
+        id,
+        name,
+        category: GOODS_CATEGORY[num(f, 'goodsType')] ?? 'Other',
+        weight: num(f, 'weight'),
+        maxHeld: num(f, 'maxNum'),
+        sellValue: num(f, 'sellValue'),
+      }),
     );
-    return { weapons, armor };
+
+    yield* Effect.logInfo(
+      `joined ${weapons.length} weapons + ${armor.length} armor + ` +
+        `${talismans.length} talismans + ${goods.length} goods (stats decoded)`,
+    );
+    const byCat = new Map<string, number>();
+    for (const g of goods)
+      byCat.set(g.category, (byCat.get(g.category) ?? 0) + 1);
+    yield* Effect.logInfo(
+      `goods categories: ${[...byCat.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .map(([c, n]) => `${c}=${n}`)
+        .join(' ')}`,
+    );
+    return { weapons, armor, talismans, goods };
   });
