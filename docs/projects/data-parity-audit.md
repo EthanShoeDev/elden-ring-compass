@@ -1,10 +1,17 @@
 # Data Parity Audit — legacy sources vs `@elden-ring-compass/data`
 
-> **Status (2026-06-02): audit complete; most gaps now CLOSED.** This is the gap list that
-> gates the single-source-of-truth teardown in `client-side-db.md` (task #11 → unblocks #7/#12).
-> It maps every legacy data source the web app **actually consumes** (field-level) to its
-> `@elden-ring-compass/data` equivalent, and lists exactly what `er-extractor` must emit
-> before each legacy source can be deleted. **See "Progress" below for what's been emitted.**
+> **Status (2026-06-03): audit served its purpose — the web teardown it gated has LANDED
+> (commit `2cee32e3`).** The install-derivable gaps are closed, and the web app is now rewired
+> off `elden-ring-raw-db/`/`erdb.ts`/`assets/erdb/` onto `@elden-ring-compass/data` (those three
+> are deleted). The curated-table drops (cookbooks/whetblades via inventory, pools/colosseums,
+> `REGIONS.isBoss`, 2 spirit-ash columns, map-fragment fine names) were taken. **Two items
+> outlive this audit:** (1) the **map subsystem** (#4 calibration + #10 placements; #9 marker
+> classification ✅ done) gating `map-db.ts` — the sole
+> surviving legacy source; (2) **REGIONS verification — RESOLVED** (the "~47%" was matchmaking
+> siblings, not missing data; placed regions are now name-complete 207→213 and
+> `MATCHMAKING_REGION_IDS` is emitted — see the verification note below). This doc is now mostly a
+> historical record of the field-level trace; the live remaining work is in `client-side-db.md`
+> (map) and `wasm-save-parser-rewrite.md` (#15).
 
 ## Progress (2026-06-02) — extractor enrichment
 
@@ -27,19 +34,19 @@ The item-data + event-flag gaps are **closed and verified against the real insta
 of it is **derivable from the install after all** (not the curated overlay first assumed). REGIONS
 and map fragments are now **DONE + committed**:
 
-| Legacy table | Rows | Install-derivable? |
-| --- | --- | --- |
-| `REGIONS` | 144 | ✅ **DONE (committed `f45ff091`).** `src/game/regions.ts`: 207 play-regions from `PlayRegionParam` (rowId = save `unlocked_regions`), named via `mapMenuUnlockEventId → grace`, `isOpenWorld` from `areaNo` 60/61, else `isDungeon`. No curated names. **`isBoss` deliberately dropped:** the legacy value was NOT from the install/erdb — it's hand-curated in the **TGA Cheat Engine table**, lifted via ER-Save-Editor `src/db/regions.rs` (header: "classification … from TGA table"). 40/210 rows flagged by hand; no game field backs it (`bossAreaId` is set for ~every region). A boss-per-region indicator could later be *approximated* by joining install-derived `BOSSES` placements (map work #9/#10), not vendored. |
-| `MAPS` (map fragments) | 28 | ✅ **DONE.** `src/game/map-fragments.ts`: 34 pieces from `WorldMapPieceParam` (`openEventFlagId` = the save tracking flag, complete 62xxx + DLC coverage) ⨝ `WorldMapPlaceNameParam → PlaceName` FMG. **Only 9 coarse names exist in-install** (`WorldMapPlaceNameParam` has 10 rows); the legacy *fine* directional labels ("Limgrave, East", "Mountaintops…, North") were **wiki-scraped → dropped, not vendored**. The "9/28 buggy join" was a data limit, not a bug. |
-| `COLOSSEUMS` | 3 | ◐ Trivial — names from `PlaceName`; or just keep 3 hardcoded. |
-| `COOKBOOKS` | 59 | ◐ Items+names in FMG; "obtained" trackable via **save inventory ownership** instead of curated `67xxx` flags. |
-| `WHETBLADES` | 12 | ⚠️ Affinity-unlock **flags with curated names** — the flag→affinity semantic is RE'd, not in files. Small; derive item ownership or drop. |
-| `SUMMONING_POOLS` | 162 | 💀 **Drop candidate** — legacy "names" are literal placeholders (`'Name_10000040'`); no real names exist anywhere, no param. |
-| `STATS` / `STARTING_CLASSES` | — | 💀 Dead (unused) — delete, no replacement. |
-| `ARCHE_TYPE` | ~8 | inline a static enum in the web app. |
-| `map-db.ts` | 3132 (1.2 MB) | 🌐 The genuinely **wiki-scraped** 2D pixel coords + labels → replaced by the map pipeline (#4 calibration + #9 layers/labels + #10 placements), not vendoring. |
+| Legacy table                 | Rows          | Install-derivable?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ---------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REGIONS`                    | 144           | ✅ **DONE (committed `f45ff091`).** `src/game/regions.ts`: 207 play-regions from `PlayRegionParam` (rowId = save `unlocked_regions`), named via `mapMenuUnlockEventId → grace`, `isOpenWorld` from `areaNo` 60/61, else `isDungeon`. No curated names. **`isBoss` deliberately dropped:** the legacy value was NOT from the install/erdb — it's hand-curated in the **TGA Cheat Engine table**, lifted via ER-Save-Editor `src/db/regions.rs` (header: "classification … from TGA table"). 40/210 rows flagged by hand; no game field backs it (`bossAreaId` is set for ~every region). A boss-per-region indicator could later be _approximated_ by joining install-derived `BOSSES` placements (map work #9/#10), not vendored. |
+| `MAPS` (map fragments)       | 28            | ✅ **DONE.** `src/game/map-fragments.ts`: 34 pieces from `WorldMapPieceParam` (`openEventFlagId` = the save tracking flag, complete 62xxx + DLC coverage) ⨝ `WorldMapPlaceNameParam → PlaceName` FMG. **Only 9 coarse names exist in-install** (`WorldMapPlaceNameParam` has 10 rows); the legacy _fine_ directional labels ("Limgrave, East", "Mountaintops…, North") were **wiki-scraped → dropped, not vendored**. The "9/28 buggy join" was a data limit, not a bug.                                                                                                                                                                                                                                                          |
+| `COLOSSEUMS`                 | 3             | ◐ Trivial — names from `PlaceName`; or just keep 3 hardcoded.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `COOKBOOKS`                  | 59            | ◐ Items+names in FMG; "obtained" trackable via **save inventory ownership** instead of curated `67xxx` flags.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `WHETBLADES`                 | 12            | ⚠️ Affinity-unlock **flags with curated names** — the flag→affinity semantic is RE'd, not in files. Small; derive item ownership or drop.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `SUMMONING_POOLS`            | 162           | 💀 **Drop candidate** — legacy "names" are literal placeholders (`'Name_10000040'`); no real names exist anywhere, no param.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `STATS` / `STARTING_CLASSES` | —             | 💀 Dead (unused) — delete, no replacement.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `ARCHE_TYPE`                 | ~8            | inline a static enum in the web app.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `map-db.ts`                  | 3132 (1.2 MB) | 🌐 The genuinely **wiki-scraped** 2D pixel coords + labels → replaced by the map pipeline (#4 calibration + #9 layers/labels + #10 placements), not vendoring.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
-**Net:** almost nothing *needs* vendoring. REGIONS + map fragments are **DONE** (install-derived);
+**Net:** almost nothing _needs_ vendoring. REGIONS + map fragments are **DONE** (install-derived);
 cookbooks/whetblades can be re-mechanism'd via inventory or dropped; summoning pools dropped
 (fake names); colosseums = 3 hardcoded; map-db is the separate map-coordinate effort. **The
 extractor side of the parity gate is effectively closed — remaining work is the web migration (#7).**
@@ -51,13 +58,15 @@ Re-verified by tracing **every** legacy consumer's field reads (`vm/*`, `compone
 checklist — "all closed" means every row below is ✅ or an accepted DROP.
 
 **✅ CLOSED (install-derived, field-complete for what the app reads):**
+
 - Name resolution — all 5 `*_NAME` tables → `WEAPONS/ARMOR/TALISMANS/ASHES_OF_WAR/GOODS[].name`
   (+ gestures via `GOODS` sortGroup, ammo via `WEAPONS` category).
 - Event-flag addressing — `eventFlagOffset()` (1178/1178). Graces, bosses → `GRACES`/`BOSSES`.
 - Map fragments → `MAP_FRAGMENTS` (flags complete; coarse names only, fine labels dropped).
-- REGIONS → `REGIONS` (names via grace) — **except `isBoss` dropped** + **id-equality unverified** (below).
+- REGIONS → `REGIONS` (placed regions, names via grace + boss-arena fallback) + `MATCHMAKING_REGION_IDS`
+  (areaNo==0 siblings) — **except `isBoss` dropped**; verification RESOLVED (below).
 - Rich item display fields for: ammo, armor*, ashes, bolstering, crafting, gestures, info, keys,
-  shop, spells, talismans, tools, spirit-ashes* (*caveats below). Per-item icons emitted.
+  shop, spells, talismans, tools, spirit-ashes* (\*caveats below). Per-item icons emitted.
 
 **✅ CLOSEABLE-FROM-INSTALL gaps — NOW DONE (all 5 closed this pass):**
 | Gap | Consumer | Resolution |
@@ -68,11 +77,17 @@ checklist — "all closed" means every row below is ✅ or an accepted DROP.
 | `ARCHE_TYPE` (class id→label) | `vm/stats.ts` | ✅ new `ARCHETYPES` dataset — `GR_MenuText[288100+id]`, ids 0–9, install-derived |
 | Boss portraits (10) | `story-boss-section` | ✅ already covered — they're Remembrance item icons (goods 2950–2963 → `GOODS.icon` → existing `images/icons/items/{icon}.webp`); web maps boss→remembrance at migration |
 
-**🌐 BIG OPEN GAP — the map subsystem (#4/#9/#10), replaces `map-db.ts` (1.2 MB, ~22 categories):**
-`MAP_MARKERS` is raw MSB entities (internal JP names, world x/y/z, uncategorized, uncalibrated).
-To retire `map-db` we still need: (a) **affine calibration** world→site-pixel [#4]; (b) **marker
-layer/category classification + English labels** [#9]; (c) **`ItemLotParam` item placements** [#10,
-not emitted at all). NOTE the rich inventory tables' `hasCoords`/map-jump column also depends on (c).
+**🌐 OPEN GAP — the map subsystem (#4/#9/#10), replaces `map-db.ts` (1.2 MB, ~22 categories):**
+To retire `map-db` we still need: (a) **affine calibration** world→site-pixel [#4 — hand-tuned M00
+only, needs generalizing]; (b) ~~marker layer/category + English labels [#9]~~ **✅ DONE** —
+`MAP_MARKERS` now carries `category` (grace/npc/enemy/asset/region-subtypes via
+`game/marker-classify.ts`) + `displayName` (graces via bonfire-entity join, NPCs via
+`NpcParam.nameId → NpcName`; 924 labelled); (c) **`ItemLotParam` item placements** [#10] —
+**✅ enemy/boss drops DONE** (`PLACEMENTS`, 7,700 rows via `npcParamId → NpcParam.itemLotId_enemy
+→ ItemLotParam_enemy`, joined to marker coords; `game/placements.ts`); **⏳ map treasure DEFERRED
+(#10b)** — `ItemLotParam_map` has no static MSB coord link, needs EMEVD item-award parsing. NOTE the
+rich inventory tables' `hasCoords`/map-jump column also depends on (c). The web still needs to
+_wire_ the categories/placements to toggleable layers + calibrated rendering.
 This is a separate effort (tiled-map work) and is the **largest remaining legacy dependency.**
 
 **💀 ACCEPTED DROPS / re-mechanism (NOT install-derivable — need your sign-off to drop the UI):**
@@ -87,18 +102,40 @@ This is a separate effort (tiled-map work) and is the **largest remaining legacy
 | map-fragment fine names | events table | scraped — dropped (coarse names ship) |
 | `STATS` / `STARTING_CLASSES` | none (dead) | delete |
 
-**⚠️ VERIFICATION DEBT:** `REGIONS.id == save.unlocked_regions` entry is the plan's highest-risk
-assumption and is **still unverified against a real save** (gated on #15 WASM parser runtime check).
+**✅ VERIFICATION DEBT → RESOLVED (2026-06-03, #15 vitest vs `ER0000.sl2`):** the
+`REGIONS.id == save.unlocked_regions` assumption is verified, and the scary "~47% coverage" turned
+out to **not be a data gap at all.** `unlocked_regions` interleaves **two** `PlayRegionParam` kinds:
+
+- **Placed regions** (`areaNo != 0`, real `posX/Y/Z`) → the user-facing `REGIONS`. The extractor
+  used to emit only the grace-named ones (207); it now also names the handful of **placed-but-
+  ungraced** rows via their **boss arena** (`bossAreaId → BossArea.defeatFlagId`, e.g. the tutorial
+  Chapel of Anticipation → "Grafted Scion", Haligtree → "Malenia"). **REGIONS: 207 → 213.**
+- **Matchmaking siblings** (`areaNo == 0`) → multiplayer/invasion plumbing (no coords, no name, full
+  of sign/invasion limit flags). Each is a 1:1 sibling of a placed region (`1000000` ↔ `1000001`);
+  the game activates them as the player moves, so they appear in `unlocked_regions` but are **not
+  places to show.** The extractor now emits their ids as **`MATCHMAKING_REGION_IDS`** (378 ids) so
+  the app/test can classify rather than treat them as missing.
+
+After regen, every unlocked id in `ER0000.sl2` classifies: **149 placed + 202 matchmaking + 3
+outliers = 354** (was 143/_/_). The **3 outliers** (`600000`, `3106004`, `3413000`) are not in
+`PlayRegionParam` at all — a different id-space (likely special/global ids), left unclassified
+pending investigation. The full classification is asserted (no silent gap) in
+`apps/web/src/lib/wasm-save-parser.test.ts`. Extractor change: `src/game/regions.ts` +
+`MATCHMAKING_REGION_IDS` codegen.
 
 **Verdict (updated): the install-derivable side is fully closed.** Every dataset/field the app reads
-that *can* come from the install now does (item fields incl. weapon ash/buffable + armor category,
+that _can_ come from the install now does (item fields incl. weapon ash/buffable + armor category,
 ARCHETYPES, boss portraits via remembrance icons, regions, map fragments, flags). What remains is
 **not** install-extraction work:
-1. **Map subsystem (#4/#9/#10)** — the large, separate effort (calibration + marker classification +
-   `ItemLotParam` placements) that replaces `map-db.ts`. This is the only remaining real gap.
+
+1. **Map subsystem** — the large, separate effort that replaces `map-db.ts`. **#9 marker
+   classification ✅ DONE** (`category` + `displayName` on `MAP_MARKERS`); remaining: **#4**
+   calibration generalization + **#10** `ItemLotParam` placements. The only remaining real gap.
 2. **Sign-off on the curated-table drops** (cookbooks/whetblades/pools/colosseums + 2 spirit-ash columns
-   + REGIONS.isBoss + map-fragment fine names) — decisions, not extraction.
-3. **REGIONS-id ↔ save.unlocked_regions verification** (gated on #15 WASM parser).
+   - REGIONS.isBoss + map-fragment fine names) — decisions, not extraction.
+3. ✅ **REGIONS coverage — RESOLVED.** The "~47%" was matchmaking siblings, not missing data: placed
+   regions now name-complete (207→213 via boss-arena fallback) + `MATCHMAKING_REGION_IDS` emitted; only
+   3 non-PlayRegionParam outliers remain unclassified. See the verification note above.
 
 ## Method
 
@@ -109,16 +146,16 @@ reads, then diffed against what `packages/elden-ring-data/src/generated/*` emits
 
 ## Verdict
 
-| | Status |
-| --- | --- |
-| **Name resolution** (id→name, all item types) | ◐ **Nearly closed.** New `WEAPONS/ARMOR/TALISMANS/ASHES_OF_WAR/GOODS` cover almost every id. **Gaps: gestures + ammo names** (not in any new dataset). |
-| **Rich inventory tables** (`InventoryDataTableCard`) | ❌ **Blocked.** New datasets are lean — **no per-item icons, no `effects`/`requirements`/`rarity`/`category`/`description`, no per-category stat fields.** |
-| **Events** (graces/bosses/…) | ◐ **Partial.** graces+bosses exist (different field names); **gaps: event-flag id→bit-offset map, and whetblade/cookbook/map/summoning-pool/colosseum tables.** |
-| **Regions** | ❌ **Missing.** No `REGIONS` (unlock-id → name/map/flags) dataset. |
-| **Stats** | ◐ Only `ARCHE_TYPE` is consumed (tiny). `STATS`/`STARTING_CLASSES` are **dead** (see below). |
-| **Map coordinates** (`map-db`) | ❌ **Blocked** on map work. New `markers` are raw MSB entities (internal JP names, world x/y/z, uncategorized, uncalibrated) — not English-name-keyed `MapItem`s. Needs #4 (calibration) + #9 (layer/category) + #10 (ItemLotParam placements). |
+|                                                      | Status                                                                                                                                                                                                                                          |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Name resolution** (id→name, all item types)        | ◐ **Nearly closed.** New `WEAPONS/ARMOR/TALISMANS/ASHES_OF_WAR/GOODS` cover almost every id. **Gaps: gestures + ammo names** (not in any new dataset).                                                                                          |
+| **Rich inventory tables** (`InventoryDataTableCard`) | ❌ **Blocked.** New datasets are lean — **no per-item icons, no `effects`/`requirements`/`rarity`/`category`/`description`, no per-category stat fields.**                                                                                      |
+| **Events** (graces/bosses/…)                         | ◐ **Partial.** graces+bosses exist (different field names); **gaps: event-flag id→bit-offset map, and whetblade/cookbook/map/summoning-pool/colosseum tables.**                                                                                 |
+| **Regions**                                          | ❌ **Missing.** No `REGIONS` (unlock-id → name/map/flags) dataset.                                                                                                                                                                              |
+| **Stats**                                            | ◐ Only `ARCHE_TYPE` is consumed (tiny). `STATS`/`STARTING_CLASSES` are **dead** (see below).                                                                                                                                                    |
+| **Map coordinates** (`map-db`)                       | ❌ **Blocked** on map work. New `markers` are raw MSB entities (internal JP names, world x/y/z, uncategorized, uncalibrated) — not English-name-keyed `MapItem`s. Needs #4 (calibration) + #9 (layer/category) + #10 (ItemLotParam placements). |
 
-**Bottom line:** only the lean *weapons-style* browser tables can migrate today. Retiring the
+**Bottom line:** only the lean _weapons-style_ browser tables can migrate today. Retiring the
 rich save-aware inventory tables, the events/regions tables, and `map-db` all require new
 `er-extractor` output first. The audit below enumerates that output.
 
@@ -126,13 +163,13 @@ rich save-aware inventory tables, the events/regions tables, and `map-db` all re
 
 ### 1. `elden-ring-raw-db/*_NAME` → id→name (consumed by `vm/inventory.ts`, `vm/equipement.ts`, `share/*`)
 
-| Legacy table | Covers | New equivalent | Gap |
-| --- | --- | --- | --- |
-| `WEAPON_NAME` | armaments | `WEAPONS[].name` | ✅ none (names) |
-| `ARMOR_NAME` | armor | `ARMOR[].name` | ✅ none |
-| `ACCESSORY_NAME` | talismans | `TALISMANS[].name` | ✅ none |
-| `AOW_NAME` | ashes of war | `ASHES_OF_WAR[].name` | ✅ none |
-| `ITEM_NAMES` | goods/consumables/keys/info/crafting/**spells**/**spirits**/tears/remembrances/runes/tools | `GOODS[].name` (categories verified: Spirit Ash, Sorcery, Incantation, Consumable, Key Item, Info Item, Crafting Material, Upgrade Material, Crystal Tear, Remembrance, Great Rune, Crafting Tool, Wondrous Physick) | ⚠️ **gestures + ammo names not covered** (gestures = `EquipParamGesture`, ammo/arrows = `EquipParamWeapon` subset) |
+| Legacy table     | Covers                                                                                     | New equivalent                                                                                                                                                                                                       | Gap                                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `WEAPON_NAME`    | armaments                                                                                  | `WEAPONS[].name`                                                                                                                                                                                                     | ✅ none (names)                                                                                                    |
+| `ARMOR_NAME`     | armor                                                                                      | `ARMOR[].name`                                                                                                                                                                                                       | ✅ none                                                                                                            |
+| `ACCESSORY_NAME` | talismans                                                                                  | `TALISMANS[].name`                                                                                                                                                                                                   | ✅ none                                                                                                            |
+| `AOW_NAME`       | ashes of war                                                                               | `ASHES_OF_WAR[].name`                                                                                                                                                                                                | ✅ none                                                                                                            |
+| `ITEM_NAMES`     | goods/consumables/keys/info/crafting/**spells**/**spirits**/tears/remembrances/runes/tools | `GOODS[].name` (categories verified: Spirit Ash, Sorcery, Incantation, Consumable, Key Item, Info Item, Crafting Material, Upgrade Material, Crystal Tear, Remembrance, Great Rune, Crafting Tool, Wondrous Physick) | ⚠️ **gestures + ammo names not covered** (gestures = `EquipParamGesture`, ammo/arrows = `EquipParamWeapon` subset) |
 
 ### 2. `lib/erdb.ts` (14 erdb JSON datasets) → rich inventory tables (`InventoryDataTableCard`, `overview-section`, `map-section`)
 
@@ -143,7 +180,7 @@ spirit `{hp_cost, fp_cost, upgrade_material, summon_name, abilities[]}`, talisma
 ammo `{category, effects[]}`.
 
 - **Categories with NO rich new dataset:** ammo, bolstering, crafting, gestures, info, keys,
-  shop, spells, spirit, tools (10 of 14). `GOODS` covers their *ids/names* but lean.
+  shop, spells, spirit, tools (10 of 14). `GOODS` covers their _ids/names_ but lean.
 - **Field gaps on every category:** `icon` (image id), `rarity`, `category`, `effects[]`,
   `requirements{}`, `summary`/`description`, per-category stats listed above.
 - **Image gap:** per-item icon PNGs. `assets/erdb/icons/**` is still the only icon source;
@@ -189,7 +226,7 @@ Grouped; existing task ids in brackets.
 
 1. ✅ **DONE — Per-item rich fields + icons** (#19) — `icon`(+2939 images), `rarity`, `category`,
    `effects[]`, `description`, per-category stats (spell costs, spirit summon, talisman conflicts,
-   ashes affinities, weapon upgrade costs). *Remaining polish:* `requirements{}` on weapons,
+   ashes affinities, weapon upgrade costs). _Remaining polish:_ `requirements{}` on weapons,
    tool fp_cost/availability, effect `conditions`/nested-refs, armor `altered`/`iconFem`.
 2. ✅ **DONE — gestures + ammo** (#20) — distinguishable via `category`.
 3. ✅ **DONE — Event-flag id → bit-offset** (#21) — `eventFlagOffset()` emitted, verified 1178/1178.

@@ -1,9 +1,13 @@
 # WASM Save Parser Rewrite — ER-Save-Lib + Lean DTO
 
-> **Status (2026-06-02): INTEGRATED — runtime-verify pending.** Build + typecheck +
-> production build are green and the work is committed (parent monorepo `b045fdb4`).
-> The only open items are verifying a real save in the browser and the follow-up UI
-> features the new DTO now feeds (Ash of War, active effects, quest compass).
+> **Status (2026-06-03): INTEGRATED — runtime-verify pending (now via vitest).** Build +
+> typecheck + production build are green and the work is committed (parent monorepo `b045fdb4`).
+> The data migration this depended on (task #7 — DLC item **names** via `@elden-ring-compass/data`)
+> has since landed (`2cee32e3`), so DLC saves both parse and resolve names. Open items: (1)
+> **automated parse verification** — a vitest suite running the wasm parser against the real
+> `.sl2` fixtures (`packages/er-save-lib/test/*.sl2`, `apps/web/public/ER0000.sl2`) instead of
+> manual browser testing; (2) the follow-up UI features the new DTO now feeds (Ash of War,
+> active effects, quest compass).
 >
 > Replacing the stale vendored save parser
 > (a copy of the old **ER-Save-Editor** Rust, pre-DLC) with a thin `wasm-bindgen`
@@ -75,19 +79,19 @@ packages/
 
 Sourced by mapping ER-Save-Lib's `UserDataX` (per character slot) → the lean DTO.
 
-| DTO field | ER-Save-Lib source | Consumed by |
-| --- | --- | --- |
-| `player_game_data.{vigor..arcane, level, souls(=runes), soulsmemory(=runes_memory), gender, arche_type(=archetype), match_making_wpn_lvl, character_name}` | `player_game_data` | `vm/stats.ts`, slot selection, share |
-| `event_flags.flags` (trailing-zero-trimmed) | `event_flags: Vec<u8>` | `vm/events.ts` (grace/boss bits), `vm/regions.ts` |
-| `regions.{unlocked_regions, unlocked_regions_count}` | `unlocked_regions` | `vm/regions.ts` |
-| `ga_items[] {gaitem_handle, item_id, gem_gaitem_handle}` (non-empty only) | `gaitem_map` (subset) | `vm/inventory.ts`, `vm/equipement.ts`; `gem_gaitem_handle` → equipped **Ash of War** |
-| `sp_effects[] {sp_effect_id, remaining_time}` (active only) | `sp_effects` | future "active buffs/effects" display |
-| `chr_asm2` equipped handles (hands×3, arrows×2, bolts×2, head/chest/arms/legs, talismans×4) | `equipped_items_gaitem_handle` | `vm/equipement.ts` |
-| `equip_inventory_data.{common_items, key_items, counts}` | `inventory_held` | `vm/inventory.ts`, `vm/equipement.ts` |
-| `storage_inventory_data.common_items` | `inventory_storage_box` | `vm/inventory.ts` |
-| `equip_item_data.{quick_slot_items, pouch_items}` (handles) | `equipped_items` | `vm/equipement.ts` |
-| `player_coords` | `player_coordinates` | `vm/stats.ts` (display) |
-| `steam_id` (per slot), top-level `global_steam_id` | `user_data_x.steam_id`, `user_data_10.steam_id` | selector, slot selection |
+| DTO field                                                                                                                                                  | ER-Save-Lib source                              | Consumed by                                                                          |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `player_game_data.{vigor..arcane, level, souls(=runes), soulsmemory(=runes_memory), gender, arche_type(=archetype), match_making_wpn_lvl, character_name}` | `player_game_data`                              | `vm/stats.ts`, slot selection, share                                                 |
+| `event_flags.flags` (trailing-zero-trimmed)                                                                                                                | `event_flags: Vec<u8>`                          | `vm/events.ts` (grace/boss bits), `vm/regions.ts`                                    |
+| `regions.{unlocked_regions, unlocked_regions_count}`                                                                                                       | `unlocked_regions`                              | `vm/regions.ts`                                                                      |
+| `ga_items[] {gaitem_handle, item_id, gem_gaitem_handle}` (non-empty only)                                                                                  | `gaitem_map` (subset)                           | `vm/inventory.ts`, `vm/equipement.ts`; `gem_gaitem_handle` → equipped **Ash of War** |
+| `sp_effects[] {sp_effect_id, remaining_time}` (active only)                                                                                                | `sp_effects`                                    | future "active buffs/effects" display                                                |
+| `chr_asm2` equipped handles (hands×3, arrows×2, bolts×2, head/chest/arms/legs, talismans×4)                                                                | `equipped_items_gaitem_handle`                  | `vm/equipement.ts`                                                                   |
+| `equip_inventory_data.{common_items, key_items, counts}`                                                                                                   | `inventory_held`                                | `vm/inventory.ts`, `vm/equipement.ts`                                                |
+| `storage_inventory_data.common_items`                                                                                                                      | `inventory_storage_box`                         | `vm/inventory.ts`                                                                    |
+| `equip_item_data.{quick_slot_items, pouch_items}` (handles)                                                                                                | `equipped_items`                                | `vm/equipement.ts`                                                                   |
+| `player_coords`                                                                                                                                            | `player_coordinates`                            | `vm/stats.ts` (display)                                                              |
+| `steam_id` (per slot), top-level `global_steam_id`                                                                                                         | `user_data_x.steam_id`, `user_data_10.steam_id` | selector, slot selection                                                             |
 
 Inventory item `inventory_index` = ER-Save-Lib `InvenotryItem.aqcuistion_index` (same u32).
 
@@ -99,21 +103,21 @@ All of the below are **parsed by ER-Save-Lib but omitted from the lean DTO**. Re
 small, additive change to `web_export.rs` + the wrapper's DTO + the web types. Approx sizes are
 per slot (PC); a save holds up to 10 slots.
 
-| Dropped data | ER-Save-Lib field | Size | What it is | Re-add it for… |
-| --- | --- | --- | --- | --- |
-| **NetMan** | `net_man` | **128 KB** | Network-manager session blob (multiplayer/summon-sign plumbing) | (no display use) |
-| **Event-flag tail** | `event_flags` zeros | ~1.7 MB | Trailing zero bytes of the 1.77 MB flag region (we keep the non-zero prefix) | (never — zeros are implicit) |
-| **gaitem_map padding** | `gaitem_map` empties | ~148 KB | Full 5,120-slot table. We keep non-empty `(handle, item_id, gem_gaitem_handle)`; only empty slots are dropped. (`gem_gaitem_handle` → Ash of War is KEPT.) | (nothing — empties are implicit) |
-| **GaitemGameData** | `gaitem_game_data` | ~112 KB | 7,000 entries of `(id, next_item_id)`. The old shape called the 3rd u32 `reinforce_type`; the share format encoded it but nothing rendered it (upgrade level comes from `ga_items.item_id % 100`). | Cross-checking reinforcement; otherwise redundant with `ga_items` |
-| **Face data** | `face_data` | ~310 B | Full character-creator appearance: face/hair/beard models, ~150 sliders, all colors, **body sliders** (head/chest/abdomen/arms/legs size) | **three.js character render**, appearance display |
-| **Equipped spells** | `equipped_spells` | ~120 B | 14 equipped magic/incantation slots + active index | Showing equipped **spells** |
-| **Equipped gestures / gestures** | `equipped_gestures`, `gestures` | ~280 B | 6 equipped gesture slots + 0x40 gesture unlock ids | **Gestures** unlocked/equipped |
-| **Acquired projectiles** | `acquired_projectiles` | var | List of acquired arrow/bolt/projectile ids | Projectile collection tracking |
-| **Blood stain** | `blood_stain` | ~64 B | Last-death location (coords + map id) + runes lost | "Last death" marker on the map |
-| **Horse / Torrent** | `horse` (RideGameData) | ~44 B | Torrent coords, map id, angle, HP, state | Mount state display |
-| **World area / geom** | `world_area`, `world_geom_man`, `world_geom_man2`, `rend_man`, `field_area` | var (can be large) | Persistent world state: opened doors, destroyed objects, fog-gate/lever state per map block (GEOM/GEOF), render/stage state | Fine-grained world-progression (doors/levers/objects opened) |
-| **Weather / time** | `world_area_weather`, `world_area_time` | ~24 B | Current in-game weather id + time (h/m/s) | Showing in-game time/weather |
-| **Misc managers** | `menu_profile_save_load`, `trophy_equip_data`, `tutorial_data`, `ps5_activity`, `dlc`, `base_version`, `player_data_hash`, assorted `unk_*` | var | Menu/trophy/tutorial state, PS5 activity card, DLC ownership bits, version + integrity hash | Rarely useful; `player_data_hash` only needed for **save editing/writing** |
+| Dropped data                     | ER-Save-Lib field                                                                                                                           | Size               | What it is                                                                                                                                                                                         | Re-add it for…                                                             |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **NetMan**                       | `net_man`                                                                                                                                   | **128 KB**         | Network-manager session blob (multiplayer/summon-sign plumbing)                                                                                                                                    | (no display use)                                                           |
+| **Event-flag tail**              | `event_flags` zeros                                                                                                                         | ~1.7 MB            | Trailing zero bytes of the 1.77 MB flag region (we keep the non-zero prefix)                                                                                                                       | (never — zeros are implicit)                                               |
+| **gaitem_map padding**           | `gaitem_map` empties                                                                                                                        | ~148 KB            | Full 5,120-slot table. We keep non-empty `(handle, item_id, gem_gaitem_handle)`; only empty slots are dropped. (`gem_gaitem_handle` → Ash of War is KEPT.)                                         | (nothing — empties are implicit)                                           |
+| **GaitemGameData**               | `gaitem_game_data`                                                                                                                          | ~112 KB            | 7,000 entries of `(id, next_item_id)`. The old shape called the 3rd u32 `reinforce_type`; the share format encoded it but nothing rendered it (upgrade level comes from `ga_items.item_id % 100`). | Cross-checking reinforcement; otherwise redundant with `ga_items`          |
+| **Face data**                    | `face_data`                                                                                                                                 | ~310 B             | Full character-creator appearance: face/hair/beard models, ~150 sliders, all colors, **body sliders** (head/chest/abdomen/arms/legs size)                                                          | **three.js character render**, appearance display                          |
+| **Equipped spells**              | `equipped_spells`                                                                                                                           | ~120 B             | 14 equipped magic/incantation slots + active index                                                                                                                                                 | Showing equipped **spells**                                                |
+| **Equipped gestures / gestures** | `equipped_gestures`, `gestures`                                                                                                             | ~280 B             | 6 equipped gesture slots + 0x40 gesture unlock ids                                                                                                                                                 | **Gestures** unlocked/equipped                                             |
+| **Acquired projectiles**         | `acquired_projectiles`                                                                                                                      | var                | List of acquired arrow/bolt/projectile ids                                                                                                                                                         | Projectile collection tracking                                             |
+| **Blood stain**                  | `blood_stain`                                                                                                                               | ~64 B              | Last-death location (coords + map id) + runes lost                                                                                                                                                 | "Last death" marker on the map                                             |
+| **Horse / Torrent**              | `horse` (RideGameData)                                                                                                                      | ~44 B              | Torrent coords, map id, angle, HP, state                                                                                                                                                           | Mount state display                                                        |
+| **World area / geom**            | `world_area`, `world_geom_man`, `world_geom_man2`, `rend_man`, `field_area`                                                                 | var (can be large) | Persistent world state: opened doors, destroyed objects, fog-gate/lever state per map block (GEOM/GEOF), render/stage state                                                                        | Fine-grained world-progression (doors/levers/objects opened)               |
+| **Weather / time**               | `world_area_weather`, `world_area_time`                                                                                                     | ~24 B              | Current in-game weather id + time (h/m/s)                                                                                                                                                          | Showing in-game time/weather                                               |
+| **Misc managers**                | `menu_profile_save_load`, `trophy_equip_data`, `tutorial_data`, `ps5_activity`, `dlc`, `base_version`, `player_data_hash`, assorted `unk_*` | var                | Menu/trophy/tutorial state, PS5 activity card, DLC ownership bits, version + integrity hash                                                                                                        | Rarely useful; `player_data_hash` only needed for **save editing/writing** |
 
 > **Note on save editing.** ER-Save-Lib supports writing saves (re-encrypt, recompute
 > `player_data_hash` + per-section md5 checksums). Our DTO is **read-only**; a future
@@ -132,8 +136,7 @@ per slot (PC); a save holds up to 10 slots.
 - [x] Rewrite web `wasm-wrapper.ts` types + adjust `vm/*`, stores, `share/{encode,decode}.ts`, `atoms/save.ts`. Removed stale `apps/web/src/elden-ring-save-parser.d.ts` shim (shadowed the real types).
 - [x] Web `typecheck` + production `build` green.
 - [x] Remove the dead `packages/ER-Save-Editor` submodule entry.
-- [ ] **Runtime-verify on a real save (base + DLC):** inventory item ids/names, equipped gear, discovered graces/bosses (event-flag offsets vs ER-Save-Lib's buffer), regions. Needs a browser + real `.sl2` (e.g. `/ER0000.sl2` or the DLC save).
+- [x] **Runtime-verify the base save via vitest** (not manual browser testing) — `apps/web/src/lib/wasm-save-parser.test.ts`, an `@effect/vitest` suite that `initSync`s the wasm from disk bytes (no fetch/DOM/browser-mode needed) and asserts the lean DTO against `apps/web/public/ER0000.sl2`: top-level shape, per-slot stats/level/runes, the trimmed event-flag bitfield, `ga_items` handles+ids, `chr_asm2`, and the regions parity. Uses `@effect/platform-node` `NodeServices.layer` for `FileSystem`/`Path` (vitest workers run on Node even under `bun run`). **Finding (resolved):** the regions verification surfaced that `unlocked_regions` mixes placed regions (`REGIONS`) with multiplayer matchmaking siblings (`MATCHMAKING_REGION_IDS`); the extractor now emits both (placed 207→213 via boss-arena naming) and the test asserts the full classification — see `data-parity-audit.md`.
+- [ ] **Runtime-verify a DLC save** — add a committed DLC `.sl2` fixture (or wire the submodule's `packages/er-save-lib/test/*.sl2`) and extend the suite: DLC item ids, DLC graces/bosses, larger region set.
 - [x] Commit the parent monorepo (submodule gitlink + `.gitmodules` + wrapper + web changes + this doc) — landed in `b045fdb4` alongside the tiled-map + Base UI work.
 - [ ] Follow-up features (data now plumbed): equipped **Ash of War** display (via `gem_gaitem_handle`), **active effects** (via `sp_effects`), **quest compass** (arbitrary event flags).
-</content>
-</invoke>

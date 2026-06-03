@@ -1,4 +1,4 @@
-import { Effect } from 'effect';
+import { Effect, FileSystem, Path, PlatformError } from 'effect';
 
 import type { OodleError } from '../external/oodle.ts';
 import type { Bnd4Error } from '../formats/bnd4.ts';
@@ -45,7 +45,8 @@ type MapFragmentErrors =
   | DcxError
   | OodleError
   | Bnd4Error
-  | FmgError;
+  | FmgError
+  | PlatformError.PlatformError;
 
 const num = (row: ReadonlyMap<string, RowValue>, key: string): number => {
   const v = row.get(key);
@@ -56,12 +57,18 @@ export const loadMapFragments = (
   params: Map<string, Uint8Array>,
   gameRoot: string,
   oo2corePath: string,
-): Effect.Effect<MapFragment[], MapFragmentErrors> =>
+): Effect.Effect<
+  MapFragment[],
+  MapFragmentErrors,
+  FileSystem.FileSystem | Path.Path
+> =>
   Effect.gen(function* () {
     const pieceBytes = params.get('WorldMapPieceParam');
     const pnBytes = params.get('WorldMapPlaceNameParam');
     if (!pieceBytes || !pnBytes) {
-      yield* Effect.logWarning('no WorldMapPiece/PlaceName params; skipping map fragments');
+      yield* Effect.logWarning(
+        'no WorldMapPiece/PlaceName params; skipping map fragments',
+      );
       return [];
     }
 

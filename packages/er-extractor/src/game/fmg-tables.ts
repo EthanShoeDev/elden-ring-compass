@@ -1,4 +1,4 @@
-import { Effect } from 'effect';
+import { Effect, FileSystem, PlatformError } from 'effect';
 
 import { type Bnd4Error, parseBnd4 } from '../formats/bnd4.ts';
 import { type DcxError, dcxDecompress } from '../formats/dcx.ts';
@@ -35,17 +35,17 @@ export const loadFmgTable = (
   fmgName: string,
 ): Effect.Effect<
   Map<number, string>,
-  DcxError | OodleError | Bnd4Error | FmgError
+  DcxError | OodleError | Bnd4Error | FmgError | PlatformError.PlatformError,
+  FileSystem.FileSystem
 > =>
   Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
     const wanted = new RegExp(`^${fmgName}(_dlc\\d+)?\\.fmg$`, 'i');
     const table = new Map<number, string>();
     for (const rel of msgbnds) {
       const path = `${gameRoot}/msg/engus/${rel}`;
-      if (!(yield* Effect.promise(() => Bun.file(path).exists()))) continue;
-      const dcx = new Uint8Array(
-        yield* Effect.promise(() => Bun.file(path).arrayBuffer()),
-      );
+      if (!(yield* fs.exists(path))) continue;
+      const dcx = yield* fs.readFile(path);
       const entries = yield* parseBnd4(yield* dcxDecompress(dcx, oo2corePath));
       for (const e of entries) {
         const base = (e.name ?? '').split(/[\\/]/).pop() ?? '';

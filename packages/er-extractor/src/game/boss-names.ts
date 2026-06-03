@@ -1,4 +1,4 @@
-import { Data, Effect } from 'effect';
+import { Data, Effect, FileSystem, PlatformError } from 'effect';
 
 import { type DcxError, dcxDecompress } from '../formats/dcx.ts';
 import {
@@ -131,9 +131,17 @@ export const resolveBossNames = (
   oo2corePath: string,
 ): Effect.Effect<
   BossNameTables,
-  BossNamesError | DcxError | OodleError | EmevdError | Bnd4Error | FmgError
+  | BossNamesError
+  | DcxError
+  | OodleError
+  | EmevdError
+  | Bnd4Error
+  | FmgError
+  | PlatformError.PlatformError,
+  FileSystem.FileSystem
 > =>
   Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
     const npcName = yield* loadFmgTable(
       gameRoot,
       oo2corePath,
@@ -165,9 +173,7 @@ export const resolveBossNames = (
 
     const readEmevd = (path: string) =>
       Effect.gen(function* () {
-        const dcx = new Uint8Array(
-          yield* Effect.promise(() => Bun.file(path).arrayBuffer()),
-        );
+        const dcx = yield* fs.readFile(path);
         return yield* parseEmevd(yield* dcxDecompress(dcx, oo2corePath));
       });
 

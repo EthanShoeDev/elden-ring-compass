@@ -1,3 +1,8 @@
+// NOTE: the images stage uses `Bun.file(bdt).slice(offset, len)` for RANDOM-ACCESS
+// reads into multi-GB BHD/BDT archives (reading just the bytes for one texture),
+// which effect `FileSystem` would only do via a scoped `open` + `seek` per slice —
+// heavier for the heaviest stage. So this and dvdbnd.ts are the two intentional
+// `Bun.file` exceptions; everything else uses effect `FileSystem` for file IO.
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 
 import {

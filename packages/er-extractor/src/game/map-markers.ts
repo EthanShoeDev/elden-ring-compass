@@ -1,4 +1,4 @@
-import { Data, Effect } from 'effect';
+import { Data, Effect, FileSystem } from 'effect';
 
 import type { OodleError } from '../external/oodle.ts';
 import { type DcxError, dcxDecompress } from '../formats/dcx.ts';
@@ -38,10 +38,13 @@ export const loadMapMarkers = (
   oo2corePath: string,
 ): Effect.Effect<
   MapMarkers,
-  MapMarkersError | DcxError | OodleError | MsbError
+  MapMarkersError | DcxError | OodleError | MsbError,
+  FileSystem.FileSystem
 > =>
   Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
     const dir = `${gameRoot}/map/mapstudio`;
+    // glob has no effect-native equivalent (FileSystem only lists/​watches); Bun.Glob stays.
     const glob = new Bun.Glob('*.msb.dcx');
     const paths = yield* Effect.tryPromise({
       try: async () => {
@@ -65,9 +68,14 @@ export const loadMapMarkers = (
         /\.msb\.dcx$/i,
         '',
       );
-      const dcx = new Uint8Array(
-        yield* Effect.promise(() => Bun.file(path).arrayBuffer()),
-      );
+      const dcx = yield* fs
+        .readFile(path)
+        .pipe(
+          Effect.mapError(
+            (cause) =>
+              new MapMarkersError({ detail: `reading ${path}: ${cause}` }),
+          ),
+        );
       const raw = yield* dcxDecompress(dcx, oo2corePath);
       const msb = yield* parseMsb(raw);
       for (const m of [...msb.parts, ...msb.regions]) {

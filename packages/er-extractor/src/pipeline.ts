@@ -6,6 +6,7 @@ import { flags } from './stages/flags.ts';
 import { images } from './stages/images.ts';
 import { join } from './stages/join.ts';
 import { markers } from './stages/markers.ts';
+import { loadPlacements } from './game/placements.ts';
 import { params } from './stages/params.ts';
 import { text } from './stages/text.ts';
 import { unpack } from './stages/unpack.ts';
@@ -30,17 +31,33 @@ export const runPipeline = Effect.gen(function* () {
   const names = yield* text.pipe(Effect.annotateLogs('stage', '3-text'));
   const { weapons, armor, talismans, goods, ashesOfWar, spells, spiritAshes } =
     yield* join(paramFiles, names).pipe(Effect.annotateLogs('stage', '4-join'));
-  const markerEntities = yield* markers.pipe(
-    Effect.annotateLogs('stage', '5-markers'),
+  const {
+    graces,
+    bosses,
+    regions,
+    matchmakingRegionIds,
+    mapFragments,
+    archetypes,
+  } = yield* flags(paramFiles).pipe(Effect.annotateLogs('stage', '5-flags'));
+  // markers runs after flags: it classifies entities using `graces` (the bonfire
+  // entity→name join) and `paramFiles` (NpcParam → NpcName for named NPCs).
+  const markerEntities = yield* markers(paramFiles, graces).pipe(
+    Effect.annotateLogs('stage', '6-markers'),
   );
-  const { graces, bosses, regions, mapFragments, archetypes } = yield* flags(
-    paramFiles,
-  ).pipe(Effect.annotateLogs('stage', '6-flags'));
-  yield* images.pipe(Effect.annotateLogs('stage', '7-images'));
+  // placements: enemy/boss item drops (npcParamId → NpcParam.itemLotId_enemy →
+  // ItemLotParam_enemy), joined to each enemy marker's coords.
+  const placementRows = yield* loadPlacements(paramFiles, markerEntities).pipe(
+    Effect.annotateLogs('stage', '7-placements'),
+  );
+  yield* Effect.logInfo(
+    `placements — ${placementRows.length} enemy/boss item drops`,
+  ).pipe(Effect.annotateLogs('stage', '7-placements'));
+  yield* images.pipe(Effect.annotateLogs('stage', '8-images'));
   yield* codegen({
     graces,
     bosses,
     regions,
+    matchmakingRegionIds,
     mapFragments,
     archetypes,
     weapons,
@@ -51,8 +68,9 @@ export const runPipeline = Effect.gen(function* () {
     spells,
     spiritAshes,
     markers: markerEntities,
+    placements: placementRows,
     names,
-  }).pipe(Effect.annotateLogs('stage', '8-codegen'));
+  }).pipe(Effect.annotateLogs('stage', '9-codegen'));
 
   yield* Effect.logInfo('Done.');
 });

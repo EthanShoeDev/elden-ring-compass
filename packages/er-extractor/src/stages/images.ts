@@ -12,7 +12,7 @@ const DATA_PACKAGE_DIR = Bun.fileURLToPath(
 );
 
 /**
- * Stage 7 — images. Decodes the game's TPF textures from the 71_maptile
+ * Stage 8 — images. Decodes the game's TPF textures from the 71_maptile
  * BHF4/BDF4 archive (base + DLC) plus menu/item icon sheets. Rust
  * (`er-image-codec`, via bun:ffi) does the BCn decode → lossless PNG. Map tiles
  * are then stitched + re-tiled by `sharp` into a clean power-of-2 `{z}/{y}/{x}`

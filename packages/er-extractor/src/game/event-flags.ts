@@ -1,4 +1,4 @@
-import { Effect } from 'effect';
+import { Effect, FileSystem, Path } from 'effect';
 
 /**
  * Event-flag addressing table, vendored from ER-Save-Lib (`src/res/eventflag_bst.txt`).
@@ -15,19 +15,20 @@ import { Effect } from 'effect';
 const BST_URL = new URL('../vendor/eventflag-bst.txt', import.meta.url);
 
 /** The vendored `block,multiplier` table as sorted [block, multiplier] pairs. */
-export const loadEventFlagBst: Effect.Effect<Array<[number, number]>> =
-  Effect.promise(async () => {
-    const text = await Bun.file(BST_URL).text();
-    const out: Array<[number, number]> = [];
-    for (const line of text.split('\n')) {
-      const trimmed = line.trim();
-      if (trimmed.length === 0) continue;
-      const comma = trimmed.indexOf(',');
-      if (comma < 0) continue;
-      out.push([
-        Number(trimmed.slice(0, comma)),
-        Number(trimmed.slice(comma + 1)),
-      ]);
-    }
-    return out.sort((a, b) => a[0] - b[0]);
-  });
+export const loadEventFlagBst = Effect.gen(function* () {
+  const fs = yield* FileSystem.FileSystem;
+  const path = yield* Path.Path;
+  const text = yield* fs.readFileString(yield* path.fromFileUrl(BST_URL));
+  const out: Array<[number, number]> = [];
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim();
+    if (trimmed.length === 0) continue;
+    const comma = trimmed.indexOf(',');
+    if (comma < 0) continue;
+    out.push([
+      Number(trimmed.slice(0, comma)),
+      Number(trimmed.slice(comma + 1)),
+    ]);
+  }
+  return out.sort((a, b) => a[0] - b[0]);
+});

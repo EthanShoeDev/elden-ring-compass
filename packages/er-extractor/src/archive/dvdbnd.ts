@@ -1,3 +1,9 @@
+// NOTE: this module deliberately stays plain-async (`node:fs/promises` + `Bun.file`/
+// `Bun.write`), NOT effect `FileSystem`. It's the dvdbnd unpacker hot loop — thousands
+// of per-file extracts — kept off the Effect runtime by design (see stages/unpack.ts:
+// "the hot loop stays plain async, not per-file Effects"). The rest of the extractor
+// uses effect `FileSystem` for file IO; this and the images stage (ranged archive reads)
+// are the two intentional exceptions.
 import { cp, mkdir, rename, rm, stat } from 'node:fs/promises';
 import { dirname } from 'node:path';
 

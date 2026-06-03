@@ -15,7 +15,9 @@
     "build:image-codec": "cargo build --release --manifest-path ../er-image-codec/Cargo.toml",
     "update-paramdex": "bun scripts/update-paramdex.ts",
     "clean": "rm -rf .turbo dist *.tsbuildinfo",
-    "typecheck": "tsgo --noEmit"
+    "typecheck": "tsgo --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@effect/platform-bun": "catalog:",
@@ -23,9 +25,12 @@
     "sharp": "catalog:"
   },
   "devDependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/vitest": "catalog:",
     "@elden-ring-compass/config": "workspace:*",
     "@types/bun": "catalog:",
-    "@types/node": "catalog:"
+    "@types/node": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "typescript": "catalog:"

@@ -1,4 +1,4 @@
-import { Effect } from 'effect';
+import { Effect, FileSystem, PlatformError } from 'effect';
 
 import type { OodleError } from '../external/oodle.ts';
 import type { Bnd4Error } from '../formats/bnd4.ts';
@@ -25,7 +25,11 @@ const ARCHETYPE_COUNT = 10;
 export const loadArchetypes = (
   gameRoot: string,
   oo2corePath: string,
-): Effect.Effect<Archetype[], DcxError | OodleError | Bnd4Error | FmgError> =>
+): Effect.Effect<
+  Archetype[],
+  DcxError | OodleError | Bnd4Error | FmgError | PlatformError.PlatformError,
+  FileSystem.FileSystem
+> =>
   Effect.gen(function* () {
     const menu = yield* loadFmgTable(
       gameRoot,

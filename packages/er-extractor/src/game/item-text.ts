@@ -1,4 +1,4 @@
-import { Effect } from 'effect';
+import { Effect, FileSystem, PlatformError } from 'effect';
 
 import { type Bnd4Error, parseBnd4 } from '../formats/bnd4.ts';
 import { type DcxError, dcxDecompress } from '../formats/dcx.ts';
@@ -60,8 +60,13 @@ const categoryOf = (entryName: string | null): string | null => {
 export const loadItemText = (
   gameRoot: string,
   oo2corePath: string,
-): Effect.Effect<ItemText, DcxError | OodleError | Bnd4Error | FmgError> =>
+): Effect.Effect<
+  ItemText,
+  DcxError | OodleError | Bnd4Error | FmgError | PlatformError.PlatformError,
+  FileSystem.FileSystem
+> =>
   Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
     const wanted = new Set<string>(ITEM_TEXT_CATEGORIES);
     const result = Object.fromEntries(
       ITEM_TEXT_CATEGORIES.map((c) => [c, new Map<number, string>()]),
@@ -69,10 +74,8 @@ export const loadItemText = (
 
     for (const rel of MSGBNDS) {
       const path = `${gameRoot}/msg/engus/${rel}`;
-      if (!(yield* Effect.promise(() => Bun.file(path).exists()))) continue;
-      const dcx = new Uint8Array(
-        yield* Effect.promise(() => Bun.file(path).arrayBuffer()),
-      );
+      if (!(yield* fs.exists(path))) continue;
+      const dcx = yield* fs.readFile(path);
       const entries = yield* parseBnd4(yield* dcxDecompress(dcx, oo2corePath));
       for (const entry of entries) {
         const category = categoryOf(entry.name);

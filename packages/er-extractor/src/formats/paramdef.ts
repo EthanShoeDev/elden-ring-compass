@@ -1,4 +1,4 @@
-import { Data, Effect } from 'effect';
+import { Data, Effect, FileSystem, Path } from 'effect';
 
 /**
  * PARAMDEF — the field layout for a PARAM, used to decode row bytes into named
@@ -103,19 +103,21 @@ const DEF_FILENAME_ALIASES: Record<string, string> = {
 /** Load + parse a vendored Paramdex def by ParamType (e.g. "EquipParamWeapon"). */
 export const loadParamdef = (
   paramType: string,
-): Effect.Effect<Paramdef, ParamdefError> =>
+): Effect.Effect<Paramdef, ParamdefError, FileSystem.FileSystem | Path.Path> =>
   Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    const path = yield* Path.Path;
     const defName = DEF_FILENAME_ALIASES[paramType] ?? paramType;
     const url = new URL(
       `../vendor/paramdex/ER/Defs/${defName}.xml`,
       import.meta.url,
     );
-    const xml = yield* Effect.tryPromise({
-      try: () => Bun.file(url).text(),
-      catch: (cause) =>
-        new ParamdefError({
-          detail: `reading def ${paramType}: ${String(cause)}`,
-        }),
-    });
+    const xml = yield* path.fromFileUrl(url).pipe(
+      Effect.flatMap((filePath) => fs.readFileString(filePath)),
+      Effect.mapError(
+        (cause) =>
+          new ParamdefError({ detail: `reading def ${paramType}: ${cause}` }),
+      ),
+    );
     return yield* parseParamdefXml(xml);
   });

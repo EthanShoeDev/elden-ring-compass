@@ -1,4 +1,4 @@
-import { Data, Effect } from 'effect';
+import { Data, Effect, FileSystem, Path, PlatformError } from 'effect';
 
 import type { DcxError } from '../formats/dcx.ts';
 import type { EmevdError } from '../formats/emevd.ts';
@@ -52,13 +52,14 @@ type BossErrors =
   | OodleError
   | EmevdError
   | Bnd4Error
-  | FmgError;
+  | FmgError
+  | PlatformError.PlatformError;
 
 export const loadBosses = (
   params: Map<string, Uint8Array>,
   gameRoot: string,
   oo2corePath: string,
-): Effect.Effect<BossArea[], BossErrors> =>
+): Effect.Effect<BossArea[], BossErrors, FileSystem.FileSystem | Path.Path> =>
   Effect.gen(function* () {
     const bytes = params.get('GameAreaParam');
     if (!bytes)

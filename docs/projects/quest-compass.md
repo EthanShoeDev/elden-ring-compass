@@ -5,18 +5,26 @@
 > access from a parsed save** — is already in place: the WASM save parser ships the full
 > event-flag bitfield (trailing-zeros-trimmed, offsets preserved), so any quest flag is
 > addressable in JS with zero parser changes (see `wasm-save-parser-rewrite.md` §4) — though
-> the *semantic* map (which flag id → which save byte/bit) is only partially known (graces +
+> the _semantic_ map (which flag id → which save byte/bit) is only partially known (graces +
 > bosses, ported from ClayAmore's editor; the raw bitfield is complete, the labels are not).
 > What's missing is web-side + a data-sourcing problem (quest-step → event-flag mapping).
 > **Update 2026-06-02:** that mapping now has a concrete anchor — the game ships a per-NPC
 > quest **state machine** as named event flags (see "The quest-step spine" below). The one
-> genuine R&D unknown left is *flag addressing* (relative quest-flag id → absolute save
+> genuine R&D unknown left is _flag addressing_ (relative quest-flag id → absolute save
 > byte/bit), best resolved empirically via the
 > [save-flag-diff checkpoints](./save-flag-diff-checkpoints.md) tool.
+>
+> **Update 2026-06-03 (deferred, but a prerequisite landed):** the **EMEVD semantic layer** that
+> quest-step→flag sourcing will lean on now exists. `formats/emedf.ts` plus the vendored soulstruct
+> **EMEDF** dictionary decode any event-script instruction into named, typed args (verified 100%
+> opcode coverage on 107k instructions / 589 EMEVDs). Built as the foundation for map-treasure
+> placements (#10b), it is equally the way to mine the per-NPC quest state machine (talk-state flags,
+> `SetEventFlag` / condition instructions) from the install rather than hand-authoring it.
+> quest-compass itself remains deferred.
 
 ## Why
 
-The site already shows *what you've done* (graces, bosses, inventory). The compass answers
+The site already shows _what you've done_ (graces, bosses, inventory). The compass answers
 the next question: **"given my save, what should I do next to advance quest X?"** — a
 prioritized, save-aware checklist instead of a static wiki walkthrough. NPC questlines
 (Ranni, Boc, Alexander, Millicent, …) are famously easy to permanently fail by progressing
@@ -57,12 +65,12 @@ objective is the "next step," and missable steps carry an ordering warning.
 
 ## Data dependencies
 
-| Dependency | Status | Source |
-| --- | --- | --- |
-| **Read any event flag from a save** | ✅ done | Lean DTO ships full `event_flags` bitfield; `vm/events.ts` already does grace/boss bit-math. Same bit formula works for quest flags. |
-| **Quest-step → event-flag id mapping** | ◐ **anchored** | The game ships per-NPC quest state machines as named flags (`EFID_Talk_NPCxxx` "event state" blocks in the soulsmods index); soulstruct's decompile shows the logic that reads them. Remaining unknown = *flag addressing* (relative id → save byte/bit). |
-| **Objective walkthrough content** | ◐ partial | `er-objectives.ts` (hand-authored, West Limgrave only). Expand by hand or semi-derive. |
-| **NPC / boss / location names + ids** | ◐ in progress | Comes from the extractor data layer (`dlc-support.md` / `client-side-db.md`, task #7). |
+| Dependency                             | Status         | Source                                                                                                                                                                                                                                                    |
+| -------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Read any event flag from a save**    | ✅ done        | Lean DTO ships full `event_flags` bitfield; `vm/events.ts` already does grace/boss bit-math. Same bit formula works for quest flags.                                                                                                                      |
+| **Quest-step → event-flag id mapping** | ◐ **anchored** | The game ships per-NPC quest state machines as named flags (`EFID_Talk_NPCxxx` "event state" blocks in the soulsmods index); soulstruct's decompile shows the logic that reads them. Remaining unknown = _flag addressing_ (relative id → save byte/bit). |
+| **Objective walkthrough content**      | ◐ partial      | `er-objectives.ts` (hand-authored, West Limgrave only). Expand by hand or semi-derive.                                                                                                                                                                    |
+| **NPC / boss / location names + ids**  | ◐ in progress  | Comes from the extractor data layer (`dlc-support.md` / `client-side-db.md`, task #7).                                                                                                                                                                    |
 
 **The bottleneck is the flag mapping**, not the parser. Each "Speak to Ranni", "Defeat
 X", "Discover Y" needs the event-flag id that flips when it's done — and the game ships a
@@ -79,13 +87,13 @@ the soulsmods event-flag index) with two sub-blocks:
 
 Roderika (`NPC320`, talk id `320001110`) is the worked example:
 
-| rel flag | name (JP → EN) |
-| --- | --- |
+| rel flag  | name (JP → EN)                                     |
+| --------- | -------------------------------------------------- |
 | 3700–3703 | status: alive / hostile(abs) / hostile(not) / dead |
-| 3705 | event state: initial |
-| 3707 | event state: came to Roundtable Hold |
-| 3708 | event state: became Spirit Tuner |
-| 3709 | event state: Erdtree burned |
+| 3705      | event state: initial                               |
+| 3707      | event state: came to Roundtable Hold               |
+| 3708      | event state: became Spirit Tuner                   |
+| 3709      | event state: Erdtree burned                        |
 
 soulstruct's decompile of her map (`m11_10_00_00.evs.py`) reads exactly these flags —
 `Event_11103710` branches on `flag=3700/3701/3703` (status) and `FlagEnabled(3707)` to pick
@@ -96,20 +104,20 @@ and the **status flags are the missable/failure detector**.
 
 All cloned under `docs/cloned-repos-as-docs/dlc-data-sources/`:
 
-| Source | Role |
-| --- | --- |
-| Fextralife "Side Quests" + thefifthmatt "All NPC Quests V5" flowchart | **Narrative** — ordering, missable gates, step prose, cross-NPC edges |
-| soulsmods `elden-ring-eventparam/index.md` | **Flag dictionary** — named event-state + status flags per NPC (JP, machine-translatable; ~54 `EFID_Talk_NPC` blocks) |
-| `soulstruct` decompile (478 `.evs.py` + per-map `enums/`) | **Verification + logic** — confirms each flag's meaning, shows what *sets* it, resolves English entity names |
+| Source                                                                | Role                                                                                                                  |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Fextralife "Side Quests" + thefifthmatt "All NPC Quests V5" flowchart | **Narrative** — ordering, missable gates, step prose, cross-NPC edges                                                 |
+| soulsmods `elden-ring-eventparam/index.md`                            | **Flag dictionary** — named event-state + status flags per NPC (JP, machine-translatable; ~54 `EFID_Talk_NPC` blocks) |
+| `soulstruct` decompile (478 `.evs.py` + per-map `enums/`)             | **Verification + logic** — confirms each flag's meaning, shows what _sets_ it, resolves English entity names          |
 
 The earlier "curated cheat-table overlay, migrate to EMEVD later" plan is **superseded**:
-soulstruct's decompile *is* the durable EMEVD source (already on disk, more trustworthy than
+soulstruct's decompile _is_ the durable EMEVD source (already on disk, more trustworthy than
 a CT snapshot), and the named event-state flags make this **alignment** work, not
 **reverse-engineering**.
 
 ### The one real unknown: flag addressing
 
-The event-state flags appear as small *relative* ids (`3707`) scoped per-NPC; the save is a
+The event-state flags appear as small _relative_ ids (`3707`) scoped per-NPC; the save is a
 global bitfield. Resolving relative id → absolute save `(byte, bit)` is the single R&D risk.
 Two complementary paths (see [save-flag-diff checkpoints](./save-flag-diff-checkpoints.md)):
 
@@ -147,7 +155,7 @@ Derived per save:
 ## Relationship to the other projects
 
 - **`wasm-save-parser-rewrite.md`** — the enabler. Already done; quest flags need no further
-  parser work. This was an explicit reason that doc chose to ship the *whole* flag region
+  parser work. This was an explicit reason that doc chose to ship the _whole_ flag region
   rather than a fixed grace/boss id→bool map.
 - **`dlc-support.md`** — the flag-sourcing problem is the same as boss-defeat flags;
   whatever EMEVD/CT tooling lands there feeds the durable version of this feature.

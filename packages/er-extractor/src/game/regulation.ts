@@ -1,6 +1,6 @@
 import { createDecipheriv } from 'node:crypto';
 
-import { Data, Effect } from 'effect';
+import { Data, Effect, FileSystem } from 'effect';
 
 import type { OodleError } from '../external/oodle.ts';
 import { type Bnd4Error, parseBnd4 } from '../formats/bnd4.ts';
@@ -24,14 +24,19 @@ export const loadRegulationParams = (
   oo2corePath: string,
 ): Effect.Effect<
   Map<string, Uint8Array>,
-  RegulationError | DcxError | OodleError | Bnd4Error
+  RegulationError | DcxError | OodleError | Bnd4Error,
+  FileSystem.FileSystem
 > =>
   Effect.gen(function* () {
-    const enc = new Uint8Array(
-      yield* Effect.promise(() =>
-        Bun.file(`${gameRoot}/regulation.bin`).arrayBuffer(),
-      ),
-    );
+    const fs = yield* FileSystem.FileSystem;
+    const enc = yield* fs
+      .readFile(`${gameRoot}/regulation.bin`)
+      .pipe(
+        Effect.mapError(
+          (cause) =>
+            new RegulationError({ detail: `reading regulation.bin: ${cause}` }),
+        ),
+      );
     const decrypted = yield* Effect.try({
       try: () => {
         const decipher = createDecipheriv(

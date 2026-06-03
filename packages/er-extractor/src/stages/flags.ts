@@ -9,7 +9,7 @@ import { loadMapFragments } from '../game/map-fragments.ts';
 import { loadRegions } from '../game/regions.ts';
 
 /**
- * Stage 6 — event flags. Both halves derive from the install (no curated
+ * Stage 5 — event flags. Both halves derive from the install (no curated
  * overlay), so a patched game flows through unchanged:
  *   - Graces  — `BonfireWarpParam` ⨝ PlaceName/GR_MenuText FMGs → flag + name +
  *     region. Fully self-updating.
@@ -49,11 +49,16 @@ export const flags = (params: Map<string, Uint8Array>) =>
         : 'Messmer defeat flag not found',
     );
 
-    const playRegions = yield* loadRegions(params, graces);
+    const { regions: playRegions, matchmakingRegionIds } = yield* loadRegions(
+      params,
+      graces,
+      bosses,
+    );
     const openWorld = playRegions.filter((r) => r.isOpenWorld).length;
     yield* Effect.logInfo(
-      `regions — ${playRegions.length} named via grace (${openWorld} open-world, ` +
-        `${playRegions.filter((r) => r.isDungeon).length} interior)`,
+      `regions — ${playRegions.length} placed (${openWorld} open-world, ` +
+        `${playRegions.filter((r) => r.isDungeon).length} interior); ` +
+        `${matchmakingRegionIds.length} matchmaking siblings (areaNo=0) ignored`,
     );
 
     const mapFragments = yield* loadMapFragments(params, ctx.gameRoot, oo2core);
@@ -68,5 +73,12 @@ export const flags = (params: Map<string, Uint8Array>) =>
       `archetypes — ${archetypes.length} starting classes (GR_MenuText)`,
     );
 
-    return { graces, bosses, regions: playRegions, mapFragments, archetypes };
+    return {
+      graces,
+      bosses,
+      regions: playRegions,
+      matchmakingRegionIds,
+      mapFragments,
+      archetypes,
+    };
   });

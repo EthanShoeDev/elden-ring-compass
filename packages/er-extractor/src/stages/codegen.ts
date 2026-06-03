@@ -1,4 +1,4 @@
-import { Effect } from 'effect';
+import { Effect, FileSystem, Path } from 'effect';
 
 import type { Archetype } from '../game/archetypes.ts';
 import type { BossArea } from '../game/bosses.ts';
@@ -7,7 +7,8 @@ import type { Grace } from '../game/graces.ts';
 import type { ItemText } from '../game/item-text.ts';
 import type { MapFragment } from '../game/map-fragments.ts';
 import type { Region } from '../game/regions.ts';
-import type { MapEntity } from '../game/map-markers.ts';
+import type { ClassifiedMarker } from '../game/marker-classify.ts';
+import type { Placement } from '../game/placements.ts';
 import type {
   ArmorRecord,
   AshOfWarRecord,
@@ -19,7 +20,7 @@ import type {
 } from './join.ts';
 
 /**
- * Stage 8 — codegen. Writes the extracted datasets as typed `.ts` files into the
+ * Stage 9 — codegen. Writes the extracted datasets as typed `.ts` files into the
  * `@elden-ring-compass/data` workspace package (`packages/elden-ring-data/src/
  * generated/`) — the single source of truth the web app depends on. Output is
  * deterministic (stable sort, fixed field order) so re-running on an unchanged
@@ -31,6 +32,7 @@ export interface CodegenInput {
   readonly graces: readonly Grace[];
   readonly bosses: readonly BossArea[];
   readonly regions: readonly Region[];
+  readonly matchmakingRegionIds: readonly number[];
   readonly mapFragments: readonly MapFragment[];
   readonly archetypes: readonly Archetype[];
   readonly weapons: readonly WeaponRecord[];
@@ -40,7 +42,8 @@ export interface CodegenInput {
   readonly ashesOfWar: readonly AshOfWarRecord[];
   readonly spells: readonly SpellRecord[];
   readonly spiritAshes: readonly SpiritAshRecord[];
-  readonly markers: readonly MapEntity[];
+  readonly markers: readonly ClassifiedMarker[];
+  readonly placements: readonly Placement[];
   // Name tables for the remaining categories without a decoded stat record
   // (weapon arts) — emitted as {id, name}.
   readonly names: ItemText;
@@ -82,9 +85,12 @@ const renderDataset = (
 };
 
 const write = (fileName: string, contents: string) =>
-  Effect.tryPromise(() =>
-    Bun.write(new URL(fileName, GENERATED_DIR), contents),
-  );
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    const path = yield* Path.Path;
+    const filePath = yield* path.fromFileUrl(new URL(fileName, GENERATED_DIR));
+    yield* fs.writeFileString(filePath, contents);
+  });
 
 /** Emit the event-flag addressing table + `eventFlagOffset()` reader (hand-shaped code). */
 const renderEventFlags = (
@@ -104,6 +110,116 @@ const renderEventFlags = (
   `  return [mult * 125 + Math.floor(index / 8), 7 - (index % 8)];\n` +
   `}\n`;
 
+/**
+ * Render `generated/regions.ts` — the `REGIONS` table plus the `MATCHMAKING_REGION_IDS`
+ * ignore-set. Self-contained (sorts its own inputs) so it can be regenerated in isolation.
+ */
+export const renderRegionsFile = (
+  regionsInput: readonly Region[],
+  matchmakingRegionIdsInput: readonly number[],
+): string => {
+  const regions = [...regionsInput].sort((a, b) => a.id - b.id);
+  const matchmakingIds = [...matchmakingRegionIdsInput].sort((a, b) => a - b);
+  // Pack the matchmaking ids 12-per-line so the Set stays readable in diffs.
+  const matchmakingLines: string[] = [];
+  for (let i = 0; i < matchmakingIds.length; i += 12) {
+    matchmakingLines.push(
+      '  ' + matchmakingIds.slice(i, i + 12).join(', ') + ',',
+    );
+  }
+  return (
+    renderDataset(
+      'Region',
+      [
+        'readonly id: number;',
+        'readonly name: string;',
+        'readonly area: string | null;',
+        'readonly isOpenWorld: boolean;',
+        'readonly isDungeon: boolean;',
+      ],
+      'REGIONS',
+      regions.map((r) => ({ ...r })),
+    ) +
+    '\n// areaNo==0 PlayRegionParam rowIds — multiplayer/invasion matchmaking siblings of placed\n' +
+    "// regions. The game activates these as the player moves, so they appear in the save's\n" +
+    '// unlocked_regions, but they have no name/placement and are NOT user-facing places.\n' +
+    'export const MATCHMAKING_REGION_IDS: ReadonlySet<number> = new Set([\n' +
+    `${matchmakingLines.join('\n')}\n]);\n`
+  );
+};
+
+/** Render `generated/markers.ts` — classified MSB entities. Self-contained (sorts its inputs). */
+export const renderMarkersFile = (
+  markersInput: readonly ClassifiedMarker[],
+): string => {
+  const markers = [...markersInput].sort(
+    (a, b) => a.mapId.localeCompare(b.mapId) || a.entityID - b.entityID,
+  );
+  return renderDataset(
+    'MapMarker',
+    [
+      'readonly mapId: string;',
+      // kind is 'part' | 'region' but typed `string`: a literal union over
+      // ~24k rows overflows the type checker (TS2590). Same for `category`.
+      'readonly kind: string;',
+      'readonly type: number;',
+      'readonly category: string;',
+      'readonly name: string;',
+      'readonly displayName: string | null;',
+      'readonly entityId: number;',
+      'readonly x: number;',
+      'readonly y: number;',
+      'readonly z: number;',
+      'readonly npcParamId: number | null;',
+    ],
+    'MAP_MARKERS',
+    markers.map((m) => ({
+      mapId: m.mapId,
+      kind: m.kind,
+      type: m.type,
+      category: m.category,
+      name: m.name,
+      displayName: m.displayName,
+      entityId: m.entityID,
+      x: m.x,
+      y: m.y,
+      z: m.z,
+      npcParamId: m.npcParamId,
+    })),
+  );
+};
+
+/** Render `generated/placements.ts` — item world-placements. Self-contained (sorts its inputs). */
+export const renderPlacementsFile = (
+  placementsInput: readonly Placement[],
+): string => {
+  const placements = [...placementsInput].sort(
+    (a, b) =>
+      a.mapId.localeCompare(b.mapId) ||
+      a.entityId - b.entityId ||
+      a.itemId - b.itemId,
+  );
+  return renderDataset(
+    'Placement',
+    [
+      'readonly mapId: string;',
+      'readonly entityId: number;',
+      'readonly x: number;',
+      'readonly y: number;',
+      'readonly z: number;',
+      'readonly npcParamId: number;',
+      'readonly lotId: number;',
+      'readonly itemId: number;',
+      'readonly itemType: string;',
+      'readonly quantity: number;',
+      'readonly chance: number;',
+      'readonly source: string;',
+    ],
+    'PLACEMENTS',
+    placements.map((p) => ({ ...p })),
+  );
+};
+
 export const codegen = (input: CodegenInput) =>
   Effect.gen(function* () {
     // Sort each dataset by a stable key for deterministic, diff-friendly output.
@@ -112,9 +228,6 @@ export const codegen = (input: CodegenInput) =>
       (a, b) => a.defeatFlagId - b.defeatFlagId,
     );
     const weapons = [...input.weapons].sort((a, b) => a.id - b.id);
-    const markers = [...input.markers].sort(
-      (a, b) => a.mapId.localeCompare(b.mapId) || a.entityID - b.entityID,
-    );
 
     yield* write(
       'graces.ts',
@@ -367,53 +480,13 @@ export const codegen = (input: CodegenInput) =>
       );
     }
 
-    yield* write(
-      'markers.ts',
-      renderDataset(
-        'MapMarker',
-        [
-          'readonly mapId: string;',
-          // kind is 'part' | 'region' but typed `string`: a literal union over
-          // ~24k rows overflows the type checker (TS2590).
-          'readonly kind: string;',
-          'readonly type: number;',
-          'readonly name: string;',
-          'readonly entityId: number;',
-          'readonly x: number;',
-          'readonly y: number;',
-          'readonly z: number;',
-          'readonly npcParamId: number | null;',
-        ],
-        'MAP_MARKERS',
-        markers.map((m) => ({
-          mapId: m.mapId,
-          kind: m.kind,
-          type: m.type,
-          name: m.name,
-          entityId: m.entityID,
-          x: m.x,
-          y: m.y,
-          z: m.z,
-          npcParamId: m.npcParamId,
-        })),
-      ),
-    );
+    yield* write('markers.ts', renderMarkersFile(input.markers));
 
-    const regions = [...input.regions].sort((a, b) => a.id - b.id);
+    yield* write('placements.ts', renderPlacementsFile(input.placements));
+
     yield* write(
       'regions.ts',
-      renderDataset(
-        'Region',
-        [
-          'readonly id: number;',
-          'readonly name: string;',
-          'readonly area: string | null;',
-          'readonly isOpenWorld: boolean;',
-          'readonly isDungeon: boolean;',
-        ],
-        'REGIONS',
-        regions.map((r) => ({ ...r })),
-      ),
+      renderRegionsFile(input.regions, input.matchmakingRegionIds),
     );
 
     const mapFragments = [...input.mapFragments].sort(
@@ -465,6 +538,7 @@ export const codegen = (input: CodegenInput) =>
       'map-fragments',
       'archetypes',
       'markers',
+      'placements',
       'event-flags',
     ];
     const index =
@@ -478,6 +552,6 @@ export const codegen = (input: CodegenInput) =>
         `${weapons.length} weapons, ${armor.length} armor, ${talismans.length} talismans, ` +
         `${goods.length} goods, ${ashesOfWar.length} ashes of war, ${spells.length} spells, ` +
         `${spiritAshes.length} spirit ashes, ${mapFragments.length} map fragments, ` +
-        `${markers.length} markers (+ arts name table)`,
+        `${input.markers.length} markers, ${input.placements.length} placements (+ arts name table)`,
     );
   });

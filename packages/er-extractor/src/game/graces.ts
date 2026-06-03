@@ -1,4 +1,4 @@
-import { Data, Effect } from 'effect';
+import { Data, Effect, FileSystem, Path, PlatformError } from 'effect';
 
 import type { OodleError } from '../external/oodle.ts';
 import type { Bnd4Error } from '../formats/bnd4.ts';
@@ -41,13 +41,14 @@ type GraceErrors =
   | DcxError
   | OodleError
   | Bnd4Error
-  | FmgError;
+  | FmgError
+  | PlatformError.PlatformError;
 
 export const loadGraces = (
   params: Map<string, Uint8Array>,
   gameRoot: string,
   oo2corePath: string,
-): Effect.Effect<Grace[], GraceErrors> =>
+): Effect.Effect<Grace[], GraceErrors, FileSystem.FileSystem | Path.Path> =>
   Effect.gen(function* () {
     const bwpBytes = params.get('BonfireWarpParam');
     const subBytes = params.get('BonfireWarpSubCategoryParam');

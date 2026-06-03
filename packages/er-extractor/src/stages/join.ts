@@ -1,4 +1,4 @@
-import { Effect } from 'effect';
+import { Effect, FileSystem, Path } from 'effect';
 
 import {
   decodeRow,
@@ -239,7 +239,8 @@ const findOffsetIndices = (
   const max =
     [...maxima].sort((a, b) => b - a).find((m) => has(base + m * inc)) ?? 0;
   const out: number[] = [];
-  for (let i = 0; i <= max; i++) if (has(base + i * inc)) out.push(base + i * inc);
+  for (let i = 0; i <= max; i++)
+    if (has(base + i * inc)) out.push(base + i * inc);
   return out;
 };
 
@@ -343,7 +344,11 @@ const decodeCategory = <T>(
   paramName: string,
   nameTable: Map<number, string>,
   build: (id: number, name: string, row: Row) => T,
-): Effect.Effect<T[], ParamError | ParamdefError> =>
+): Effect.Effect<
+  T[],
+  ParamError | ParamdefError,
+  FileSystem.FileSystem | Path.Path
+> =>
   Effect.gen(function* () {
     const bytes = paramFiles.get(paramName);
     if (!bytes) {
@@ -374,7 +379,11 @@ const decodeCategory = <T>(
 const decodeParamMap = (
   paramFiles: Map<string, Uint8Array>,
   paramName: string,
-): Effect.Effect<Map<number, Row>, ParamError | ParamdefError> =>
+): Effect.Effect<
+  Map<number, Row>,
+  ParamError | ParamdefError,
+  FileSystem.FileSystem | Path.Path
+> =>
   Effect.gen(function* () {
     const bytes = paramFiles.get(paramName);
     if (!bytes) {
@@ -392,7 +401,11 @@ const decodeParamMap = (
 export const join = (
   paramFiles: Map<string, Uint8Array>,
   names: ItemText,
-): Effect.Effect<ItemTables, ParamError | ParamdefError> =>
+): Effect.Effect<
+  ItemTables,
+  ParamError | ParamdefError,
+  FileSystem.FileSystem | Path.Path
+> =>
   Effect.gen(function* () {
     // Lazy SpEffect resolver: decode a referenced SpEffectParam row on demand → its
     // effects[]. Shared by armor (residentSpEffectId*) and talismans (refId).
@@ -501,7 +514,13 @@ export const join = (
         id,
         name,
         category: ARMOR_CATEGORY[num(f, 'protectorCategory')] ?? 'Body',
-        ...coreFields(f, id, names.ProtectorInfo, names.ProtectorCaption, 'iconIdM'),
+        ...coreFields(
+          f,
+          id,
+          names.ProtectorInfo,
+          names.ProtectorCaption,
+          'iconIdM',
+        ),
         weight: num(f, 'weight'),
         negationPhysical: neg(f, 'neutralDamageCutRate'),
         negationStrike: neg(f, 'blowDamageCutRate'),
@@ -673,5 +692,13 @@ export const join = (
         .map(([c, n]) => `${c}=${n}`)
         .join(' ')}`,
     );
-    return { weapons, armor, talismans, goods, ashesOfWar, spells, spiritAshes };
+    return {
+      weapons,
+      armor,
+      talismans,
+      goods,
+      ashesOfWar,
+      spells,
+      spiritAshes,
+    };
   });

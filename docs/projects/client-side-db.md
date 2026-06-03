@@ -5,15 +5,22 @@
 > first-class search / sorting / querying, and cleanly wire up the new
 > `@elden-ring-compass/data` package (extractor output) to the UI.
 > **Equally central goal:** make `packages/er-extractor` → `packages/elden-ring-data`
-> the *single source of truth* for all game data + images, and **delete every legacy
+> the _single source of truth_ for all game data + images, and **delete every legacy
 > data source** (erdb-derived TS, the 1.7 GB erdb assets, hand-authored tables).
 >
-> **Progress (2026-06-02):** Phase A foundation done — effect-atom adopted, React Query
+> **Progress (2026-06-03):** Phase A foundation done — effect-atom adopted, React Query
 > ripped out, save-parse is an `AsyncResult` atom, **all Zustand stores migrated and
-> `zustand` removed**, weapons wired as the reference dataset. **Not yet done:** the
-> single-source-of-truth teardown — `@elden-ring-compass/data` is consumed by only one
-> web file, legacy `elden-ring-raw-db/` is still imported by ~7, and `assets/erdb/`
-> (1.7 GB), `lib/erdb.ts`, `lib/map-db.ts` all remain (Phases B/C/D + the parity audit).
+> `zustand` removed**, weapons wired as the reference dataset. **Phase C teardown DONE
+> (commit `2cee32e3`):** the web app is rewired off all three legacy data layers onto
+> `@elden-ring-compass/data`, and **`lib/elden-ring-raw-db/`, `lib/erdb.ts`, and the 1.7 GB
+> `assets/erdb/` are deleted.** vm inventory/equipment/stats, events (GRACES+BOSSES+MAP_FRAGMENTS
+> via `eventFlagOffset()`), regions, share encode/decode, and the inventory catalog all read
+> from the new datasets; per-item + boss-portrait icons come from the package via `import.meta.glob`.
+> **Only one legacy source remains: `lib/map-db.ts`** (1.2 MB, 8 importers) — intentionally
+> retained, gated on the map-coordinate subsystem: **#9 marker classification ✅ done** and
+> **#15 parser runtime-verify ✅ done**, **#10 enemy/boss placements ✅ done** (7,700 rows);
+> remaining **#4 calibration generalization** + **#10b map-treasure placements (EMEVD)** + wiring
+> the layers into the web map. Phase D polish still open.
 
 ## The committed stack
 
@@ -74,12 +81,12 @@ repeatable command against your install."
 
 ### Legacy sources to delete (inventory)
 
-| Path | What it is | Replacement |
-|------|-----------|-------------|
-| `apps/web/src/lib/elden-ring-raw-db/` (24 `.ts`) | erdb-derived static arrays (WEAPONS, ARMORS, TALISMANS, BOSSES, GRACES, names, EVENT_FLAGS, REGIONS, MAPS, STATS, …) | `@elden-ring-compass/data` generated tables |
-| `apps/web/src/assets/erdb/` (**1.7 GB**: `json/`, `icons/`, `map/`) | erdb JSON dumps + item icons + map images | generated JSON + `elden-ring-data/images/` (WebP, LFS) |
-| `apps/web/src/lib/erdb.ts` | loader for the erdb JSON assets | atom loaders over the new datasets |
-| `apps/web/src/lib/map-db.ts` (1.2 MB) | item drop locations keyed by name | `placements` dataset (ItemLotParam stage) |
+| Path                                                                | What it is                                                                                                           | Replacement                                            | Status                                                                                         |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `apps/web/src/lib/elden-ring-raw-db/` (24 `.ts`)                    | erdb-derived static arrays (WEAPONS, ARMORS, TALISMANS, BOSSES, GRACES, names, EVENT_FLAGS, REGIONS, MAPS, STATS, …) | `@elden-ring-compass/data` generated tables            | ✅ **DELETED** (`2cee32e3`)                                                                    |
+| `apps/web/src/assets/erdb/` (**1.7 GB**: `json/`, `icons/`, `map/`) | erdb JSON dumps + item icons + map images                                                                            | generated JSON + `elden-ring-data/images/` (WebP, LFS) | ✅ **DELETED** (`2cee32e3`)                                                                    |
+| `apps/web/src/lib/erdb.ts`                                          | loader for the erdb JSON assets                                                                                      | atom loaders over the new datasets                     | ✅ **DELETED** (`2cee32e3`) → `inventory-catalog.ts`                                           |
+| `apps/web/src/lib/map-db.ts` (1.2 MB)                               | item drop locations keyed by name                                                                                    | `placements` dataset (ItemLotParam stage)              | ⏳ **RETAINED** — last legacy source; gated on map subsystem (#9 ✅; #4/#10 + web wiring left) |
 
 `apps/web/src/lib/vm/*` (equipment, events, inventory, regions, stats) are **rewired, not
 deleted** — they keep joining save data to game data, just sourced from the new package.
@@ -91,25 +98,24 @@ deleted** — they keep joining save data to game data, just sourced from the ne
 > exact `er-extractor` output each legacy source needs before deletion. The summary below is
 > kept; the audit is the authoritative, verified version.
 
-`elden-ring-data` currently emits: graces, bosses, weapons, armor, talismans, goods,
-ashes-of-war, arts, markers. The legacy data covers **more** than that. Each legacy file is
-deleted **only after** the new packages produce an equivalent (verified by diff). Known
-**coverage gaps** that need new extractor/codegen stages (or a deliberate decision to drop
-the feature) before their legacy source can go:
+`elden-ring-data` now emits: graces, bosses, weapons, armor, talismans, goods, ashes-of-war,
+arts, markers, **archetypes, event-flags (`eventFlagOffset()`), map-fragments, regions, spells,
+spirit-ashes**. Each legacy file was deleted **only after** the new packages produced an
+equivalent (verified by diff). The **coverage gaps the audit surfaced are now CLOSED** — what
+was once a gap list is the changelog below (see [`data-parity-audit.md`](./data-parity-audit.md)):
 
-- **Event flags** (full set, beyond grace/boss) — `EVENT_FLAGS`
-- **Regions / maps / map names** — `REGIONS`, `MAPS`, `MAP_NAMES`
-- **Level/stat curves** — `STATS`; **starting classes** — `STARTING_CLASSES`; **archetypes**
-- **Spells stats** (FP/slots/scaling, sorcery vs incantation split), **ammo**, **gestures**,
-  **reinforcements/upgrade paths**, **correction graphs**, **shop**, **summoning pools**,
-  **cookbooks**, **whetblades**, **colosseums**
-- **Per-item icons** — the extractor currently emits menu/system icons
-  (`01_common/02_title/03_chrmake`), **not** per-item icon images. Item icon sheets are a
-  separate source to extract before `assets/erdb/icons/` can be deleted.
+- ✅ **Event flags** (full set) → `event-flags.ts` `eventFlagOffset()`, verified 1178/1178.
+- ✅ **Regions / map fragments** → `regions.ts` (install-derived) + `map-fragments.ts` (coarse
+  names; fine wiki labels dropped). `MAP_NAMES`/`MAPS` folded in.
+- ✅ **Archetypes** → `archetypes.ts`. `STATS`/`STARTING_CLASSES` were dead → deleted, no replacement.
+- ✅ **Spells stats** → `spells.ts`; **spirit ashes** → `spirit-ashes.ts`; **ammo + gestures**
+  distinguishable via `category` on weapons/goods. **Cookbooks/whetblades** re-mechanism'd via
+  save inventory ownership; **summoning pools / colosseums** dropped (placeholder/3-hardcoded).
+- ✅ **Per-item icons** — 2939 `images/icons/items/{iconId}.webp` emitted; boss portraits via
+  remembrance-item icons. `assets/erdb/icons/` deleted.
 
-So the workstream is: **(1) parity audit → gap list, (2) close gaps in `er-extractor`,
-(3) migrate web app dataset-by-dataset, (4) delete each legacy source as its replacement
-lands.** Deleting `assets/erdb/` (1.7 GB) is also a major repo-size win.
+The **only remaining gap** is the map-coordinate subsystem (#4/#9/#10 + ItemLotParam placements),
+which gates `map-db.ts`. Deleting `assets/erdb/` (1.7 GB) was also a major repo-size win.
 
 ## How effect-atom gives us "queries" over in-memory data
 
@@ -133,23 +139,23 @@ Atom.make(WEAPONS)                         // base atom: the in-memory dataset
 We seriously considered Effect IndexedDB (effect-smol `@effect/platform-browser`) and
 chose **against** it for this data. The reasoning, so we don't re-litigate:
 
-- **effect-atom ≠ IndexedDB.** The reactive querying we want comes from *atoms*, not from
+- **effect-atom ≠ IndexedDB.** The reactive querying we want comes from _atoms_, not from
   storage. Atoms work over in-memory data directly.
 - **Our data is the wrong shape for a DB win.** It's static, read-only, regenerated by the
   extractor, and fits in memory (~6 MB JSON → tens of MB resident). IndexedDB's real wins —
-  persistence of *mutable user-owned* data, datasets too big for RAM, offline-first sync,
+  persistence of _mutable user-owned_ data, datasets too big for RAM, offline-first sync,
   Blob storage — don't apply.
 - **It's bad at relational.** IndexedDB has no joins/SQL; relational queries read into
-  memory and join in JS anyway. In-memory is both simpler and *faster* for full-table work
+  memory and join in JS anyway. In-memory is both simpler and _faster_ for full-table work
   (a JS `.filter()` over 24k rows is ~1–5 ms, sync; IndexedDB reads are async + clone
   overhead).
 - **It adds real cost:** schema, migrations, version/manifest hashing, fill orchestration —
   all for a read-only cache.
 
-**When IndexedDB *would* earn its place (future, not this project):** user-owned, durable,
+**When IndexedDB _would_ earn its place (future, not this project):** user-owned, durable,
 mutable data — e.g. cached/imported **save files** (binary blobs), **favorites / saved
 builds**, an offline **completion checklist**, personal annotations. Those are the textbook
-fit. If we build such features, revisit IndexedDB *for that data only* — it slots under an
+fit. If we build such features, revisit IndexedDB _for that data only_ — it slots under an
 atom (`Atom.make(db.select(...))`) without touching components. Genuine
 ship-a-queryable-file / FTS needs would point at `wa-sqlite` + OPFS instead.
 
@@ -164,13 +170,13 @@ ship-a-queryable-file / FTS needs would point at `wa-sqlite` + OPFS instead.
 
 ## New data package sizes (`packages/elden-ring-data/src/generated/`)
 
-| dataset      | size    | rows   | delivery |
-|--------------|---------|--------|----------|
-| markers.ts   | 4.7 MB  | 24,387 | static JSON in `public/`, fetched lazily into memory (map open) |
-| weapons.ts   | 548 KB  | 3,333  | static JSON, fetched lazily into memory |
-| armor.ts     | 287 KB  | 768    | static JSON, fetched lazily into memory |
-| goods.ts     | 240 KB  | 2,177  | static JSON, fetched lazily into memory |
-| graces/bosses/talismans/arts/ashes | ≤50 KB | small | bundle from the package (trivial) |
+| dataset                            | size   | rows   | delivery                                                        |
+| ---------------------------------- | ------ | ------ | --------------------------------------------------------------- |
+| markers.ts                         | 4.7 MB | 24,387 | static JSON in `public/`, fetched lazily into memory (map open) |
+| weapons.ts                         | 548 KB | 3,333  | static JSON, fetched lazily into memory                         |
+| armor.ts                           | 287 KB | 768    | static JSON, fetched lazily into memory                         |
+| goods.ts                           | 240 KB | 2,177  | static JSON, fetched lazily into memory                         |
+| graces/bosses/talismans/arts/ashes | ≤50 KB | small  | bundle from the package (trivial)                               |
 
 Images: 388 MB in Git LFS (`images/`) — separate concern, served as static files / CDN.
 
@@ -180,25 +186,43 @@ The tiled map is **multi-layer** — the user can toggle independent layers (ene
 bosses, NPCs, items, graces, regions, …). Not an item-drop-only map. Consequences:
 
 - **Markers stay a full, rich entity dataset.** The MSB marker set (24k world entities)
-  is the backbone. Each marker carries a derived **`layer` / `category`** field so the UI
-  can toggle layers. Classification is a *join*, not a single field:
-  - enemies / NPCs ← MSB part `type` (enemy 2/10) + `npcParamId` → `NpcName`
-  - bosses ← `BOSSES` dataset (defeat flags + arena), cross-ref to marker entity IDs
-  - graces ← `GRACES` dataset (bonfire entity IDs)
-  - regions / assets / points ← MSB part/region `type`
+  is the backbone. ✅ **#9 DONE (extractor):** each marker now carries a derived **`category`**
+  - an English **`displayName`** so the UI can toggle layers and label entities. Classification
+    is a _join_, computed in `er-extractor` (`game/marker-classify.ts`, stage 6):
+  * **npc** ← Enemy/DummyEnemy part with `npcParamId → NpcParam.nameId → NpcName` (485 named
+    characters); **enemy** ← the rest (generic mobs, no name)
+  * **grace** ← `entityID` ∈ `GRACES.bonfireEntityId` (439 markers, 100% join → graces get coords)
+  * **asset / player / collision / map-piece** ← Part subtype; region subtypes →
+    `map-point` / `spawn-point` / `summon-point` / `play-area` / `invasion-point` / `connection`
+    (the rest collapse to `region`)
+  * bosses are NOT marker-tagged — the boss layer comes from the `BOSSES` dataset (own coords)
+  * **Still pending:** wiring these categories to toggleable map layers in the web (Phase C),
+    and #4 calibration so they render in the right pixel positions.
 - **Item tables stay definition-only (no coords).** Weapons/goods/armor remain stat
   tables keyed by id. The "items" map layer is a **separate world-placement dataset** that
   references item ids by id — NOT coordinates bolted onto item rows. (`markers` =
-  entities; item *placements* = a different source — see below.)
-- **Item placements = new extractor stage (committed).** Source = **`ItemLotParam`**
+  entities; item _placements_ = a different source — see below.)
+- **Item placements = new extractor stage (#10).** Source = **`ItemLotParam`**
   (`ItemLotParam_map` + `ItemLotParam_enemy`), authoritative & derived-from-install.
-  Linkage to world coords is the hard part:
-  - map items: `ItemLotParam_map` lot → the MSB entity (treasure/asset part) that
-    references that lot id → coordinates.
-  - enemy drops: `ItemLotParam_enemy` ← `NpcParam.itemLot*` ← enemy MSB placements →
-    coordinates.
-  This is substantial (lot→placement resolution is what Smithbox/erdb-class tooling does).
-  Not started; legacy `map-db.ts` is NOT used.
+  Decoded by `game/item-lots.ts` (8-slot `ITEMLOT_PARAM_ST`: itemId, category→`itemType`,
+  quantity, `chance`, `getItemFlagId`). Linkage to world coords splits in two:
+  - ✅ **enemy / boss drops — DONE (`game/placements.ts`, stage 7).** Fully static:
+    `marker.npcParamId → NpcParam.itemLotId_enemy → ItemLotParam_enemy`, joined to the enemy
+    marker's coords. **7,700 placements** across 354 maps (bosses are enemy markers, so their
+    unique drops are covered). Emitted as the `PLACEMENTS` dataset.
+  - ⏳ **map treasure — DEFERRED (#10b).** `ItemLotParam_map` chests/ground items have **no
+    static MSB link** to a position (the Asset part has no lot field) — the entity→lot mapping
+    lives in the **EMEVD** event scripts. **Foundation laid (`formats/emedf.ts`):** the vendored
+    soulstruct **EMEDF** instruction dictionary (`vendor/er-common.emedf.json`) + a typed,
+    self-aligned arg decoder turn raw EMEVD instructions into named args — **verified 100% opcode
+    coverage on 107k instructions / 589 EMEVDs**. **Scouting result:** direct `Award Item Lot`
+    calls reference only **15 of 5,564 map lots** — treasure is configured via the indirect
+    **asset-treasure system** (`Set Asset Treasure State`, opcode 2005,4), so #10b needs
+    event-flow analysis (trigger entity ⨝ lot), not an opcode scan. A real RE project, grouped
+    with the map-coordinate work (#4). The EMEDF layer is shared with the quest compass. Until
+    #10b lands, `PLACEMENTS.source` is always `'enemy'`.
+
+  `map-db.ts` is NOT used; its deletion still waits on #10b + #4 calibration.
 
 ### In-memory marker / placement model
 
@@ -232,17 +256,19 @@ bosses, NPCs, items, graces, regions, …). Not an item-drop-only map. Consequen
   - **Migrate Zustand → effect-atom: ✅ DONE.** Save-source + slot-selection stores converted
     to writable atoms (the save-parse atom derives from the source atom directly, no bridge),
     then the table + inventory UI stores. `zustand` removed from `apps/web` + the catalog.
-- **Phase B — close extractor gaps:** add the new `er-extractor`/codegen stages the audit
-  surfaced (event flags, regions/maps, stats/classes, spells stats, reinforcements,
-  per-item icons, …). Also: `layer`/`category` on markers + **ItemLotParam → placements**.
-- **Phase C — migrate + delete, dataset by dataset:**
-  - Codegen emits `public/data/*.json` for the large datasets (+ types).
+- **Phase B — close extractor gaps:** ✅ mostly done — event flags, regions/maps, stats/classes,
+  spells stats, per-item icons, **✅ `category`/`displayName` on markers (#9)**,
+  **✅ enemy/boss `PLACEMENTS` (#10)**. Remaining: **#10b map-treasure placements (EMEVD)** and
+  **#4 calibration generalization**.
+- **Phase C — migrate + delete, dataset by dataset:** ✅ **MOSTLY DONE (`2cee32e3`).**
   - Migrate each table/section to atoms over the new data; **delete each legacy source as
-    its replacement lands** (diff first — new BOSSES/GRACES/WEAPONS overlap legacy).
-  - Lazy-fetch markers/placements into atoms; per-`[mapId, layer]` index atoms; wire the
-    tiled map to toggleable layers. (Needs map projection, TASKS #4.)
-  - **Delete `apps/web/src/assets/erdb/` (1.7 GB), `lib/erdb.ts`, `lib/map-db.ts`, and
-    `lib/elden-ring-raw-db/`** once nothing imports them. Verify zero references remain.
+    its replacement lands** (diff first — new BOSSES/GRACES/WEAPONS overlap legacy). ✅ done
+    for inventory/equipment/stats/events/regions/share + the inventory catalog.
+  - ✅ **Deleted `apps/web/src/assets/erdb/` (1.7 GB), `lib/erdb.ts`, and
+    `lib/elden-ring-raw-db/`** — nothing imports them.
+  - ⏳ **Remaining:** lazy-fetch markers/placements into atoms; per-`[mapId, layer]` index
+    atoms; wire the tiled map to toggleable layers (needs map projection, #4). **Delete
+    `lib/map-db.ts`** once the map subsystem (#4/#9/#10) replaces it and nothing imports it.
 - **Phase D — polish:** lazy/region-split loading, loading states, perf pass.
 
 ## Future (explicitly out of scope now)
