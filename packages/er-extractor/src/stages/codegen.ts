@@ -1,9 +1,11 @@
 import { Effect } from 'effect';
 
+import type { Archetype } from '../game/archetypes.ts';
 import type { BossArea } from '../game/bosses.ts';
 import { loadEventFlagBst } from '../game/event-flags.ts';
 import type { Grace } from '../game/graces.ts';
 import type { ItemText } from '../game/item-text.ts';
+import type { MapFragment } from '../game/map-fragments.ts';
 import type { Region } from '../game/regions.ts';
 import type { MapEntity } from '../game/map-markers.ts';
 import type {
@@ -29,6 +31,8 @@ export interface CodegenInput {
   readonly graces: readonly Grace[];
   readonly bosses: readonly BossArea[];
   readonly regions: readonly Region[];
+  readonly mapFragments: readonly MapFragment[];
+  readonly archetypes: readonly Archetype[];
   readonly weapons: readonly WeaponRecord[];
   readonly armor: readonly ArmorRecord[];
   readonly talismans: readonly TalismanRecord[];
@@ -166,6 +170,8 @@ export const codegen = (input: CodegenInput) =>
           'readonly id: number;',
           'readonly name: string;',
           'readonly category: string;',
+          'readonly allowAshOfWar: boolean;',
+          'readonly isBuffable: boolean;',
           'readonly summary: string;',
           'readonly description: readonly string[];',
           'readonly rarity: string;',
@@ -195,6 +201,7 @@ export const codegen = (input: CodegenInput) =>
         [
           'readonly id: number;',
           'readonly name: string;',
+          'readonly category: string;',
           'readonly summary: string;',
           'readonly description: readonly string[];',
           'readonly rarity: string;',
@@ -409,6 +416,38 @@ export const codegen = (input: CodegenInput) =>
       ),
     );
 
+    const mapFragments = [...input.mapFragments].sort(
+      (a, b) => a.openEventFlagId - b.openEventFlagId,
+    );
+    yield* write(
+      'map-fragments.ts',
+      renderDataset(
+        'MapFragment',
+        [
+          'readonly pieceId: number;',
+          'readonly openEventFlagId: number;',
+          'readonly acquisitionEventFlagId: number;',
+          'readonly name: string | null;',
+          'readonly areaNo: number;',
+          'readonly gridX: number;',
+          'readonly gridZ: number;',
+        ],
+        'MAP_FRAGMENTS',
+        mapFragments.map((m) => ({ ...m })),
+      ),
+    );
+
+    const archetypes = [...input.archetypes].sort((a, b) => a.id - b.id);
+    yield* write(
+      'archetypes.ts',
+      renderDataset(
+        'Archetype',
+        ['readonly id: number;', 'readonly name: string;'],
+        'ARCHETYPES',
+        archetypes.map((a) => ({ ...a })),
+      ),
+    );
+
     yield* write('event-flags.ts', renderEventFlags(yield* loadEventFlagBst));
 
     const modules = [
@@ -423,6 +462,8 @@ export const codegen = (input: CodegenInput) =>
       'spirit-ashes',
       'arts',
       'regions',
+      'map-fragments',
+      'archetypes',
       'markers',
       'event-flags',
     ];
@@ -436,6 +477,7 @@ export const codegen = (input: CodegenInput) =>
       `codegen → @elden-ring-compass/data: ${graces.length} graces, ${bosses.length} bosses, ` +
         `${weapons.length} weapons, ${armor.length} armor, ${talismans.length} talismans, ` +
         `${goods.length} goods, ${ashesOfWar.length} ashes of war, ${spells.length} spells, ` +
-        `${spiritAshes.length} spirit ashes, ${markers.length} markers (+ arts name table)`,
+        `${spiritAshes.length} spirit ashes, ${mapFragments.length} map fragments, ` +
+        `${markers.length} markers (+ arts name table)`,
     );
   });

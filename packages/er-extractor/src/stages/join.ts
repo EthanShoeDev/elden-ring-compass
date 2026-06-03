@@ -41,6 +41,8 @@ export interface WeaponRecord extends CoreItemFields {
   readonly id: number;
   readonly name: string;
   readonly category: string; // wepType → armament/ammo category (e.g. 'Dagger', 'Arrow')
+  readonly allowAshOfWar: boolean; // gemMountType == 2 (ALLOW_CHANGE)
+  readonly isBuffable: boolean; // isEnhance — accepts grease/spell weapon buffs
   readonly weight: number;
   readonly attackPhysical: number;
   readonly reqStrength: number;
@@ -56,6 +58,7 @@ export interface WeaponRecord extends CoreItemFields {
 export interface ArmorRecord extends CoreItemFields {
   readonly id: number;
   readonly name: string;
+  readonly category: string; // protectorCategory → 'Head' | 'Body' | 'Arms' | 'Legs'
   readonly weight: number;
   // Damage negation %, as the game displays it (ER stores 0 in the legacy
   // defense* fields; negation comes from the *DamageCutRate floats).
@@ -164,6 +167,14 @@ const GOODS_CATEGORY: Record<number, string> = {
 // `typing/categories.py` _ARMAMENT_CATEGORY_IDS + AmmoCategory). Ammo (arrows/
 // bolts) share the param with armaments; the category is what tells them apart,
 // so the web can populate its separate "ammo" vs "armaments" tabs from one dataset.
+// EquipParamProtector.protectorCategory (PROTECTOR_CATEGORY enum).
+const ARMOR_CATEGORY: Record<number, string> = {
+  0: 'Head',
+  1: 'Body',
+  2: 'Arms',
+  3: 'Legs',
+};
+
 const WEAPON_CATEGORY: Record<number, string> = {
   1: 'Dagger',
   3: 'Straight Sword',
@@ -447,6 +458,8 @@ export const join = (
         id,
         name,
         category: WEAPON_CATEGORY[num(f, 'wepType')] ?? 'Other',
+        allowAshOfWar: num(f, 'gemMountType') === 2, // GEM_MOUNT_TYPE.ALLOW_CHANGE
+        isBuffable: num(f, 'isEnhance') === 1,
         ...coreFields(f, id, undefined, names.WeaponCaption), // no WeaponInfo summary
         weight: num(f, 'weight'),
         attackPhysical: num(f, 'attackBasePhysics'),
@@ -487,6 +500,7 @@ export const join = (
       (id, name, f) => ({
         id,
         name,
+        category: ARMOR_CATEGORY[num(f, 'protectorCategory')] ?? 'Body',
         ...coreFields(f, id, names.ProtectorInfo, names.ProtectorCaption, 'iconIdM'),
         weight: num(f, 'weight'),
         negationPhysical: neg(f, 'neutralDamageCutRate'),

@@ -2,8 +2,10 @@ import { Effect } from 'effect';
 
 import { PipelineContext } from '../domain/context.ts';
 import { findOodleDll } from '../external/oodle.ts';
+import { loadArchetypes } from '../game/archetypes.ts';
 import { loadBosses } from '../game/bosses.ts';
 import { loadGraces } from '../game/graces.ts';
+import { loadMapFragments } from '../game/map-fragments.ts';
 import { loadRegions } from '../game/regions.ts';
 
 /**
@@ -54,5 +56,17 @@ export const flags = (params: Map<string, Uint8Array>) =>
         `${playRegions.filter((r) => r.isDungeon).length} interior)`,
     );
 
-    return { graces, bosses, regions: playRegions };
+    const mapFragments = yield* loadMapFragments(params, ctx.gameRoot, oo2core);
+    const namedFragments = mapFragments.filter((m) => m.name).length;
+    yield* Effect.logInfo(
+      `map fragments — ${mapFragments.length} pieces (WorldMapPieceParam), ` +
+        `${namedFragments} with a coarse PlaceName`,
+    );
+
+    const archetypes = yield* loadArchetypes(ctx.gameRoot, oo2core);
+    yield* Effect.logInfo(
+      `archetypes — ${archetypes.length} starting classes (GR_MenuText)`,
+    );
+
+    return { graces, bosses, regions: playRegions, mapFragments, archetypes };
   });
