@@ -23,6 +23,7 @@ export interface ItemEffect {
   readonly value: number;
   readonly model: EffectModel;
   readonly type: EffectType;
+  readonly conditions?: readonly string[];
 }
 
 type Parser = (value: number, model: EffectModel) => number;
@@ -48,6 +49,7 @@ interface AttributeField {
   readonly type: EffectType;
   readonly parser: Parser;
   readonly defaultValue: number;
+  readonly conditions?: readonly string[]; // static conditions (weapon base fields)
 }
 
 const mk = (
@@ -139,6 +141,25 @@ const ATTRIBUTE_FIELDS: Record<string, AttributeField> = {
   soul: mk('Rune Acquisition', 'additive', 'positive', generic),
 };
 
+// Weapon base attribute fields (erdb `_WEAPON_ATTRIBUTE_FIELDS`) — conditional
+// "+X% vs <enemy type>" damage carried directly on EquipParamWeapon rows.
+const WEAPON_ATTRIBUTE_FIELDS: Record<string, AttributeField> = {
+  weakA_DamageRate: mkCond('vs Gravity Enemies'),
+  weakB_DamageRate: mkCond('vs Undead Enemies'),
+  weakC_DamageRate: mkCond('vs Dragon Enemies'),
+  weakD_DamageRate: mkCond('vs Ancient Dragon Enemies'),
+};
+function mkCond(condition: string): AttributeField {
+  return {
+    attribute: 'Attack Power',
+    model: 'multiplicative',
+    type: 'positive',
+    parser: generic,
+    defaultValue: 1,
+    conditions: [condition],
+  };
+}
+
 const effectiveType = (value: number, f: AttributeField): EffectType => {
   if (f.type === 'neutral') return 'neutral';
   const increase = value >= f.defaultValue;
@@ -148,21 +169,94 @@ const effectiveType = (value: number, f: AttributeField): EffectType => {
 
 type Row = ReadonlyMap<string, RowValue>;
 
-/** Effects directly set on one SpEffectParam row (fields differing from default). */
-export const effectsFromSpEffectRow = (row: Row): ItemEffect[] => {
+/** Effects from the fields of `row` that differ from default, per the field map. */
+const effectsFromRow = (
+  row: Row,
+  fields: Record<string, AttributeField>,
+  addCondition?: string,
+): ItemEffect[] => {
   const out: ItemEffect[] = [];
-  for (const field in ATTRIBUTE_FIELDS) {
+  for (const field in fields) {
     const raw = row.get(field);
     if (typeof raw !== 'number') continue;
-    const f = ATTRIBUTE_FIELDS[field]!;
+    const f = fields[field]!;
     if (raw === f.defaultValue) continue;
     const value = f.parser(raw, f.model);
+    const conditions = [
+      ...(f.conditions ?? []),
+      ...(addCondition ? [addCondition] : []),
+    ];
     out.push({
       attribute: f.attribute,
       value,
       model: f.model,
       type: effectiveType(value, f),
+      ...(conditions.length > 0 ? { conditions } : {}),
     });
   }
   return out;
+};
+
+/** Effects directly set on one SpEffectParam row (talisman refId / armor resident). */
+export const effectsFromSpEffectRow = (row: Row): ItemEffect[] =>
+  effectsFromRow(row, ATTRIBUTE_FIELDS);
+
+/** Weapon base "+X% vs <enemy>" effects, read off the EquipParamWeapon row itself. */
+export const weaponBaseEffects = (weaponRow: Row): ItemEffect[] =>
+  effectsFromRow(weaponRow, WEAPON_ATTRIBUTE_FIELDS);
+
+/** Attach an attack condition (e.g. "On Hit") to a set of effects. */
+export const withCondition = (
+  effects: readonly ItemEffect[],
+  condition: string,
+): ItemEffect[] =>
+  effects.map((e) => ({
+    ...e,
+    conditions: [...(e.conditions ?? []), condition],
+  }));
+
+// Attribute sets that collapse into an effective attribute when an effect applies
+// to all of them equally (erdb `_AGGREGATOR_HINTS`). Order matters: physical/
+// elemental fold first, then into the combined attribute.
+const AGGREGATOR_HINTS: readonly { base: readonly string[]; effective: string }[] =
+  [
+    { base: ['Standard Absorption', 'Strike Absorption', 'Slash Absorption', 'Pierce Absorption'], effective: 'Physical Absorption' },
+    { base: ['Magic Absorption', 'Fire Absorption', 'Lightning Absorption', 'Holy Absorption'], effective: 'Elemental Absorption' },
+    { base: ['Physical Absorption', 'Elemental Absorption'], effective: 'Absorption' },
+    { base: ['Standard Attack Power', 'Strike Attack Power', 'Slash Attack Power', 'Pierce Attack Power'], effective: 'Physical Attack Power' },
+    { base: ['Magic Attack Power', 'Fire Attack Power', 'Lightning Attack Power', 'Holy Attack Power'], effective: 'Elemental Attack Power' },
+    { base: ['Physical Attack Power', 'Elemental Attack Power'], effective: 'Attack Power' },
+    { base: ['Poison Resistance', 'Scarlet Rot Resistance'], effective: 'Immunity' },
+    { base: ['Bleed Resistance', 'Frostbite Resistance'], effective: 'Robustness' },
+    { base: ['Sleep Resistance', 'Madness Resistance'], effective: 'Focus' },
+    { base: ['Sorcery Focus Consumption', 'Incantation Focus Consumption'], effective: 'Spell Focus Consumption' },
+  ];
+
+/**
+ * Collapse effects that share the same value/model/type/conditions across an
+ * aggregator-hint's full attribute set into the single effective attribute (e.g.
+ * the four physical absorptions at +5% → "Physical Absorption +5%"). Sorted by
+ * attribute for deterministic output.
+ */
+export const aggregateEffects = (
+  effects: readonly ItemEffect[],
+): ItemEffect[] => {
+  const groups = new Map<string, { attrs: Set<string>; example: ItemEffect }>();
+  for (const e of effects) {
+    const key = JSON.stringify([e.conditions ?? null, e.model, e.type, e.value]);
+    const g = groups.get(key);
+    if (g) g.attrs.add(e.attribute);
+    else groups.set(key, { attrs: new Set([e.attribute]), example: e });
+  }
+  const out: ItemEffect[] = [];
+  for (const { attrs, example } of groups.values()) {
+    for (const hint of AGGREGATOR_HINTS) {
+      if (hint.base.every((b) => attrs.has(b))) {
+        hint.base.forEach((b) => attrs.delete(b));
+        attrs.add(hint.effective);
+      }
+    }
+    for (const attribute of attrs) out.push({ ...example, attribute });
+  }
+  return out.sort((a, b) => a.attribute.localeCompare(b.attribute));
 };

@@ -7,7 +7,13 @@ import {
   type RowValue,
 } from '../formats/param.ts';
 import { loadParamdef, type ParamdefError } from '../formats/paramdef.ts';
-import { effectsFromSpEffectRow, type ItemEffect } from '../game/effects.ts';
+import {
+  aggregateEffects,
+  effectsFromSpEffectRow,
+  type ItemEffect,
+  weaponBaseEffects,
+  withCondition,
+} from '../game/effects.ts';
 import type { ItemText } from '../game/item-text.ts';
 
 /**
@@ -42,6 +48,7 @@ export interface WeaponRecord extends CoreItemFields {
   readonly reqIntelligence: number;
   readonly reqFaith: number;
   readonly reqArcane: number;
+  readonly effects: readonly ItemEffect[]; // base (vs-enemy) + resident + on-hit
 }
 
 export interface ArmorRecord extends CoreItemFields {
@@ -348,6 +355,24 @@ export const join = (
         reqIntelligence: num(f, 'properMagic'),
         reqFaith: num(f, 'properFaith'),
         reqArcane: num(f, 'properLuck'),
+        effects: [
+          ...weaponBaseEffects(f),
+          ...aggregateEffects([
+            ...resolveEffects(num(f, 'residentSpEffectId')),
+            ...resolveEffects(num(f, 'residentSpEffectId1')),
+            ...resolveEffects(num(f, 'residentSpEffectId2')),
+          ]),
+          ...aggregateEffects(
+            withCondition(
+              [
+                ...resolveEffects(num(f, 'spEffectBehaviorId0')),
+                ...resolveEffects(num(f, 'spEffectBehaviorId1')),
+                ...resolveEffects(num(f, 'spEffectBehaviorId2')),
+              ],
+              'On Hit',
+            ),
+          ),
+        ],
       }),
     );
 
@@ -379,11 +404,11 @@ export const join = (
         resistMadness: num(f, 'resistMadness'),
         resistDeath: num(f, 'resistCurse'),
         poise: Math.round(num(f, 'toughnessCorrectRate') * 1000), // displayed poise
-        effects: [
+        effects: aggregateEffects([
           ...resolveEffects(num(f, 'residentSpEffectId')),
           ...resolveEffects(num(f, 'residentSpEffectId2')),
           ...resolveEffects(num(f, 'residentSpEffectId3')),
-        ],
+        ]),
       }),
     );
 
@@ -396,7 +421,7 @@ export const join = (
         name,
         ...coreFields(f, id, names.AccessoryInfo, names.AccessoryCaption),
         weight: num(f, 'weight'),
-        effects: resolveEffects(num(f, 'refId')),
+        effects: aggregateEffects(resolveEffects(num(f, 'refId'))),
         accessoryGroup: num(f, 'accessoryGroup'), // -1 = no conflict group
       }),
     );
