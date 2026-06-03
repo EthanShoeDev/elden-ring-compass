@@ -28,7 +28,7 @@ export const runPipeline = Effect.gen(function* () {
     Effect.annotateLogs('stage', '2-params'),
   );
   const names = yield* text.pipe(Effect.annotateLogs('stage', '3-text'));
-  const { weapons, armor, talismans, goods, ashesOfWar } = yield* join(
+  const { weapons, armor, talismans, goods, ashesOfWar, spells } = yield* join(
     paramFiles,
     names,
   ).pipe(Effect.annotateLogs('stage', '4-join'));
@@ -47,6 +47,7 @@ export const runPipeline = Effect.gen(function* () {
     talismans,
     goods,
     ashesOfWar,
+    spells,
     markers: markerEntities,
     names,
   }).pipe(Effect.annotateLogs('stage', '8-codegen'));

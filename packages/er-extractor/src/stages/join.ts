@@ -94,6 +94,20 @@ export interface AshOfWarRecord extends CoreItemFields {
   readonly skillId: number; // swordArtsParamId
 }
 
+export interface SpellRecord extends CoreItemFields {
+  readonly id: number;
+  readonly name: string;
+  readonly category: string; // 'Sorcery' | 'Incantation'
+  readonly fpCost: number;
+  readonly fpCostExtra: number; // charged-cast extra
+  readonly spCost: number;
+  readonly slotsUsed: number;
+  readonly reqIntelligence: number;
+  readonly reqFaith: number;
+  readonly reqArcane: number;
+  readonly isWeaponBuff: boolean;
+}
+
 export interface GoodRecord extends CoreItemFields {
   readonly id: number;
   readonly name: string;
@@ -108,6 +122,7 @@ export interface ItemTables {
   readonly talismans: TalismanRecord[];
   readonly goods: GoodRecord[];
   readonly ashesOfWar: AshOfWarRecord[];
+  readonly spells: SpellRecord[];
 }
 
 // EquipParamGoods.goodsType → display category. Derived empirically by grouping
@@ -309,6 +324,25 @@ const decodeCategory = <T>(
     return out;
   });
 
+/** Decode every row of a param into an id → fields map (for cross-param joins). */
+const decodeParamMap = (
+  paramFiles: Map<string, Uint8Array>,
+  paramName: string,
+): Effect.Effect<Map<number, Row>, ParamError | ParamdefError> =>
+  Effect.gen(function* () {
+    const bytes = paramFiles.get(paramName);
+    if (!bytes) {
+      yield* Effect.logWarning(`no ${paramName} param; skipping`);
+      return new Map();
+    }
+    const param = yield* parseParam(bytes);
+    const def = yield* loadParamdef(paramName);
+    const out = new Map<number, Row>();
+    for (const r of param.rows)
+      out.set(r.id, decodeRow(bytes, r.dataOffset, def, param.little));
+    return out;
+  });
+
 export const join = (
   paramFiles: Map<string, Uint8Array>,
   names: ItemText,
@@ -484,10 +518,36 @@ export const join = (
     // erdb filters EquipParamGem to id ≥ 10000 (below are test/placeholder gems).
     const ashesOfWar = ashesOfWarAll.filter((a) => a.id >= 10000);
 
+    // Spells: EquipParamGoods sorcery/incantation rows ⨝ the Magic param for stats.
+    const SPELL_GOODS_TYPES = new Set([5, 16, 17, 18]); // sorcery×2, incantation×2
+    const goodsRows = yield* decodeParamMap(paramFiles, 'EquipParamGoods');
+    const magicRows = yield* decodeParamMap(paramFiles, 'Magic');
+    const spells: SpellRecord[] = [];
+    for (const [id, name] of names.GoodsName) {
+      if (name.trim().length === 0 || name === '[ERROR]') continue;
+      const g = goodsRows.get(id);
+      const m = magicRows.get(id);
+      if (!g || !m || !SPELL_GOODS_TYPES.has(num(g, 'goodsType'))) continue;
+      spells.push({
+        id,
+        name,
+        ...coreFields(g, id, names.GoodsInfo, names.GoodsCaption),
+        category: GOODS_CATEGORY[num(g, 'goodsType')] ?? 'Sorcery',
+        fpCost: num(m, 'mp'),
+        fpCostExtra: num(m, 'mp_charge'),
+        spCost: num(m, 'stamina'),
+        slotsUsed: num(m, 'slotLength'),
+        reqIntelligence: num(m, 'requirementIntellect'),
+        reqFaith: num(m, 'requirementFaith'),
+        reqArcane: num(m, 'requirementLuck'),
+        isWeaponBuff: num(m, 'isEnchant') === 1,
+      });
+    }
+
     yield* Effect.logInfo(
       `joined ${weapons.length} weapons + ${armor.length} armor + ` +
         `${talismans.length} talismans + ${goods.length} goods + ` +
-        `${ashesOfWar.length} ashes of war (stats decoded)`,
+        `${ashesOfWar.length} ashes of war + ${spells.length} spells (stats decoded)`,
     );
     const byCat = new Map<string, number>();
     for (const g of goods)
@@ -498,5 +558,5 @@ export const join = (
         .map(([c, n]) => `${c}=${n}`)
         .join(' ')}`,
     );
-    return { weapons, armor, talismans, goods, ashesOfWar };
+    return { weapons, armor, talismans, goods, ashesOfWar, spells };
   });

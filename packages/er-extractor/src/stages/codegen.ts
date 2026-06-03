@@ -8,6 +8,7 @@ import type {
   ArmorRecord,
   AshOfWarRecord,
   GoodRecord,
+  SpellRecord,
   TalismanRecord,
   WeaponRecord,
 } from './join.ts';
@@ -29,6 +30,7 @@ export interface CodegenInput {
   readonly talismans: readonly TalismanRecord[];
   readonly goods: readonly GoodRecord[];
   readonly ashesOfWar: readonly AshOfWarRecord[];
+  readonly spells: readonly SpellRecord[];
   readonly markers: readonly MapEntity[];
   // Name tables for the remaining categories without a decoded stat record
   // (weapon arts) — emitted as {id, name}.
@@ -266,6 +268,34 @@ export const codegen = (input: CodegenInput) =>
       ),
     );
 
+    const spells = [...input.spells].sort((a, b) => a.id - b.id);
+    yield* write(
+      'spells.ts',
+      renderDataset(
+        'Spell',
+        [
+          'readonly id: number;',
+          'readonly name: string;',
+          'readonly summary: string;',
+          'readonly description: readonly string[];',
+          'readonly rarity: string;',
+          'readonly icon: number;',
+          'readonly sellValue: number;',
+          'readonly category: string;',
+          'readonly fpCost: number;',
+          'readonly fpCostExtra: number;',
+          'readonly spCost: number;',
+          'readonly slotsUsed: number;',
+          'readonly reqIntelligence: number;',
+          'readonly reqFaith: number;',
+          'readonly reqArcane: number;',
+          'readonly isWeaponBuff: boolean;',
+        ],
+        'SPELLS',
+        spells.map((s) => ({ ...s })),
+      ),
+    );
+
     // Weapon arts have no decoded stat record yet; emit as {id, name} (base + DLC).
     const nameTables: readonly [
       string,
@@ -321,6 +351,7 @@ export const codegen = (input: CodegenInput) =>
       'talismans',
       'ashes-of-war',
       'goods',
+      'spells',
       'arts',
       'markers',
     ];
@@ -333,7 +364,7 @@ export const codegen = (input: CodegenInput) =>
     yield* Effect.logInfo(
       `codegen → @elden-ring-compass/data: ${graces.length} graces, ${bosses.length} bosses, ` +
         `${weapons.length} weapons, ${armor.length} armor, ${talismans.length} talismans, ` +
-        `${goods.length} goods, ${ashesOfWar.length} ashes of war, ${markers.length} markers ` +
-        `(+ arts name table)`,
+        `${goods.length} goods, ${ashesOfWar.length} ashes of war, ${spells.length} spells, ` +
+        `${markers.length} markers (+ arts name table)`,
     );
   });

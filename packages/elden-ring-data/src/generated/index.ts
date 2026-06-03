@@ -8,5 +8,6 @@ export * from './armor.ts';
 export * from './talismans.ts';
 export * from './ashes-of-war.ts';
 export * from './goods.ts';
+export * from './spells.ts';
 export * from './arts.ts';
 export * from './markers.ts';
