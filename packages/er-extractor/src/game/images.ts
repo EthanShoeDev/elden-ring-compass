@@ -179,6 +179,8 @@ export interface ImageSummary {
   readonly tiles: number;
   readonly tilesSkipped: number;
   readonly icons: number;
+  readonly itemIcons: number;
+  readonly itemIconsSkipped: number;
 }
 
 export const extractImages = (
@@ -410,5 +412,53 @@ export const extractImages = (
     }
     yield* log(`icons: ${icons} written`);
 
-    return { tiles, tilesSkipped, icons };
+    // --- Per-item icons (EquipParam*.iconId → image) ---
+    // Item icons are a BHF4/BDF4 split binder of one-DDS-per-icon `.tpf.dcx`
+    // entries named `MENU_Knowledge_{iconId:05}` (base + DLC together) — the same
+    // shape as the map-tile binder, so we read the header table once and slice each
+    // icon lazily from the 1.4 GB `.tpfbdt`. The decoded item rows reference these
+    // by `icon` (= iconId), so we emit `images/icons/items/{iconId}.{ext}`.
+    let itemIcons = 0;
+    let itemIconsSkipped = 0;
+    const soloBhd = `${gameRoot}/menu/hi/00_solo.tpfbhd`;
+    const soloBdt = `${gameRoot}/menu/hi/00_solo.tpfbdt`;
+    if ((yield* fileExists(soloBhd)) && (yield* fileExists(soloBdt))) {
+      const itemIconDir = `${iconDir}/items`;
+      yield* Effect.promise(() => mkdir(itemIconDir, { recursive: true }));
+      const headers = yield* parseBnd4Headers(
+        new Uint8Array(
+          yield* Effect.promise(() => Bun.file(soloBhd).arrayBuffer()),
+        ),
+      );
+      for (const h of headers) {
+        const base = (h.name ?? '').split(/[\\/]/).pop() ?? '';
+        const m = base.match(/MENU_Knowledge_0*(\d+)/i);
+        if (!m) continue;
+        const iconId = parseInt(m[1]!, 10);
+        const outBase = `${itemIconDir}/${iconId}`;
+        if (yield* fileExists(`${outBase}.${ext}`)) {
+          itemIconsSkipped++;
+          continue;
+        }
+        const slice = new Uint8Array(
+          yield* Effect.promise(() =>
+            Bun.file(soloBdt)
+              .slice(h.dataOffset, h.dataOffset + h.size)
+              .arrayBuffer(),
+          ),
+        );
+        const textures = yield* tpfTextures(slice, oo2corePath);
+        if (textures.length === 0) continue;
+        const png = yield* ddsToPng(textures[0]!.dds);
+        yield* encodePng(png, outBase, opts);
+        itemIcons++;
+      }
+      yield* log(
+        `item icons: ${itemIcons} written (+${itemIconsSkipped} cached)`,
+      );
+    } else {
+      yield* log('no menu/hi/00_solo.tpfbhd; skipping item icons');
+    }
+
+    return { tiles, tilesSkipped, icons, itemIcons, itemIconsSkipped };
   });

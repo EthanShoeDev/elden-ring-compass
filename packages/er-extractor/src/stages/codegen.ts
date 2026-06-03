@@ -6,6 +6,7 @@ import type { ItemText } from '../game/item-text.ts';
 import type { MapEntity } from '../game/map-markers.ts';
 import type {
   ArmorRecord,
+  AshOfWarRecord,
   GoodRecord,
   TalismanRecord,
   WeaponRecord,
@@ -27,9 +28,10 @@ export interface CodegenInput {
   readonly armor: readonly ArmorRecord[];
   readonly talismans: readonly TalismanRecord[];
   readonly goods: readonly GoodRecord[];
+  readonly ashesOfWar: readonly AshOfWarRecord[];
   readonly markers: readonly MapEntity[];
   // Name tables for the remaining categories without a decoded stat record
-  // (ashes of war, weapon arts) — emitted as {id, name}.
+  // (weapon arts) — emitted as {id, name}.
   readonly names: ItemText;
 }
 
@@ -138,6 +140,12 @@ export const codegen = (input: CodegenInput) =>
         [
           'readonly id: number;',
           'readonly name: string;',
+          'readonly category: string;',
+          'readonly summary: string;',
+          'readonly description: readonly string[];',
+          'readonly rarity: string;',
+          'readonly icon: number;',
+          'readonly sellValue: number;',
           'readonly weight: number;',
           'readonly attackPhysical: number;',
           'readonly reqStrength: number;',
@@ -159,6 +167,11 @@ export const codegen = (input: CodegenInput) =>
         [
           'readonly id: number;',
           'readonly name: string;',
+          'readonly summary: string;',
+          'readonly description: readonly string[];',
+          'readonly rarity: string;',
+          'readonly icon: number;',
+          'readonly sellValue: number;',
           'readonly weight: number;',
           'readonly negationPhysical: number;',
           'readonly negationStrike: number;',
@@ -190,7 +203,13 @@ export const codegen = (input: CodegenInput) =>
         [
           'readonly id: number;',
           'readonly name: string;',
+          'readonly summary: string;',
+          'readonly description: readonly string[];',
+          'readonly rarity: string;',
+          'readonly icon: number;',
+          'readonly sellValue: number;',
           'readonly weight: number;',
+          'readonly conflicts: readonly string[];',
         ],
         'TALISMANS',
         talismans.map((t) => ({ ...t })),
@@ -208,26 +227,49 @@ export const codegen = (input: CodegenInput) =>
           'readonly id: number;',
           'readonly name: string;',
           'readonly category: string;',
+          'readonly summary: string;',
+          'readonly description: readonly string[];',
+          'readonly rarity: string;',
+          'readonly icon: number;',
+          'readonly sellValue: number;',
           'readonly weight: number;',
           'readonly maxHeld: number;',
-          'readonly sellValue: number;',
         ],
         'GOODS',
         goods.map((g) => ({ ...g })),
       ),
     );
 
-    // Remaining categories are SpEffect/behaviour-driven; emit as {id, name}
-    // (base + DLC). Ashes of war = EquipParamGem; arts = SwordArtsParam.
+    const ashesOfWar = [...input.ashesOfWar].sort((a, b) => a.id - b.id);
+    yield* write(
+      'ashes-of-war.ts',
+      renderDataset(
+        'AshOfWar',
+        [
+          'readonly id: number;',
+          'readonly name: string;',
+          'readonly summary: string;',
+          'readonly description: readonly string[];',
+          'readonly rarity: string;',
+          'readonly icon: number;',
+          'readonly sellValue: number;',
+          'readonly armamentCategories: readonly string[];',
+          'readonly defaultAffinity: string;',
+          'readonly possibleAffinities: readonly string[];',
+          'readonly skillId: number;',
+        ],
+        'ASHES_OF_WAR',
+        ashesOfWar.map((a) => ({ ...a })),
+      ),
+    );
+
+    // Weapon arts have no decoded stat record yet; emit as {id, name} (base + DLC).
     const nameTables: readonly [
       string,
       string,
       string,
       ReadonlyMap<number, string>,
-    ][] = [
-      ['ashes-of-war.ts', 'AshOfWar', 'ASHES_OF_WAR', input.names.GemName],
-      ['arts.ts', 'WeaponArt', 'ARTS', input.names.ArtsName],
-    ];
+    ][] = [['arts.ts', 'WeaponArt', 'ARTS', input.names.ArtsName]];
     const nameFields = ['readonly id: number;', 'readonly name: string;'];
     for (const [file, typeName, constName, table] of nameTables) {
       yield* write(
@@ -288,6 +330,7 @@ export const codegen = (input: CodegenInput) =>
     yield* Effect.logInfo(
       `codegen → @elden-ring-compass/data: ${graces.length} graces, ${bosses.length} bosses, ` +
         `${weapons.length} weapons, ${armor.length} armor, ${talismans.length} talismans, ` +
-        `${goods.length} goods, ${markers.length} markers (+ ashes-of-war/arts name tables)`,
+        `${goods.length} goods, ${ashesOfWar.length} ashes of war, ${markers.length} markers ` +
+        `(+ arts name table)`,
     );
   });

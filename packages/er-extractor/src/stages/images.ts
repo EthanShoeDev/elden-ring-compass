@@ -32,6 +32,7 @@ export const images = Effect.gen(function* () {
   );
   yield* Effect.logInfo(
     `images — ${summary.tiles} tiles (+${summary.tilesSkipped} cached), ` +
-      `${summary.icons} icons as ${ctx.imageFormat} q${ctx.imageQuality}`,
+      `${summary.icons} menu icons, ${summary.itemIcons} item icons ` +
+      `(+${summary.itemIconsSkipped} cached) as ${ctx.imageFormat} q${ctx.imageQuality}`,
   );
 });

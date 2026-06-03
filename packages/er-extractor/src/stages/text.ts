@@ -19,6 +19,13 @@ export const text = Effect.gen(function* () {
       `goods:${names.GoodsName.size} talismans:${names.AccessoryName.size} ` +
       `ashes-of-war:${names.GemName.size} arts:${names.ArtsName.size}`,
   );
+  // Descriptions/summaries (Caption/Info FMGs). Empty here ⇒ a wrong table name.
+  yield* Effect.logInfo(
+    `captions — weapon:${names.WeaponCaption.size} armor:${names.ProtectorCaption.size} ` +
+      `talisman:${names.AccessoryCaption.size} goods:${names.GoodsCaption.size} ` +
+      `gem:${names.GemCaption.size} | summaries — armor:${names.ProtectorInfo.size} ` +
+      `goods:${names.GoodsInfo.size} goods2:${names.GoodsInfo2.size}`,
+  );
   // Phase 1(b) proof: a real DLC weapon name (Milady, a Shadow of the Erdtree
   // light greatsword) resolves out of the merged FMGs.
   const milady = names.WeaponName.get(67500000);
