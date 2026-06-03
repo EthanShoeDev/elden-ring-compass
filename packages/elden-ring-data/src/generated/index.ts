@@ -11,5 +11,6 @@ export * from './goods.ts';
 export * from './spells.ts';
 export * from './spirit-ashes.ts';
 export * from './arts.ts';
+export * from './regions.ts';
 export * from './markers.ts';
 export * from './event-flags.ts';

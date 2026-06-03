@@ -33,13 +33,14 @@ export const runPipeline = Effect.gen(function* () {
   const markerEntities = yield* markers.pipe(
     Effect.annotateLogs('stage', '5-markers'),
   );
-  const { graces, bosses } = yield* flags(paramFiles).pipe(
+  const { graces, bosses, regions } = yield* flags(paramFiles).pipe(
     Effect.annotateLogs('stage', '6-flags'),
   );
   yield* images.pipe(Effect.annotateLogs('stage', '7-images'));
   yield* codegen({
     graces,
     bosses,
+    regions,
     weapons,
     armor,
     talismans,

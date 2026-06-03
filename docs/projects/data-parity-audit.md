@@ -1,10 +1,46 @@
 # Data Parity Audit — legacy sources vs `@elden-ring-compass/data`
 
-> **Status (2026-06-02): audit complete.** This is the gap list that gates the
-> single-source-of-truth teardown in `client-side-db.md` (task #11 → unblocks #7/#12).
+> **Status (2026-06-02): audit complete; most gaps now CLOSED.** This is the gap list that
+> gates the single-source-of-truth teardown in `client-side-db.md` (task #11 → unblocks #7/#12).
 > It maps every legacy data source the web app **actually consumes** (field-level) to its
 > `@elden-ring-compass/data` equivalent, and lists exactly what `er-extractor` must emit
-> before each legacy source can be deleted.
+> before each legacy source can be deleted. **See "Progress" below for what's been emitted.**
+
+## Progress (2026-06-02) — extractor enrichment
+
+The item-data + event-flag gaps are **closed and verified against the real install**
+(tasks #19/#20/#21, committed on `tanstack-start`; see memory `er-extractor-enrichment`):
+
+- **Rich item datasets** — weapons/armor/talismans/goods now carry `summary`, `description[]`,
+  `rarity`, `icon`, `sellValue`; weapons add `category` (incl. ammo) + `upgradeMaterial`/`upgradeCosts`;
+  **`effects[]`** on weapons/armor/talismans (SpEffectParam port + multi-attribute aggregation);
+  **ashes-of-war** decoded (categories/affinities/skill); **talisman conflicts**; new **`spells`**
+  (fp/sp cost, reqs) and **`spirit-ashes`** (summon/cost/upgrade) datasets; gestures+ammo
+  distinguishable by `category`.
+- **Per-item icons** — 2939 `images/icons/items/{iconId}.webp` from `menu/hi/00_solo.tpfbhd`.
+- **Event-flag addressing** — `event-flags.ts` emits `eventFlagOffset(id)→[byte,bit]` (vendored
+  ER-Save-Lib bst table); **verified 1178/1178 vs legacy `EVENT_FLAGS.ts`**. Replaces the legacy
+  `EVENT_FLAGS` map and enables arbitrary flag lookup.
+- **`src/vendor/PROVENANCE.md`** documents every vendored dep + patch-staleness.
+
+**Re-classification of the remaining "collectibles + REGIONS" (#22)** — investigation showed most
+of it is **derivable from the install after all** (not the curated overlay first assumed):
+
+| Legacy table | Rows | Install-derivable? |
+| --- | --- | --- |
+| `REGIONS` | 144 | ✅ **Yes.** `PlayRegionParam` (rowId = save `unlocked_regions`, `areaNo/gridX/gridZ`, `bossAreaId`) ⨝ `WorldMapPlaceNameParam` (grid → `textId`) → `PlaceName` FMG for names; open-world/dungeon/boss from `areaNo`(60/61)+`bossAreaId`. Same join pattern as graces. |
+| `MAPS` (map fragments) | 28 | ✅ **Yes.** `WorldMapPieceParam.openEventFlagId` + `WorldMapPlaceNameParam → PlaceName`. (A first attempt got 9/28 via a buggy join — being fixed.) |
+| `COLOSSEUMS` | 3 | ◐ Trivial — names from `PlaceName`; or just keep 3 hardcoded. |
+| `COOKBOOKS` | 59 | ◐ Items+names in FMG; "obtained" trackable via **save inventory ownership** instead of curated `67xxx` flags. |
+| `WHETBLADES` | 12 | ⚠️ Affinity-unlock **flags with curated names** — the flag→affinity semantic is RE'd, not in files. Small; derive item ownership or drop. |
+| `SUMMONING_POOLS` | 162 | 💀 **Drop candidate** — legacy "names" are literal placeholders (`'Name_10000040'`); no real names exist anywhere, no param. |
+| `STATS` / `STARTING_CLASSES` | — | 💀 Dead (unused) — delete, no replacement. |
+| `ARCHE_TYPE` | ~8 | inline a static enum in the web app. |
+| `map-db.ts` | 3132 (1.2 MB) | 🌐 The genuinely **wiki-scraped** 2D pixel coords + labels → replaced by the map pipeline (#4 calibration + #9 layers/labels + #10 placements), not vendoring. |
+
+**Net:** almost nothing *needs* vendoring. REGIONS/MAPS/colosseums are derivable (next up);
+cookbooks/whetblades can be re-mechanism'd via inventory or dropped; summoning pools dropped
+(fake names); map-db is the separate map-coordinate effort.
 
 ## Method
 
@@ -93,16 +129,15 @@ ammo `{category, effects[]}`.
 
 Grouped; existing task ids in brackets.
 
-1. **Per-item rich fields + icons** — extend item datasets (weapons/armor/talismans/goods/…)
-   with `icon`(+image extraction), `rarity`, `category`, `effects[]`, `requirements{}`,
-   `description`, and per-category stats (spell fp/sp cost, spirit summon/abilities, talisman
-   conflicts, weapon buffable/ash-allowed, upgrade costs). **Biggest lift; gates the inventory
-   tables.**
-2. **Missing item categories** — gestures + ammo (names at minimum) so name resolution is total.
-3. **Event-flag id → bit-offset** map or function (gates `vm/events.ts` off `EVENT_FLAGS`).
-4. **Collectible event tables** — whetblades, cookbooks, maps, summoning pools, colosseums
-   (id + name + flag).
-5. **`REGIONS` dataset** — unlock-id → name/map/isOpenWorld/isDungeon/isBoss.
+1. ✅ **DONE — Per-item rich fields + icons** (#19) — `icon`(+2939 images), `rarity`, `category`,
+   `effects[]`, `description`, per-category stats (spell costs, spirit summon, talisman conflicts,
+   ashes affinities, weapon upgrade costs). *Remaining polish:* `requirements{}` on weapons,
+   tool fp_cost/availability, effect `conditions`/nested-refs, armor `altered`/`iconFem`.
+2. ✅ **DONE — gestures + ammo** (#20) — distinguishable via `category`.
+3. ✅ **DONE — Event-flag id → bit-offset** (#21) — `eventFlagOffset()` emitted, verified 1178/1178.
+4. ◐ **Collectible event tables** (#22) — now derivable (maps) / re-mechanism'd (cookbooks via
+   inventory) / dropped (summoning pools = fake names; whetblades = 12 curated). See the Progress table.
+5. ◐ **`REGIONS` dataset** (#22) — derivable via `PlayRegionParam` ⨝ `WorldMapPlaceNameParam` → `PlaceName`. **Next up.**
 6. **`ARCHE_TYPE`** — small archetype id→label (or inline as a static enum in the web app).
 7. **Map: calibration [#4] + marker layer/category + English labels [#9] + ItemLotParam
    placements [#10]** — the three pieces that let `markers`/`placements` replace `map-db`.

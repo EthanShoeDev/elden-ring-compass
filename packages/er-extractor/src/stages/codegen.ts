@@ -4,6 +4,7 @@ import type { BossArea } from '../game/bosses.ts';
 import { loadEventFlagBst } from '../game/event-flags.ts';
 import type { Grace } from '../game/graces.ts';
 import type { ItemText } from '../game/item-text.ts';
+import type { Region } from '../game/regions.ts';
 import type { MapEntity } from '../game/map-markers.ts';
 import type {
   ArmorRecord,
@@ -27,6 +28,7 @@ import type {
 export interface CodegenInput {
   readonly graces: readonly Grace[];
   readonly bosses: readonly BossArea[];
+  readonly regions: readonly Region[];
   readonly weapons: readonly WeaponRecord[];
   readonly armor: readonly ArmorRecord[];
   readonly talismans: readonly TalismanRecord[];
@@ -390,6 +392,23 @@ export const codegen = (input: CodegenInput) =>
       ),
     );
 
+    const regions = [...input.regions].sort((a, b) => a.id - b.id);
+    yield* write(
+      'regions.ts',
+      renderDataset(
+        'Region',
+        [
+          'readonly id: number;',
+          'readonly name: string;',
+          'readonly area: string | null;',
+          'readonly isOpenWorld: boolean;',
+          'readonly isDungeon: boolean;',
+        ],
+        'REGIONS',
+        regions.map((r) => ({ ...r })),
+      ),
+    );
+
     yield* write('event-flags.ts', renderEventFlags(yield* loadEventFlagBst));
 
     const modules = [
@@ -403,6 +422,7 @@ export const codegen = (input: CodegenInput) =>
       'spells',
       'spirit-ashes',
       'arts',
+      'regions',
       'markers',
       'event-flags',
     ];

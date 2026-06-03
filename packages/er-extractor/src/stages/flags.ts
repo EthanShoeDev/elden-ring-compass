@@ -4,6 +4,7 @@ import { PipelineContext } from '../domain/context.ts';
 import { findOodleDll } from '../external/oodle.ts';
 import { loadBosses } from '../game/bosses.ts';
 import { loadGraces } from '../game/graces.ts';
+import { loadRegions } from '../game/regions.ts';
 
 /**
  * Stage 6 — event flags. Both halves derive from the install (no curated
@@ -46,5 +47,12 @@ export const flags = (params: Map<string, Uint8Array>) =>
         : 'Messmer defeat flag not found',
     );
 
-    return { graces, bosses };
+    const playRegions = yield* loadRegions(params, graces);
+    const openWorld = playRegions.filter((r) => r.isOpenWorld).length;
+    yield* Effect.logInfo(
+      `regions — ${playRegions.length} named via grace (${openWorld} open-world, ` +
+        `${playRegions.filter((r) => r.isDungeon).length} interior)`,
+    );
+
+    return { graces, bosses, regions: playRegions };
   });
