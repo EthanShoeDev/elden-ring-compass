@@ -94,13 +94,20 @@ export const parseParamdefXml = (
     return { paramType, dataVersion, fields };
   });
 
+// A few regulation param names don't match their Paramdex def filename.
+const DEF_FILENAME_ALIASES: Record<string, string> = {
+  SpEffectParam: 'SpEffect',
+  Magic: 'MagicParam',
+};
+
 /** Load + parse a vendored Paramdex def by ParamType (e.g. "EquipParamWeapon"). */
 export const loadParamdef = (
   paramType: string,
 ): Effect.Effect<Paramdef, ParamdefError> =>
   Effect.gen(function* () {
+    const defName = DEF_FILENAME_ALIASES[paramType] ?? paramType;
     const url = new URL(
-      `../vendor/paramdex/ER/Defs/${paramType}.xml`,
+      `../vendor/paramdex/ER/Defs/${defName}.xml`,
       import.meta.url,
     );
     const xml = yield* Effect.tryPromise({

@@ -7,6 +7,7 @@ import {
   type RowValue,
 } from '../formats/param.ts';
 import { loadParamdef, type ParamdefError } from '../formats/paramdef.ts';
+import { effectsFromSpEffectRow, type ItemEffect } from '../game/effects.ts';
 import type { ItemText } from '../game/item-text.ts';
 
 /**
@@ -66,6 +67,7 @@ export interface ArmorRecord extends CoreItemFields {
   readonly resistMadness: number;
   readonly resistDeath: number;
   readonly poise: number;
+  readonly effects: readonly ItemEffect[]; // resident SpEffect stat boosts
 }
 
 export interface TalismanRecord extends CoreItemFields {
@@ -73,6 +75,7 @@ export interface TalismanRecord extends CoreItemFields {
   readonly name: string;
   readonly weight: number;
   readonly conflicts: readonly string[]; // names of talismans in the same accessoryGroup
+  readonly effects: readonly ItemEffect[]; // SpEffect referenced by refId
 }
 
 export interface AshOfWarRecord extends CoreItemFields {
@@ -304,6 +307,31 @@ export const join = (
   names: ItemText,
 ): Effect.Effect<ItemTables, ParamError | ParamdefError> =>
   Effect.gen(function* () {
+    // Lazy SpEffect resolver: decode a referenced SpEffectParam row on demand → its
+    // effects[]. Shared by armor (residentSpEffectId*) and talismans (refId).
+    let resolveEffects: (id: number) => ItemEffect[] = () => [];
+    const spBytes = paramFiles.get('SpEffectParam');
+    if (spBytes) {
+      const sp = yield* parseParam(spBytes);
+      const spDef = yield* loadParamdef('SpEffectParam'); // → SpEffect.xml (aliased)
+      const spOffsets = new Map(sp.rows.map((r) => [r.id, r.dataOffset]));
+      const spCache = new Map<number, ItemEffect[]>();
+      resolveEffects = (id) => {
+        if (id < 0) return [];
+        const hit = spCache.get(id);
+        if (hit) return hit;
+        const off = spOffsets.get(id);
+        const eff =
+          off === undefined
+            ? []
+            : effectsFromSpEffectRow(decodeRow(spBytes, off, spDef, sp.little));
+        spCache.set(id, eff);
+        return eff;
+      };
+    } else {
+      yield* Effect.logWarning('no SpEffectParam; item effects will be empty');
+    }
+
     const weapons = yield* decodeCategory(
       paramFiles,
       'EquipParamWeapon',
@@ -351,6 +379,11 @@ export const join = (
         resistMadness: num(f, 'resistMadness'),
         resistDeath: num(f, 'resistCurse'),
         poise: Math.round(num(f, 'toughnessCorrectRate') * 1000), // displayed poise
+        effects: [
+          ...resolveEffects(num(f, 'residentSpEffectId')),
+          ...resolveEffects(num(f, 'residentSpEffectId2')),
+          ...resolveEffects(num(f, 'residentSpEffectId3')),
+        ],
       }),
     );
 
@@ -363,6 +396,7 @@ export const join = (
         name,
         ...coreFields(f, id, names.AccessoryInfo, names.AccessoryCaption),
         weight: num(f, 'weight'),
+        effects: resolveEffects(num(f, 'refId')),
         accessoryGroup: num(f, 'accessoryGroup'), // -1 = no conflict group
       }),
     );
