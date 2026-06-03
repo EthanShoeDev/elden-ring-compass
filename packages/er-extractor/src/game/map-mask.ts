@@ -51,6 +51,13 @@ export interface MapMask {
   readonly fragmentBits: ReadonlyArray<number>;
   /** world-event/state bits present for this map. */
   readonly eventBits: ReadonlyArray<number>;
+  /**
+   * L0 per-cell full reveal mask, keyed `"col_row"` (only `exists` tiles). The
+   * mask `id` encodes `lod*10000 + col*100 + row` (erdb `sourcer.py`), so
+   * `col = (id%10000)/100`, `row = id%100`. A cell's fully-revealed tile is the
+   * on-disk variant whose `code === mask`.
+   */
+  readonly cellMasks: ReadonlyMap<string, number>;
 }
 
 const MASK_RE = /<MapTileMask exists="(\d)" id="(\d+)" mask="(\d+)"\/>/g;
@@ -87,18 +94,25 @@ export const parseMapMasks = (
       const xml = new TextDecoder().decode(e.bytes);
       const tiles: TileMask[] = [];
       const allBits = new Set<number>();
+      const cellMasks = new Map<string, number>();
       MASK_RE.lastIndex = 0;
       let mm: RegExpExecArray | null;
       while ((mm = MASK_RE.exec(xml))) {
+        const id = Number(mm[2]);
         const exists = mm[1] === '1';
         const mask = Number(mm[3]) >>> 0;
-        tiles.push({ id: Number(mm[2]), exists, mask });
-        if (exists) for (let b = 0; b < 32; b++) if (mask & (1 << b)) allBits.add(1 << b);
+        tiles.push({ id, exists, mask });
+        if (!exists) continue;
+        for (let b = 0; b < 32; b++) if (mask & (1 << b)) allBits.add(1 << b);
+        if (Math.floor(id / 10000) === 0) {
+          const coords = id % 10000;
+          cellMasks.set(`${Math.floor(coords / 100)}_${coords % 100}`, mask);
+        }
       }
       const eventBit = EVENT_BITS[map] ?? 0;
       const eventBits = [...allBits].filter((b) => (b & eventBit) !== 0).sort((a, b) => a - b);
       const fragmentBits = [...allBits].filter((b) => (b & eventBit) === 0).sort((a, b) => a - b);
-      out.set(map, { map, tiles, fragmentBits, eventBits });
+      out.set(map, { map, tiles, fragmentBits, eventBits, cellMasks });
     }
     return out;
   });

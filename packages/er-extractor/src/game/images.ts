@@ -315,14 +315,31 @@ export const extractImages = (
           continue;
         }
 
-        // Pick + decode the vanilla all-fragments variant for each cell.
+        // Pick + decode the fully-revealed tile for each cell. Authoritative:
+        // the on-disk variant whose `code === cellMask` (the mtmsk full mask).
+        // Cells with no mask are void (map edge/ocean) and cells whose mask
+        // carries an event bit (the crater) are out-of-bounds — both skipped, so
+        // the master is composited only where the real map exists (matches erdb's
+        // `sourcer.py`). Without a mask binder we fall back to the max-fragment
+        // heuristic across every cell.
+        const cellMasks = maskInfo?.cellMasks;
+        const useMasks = cellMasks !== undefined && cellMasks.size > 0;
         const decoded: { col: number; row: number; png: Uint8Array }[] = [];
-        for (const [, vs] of cells) {
-          const chosen = pickVanillaVariant(
-            vs.map((v) => v.variant),
-            eventMask,
-          );
-          const pick = vs.find((v) => v.variant === chosen) ?? vs[0]!;
+        for (const [key, vs] of cells) {
+          let pick: (typeof vs)[number] | undefined;
+          if (useMasks) {
+            const mask = cellMasks!.get(key);
+            if (mask === undefined || (mask & eventMask) !== 0) continue;
+            pick = vs.find((v) => v.variant === mask);
+            if (!pick) continue; // no exact full-reveal variant on disk
+          } else {
+            const chosen = pickVanillaVariant(
+              vs.map((v) => v.variant),
+              eventMask,
+            );
+            pick = vs.find((v) => v.variant === chosen) ?? vs[0];
+          }
+          if (!pick) continue;
           const slice = new Uint8Array(
             yield* Effect.promise(() =>
               Bun.file(bdtPath)

@@ -108,7 +108,10 @@ export const buildLayerPyramid = (
           // OverlayOptions.input is typed as Buffer; this shares the memory).
           input: Buffer.from(t.png.buffer, t.png.byteOffset, t.png.byteLength),
           left: t.col * TILE_PX,
-          top: t.row * TILE_PX,
+          // Flip the Y axis: the game's row index increases *northward* (erdb
+          // `sourcer.py` pastes at `high_y - y`), so render north-up by mapping
+          // row → (GRID-1 - row). Without this the whole map is upside-down.
+          top: (GRID - 1 - t.row) * TILE_PX,
         })),
       );
       await encodeMaster(canvas, opts)

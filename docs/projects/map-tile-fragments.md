@@ -51,16 +51,35 @@ a region-sized bit (indistinguishable from a fragment by tile-count alone) — T
 
 ### Phase 1 — detailed default map (vanilla, all fragments) ✅ this work
 
-In `game/images.ts` (stage `7-images`), replace the `BASE_LAYER` filter with:
+In `game/images.ts` (stage `7-images`), replace the `BASE_LAYER` filter with the
+**erdb `sourcer.py` algorithm** (authoritative — it built the prod map):
 
-1. Parse `71_maptile.mtmskbnd.dcx` → per-map bit taxonomy + event-bit set
-   (`game/map-mask.ts`).
-2. Per `(map, lod, col, row)`: from the on-disk L0 variants, drop any with an
-   event bit set, pick **max popcount** (tie-break max value) → the vanilla
-   all-fragments tile. Fall back to `00000000` if only base exists.
-3. Composite + regenerate the power-of-2 pyramid as today (one `base` layer).
-4. Emit fragment metadata into `manifest.json`: per map, the fragment bits, the
-   event bits, and per-tile `{ fullMask, selectedVariant }` (drives Phase 2).
+1. Parse `71_maptile.mtmskbnd.dcx` → per-map bit taxonomy + **per-cell full mask**
+   (`game/map-mask.ts`). The mask `id` encodes `lod*10000 + col*100 + row`.
+2. Per L0 `(col,row)`: select the on-disk variant whose **`code === cellMask`**
+   (the exact fully-revealed tile). **Skip** cells with no mask (map edge/ocean
+   void) and cells whose mask carries an event bit (`0x4000` crater = out of
+   bounds). NOT max-popcount — a popcount heuristic picks inconsistent reveal
+   states per cell and produces a scrambled patchwork.
+3. **Flip Y** when compositing: the game's row index increases *northward*
+   (erdb pastes at `high_y - y`), so `top = (GRID-1 - row)·256`. Without this the
+   whole map renders upside-down.
+4. Regenerate the power-of-2 pyramid (one `base` layer); emit `fragmentBits` /
+   `eventBits` per map into `manifest.json` (drives Phase 2).
+
+Verified: produces the correct north-up, colourful, fully-revealed Lands Between
+(snow Mountaintops top, red Caelid, blue Liurnia, green Limgrave). Note L0 is the
+*colourful* art; coarser LODs differ in style — see the LOD/colour note below.
+
+> **LOD/colour:** we build the pyramid from **L0** only (then downsample). L0 is
+> the colourful painted map. (Earlier confusion: a heavy downscale of an
+> ocean-heavy region looked sepia — it isn't.) If a future need arises, the game
+> also ships coarser LODs (L1/L2) with their own art for zoomed-out views.
+
+> **Markers/affine:** flipping to north-up matches erdb's orientation (which the
+> old `M00_AFFINE` was calibrated against), but the master size differs
+> (10496² vs erdb 9728×9216) so marker placement still needs recalibration via
+> the in-app Calibrate tool — tracked separately, not part of this fix.
 
 ### Phase 2 — save-driven "collected maps" toggle (user-requested)
 
