@@ -1,28 +1,25 @@
-import { CLEAN_ELDEN_RING_DB } from '../elden-ring-raw-db/er-raw-db';
+import { REGIONS } from '@elden-ring-compass/data';
+
 import { MAP_DB_ITEMS } from '../map-db';
 import { Slot } from '../wasm-wrapper';
 
 export function regionsDbView(slot?: Readonly<Slot>) {
-  const regionIdMap = new Map(CLEAN_ELDEN_RING_DB.regions.map((r) => [r.id, r]));
-  const unlockedRegionSet = new Set();
+  const unlockedRegionSet = new Set<number>();
   if (slot) {
     for (let i = 0; i < slot.regions.unlocked_regions_count; i++) {
       const key = slot.regions.unlocked_regions[i];
       if (key === undefined) break;
-      const region = regionIdMap.get(key);
-      if (region) {
-        unlockedRegionSet.add(region.id);
-      }
+      unlockedRegionSet.add(key);
     }
   }
 
-  const checkIfEventIsOn = <T>(e: T & { id: number; name: string }) => {
-    return {
-      ...e,
-      found: unlockedRegionSet.has(e.id),
-      map_data: MAP_DB_ITEMS.get(e.name)?.filter((m) => m.category != 'Site of Grace'),
-    };
-  };
-
-  return CLEAN_ELDEN_RING_DB.regions.map(checkIfEventIsOn);
+  return REGIONS.map((r) => ({
+    id: r.id,
+    name: r.name,
+    map: r.area,
+    isOpenWorld: r.isOpenWorld,
+    isDungeon: r.isDungeon,
+    found: unlockedRegionSet.has(r.id),
+    map_data: MAP_DB_ITEMS.get(r.name)?.filter((m) => m.category != 'Site of Grace'),
+  }));
 }

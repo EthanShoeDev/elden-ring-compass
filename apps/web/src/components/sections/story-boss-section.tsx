@@ -1,55 +1,56 @@
+import { eventFlagOffset } from '@elden-ring-compass/data';
+import { itemIconUrl } from '@elden-ring-compass/data/images';
 import { cn } from '@/lib/utils';
-import { eventsDbView } from '@/lib/vm/events';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
-import godrickImgSrc from '@/assets/erdb/icons/tools/163.png';
-import radahnImgSrc from '@/assets/erdb/icons/tools/164.png';
-import rykardImgSrc from '@/assets/erdb/icons/tools/166.png';
-import mohgImgSrc from '@/assets/erdb/icons/tools/168.png';
-import rennalaImgSrc from '@/assets/erdb/icons/tools/172.png';
-
-import morgottImgSrc from '@/assets/erdb/icons/tools/165.png';
-import malikethImgSrc from '@/assets/erdb/icons/tools/169.png';
-import godfreyImgSrc from '@/assets/erdb/icons/tools/170.png';
-import fireGiantImgSrc from '@/assets/erdb/icons/tools/174.png';
-import eldenBeastImgSrc from '@/assets/erdb/icons/tools/176.png';
+// Boss portraits are the bosses' remembrance-item icons (goods 2950–2963). The icon ids
+// match the legacy erdb portrait filenames 1:1, now served from the data package's webp icons.
 
 export function StoryBossSection() {
   const slot = useSelectedSlot();
-  const events = slot ? eventsDbView(slot) : [];
+
+  // Read a boss defeat flag straight from the save bitfield. These story bosses are a
+  // curated list of specific flag ids (some, like Starscourge Radahn 310 and Radagon
+  // 19000810, aren't standard arena flags in BOSSES), so resolve the bit directly.
+  const isDefeated = (flagId: number) => {
+    if (!slot) return false;
+    const offset = eventFlagOffset(flagId);
+    if (!offset) return false;
+    return ((slot.event_flags.flags[offset[0]] ?? 0) & (1 << offset[1])) !== 0;
+  };
 
   const earlyBosses = [
     {
       name: 'Godrick',
       id: 10000800,
-      imgSrc: godrickImgSrc,
+      imgSrc: itemIconUrl(163),
     },
     {
       name: 'Rennala',
       id: 14000800,
-      imgSrc: rennalaImgSrc,
+      imgSrc: itemIconUrl(172),
     },
     {
       name: 'Radahn',
       id: 310,
-      imgSrc: radahnImgSrc,
+      imgSrc: itemIconUrl(164),
     },
     {
       name: 'Mohg',
       id: 12050800,
-      imgSrc: mohgImgSrc,
+      imgSrc: itemIconUrl(168),
     },
     {
       name: 'Rykard',
       id: 16000800,
-      imgSrc: rykardImgSrc,
+      imgSrc: itemIconUrl(166),
     },
   ].map((boss) => ({
     ...boss,
-    killed: slot ? events.find((e) => e.id === boss.id)?.on == true : false,
+    killed: isDefeated(boss.id),
   }));
 
   const sequentialBosses = [
@@ -60,12 +61,12 @@ export function StoryBossSection() {
     {
       name: 'Morgott',
       id: 11000800,
-      imgSrc: morgottImgSrc,
+      imgSrc: itemIconUrl(165),
     },
     {
       name: 'Fire Giant',
       id: 1052520800,
-      imgSrc: fireGiantImgSrc,
+      imgSrc: itemIconUrl(174),
     },
     {
       name: 'Godskin Duo',
@@ -74,7 +75,7 @@ export function StoryBossSection() {
     {
       name: 'Maliketh',
       id: 13000800,
-      imgSrc: malikethImgSrc,
+      imgSrc: itemIconUrl(169),
     },
     {
       name: 'Sir Gideon-Ofnir',
@@ -83,16 +84,16 @@ export function StoryBossSection() {
     {
       name: 'Godfrey',
       id: 11050800,
-      imgSrc: godfreyImgSrc,
+      imgSrc: itemIconUrl(170),
     },
     {
       name: 'Radagon',
       id: 19000810,
-      imgSrc: eldenBeastImgSrc,
+      imgSrc: itemIconUrl(176),
     },
   ].map((boss) => ({
     ...boss,
-    killed: slot ? events.find((e) => e.id === boss.id)?.on == true : false,
+    killed: isDefeated(boss.id),
   }));
 
   const bossesKilled =

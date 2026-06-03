@@ -1,6 +1,7 @@
 import LZString from 'lz-string';
-import { EVENT_FLAGS } from '@/lib/elden-ring-raw-db/EVENT_FLAGS';
+import { eventFlagOffset } from '@elden-ring-compass/data';
 import type { Slot } from '@/lib/wasm-wrapper';
+import { SHAREABLE_EVENT_IDS } from './shareable-events';
 import { type ShareableProgression, SHAREABLE_VERSION } from './types';
 
 function get_bit(byte: number, bit_pos: number): boolean {
@@ -13,8 +14,9 @@ function get_bit(byte: number, bit_pos: number): boolean {
 export function extractShareableData(slot: Readonly<Slot>): ShareableProgression {
   // Extract completed event IDs
   const completedEventIds: number[] = [];
-  for (const [eventId, [byteOffset, bitPos]] of EVENT_FLAGS) {
-    if (get_bit(slot.event_flags.flags[byteOffset] ?? 0, bitPos)) {
+  for (const eventId of SHAREABLE_EVENT_IDS) {
+    const offset = eventFlagOffset(eventId);
+    if (offset && get_bit(slot.event_flags.flags[offset[0]] ?? 0, offset[1])) {
       completedEventIds.push(eventId);
     }
   }

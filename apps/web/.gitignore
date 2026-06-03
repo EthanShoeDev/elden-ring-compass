@@ -1,4 +1,4 @@
 .vercel
 
-# Generated: map tiles synced from @elden-ring-compass/data (see scripts/sync-map-tiles.ts)
+# Generated: map tiles staged from @elden-ring-compass/data by the erDataTiles() vite plugin
 public/map-tiles/

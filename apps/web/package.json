@@ -4,9 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "sync:map-tiles": "bun scripts/sync-map-tiles.ts",
-    "dev": "bun run sync:map-tiles && vite dev",
-    "build": "bun run sync:map-tiles && vite build",
+    "dev": "vite dev",
+    "build": "vite build",
     "start": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",

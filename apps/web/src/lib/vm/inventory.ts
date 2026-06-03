@@ -1,4 +1,10 @@
-import { RAW_ELDEN_RING_DB } from '../elden-ring-raw-db/er-raw-db';
+import {
+  accessoryNameById,
+  aowNameById,
+  armorNameById,
+  itemNameById,
+  weaponNameById,
+} from '../game-data';
 import { MAP_DB_ITEMS } from '../map-db';
 import { EquipInventoryData, GaItem, Slot, StorageInventoryData } from '../wasm-wrapper';
 
@@ -105,24 +111,18 @@ export function inventoryDbView(slot: Readonly<Slot>) {
         const upgrade_level = itemType === 'WEAPON' ? gaitem.item_id % 100 : 0;
         const itemName = (() => {
           if (itemType === 'WEAPON') {
-            const idStr = (itemId - upgrade_level).toString();
-            const weaponName = RAW_ELDEN_RING_DB.WEAPON_NAME[idStr] ?? `[UNKOWN_${idStr}]`;
+            const baseId = itemId - upgrade_level;
+            const weaponName = weaponNameById.get(baseId) ?? `[UNKOWN_${baseId.toString()}]`;
 
             return upgrade_level > 0 ? `${weaponName} +${upgrade_level.toString()}` : weaponName;
           } else if (itemType === 'ARMOR') {
-            return (
-              RAW_ELDEN_RING_DB.ARMOR_NAME[itemId.toString()] ?? `[UNKOWN_${itemId.toString()}]`
-            );
+            return armorNameById.get(itemId) ?? `[UNKOWN_${itemId.toString()}]`;
           } else if (itemType === 'ACCESSORY') {
-            return (
-              RAW_ELDEN_RING_DB.ACCESSORY_NAME[itemId.toString()] ?? `[UNKOWN_${itemId.toString()}]`
-            );
+            return accessoryNameById.get(itemId) ?? `[UNKOWN_${itemId.toString()}]`;
           } else if (itemType === 'ITEM') {
-            return (
-              RAW_ELDEN_RING_DB.ITEM_NAMES[itemId.toString()] ?? `[UNKOWN_${itemId.toString()}]`
-            );
+            return itemNameById.get(itemId) ?? `[UNKOWN_${itemId.toString()}]`;
           } else if (itemType === 'AOW') {
-            return RAW_ELDEN_RING_DB.AOW_NAME[itemId.toString()] ?? `[UNKOWN_${itemId.toString()}]`;
+            return aowNameById.get(itemId) ?? `[UNKOWN_${itemId.toString()}]`;
           }
           return 'Unknown';
         })();

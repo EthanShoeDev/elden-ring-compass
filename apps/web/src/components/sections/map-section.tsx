@@ -14,7 +14,7 @@ import { InfoIcon } from 'lucide-react';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 
 import { useDataTableData } from '@/lib/data-table-data';
-import { ERDB, useAllErdb } from '@/lib/erdb';
+import { type InventoryTableType, useInventoryTables } from '@/lib/inventory-catalog';
 import type { MapItem } from '@/lib/map-db';
 
 import { useRowSelectionControls, useTableStateMap } from '../data-table/data-table-store';
@@ -46,7 +46,7 @@ function useSelectedMapItems(): MapItem[] {
   const tableState = useTableStateMap();
   const eventsItems = useDataTableData('events');
   const regionItems = useDataTableData('regions');
-  const allErdb = useAllErdb();
+  const allTables = useInventoryTables();
 
   return useMemo(
     () =>
@@ -58,13 +58,14 @@ function useSelectedMapItems(): MapItem[] {
               return eventsItems.find((e) => e.id.toString() === id)?.map_data ?? [];
             if (tableId === 'regions')
               return regionItems.find((r) => r.id.toString() === id)?.map_data ?? [];
+            if (tableId === 'weapons') return [];
             return (
-              allErdb[tableId as keyof typeof ERDB].items.find((e) => e.id.toString() === id)
+              allTables[tableId as InventoryTableType].items.find((e) => e.id.toString() === id)
                 ?.map_data ?? []
             );
           }),
       ),
-    [tableState, eventsItems, regionItems, allErdb],
+    [tableState, eventsItems, regionItems, allTables],
   );
 }
 

@@ -1,4 +1,5 @@
-import { Bolstering, ERDB, Tool } from '@/lib/erdb';
+import { itemIconUrl } from '@elden-ring-compass/data/images';
+import { goodsByName } from '@/lib/game-data';
 import { assertDefined, cn } from '@/lib/utils';
 import { eventsDbView } from '@/lib/vm/events';
 import { inventoryDbView } from '@/lib/vm/inventory';
@@ -114,27 +115,32 @@ export function OverviewSection() {
     },
   };
 
+  const ownedByName = (name: string) =>
+    inventoryQuantityById.get(goodsByName.get(name)?.id ?? -1) ?? 0;
+
   const maxPowerMaterialOwned =
-    (inventoryQuantityById.get(ERDB.bolstering['Ancient Dragon Smithing Stone'].id) ?? 0) +
-    (inventoryQuantityById.get(ERDB.bolstering['Ancient Dragon Smithing Stone'].id) ?? 0) +
-    (inventoryQuantityById.get(ERDB.bolstering['Great Ghost Glovewort'].id) ?? 0) +
-    (inventoryQuantityById.get(ERDB.bolstering['Great Grave Glovewort'].id) ?? 0);
+    ownedByName('Ancient Dragon Smithing Stone') +
+    ownedByName('Somber Ancient Dragon Smithing Stone') +
+    ownedByName('Great Ghost Glovewort') +
+    ownedByName('Great Grave Glovewort');
 
   const baseFlaskItem = assertDefined(
-    ERDB.tools['Flask of Crimson Tears'],
-    'Flask of Crimson Tears missing from ERDB',
+    goodsByName.get('Flask of Crimson Tears'),
+    'Flask of Crimson Tears missing from data',
   );
 
   const usersFlask =
     Array.from({ length: 12 })
-      .map((_, i) => ERDB.tools[`${baseFlaskItem.name}${i == 0 ? '' : ` +${(i + 1).toString()}`}`])
+      .map((_, i) =>
+        goodsByName.get(`${baseFlaskItem.name}${i == 0 ? '' : ` +${(i + 1).toString()}`}`),
+      )
       .filter((flask) => flask !== undefined)
       .toReversed()
       .find((flask) => (inventoryQuantityById.get(flask.id) ?? 0) > 0) ?? baseFlaskItem;
 
   const ceruleanFlask = assertDefined(
-    ERDB.tools['Flask of Cerulean Tears'],
-    'Flask of Cerulean Tears missing from ERDB',
+    goodsByName.get('Flask of Cerulean Tears'),
+    'Flask of Cerulean Tears missing from data',
   );
 
   return (
@@ -151,21 +157,13 @@ export function OverviewSection() {
             <CardDescription>5 / 20 - (35%)</CardDescription>
           </CardHeader>
           <CardContent className='flex flex-col gap-1'>
-            <FlaskItem item={usersFlask} iconType='tools' max={14} />
+            <FlaskItem item={usersFlask} max={14} />
             <Separator />
-            <FlaskItem item={ceruleanFlask} iconType='tools' max={14} />
+            <FlaskItem item={ceruleanFlask} max={14} />
             <Separator />
-            <FlaskItem
-              item={ERDB.bolstering['Golden Seed']}
-              iconType='bolstering-materials'
-              max={30}
-            />
+            <FlaskItem item={goodsByName.get('Golden Seed')} max={30} />
             <Separator />
-            <FlaskItem
-              item={ERDB.bolstering['Sacred Tear']}
-              iconType='bolstering-materials'
-              max={12}
-            />
+            <FlaskItem item={goodsByName.get('Sacred Tear')} max={12} />
           </CardContent>
         </Card>
         <Card className='overflow-hidden'>
@@ -192,35 +190,35 @@ export function OverviewSection() {
                   {Array.from({ length: 10 }).map((_, i) => {
                     const smithingStone =
                       i < 9
-                        ? (ERDB.bolstering as Record<string, Bolstering>)[
+                        ? goodsByName.get(
                             i == 8
                               ? 'Ancient Dragon Smithing Stone'
-                              : `Smithing Stone [${(i + 1).toString()}]`
-                          ]
+                              : `Smithing Stone [${(i + 1).toString()}]`,
+                          )
                         : undefined;
                     const somberSmithingStone =
                       i < 10
-                        ? (ERDB.bolstering as Record<string, Bolstering>)[
+                        ? goodsByName.get(
                             i == 9
                               ? 'Somber Ancient Dragon Smithing Stone'
-                              : `Somber Smithing Stone [${(i + 1).toString()}]`
-                          ]
+                              : `Somber Smithing Stone [${(i + 1).toString()}]`,
+                          )
                         : undefined;
                     const ghostGlovewart =
                       i < 10
-                        ? (ERDB.bolstering as Record<string, Bolstering>)[
+                        ? goodsByName.get(
                             i == 9
                               ? 'Great Ghost Glovewort'
-                              : `Ghost Glovewort [${(i + 1).toString()}]`
-                          ]
+                              : `Ghost Glovewort [${(i + 1).toString()}]`,
+                          )
                         : undefined;
                     const graveGlovewart =
                       i < 10
-                        ? (ERDB.bolstering as Record<string, Bolstering>)[
+                        ? goodsByName.get(
                             i == 9
                               ? 'Great Grave Glovewort'
-                              : `Grave Glovewort [${(i + 1).toString()}]`
-                          ]
+                              : `Grave Glovewort [${(i + 1).toString()}]`,
+                          )
                         : undefined;
 
                     return (
@@ -235,7 +233,7 @@ export function OverviewSection() {
                                   ]
                                 : undefined;
 
-                            const bellBearing = bellBearingName && ERDB.shop[bellBearingName];
+                            const bellBearing = bellBearingName && goodsByName.get(bellBearingName);
 
                             const bellLocation = bellBearing && bellNameLocation[bellBearingName];
                             const bellOwned =
@@ -243,12 +241,7 @@ export function OverviewSection() {
                                 0 ||
                               (bellLocation && 'boss' in bellLocation && bellLocation.boss.killed);
 
-                            const imgSrc =
-                              item &&
-                              new URL(
-                                `../../assets/erdb/icons/bolstering-materials/${item.icon.toString()}.png`,
-                                import.meta.url,
-                              ).href;
+                            const imgSrc = item && itemIconUrl(item.icon);
                             return (
                               <TableCell key={i} className={cn('p-2')}>
                                 <Tooltip>
@@ -317,11 +310,9 @@ export function OverviewSection() {
 
 function FlaskItem({
   item,
-  iconType,
   max,
 }: {
-  item: Bolstering | Tool;
-  iconType: 'tools' | 'bolstering-materials';
+  item: { id: number; name: string; icon: number } | undefined;
   max: number;
 }) {
   const slot = useSelectedSlot();
@@ -329,10 +320,8 @@ function FlaskItem({
     slot ? inventoryDbView(slot).items.map((item) => [item.item_id, item.quantity]) : [],
   );
 
-  const imgSrc = new URL(
-    `../../assets/erdb/icons/${iconType == 'tools' ? 'tools' : 'bolstering-materials'}/${item.icon.toString()}.png`,
-    import.meta.url,
-  ).href;
+  if (!item) return null;
+  const imgSrc = itemIconUrl(item.icon) ?? '';
   return (
     <div className='flex items-center justify-between gap-10 rounded-lg transition-colors hover:bg-muted/50'>
       <TooltipImg imgSrc={imgSrc} />

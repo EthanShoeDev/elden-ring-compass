@@ -1,4 +1,4 @@
-import { CLEAN_ELDEN_RING_DB } from '../elden-ring-raw-db/er-raw-db';
+import { nameById } from '../game-data';
 import { Slot } from '../wasm-wrapper';
 import { InventoryGaItemTypeToOffset, InventoryItemTypeToOffset } from './inventory';
 const empty = {
@@ -56,7 +56,7 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
         gaitem_handle,
         id,
         equip_index,
-        name: id ? (CLEAN_ELDEN_RING_DB.inventoryIdMap.get(id)?.name ?? 'Unknown') : 'Empty',
+        name: id ? (nameById.get(id) ?? 'Unknown') : 'Empty',
       };
     });
 
@@ -71,7 +71,7 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
       gaitem_handle,
       id,
       equip_index,
-      name: id ? (CLEAN_ELDEN_RING_DB.inventoryIdMap.get(id)?.name ?? 'Unknown') : 'Empty',
+      name: id ? (nameById.get(id) ?? 'Unknown') : 'Empty',
     };
   });
 
@@ -83,9 +83,7 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
       ga_handle,
       id: armor_id,
       equip_index,
-      name: armor_id
-        ? (CLEAN_ELDEN_RING_DB.inventoryIdMap.get(armor_id)?.name ?? 'Unknown')
-        : 'Empty',
+      name: armor_id ? (nameById.get(armor_id) ?? 'Unknown') : 'Empty',
     };
   };
 
@@ -103,9 +101,7 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
       gaitem_handle,
       id: talisman_id,
       equip_index,
-      name: talisman_id
-        ? (CLEAN_ELDEN_RING_DB.inventoryIdMap.get(talisman_id)?.name ?? 'Unknown')
-        : 'Empty',
+      name: talisman_id ? (nameById.get(talisman_id) ?? 'Unknown') : 'Empty',
     };
   });
 
@@ -117,7 +113,7 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
       gaitem_handle,
       id,
       equip_index,
-      name: id ? (CLEAN_ELDEN_RING_DB.inventoryIdMap.get(id)?.name ?? 'Unknown') : 'Empty',
+      name: id ? (nameById.get(id) ?? 'Unknown') : 'Empty',
     };
   };
 

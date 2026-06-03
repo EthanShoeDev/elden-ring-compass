@@ -1,3 +1,9 @@
+import { itemIconUrl } from '@elden-ring-compass/data/images';
+import { ColumnDef, ColumnHelper, createColumnHelper } from '@tanstack/react-table';
+import { Schema } from 'effect';
+import { Atom } from 'effect/unstable/reactivity';
+import { useAtom } from '@effect/atom-react';
+
 import {
   commonAccessorColumnDef,
   commonSelectColumnDef,
@@ -6,31 +12,12 @@ import { DataTable } from '@/components/data-table/data-table';
 import { TooltipImg } from '@/components/misc/tooltip-img';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Combobox } from '@/components/ui/combobox';
-import { useDataTableData } from '@/lib/data-table-data';
-import {
-  Ammo,
-  Armament,
-  Armor,
-  Ashes,
-  Bolstering,
-  Crafting,
-  ERDB,
-  Gesture,
-  Info,
-  KeyItem,
-  Shop,
-  Spell,
-  Spirit,
-  Talisman,
-  Tool,
-  useAllErdb,
-} from '@/lib/erdb';
-import { MapItem } from '@/lib/map-db';
-import { ColumnDef, ColumnHelper, createColumnHelper } from '@tanstack/react-table';
-import { Schema } from 'effect';
-import { Atom } from 'effect/unstable/reactivity';
-import { useAtom } from '@effect/atom-react';
 import { browserKvsRuntime } from '@/lib/atoms/kvs';
+import { useDataTableData } from '@/lib/data-table-data';
+import { CATALOG, useInventoryTables, type WithOwnership } from '@/lib/inventory-catalog';
+
+export type { InventoryTableType } from '@/lib/inventory-catalog';
+import type { InventoryTableType } from '@/lib/inventory-catalog';
 
 // Persisted current inventory table category (typesafe kvs; replaced the Zustand
 // `persist` store). Stored as a plain string and narrowed to `InventoryTableType`
@@ -44,12 +31,12 @@ const inventoryTableSelectionAtom = Atom.kvs({
 
 export function InventoryDataTableCard() {
   const [tableName, setTableName] = useAtom(inventoryTableSelectionAtom);
-  const table = tableName as InventoryTableType;
+  const table = (tableName in tables ? tableName : 'armaments') as InventoryTableType;
   const setTableType = (next: InventoryTableType) => setTableName(next);
-  const allErdb = useAllErdb();
+  const allTables = useInventoryTables();
 
   const items = useDataTableData(table);
-  const ownedCount = allErdb[table].ownedCount;
+  const ownedCount = allTables[table].ownedCount;
 
   return (
     <Card className='w-full'>
@@ -66,18 +53,18 @@ export function InventoryDataTableCard() {
             ]}
             emptyLabel=''
             items={Object.entries(tables).map(([tableId, info]) => {
-              const table = tableId as keyof typeof ERDB;
-              const ownedCount = allErdb[table].ownedCount;
-              const items = allErdb[table].items;
+              const key = tableId as InventoryTableType;
+              const ownedCount = allTables[key].ownedCount;
+              const count = allTables[key].items.length;
               return {
                 label: info.label,
-                value: table,
+                value: key,
                 dropDownItem: (
                   <>
                     <span>{info.label}</span>
                     <span className='ml-auto font-mono text-muted-foreground'>
-                      {ownedCount}/{items.length} (
-                      {((ownedCount / items.length) * 100).toFixed(0).padStart(2, ' ')}
+                      {ownedCount}/{count} (
+                      {((ownedCount / count) * 100).toFixed(0).padStart(2, ' ')}
                       %)
                     </span>
                   </>
@@ -94,393 +81,167 @@ export function InventoryDataTableCard() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable
-          tableId={table}
-          columns={tables[table].columns}
-          data={items}
-          initialColumnVisibility={{
-            Description: false,
-          }}
-        />
+        <DataTable tableId={table} columns={tables[table].columns} data={items} />
       </CardContent>
     </Card>
   );
 }
 
-type InfoFromSlot = { quantity: number; map_data?: MapItem };
-type DefaultItem = (
-  | Ammo
-  | Armament
-  | Armor
-  | Ashes
-  | Bolstering
-  | Crafting
-  | Gesture
-  | Info
-  | KeyItem
-  | Shop
-  | Spell
-  | Spirit
-  | Talisman
-  | Tool
-) &
-  InfoFromSlot;
-function defaultColumns<T extends DefaultItem>(
-  columnHelperT: ColumnHelper<T>,
-  imgUrlFn: (icon: number) => string,
-): Array<ColumnDef<T>> {
-  // oxlint-disable-next-line unknown-cast/forbidden -- TanStack ColumnHelper is invariant in its row type; we deliberately reuse one helper across the shared DefaultItem shape
-  const columnHelperD = columnHelperT as unknown as ColumnHelper<DefaultItem>;
+// Row element types per category, joined with save ownership.
+type Row<K extends InventoryTableType> = WithOwnership<(typeof CATALOG)[K][number]>;
+type BaseRow = WithOwnership<{ id: number; name: string; icon: number; rarity: string }>;
+
+type Effect = {
+  attribute: string;
+  value: number;
+  model: string;
+  type: string;
+  conditions?: readonly string[];
+};
+
+const effectsText = (effects: readonly Effect[]) =>
+  effects
+    .map((e) => {
+      const sign =
+        e.type == 'positive'
+          ? e.model == 'additive'
+            ? '+'
+            : '* '
+          : e.model == 'additive'
+            ? '-'
+            : '* -';
+      const conditions = e.conditions && e.conditions.length ? ` ${e.conditions.join(',')}` : '';
+      return `${e.attribute} ${sign}${e.value.toString()}${conditions}`;
+    })
+    .join('\n');
+
+/** id / icon / name / quantity / rarity / has-coords — shared by every inventory table. */
+function defaultColumns<T extends BaseRow>(columnHelperT: ColumnHelper<T>): Array<ColumnDef<T>> {
+  // oxlint-disable-next-line unknown-cast/forbidden -- TanStack ColumnHelper is invariant in its row type; we reuse one helper across the shared BaseRow shape
+  const columnHelper = columnHelperT as unknown as ColumnHelper<BaseRow>;
   return [
-    commonSelectColumnDef(columnHelperD),
-    commonAccessorColumnDef(columnHelperD, 'id', 'ID', {
-      size: 1,
-    }),
-    columnHelperD.display({
+    commonSelectColumnDef(columnHelper),
+    commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
+    columnHelper.display({
       id: 'icon',
       header: 'Icon',
       size: 1,
       maxSize: 1,
-      cell: (cell) => {
-        return (
-          <div>
-            <TooltipImg imgSrc={imgUrlFn(cell.row.original.icon)} alt={cell.row.original.name} />
-          </div>
-        );
-      },
+      cell: (cell) => (
+        <div>
+          <TooltipImg
+            imgSrc={itemIconUrl(cell.row.original.icon) ?? ''}
+            alt={cell.row.original.name}
+          />
+        </div>
+      ),
       enableHiding: true,
     }),
-    commonAccessorColumnDef(columnHelperD, 'name', 'Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelperD, 'quantity', 'Quantity'),
-    commonAccessorColumnDef(columnHelperD, 'rarity', 'Rarity'),
-    commonAccessorColumnDef(columnHelperD, (row) => !!row.map_data, 'Has Coordinates'),
-    // oxlint-disable-next-line unknown-cast/forbidden -- columns built against DefaultItem are structurally valid for the caller's narrower T
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', { filterFn: 'includesString' }),
+    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
+    commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
+    commonAccessorColumnDef(columnHelper, (row) => !!row.map_data, 'Has Coordinates'),
+    // oxlint-disable-next-line unknown-cast/forbidden -- columns built against BaseRow are structurally valid for the caller's narrower T
   ] as unknown as Array<ColumnDef<T>>;
 }
 
-type AmmoItem = Ammo & InfoFromSlot;
-const ammoColumns: Array<ColumnDef<AmmoItem>> = (() => {
-  const columnHelper = createColumnHelper<AmmoItem>();
-
+const armamentColumns = (() => {
+  const h = createColumnHelper<Row<'armaments'>>();
   return [
-    ...defaultColumns(
-      columnHelper,
-      (icon) =>
-        new URL(`../../assets/erdb/icons/ammo/${icon.toString()}.png`, import.meta.url).href,
-    ),
-    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
-    commonAccessorColumnDef(
-      columnHelper,
-      (row) =>
-        row.effects
-          .map(
-            (e) =>
-              `${e.attribute} ${e.type == 'positive' ? (e.model == 'additive' ? '+' : '* ') : e.model == 'additive' ? '-' : '* -'}${e.value.toString()}${e.conditions ? ` ${e.conditions.join(',')}` : ''}`,
-          )
-          .join('\n'),
-      'Effects',
-    ),
+    ...defaultColumns(h),
+    commonAccessorColumnDef(h, 'category', 'Category'),
+    commonAccessorColumnDef(h, 'allowAshOfWar', 'Allow AOW'),
+    commonAccessorColumnDef(h, 'isBuffable', 'Buffable'),
+    commonAccessorColumnDef(h, 'weaponUpgradeLevel', 'Upgrade Level'),
+    commonAccessorColumnDef(h, 'weight', 'Weight'),
+    commonAccessorColumnDef(h, 'upgradeMaterial', 'Upgrade Material'),
+    commonAccessorColumnDef(h, (row) => effectsText(row.effects), 'Effects'),
   ];
 })();
 
-type ArmamentItem = Armament & InfoFromSlot & { weapon_upgrade_level: number };
-const armColumns: Array<ColumnDef<ArmamentItem>> = (() => {
-  const columnHelper = createColumnHelper<ArmamentItem>();
-
+const ammoColumns = (() => {
+  const h = createColumnHelper<Row<'ammo'>>();
   return [
-    ...defaultColumns(
-      columnHelper,
-      (icon) =>
-        new URL(`../../assets/erdb/icons/armaments/${icon.toString()}.png`, import.meta.url).href,
-    ),
-    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
-    commonAccessorColumnDef(columnHelper, 'allow_ash_of_war', 'Allow AOW'),
-    commonAccessorColumnDef(columnHelper, 'is_buffable', 'Buffable'),
-    commonAccessorColumnDef(columnHelper, 'weapon_upgrade_level', 'Upgrade Level'),
-    commonAccessorColumnDef(columnHelper, 'weight', 'Weight'),
-    commonAccessorColumnDef(columnHelper, 'upgrade_material', 'Upgrade Material'),
-    commonAccessorColumnDef(
-      columnHelper,
-      (row) =>
-        row.effects
-          .map(
-            (e) =>
-              `${e.attribute} ${e.type == 'positive' ? (e.model == 'additive' ? '+' : '* ') : e.model == 'additive' ? '-' : '* -'}${e.value.toString()}${e.conditions ? ` ${e.conditions.join(',')}` : ''}`,
-          )
-          .join('\n'),
-      'Effects',
-    ),
+    ...defaultColumns(h),
+    commonAccessorColumnDef(h, 'category', 'Category'),
+    commonAccessorColumnDef(h, (row) => effectsText(row.effects), 'Effects'),
   ];
 })();
 
-type ArmorItem = Armor & InfoFromSlot;
-const armorColumns: Array<ColumnDef<ArmorItem>> = (() => {
-  const columnHelper = createColumnHelper<ArmorItem>();
-
+const armorColumns = (() => {
+  const h = createColumnHelper<Row<'armor'>>();
   return [
-    ...defaultColumns(
-      columnHelper,
-      (icon) =>
-        new URL(`../../assets/erdb/icons/armor/${icon.toString()}.png`, import.meta.url).href,
-    ),
-    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
-    commonAccessorColumnDef(columnHelper, 'weight', 'Weight'),
-    commonAccessorColumnDef(
-      columnHelper,
-      (row) =>
-        row.effects
-          .map(
-            (e) =>
-              `${e.attribute} ${e.type == 'positive' ? (e.model == 'additive' ? '+' : '* ') : e.model == 'additive' ? '-' : '* -'}${e.value.toString()}${e.conditions ? ` ${e.conditions.join(',')}` : ''}`,
-          )
-          .join('\n'),
-      'Effects',
-    ),
+    ...defaultColumns(h),
+    commonAccessorColumnDef(h, 'category', 'Category'),
+    commonAccessorColumnDef(h, 'weight', 'Weight'),
+    commonAccessorColumnDef(h, (row) => effectsText(row.effects), 'Effects'),
   ];
 })();
 
-type AshesItem = Ashes & InfoFromSlot;
-const ashesColumns: Array<ColumnDef<AshesItem>> = (() => {
-  const columnHelper = createColumnHelper<AshesItem>();
-
+const talismanColumns = (() => {
+  const h = createColumnHelper<Row<'talismans'>>();
   return [
-    ...defaultColumns(
-      columnHelper,
-      (icon) =>
-        new URL(`../../assets/erdb/icons/ashes-of-war/${icon.toString()}.png`, import.meta.url)
-          .href,
-    ),
-    commonAccessorColumnDef(
-      columnHelper,
-      (row) => row.armament_categories.join(', '),
-      'Armament Categories',
-    ),
+    ...defaultColumns(h),
+    commonAccessorColumnDef(h, 'weight', 'Weight'),
+    commonAccessorColumnDef(h, (row) => effectsText(row.effects), 'Effects'),
+    commonAccessorColumnDef(h, (row) => row.conflicts.join(', '), 'Conflicts'),
   ];
 })();
 
-type BolsteringItem = Bolstering & InfoFromSlot;
-const bolsteringColumns: Array<ColumnDef<BolsteringItem>> = (() => {
-  const columnHelper = createColumnHelper<BolsteringItem>();
-
+const ashesColumns = (() => {
+  const h = createColumnHelper<Row<'ashes'>>();
   return [
-    ...defaultColumns(
-      columnHelper,
-      (icon) =>
-        new URL(
-          `../../assets/erdb/icons/bolstering-materials/${icon.toString()}.png`,
-          import.meta.url,
-        ).href,
-    ),
-    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
+    ...defaultColumns(h),
+    commonAccessorColumnDef(h, (row) => row.armamentCategories.join(', '), 'Armament Categories'),
+    commonAccessorColumnDef(h, 'defaultAffinity', 'Default Affinity'),
   ];
 })();
 
-type CraftingItem = Crafting & InfoFromSlot;
-const craftingColumns: Array<ColumnDef<CraftingItem>> = (() => {
-  const columnHelper = createColumnHelper<CraftingItem>();
-
+const spellColumns = (() => {
+  const h = createColumnHelper<Row<'sorceries'>>();
   return [
-    ...defaultColumns(
-      columnHelper,
-      (icon) =>
-        new URL(
-          `../../assets/erdb/icons/crafting-materials/${icon.toString()}.png`,
-          import.meta.url,
-        ).href,
-    ),
-    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
+    ...defaultColumns(h),
+    commonAccessorColumnDef(h, 'fpCost', 'FP Cost'),
+    commonAccessorColumnDef(h, 'spCost', 'Stamina Cost'),
+    commonAccessorColumnDef(h, 'slotsUsed', 'Slots'),
+    commonAccessorColumnDef(h, 'isWeaponBuff', 'Is Weapon Buff'),
   ];
 })();
 
-type GestureItem = Gesture & InfoFromSlot;
-const gesturesColumns: Array<ColumnDef<GestureItem>> = (() => {
-  const columnHelper = createColumnHelper<GestureItem>();
-
+const spiritColumns = (() => {
+  const h = createColumnHelper<Row<'spirits'>>();
   return [
-    ...defaultColumns(
-      columnHelper,
-      (icon) =>
-        new URL(`../../assets/erdb/icons/gestures/${icon.toString()}.png`, import.meta.url).href,
-    ),
-  ];
-})();
-type InfoItem = Info & InfoFromSlot;
-const infoColumns: Array<ColumnDef<InfoItem>> = (() => {
-  const columnHelper = createColumnHelper<InfoItem>();
-
-  return [
-    ...defaultColumns(
-      columnHelper,
-      (icon) =>
-        new URL(`../../assets/erdb/icons/info/${icon.toString()}.png`, import.meta.url).href,
-    ),
-  ];
-})();
-type KeyItemRow = KeyItem & InfoFromSlot;
-const keyColumns: Array<ColumnDef<InfoItem>> = (() => {
-  const columnHelper = createColumnHelper<KeyItemRow>();
-
-  return [
-    ...defaultColumns(
-      columnHelper,
-      (icon) =>
-        new URL(`../../assets/erdb/icons/keys/${icon.toString()}.png`, import.meta.url).href,
-    ),
-    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
-  ];
-})();
-type ShopItem = Shop & InfoFromSlot;
-const shopColumns: Array<ColumnDef<ShopItem>> = (() => {
-  const columnHelper = createColumnHelper<ShopItem>();
-
-  return [
-    ...defaultColumns(
-      columnHelper,
-      (icon) =>
-        new URL(`../../assets/erdb/icons/shop/${icon.toString()}.png`, import.meta.url).href,
-    ),
-    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
-  ];
-})();
-type SpellItem = Spell & InfoFromSlot;
-const spellColumns: Array<ColumnDef<SpellItem>> = (() => {
-  const columnHelper = createColumnHelper<SpellItem>();
-
-  return [
-    ...defaultColumns(
-      columnHelper,
-      (icon) =>
-        new URL(`../../assets/erdb/icons/spells/${icon.toString()}.png`, import.meta.url).href,
-    ),
-    commonAccessorColumnDef(columnHelper, 'category', 'Category'),
-    commonAccessorColumnDef(columnHelper, 'fp_cost', 'FP Cost'),
-    commonAccessorColumnDef(columnHelper, 'sp_cost', 'SP Cost'),
-    commonAccessorColumnDef(columnHelper, 'is_weapon_buff', 'Is Weapon Buff'),
-  ];
-})();
-type SpiritItem = Spirit & InfoFromSlot;
-const spiritColumns: Array<ColumnDef<SpiritItem>> = (() => {
-  const columnHelper = createColumnHelper<SpiritItem>();
-
-  return [
-    ...defaultColumns(
-      columnHelper,
-      (icon) =>
-        new URL(`../../assets/erdb/icons/spirit-ashes/${icon.toString()}.png`, import.meta.url)
-          .href,
-    ),
-    commonAccessorColumnDef(columnHelper, 'hp_cost', 'HP Cost'),
-    commonAccessorColumnDef(columnHelper, 'fp_cost', 'FP Cost'),
-    commonAccessorColumnDef(columnHelper, 'upgrade_material', 'Upgrade Material'),
-    commonAccessorColumnDef(columnHelper, 'summon_name', 'Summon Name', {
-      filterFn: 'includesString',
-    }),
-    commonAccessorColumnDef(columnHelper, (row) => row.abilities.join(', '), 'Abilities'),
-  ];
-})();
-type TalismanItem = Talisman & InfoFromSlot;
-const talismanColumns: Array<ColumnDef<TalismanItem>> = (() => {
-  const columnHelper = createColumnHelper<TalismanItem>();
-
-  return [
-    ...defaultColumns(
-      columnHelper,
-      (icon) =>
-        new URL(`../../assets/erdb/icons/talismans/${icon.toString()}.png`, import.meta.url).href,
-    ),
-    commonAccessorColumnDef(columnHelper, 'weight', 'Weight'),
-    commonAccessorColumnDef(
-      columnHelper,
-      (row) =>
-        row.effects
-          .map(
-            (e) =>
-              `${e.attribute} ${e.type == 'positive' ? (e.model == 'additive' ? '+' : '* ') : e.model == 'additive' ? '-' : '* -'}${e.value.toString()}`,
-          )
-          .join('\n'),
-      'Effects',
-    ),
-    commonAccessorColumnDef(columnHelper, (row) => row.conflicts.join(', '), 'Conflicts'),
-  ];
-})();
-type ToolItem = Tool & InfoFromSlot;
-const toolColumns: Array<ColumnDef<ToolItem>> = (() => {
-  const columnHelper = createColumnHelper<ToolItem>();
-
-  return [
-    ...defaultColumns(
-      columnHelper,
-      (icon) =>
-        new URL(`../../assets/erdb/icons/tools/${icon.toString()}.png`, import.meta.url).href,
-    ),
+    ...defaultColumns(h),
+    commonAccessorColumnDef(h, 'hpCost', 'HP Cost'),
+    commonAccessorColumnDef(h, 'fpCost', 'FP Cost'),
+    commonAccessorColumnDef(h, 'upgradeMaterial', 'Upgrade Material'),
+    commonAccessorColumnDef(h, 'summonName', 'Summon Name', { filterFn: 'includesString' }),
   ];
 })();
 
-const tables: Record<
-  keyof typeof ERDB,
-  {
-    columns: Array<ColumnDef<any>>;
-    label: string;
-  }
-> = {
-  ammo: {
-    columns: ammoColumns,
-    label: 'Ammo',
-  },
-  armaments: {
-    label: 'Armaments',
-    columns: armColumns,
-  },
-  armor: {
-    label: 'Armor',
-    columns: armorColumns,
-  },
-  ashes: {
-    label: 'Ashes of War',
-    columns: ashesColumns,
-  },
-  bolstering: {
-    label: 'Bolstering Materials',
-    columns: bolsteringColumns,
-  },
-  crafting: {
-    label: 'Crafting',
-    columns: craftingColumns,
-  },
-  gestures: {
-    label: 'Gestures',
-    columns: gesturesColumns,
-  },
-  info: {
-    label: 'Info Items',
-    columns: infoColumns,
-  },
-  keys: {
-    label: 'Key Items',
-    columns: keyColumns,
-  },
-  shop: {
-    label: 'Shop Items',
-    columns: shopColumns,
-  },
-  spells: {
-    label: 'Spells',
-    columns: spellColumns,
-  },
-  spirit: {
-    label: 'Spirit Ashes',
-    columns: spiritColumns,
-  },
-  talismans: {
-    label: 'Talismans',
-    columns: talismanColumns,
-  },
-  tools: {
-    label: 'Tools',
-    columns: toolColumns,
-  },
+const goodsColumns = (() => {
+  const h = createColumnHelper<BaseRow & { maxHeld: number }>();
+  return [...defaultColumns(h), commonAccessorColumnDef(h, 'maxHeld', 'Max Held')];
+})();
+
+const tables: Record<InventoryTableType, { columns: Array<ColumnDef<any>>; label: string }> = {
+  armaments: { label: 'Armaments', columns: armamentColumns },
+  ammo: { label: 'Ammo', columns: ammoColumns },
+  armor: { label: 'Armor', columns: armorColumns },
+  talismans: { label: 'Talismans', columns: talismanColumns },
+  ashes: { label: 'Ashes of War', columns: ashesColumns },
+  sorceries: { label: 'Sorceries', columns: spellColumns },
+  incantations: { label: 'Incantations', columns: spellColumns },
+  spirits: { label: 'Spirit Ashes', columns: spiritColumns },
+  consumables: { label: 'Consumables', columns: goodsColumns },
+  craftingMaterials: { label: 'Crafting Materials', columns: goodsColumns },
+  upgradeMaterials: { label: 'Upgrade Materials', columns: goodsColumns },
+  keyItems: { label: 'Key Items', columns: goodsColumns },
+  infoItems: { label: 'Info Items', columns: goodsColumns },
+  crystalTears: { label: 'Crystal Tears', columns: goodsColumns },
+  remembrances: { label: 'Remembrances', columns: goodsColumns },
+  greatRunes: { label: 'Great Runes', columns: goodsColumns },
+  craftingTools: { label: 'Crafting Tools', columns: goodsColumns },
+  gestures: { label: 'Gestures', columns: goodsColumns },
+  physick: { label: 'Physick', columns: goodsColumns },
 };
-
-export type InventoryTableType = keyof typeof tables;

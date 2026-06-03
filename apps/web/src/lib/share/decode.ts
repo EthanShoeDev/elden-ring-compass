@@ -1,6 +1,7 @@
 import LZString from 'lz-string';
-import { EVENT_FLAGS } from '@/lib/elden-ring-raw-db/EVENT_FLAGS';
+import { eventFlagOffset } from '@elden-ring-compass/data';
 import type { Slot } from '@/lib/wasm-wrapper';
+import { MAX_EVENT_BYTE_OFFSET } from './shareable-events';
 import { type ShareableProgression, SHAREABLE_VERSION } from './types';
 
 /**
@@ -27,15 +28,6 @@ export function decodeFromUrl(encoded: string): ShareableProgression | null {
 }
 
 /**
- * Create a lookup map from event ID to [byteOffset, bitPos].
- */
-const eventIdToOffsetMap = new Map(EVENT_FLAGS.map(([id, offset]) => [id, offset]));
-
-// Size the reconstructed flag buffer to cover every event offset the site knows about,
-// so no shared flag is dropped (the old fixed 2048-byte buffer silently lost high offsets).
-const MAX_EVENT_BYTE_OFFSET = EVENT_FLAGS.reduce((max, [, [byteOffset]]) => Math.max(max, byteOffset), 0);
-
-/**
  * Reconstruct a partial Slot (new lean shape) from shareable data so the existing
  * view-models can consume a shared link. Only the fields the VMs read are populated.
  */
@@ -45,9 +37,9 @@ export function reconstructSlot(data: ShareableProgression): Partial<Slot> {
   let currentId = 0;
   for (const delta of data.ef) {
     currentId += delta;
-    const mapping = eventIdToOffsetMap.get(currentId);
-    if (mapping) {
-      const [byteOffset, bitPos] = mapping;
+    const offset = eventFlagOffset(currentId);
+    if (offset) {
+      const [byteOffset, bitPos] = offset;
       flags[byteOffset] = (flags[byteOffset] ?? 0) | (1 << bitPos);
     }
   }
