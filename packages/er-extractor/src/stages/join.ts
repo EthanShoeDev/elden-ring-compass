@@ -48,6 +48,8 @@ export interface WeaponRecord extends CoreItemFields {
   readonly reqIntelligence: number;
   readonly reqFaith: number;
   readonly reqArcane: number;
+  readonly upgradeMaterial: string; // '' | 'Smithing Stone' | 'Somber Smithing Stone'
+  readonly upgradeCosts: readonly number[]; // rune cost per upgrade level
   readonly effects: readonly ItemEffect[]; // base (vs-enemy) + resident + on-hit
 }
 
@@ -108,6 +110,16 @@ export interface SpellRecord extends CoreItemFields {
   readonly isWeaponBuff: boolean;
 }
 
+export interface SpiritAshRecord extends CoreItemFields {
+  readonly id: number;
+  readonly name: string;
+  readonly summonName: string;
+  readonly fpCost: number;
+  readonly hpCost: number;
+  readonly upgradeMaterial: string; // 'Grave Glovewort' | 'Ghost Glovewort' | ''
+  readonly upgradeCosts: readonly number[];
+}
+
 export interface GoodRecord extends CoreItemFields {
   readonly id: number;
   readonly name: string;
@@ -123,6 +135,7 @@ export interface ItemTables {
   readonly goods: GoodRecord[];
   readonly ashesOfWar: AshOfWarRecord[];
   readonly spells: SpellRecord[];
+  readonly spiritAshes: SpiritAshRecord[];
 }
 
 // EquipParamGoods.goodsType → display category. Derived empirically by grouping
@@ -196,6 +209,28 @@ const WEAPON_CATEGORY: Record<number, string> = {
 // EquipParamGoods.sortGroupId for gestures (erdb GoodsSortGroupID.GESTURES). They
 // are goods rows, so they'd otherwise hide under a goodsType-derived category.
 const GESTURE_SORT_GROUP = 250;
+
+// wepType values that are ammo (arrows/bolts) — they don't reinforce, so weapon
+// upgrade-material detection must skip them.
+const AMMO_WEP_TYPES = new Set([81, 83, 85, 86]);
+
+/**
+ * Consecutive ids from `base` (e.g. an upgrade chain), up to the largest maxima
+ * whose endpoint still exists (erdb `find_offset_indices`). Used for reinforcement
+ * chains (weapons 0/10/25 levels, spirit ashes 0..9).
+ */
+const findOffsetIndices = (
+  base: number,
+  has: (id: number) => boolean,
+  maxima: readonly number[],
+  inc = 1,
+): number[] => {
+  const max =
+    [...maxima].sort((a, b) => b - a).find((m) => has(base + m * inc)) ?? 0;
+  const out: number[] = [];
+  for (let i = 0; i <= max; i++) if (has(base + i * inc)) out.push(base + i * inc);
+  return out;
+};
 
 // Affinity index → name (erdb Affinity.id). `defaultWepAttr` is an index into this;
 // `configurableWepAttrNN` bits flag which are selectable for an Ash of War.
@@ -373,6 +408,37 @@ export const join = (
       yield* Effect.logWarning('no SpEffectParam; item effects will be empty');
     }
 
+    // Reinforcement chains: a weapon's reinforceTypeId is the base ReinforceParamWeapon
+    // row; the chain length (10 vs 25) tells Somber vs regular Smithing Stone.
+    const reinforceRows = yield* decodeParamMap(
+      paramFiles,
+      'ReinforceParamWeapon',
+    );
+    const weaponUpgrade = (
+      f: Row,
+    ): { upgradeMaterial: string; upgradeCosts: number[] } => {
+      if (AMMO_WEP_TYPES.has(num(f, 'wepType')))
+        return { upgradeMaterial: '', upgradeCosts: [] };
+      const chain = findOffsetIndices(
+        num(f, 'reinforceTypeId'),
+        (i) => reinforceRows.has(i),
+        [0, 10, 25],
+      );
+      const levels = chain.length - 1;
+      const upgradeMaterial =
+        levels >= 25
+          ? 'Smithing Stone'
+          : levels >= 10
+            ? 'Somber Smithing Stone'
+            : '';
+      const basePrice = num(f, 'reinforcePrice');
+      const upgradeCosts = chain.slice(1).map((i) => {
+        const rr = reinforceRows.get(i);
+        return rr ? Math.round(basePrice * num(rr, 'reinforcePriceRate')) : 0;
+      });
+      return { upgradeMaterial, upgradeCosts };
+    };
+
     const weapons = yield* decodeCategory(
       paramFiles,
       'EquipParamWeapon',
@@ -389,6 +455,7 @@ export const join = (
         reqIntelligence: num(f, 'properMagic'),
         reqFaith: num(f, 'properFaith'),
         reqArcane: num(f, 'properLuck'),
+        ...weaponUpgrade(f),
         effects: [
           ...weaponBaseEffects(f),
           ...aggregateEffects([
@@ -522,6 +589,7 @@ export const join = (
     const SPELL_GOODS_TYPES = new Set([5, 16, 17, 18]); // sorcery×2, incantation×2
     const goodsRows = yield* decodeParamMap(paramFiles, 'EquipParamGoods');
     const magicRows = yield* decodeParamMap(paramFiles, 'Magic');
+    const mtrlRows = yield* decodeParamMap(paramFiles, 'EquipMtrlSetParam');
     const spells: SpellRecord[] = [];
     for (const [id, name] of names.GoodsName) {
       if (name.trim().length === 0 || name === '[ERROR]') continue;
@@ -544,10 +612,43 @@ export const join = (
       });
     }
 
+    // Spirit ashes: base (id % 100 == 0) EquipParamGoods of the summon goodsTypes.
+    // Upgrade material via EquipMtrlSetParam → glovewort name; costs from the +0..+9
+    // reinforcePrice chain; summon name from GoodsInfo2.
+    const SPIRIT_GOODS_TYPES = new Set([7, 8]); // lesser / greater
+    const spiritAshes: SpiritAshRecord[] = [];
+    for (const [id, name] of names.GoodsName) {
+      if (name.trim().length === 0 || name === '[ERROR]') continue;
+      if (id % 100 !== 0) continue; // base item only (upgrades are +1..+10)
+      const g = goodsRows.get(id);
+      if (!g || !SPIRIT_GOODS_TYPES.has(num(g, 'goodsType'))) continue;
+      const mtrl = mtrlRows.get(num(g, 'reinforceMaterialId'));
+      const upgradeMaterial = mtrl
+        ? (names.GoodsName.get(num(mtrl, 'materialId01')) ?? '')
+            .replace(/\s*\[\d+\]\s*$/, '')
+            .trim()
+        : '';
+      const hp = num(g, 'consumeHP');
+      const chain = findOffsetIndices(id, (i) => goodsRows.has(i), [9]);
+      spiritAshes.push({
+        id,
+        name,
+        ...coreFields(g, id, names.GoodsInfo, names.GoodsCaption),
+        summonName: (names.GoodsInfo2.get(id) ?? '').trim(),
+        fpCost: num(g, 'consumeMP'),
+        hpCost: hp < 0 ? 0 : hp,
+        upgradeMaterial,
+        upgradeCosts: chain
+          .slice(1)
+          .map((i) => num(goodsRows.get(i)!, 'reinforcePrice')),
+      });
+    }
+
     yield* Effect.logInfo(
       `joined ${weapons.length} weapons + ${armor.length} armor + ` +
         `${talismans.length} talismans + ${goods.length} goods + ` +
-        `${ashesOfWar.length} ashes of war + ${spells.length} spells (stats decoded)`,
+        `${ashesOfWar.length} ashes of war + ${spells.length} spells + ` +
+        `${spiritAshes.length} spirit ashes (stats decoded)`,
     );
     const byCat = new Map<string, number>();
     for (const g of goods)
@@ -558,5 +659,5 @@ export const join = (
         .map(([c, n]) => `${c}=${n}`)
         .join(' ')}`,
     );
-    return { weapons, armor, talismans, goods, ashesOfWar, spells };
+    return { weapons, armor, talismans, goods, ashesOfWar, spells, spiritAshes };
   });

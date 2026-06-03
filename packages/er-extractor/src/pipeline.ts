@@ -28,10 +28,8 @@ export const runPipeline = Effect.gen(function* () {
     Effect.annotateLogs('stage', '2-params'),
   );
   const names = yield* text.pipe(Effect.annotateLogs('stage', '3-text'));
-  const { weapons, armor, talismans, goods, ashesOfWar, spells } = yield* join(
-    paramFiles,
-    names,
-  ).pipe(Effect.annotateLogs('stage', '4-join'));
+  const { weapons, armor, talismans, goods, ashesOfWar, spells, spiritAshes } =
+    yield* join(paramFiles, names).pipe(Effect.annotateLogs('stage', '4-join'));
   const markerEntities = yield* markers.pipe(
     Effect.annotateLogs('stage', '5-markers'),
   );
@@ -48,6 +46,7 @@ export const runPipeline = Effect.gen(function* () {
     goods,
     ashesOfWar,
     spells,
+    spiritAshes,
     markers: markerEntities,
     names,
   }).pipe(Effect.annotateLogs('stage', '8-codegen'));

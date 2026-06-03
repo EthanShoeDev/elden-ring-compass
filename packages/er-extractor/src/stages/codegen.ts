@@ -9,6 +9,7 @@ import type {
   AshOfWarRecord,
   GoodRecord,
   SpellRecord,
+  SpiritAshRecord,
   TalismanRecord,
   WeaponRecord,
 } from './join.ts';
@@ -31,6 +32,7 @@ export interface CodegenInput {
   readonly goods: readonly GoodRecord[];
   readonly ashesOfWar: readonly AshOfWarRecord[];
   readonly spells: readonly SpellRecord[];
+  readonly spiritAshes: readonly SpiritAshRecord[];
   readonly markers: readonly MapEntity[];
   // Name tables for the remaining categories without a decoded stat record
   // (weapon arts) — emitted as {id, name}.
@@ -155,6 +157,8 @@ export const codegen = (input: CodegenInput) =>
           'readonly reqIntelligence: number;',
           'readonly reqFaith: number;',
           'readonly reqArcane: number;',
+          'readonly upgradeMaterial: string;',
+          'readonly upgradeCosts: readonly number[];',
           'readonly effects: readonly { readonly attribute: string; readonly value: number; readonly model: string; readonly type: string; readonly conditions?: readonly string[] }[];',
         ],
         'WEAPONS',
@@ -296,6 +300,30 @@ export const codegen = (input: CodegenInput) =>
       ),
     );
 
+    const spiritAshes = [...input.spiritAshes].sort((a, b) => a.id - b.id);
+    yield* write(
+      'spirit-ashes.ts',
+      renderDataset(
+        'SpiritAsh',
+        [
+          'readonly id: number;',
+          'readonly name: string;',
+          'readonly summary: string;',
+          'readonly description: readonly string[];',
+          'readonly rarity: string;',
+          'readonly icon: number;',
+          'readonly sellValue: number;',
+          'readonly summonName: string;',
+          'readonly fpCost: number;',
+          'readonly hpCost: number;',
+          'readonly upgradeMaterial: string;',
+          'readonly upgradeCosts: readonly number[];',
+        ],
+        'SPIRIT_ASHES',
+        spiritAshes.map((s) => ({ ...s })),
+      ),
+    );
+
     // Weapon arts have no decoded stat record yet; emit as {id, name} (base + DLC).
     const nameTables: readonly [
       string,
@@ -352,6 +380,7 @@ export const codegen = (input: CodegenInput) =>
       'ashes-of-war',
       'goods',
       'spells',
+      'spirit-ashes',
       'arts',
       'markers',
     ];
@@ -365,6 +394,6 @@ export const codegen = (input: CodegenInput) =>
       `codegen → @elden-ring-compass/data: ${graces.length} graces, ${bosses.length} bosses, ` +
         `${weapons.length} weapons, ${armor.length} armor, ${talismans.length} talismans, ` +
         `${goods.length} goods, ${ashesOfWar.length} ashes of war, ${spells.length} spells, ` +
-        `${markers.length} markers (+ arts name table)`,
+        `${spiritAshes.length} spirit ashes, ${markers.length} markers (+ arts name table)`,
     );
   });
