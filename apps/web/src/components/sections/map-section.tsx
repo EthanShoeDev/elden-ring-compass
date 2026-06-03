@@ -24,6 +24,15 @@ import type { MapManifest } from './leaflet-map';
 
 const LeafletMap = lazy(() => import('./leaflet-map'));
 
+/**
+ * Maps hidden from the switcher. `M11` (DLC / Land of Shadow underground) is cut
+ * content: the Realm of Shadow has no in-game underground map — its few
+ * underground graces show on the normal map — so these tiles are unimplemented
+ * assets. We still extract them (for a possible future "cut content" tab) but
+ * don't surface them on the main map.
+ */
+const HIDDEN_MAP_IDS = new Set(['M11']);
+
 function MapFallback({ message }: { message: string }) {
   return (
     <div className='flex h-full w-full items-center justify-center bg-[#0a0a0a] text-sm text-muted-foreground'>
@@ -129,16 +138,18 @@ export function MapSection() {
       {/* Map switcher */}
       {manifest && (
         <div className='flex flex-wrap gap-2'>
-          {manifest.maps.map((m) => (
-            <Button
-              key={m.id}
-              variant={m.id === activeMapId ? 'default' : 'secondary'}
-              size='sm'
-              onClick={() => setActiveMapId(m.id)}
-            >
-              {m.name}
-            </Button>
-          ))}
+          {manifest.maps
+            .filter((m) => !HIDDEN_MAP_IDS.has(m.id))
+            .map((m) => (
+              <Button
+                key={m.id}
+                variant={m.id === activeMapId ? 'default' : 'secondary'}
+                size='sm'
+                onClick={() => setActiveMapId(m.id)}
+              >
+                {m.name}
+              </Button>
+            ))}
           <Button
             variant={calibrate ? 'default' : 'outline'}
             size='sm'
