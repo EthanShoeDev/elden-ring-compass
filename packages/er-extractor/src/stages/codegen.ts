@@ -1,6 +1,7 @@
 import { Effect } from 'effect';
 
 import type { BossArea } from '../game/bosses.ts';
+import { loadEventFlagBst } from '../game/event-flags.ts';
 import type { Grace } from '../game/graces.ts';
 import type { ItemText } from '../game/item-text.ts';
 import type { MapEntity } from '../game/map-markers.ts';
@@ -78,6 +79,24 @@ const write = (fileName: string, contents: string) =>
   Effect.tryPromise(() =>
     Bun.write(new URL(fileName, GENERATED_DIR), contents),
   );
+
+/** Emit the event-flag addressing table + `eventFlagOffset()` reader (hand-shaped code). */
+const renderEventFlags = (
+  bst: ReadonlyArray<readonly [number, number]>,
+): string =>
+  `${HEADER}// Event-flag block → byte-offset multiplier (vendored ER-Save-Lib eventflag_bst).\n` +
+  `export const EVENT_FLAG_BST: ReadonlyMap<number, number> = new Map([\n` +
+  `${bst.map(([b, m]) => `  [${b}, ${m}],`).join('\n')}\n]);\n\n` +
+  `/**\n` +
+  ` * Resolve an event-flag id to its [byteOffset, bitPos] in the save's event-flag\n` +
+  ` * bitfield. Returns null for an unknown block. (ER-Save-Lib formula.)\n` +
+  ` */\n` +
+  `export function eventFlagOffset(\n  id: number,\n): readonly [number, number] | null {\n` +
+  `  const mult = EVENT_FLAG_BST.get(Math.floor(id / 1000));\n` +
+  `  if (mult === undefined) return null;\n` +
+  `  const index = id % 1000;\n` +
+  `  return [mult * 125 + Math.floor(index / 8), 7 - (index % 8)];\n` +
+  `}\n`;
 
 export const codegen = (input: CodegenInput) =>
   Effect.gen(function* () {
@@ -371,6 +390,8 @@ export const codegen = (input: CodegenInput) =>
       ),
     );
 
+    yield* write('event-flags.ts', renderEventFlags(yield* loadEventFlagBst));
+
     const modules = [
       'graces',
       'bosses',
@@ -383,6 +404,7 @@ export const codegen = (input: CodegenInput) =>
       'spirit-ashes',
       'arts',
       'markers',
+      'event-flags',
     ];
     const index =
       HEADER +

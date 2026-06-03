@@ -12,3 +12,4 @@ export * from './spells.ts';
 export * from './spirit-ashes.ts';
 export * from './arts.ts';
 export * from './markers.ts';
+export * from './event-flags.ts';
