@@ -8,48 +8,11 @@ import {
   Updater,
   VisibilityState,
 } from '@tanstack/react-table';
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { Schema } from 'effect';
+import { Atom } from 'effect/unstable/reactivity';
+import { useAtom, useAtomSet, useAtomValue } from '@effect/atom-react';
+import { browserKvsRuntime } from '@/lib/atoms/kvs';
 import { InventoryTableType } from '../sections/inventory-data-table-card';
-
-const defaultTableState = (props: DataTableStateInitProps) => ({
-  tableId: props.tableId,
-  columnVisibility: props.initialColumnVisibility ?? {},
-  rowSelection: props.initialRowSelection ?? {},
-  columnFilters: [],
-  sorting: [],
-  columnSizing: {},
-  columnOrder: [],
-});
-
-const handleOnChangeParam = <T extends DataTableState[K], K extends keyof DataTableState>(
-  key: K,
-  set: (fn: (state: DataTableStore) => Partial<DataTableStore>) => void,
-) => {
-  return (tableId: TableId) => {
-    const childSet = (fn: (state: DataTableState) => Partial<DataTableState>) => {
-      set((state) => ({
-        tableState: {
-          ...state.tableState,
-          [tableId]: {
-            ...state.tableState[tableId],
-            ...fn(state.tableState[tableId] ?? defaultTableState({ tableId })),
-          } as DataTableState,
-        },
-      }));
-    };
-
-    return (updaterFn: Updater<T>) => {
-      if (typeof updaterFn === 'function') {
-        childSet((state) => ({
-          [key]: (updaterFn as (old: T) => T)(state[key] as T),
-        }));
-      } else {
-        childSet(() => ({ [key]: updaterFn }));
-      }
-    };
-  };
-};
 
 export type TableId = 'events' | 'regions' | 'weapons' | InventoryTableType;
 
@@ -69,69 +32,99 @@ export type DataTableState = {
   columnOrder: ColumnOrderState;
 };
 
-type DataTableStore = {
-  setTableState: (state: Record<TableId, DataTableState | undefined>) => void;
-  tableState: Record<TableId, DataTableState | undefined>;
-  clearAllRowSelection: () => void;
-  setColumnVisibility: (tableId: TableId) => OnChangeFn<VisibilityState>;
-  setColumnFilters: (tableId: TableId) => OnChangeFn<ColumnFiltersState>;
-  setColumnSizing: (tableId: TableId) => OnChangeFn<ColumnSizingState>;
-  setSorting: (tableId: TableId) => OnChangeFn<SortingState>;
-  setRowSelection: (tableId: TableId) => OnChangeFn<RowSelectionState>;
-  setColumnOrder: (tableId: TableId) => OnChangeFn<ColumnOrderState>;
-};
+type TableStateMap = Record<TableId, DataTableState | undefined>;
 
-export const useDataTableStore = create<DataTableStore>()(
-  persist(
-    (set, get) => ({
-      setTableState: (state) => {
-        set({ tableState: state });
-      },
-      tableState: {} as Record<TableId, DataTableState | undefined>,
-      clearAllRowSelection: () => {
-        console.log('clearAllRowSelection', get().tableState);
-        set((state) => ({
-          tableState: Object.fromEntries(
-            Object.entries(state.tableState).map(([tableId, tableState]) => [
-              tableId as TableId,
-              {
-                ...tableState,
-                rowSelection: {},
-              } as DataTableState,
-            ]),
-          ) as Record<TableId, DataTableState | undefined>,
-        }));
-      },
-      setRowSelection: handleOnChangeParam('rowSelection', set),
-      setColumnVisibility: handleOnChangeParam('columnVisibility', set),
-      setColumnFilters: handleOnChangeParam('columnFilters', set),
-      setSorting: handleOnChangeParam('sorting', set),
-      setColumnSizing: handleOnChangeParam('columnSizing', set),
-      setColumnOrder: handleOnChangeParam('columnOrder', set),
-    }),
-    {
-      name: 'data-table-store',
-    },
-  ),
-);
+const defaultTableState = (props: DataTableStateInitProps): DataTableState => ({
+  tableId: props.tableId,
+  columnVisibility: props.initialColumnVisibility ?? {},
+  rowSelection: props.initialRowSelection ?? {},
+  columnFilters: [],
+  sorting: [],
+  columnSizing: {},
+  columnOrder: [],
+});
 
+// Per-table UI state (sorting/filters/visibility/selection/sizing/order), persisted
+// via typesafe kvs — replaced the Zustand `persist` store. The schema validates the
+// localStorage payload; arrays are validated as readonly while the app consumes
+// TanStack's mutable types, so the atom is cast to the app shape in one place here.
+const DataTableStateSchema = Schema.Struct({
+  tableId: Schema.String,
+  rowSelection: Schema.Record(Schema.String, Schema.Boolean),
+  columnVisibility: Schema.Record(Schema.String, Schema.Boolean),
+  columnFilters: Schema.Array(Schema.Struct({ id: Schema.String, value: Schema.Unknown })),
+  sorting: Schema.Array(Schema.Struct({ id: Schema.String, desc: Schema.Boolean })),
+  columnSizing: Schema.Record(Schema.String, Schema.Number),
+  columnOrder: Schema.Array(Schema.String),
+});
+
+const tableStateAtom = Atom.kvs({
+  runtime: browserKvsRuntime,
+  key: 'data-table-state',
+  schema: Schema.Record(Schema.String, DataTableStateSchema),
+  defaultValue: () => ({}),
+  // oxlint-disable-next-line unknown-cast/forbidden -- the schema validates the persisted readonly shape; the app uses TanStack's mutable types, bridged here once
+}) as unknown as Atom.Writable<TableStateMap, TableStateMap>;
+
+/** Per-table state + bound TanStack `onChange` setters (consumed by `DataTable`). */
 export const useDataTableState = (initProps: DataTableStateInitProps) => {
-  const store = useDataTableStore();
+  const [tableState, setTableState] = useAtom(tableStateAtom);
+  const { tableId } = initProps;
+  const current = tableState[tableId] ?? defaultTableState(initProps);
 
-  if (!store.tableState[initProps.tableId]) {
-    store.setTableState({
-      ...store.tableState,
-      [initProps.tableId]: defaultTableState(initProps),
-    });
-  }
+  const makeSetter =
+    <K extends keyof DataTableState>(key: K): OnChangeFn<DataTableState[K]> =>
+    (updater: Updater<DataTableState[K]>) => {
+      setTableState((prev) => {
+        const prevState = prev[tableId] ?? defaultTableState({ tableId });
+        const value =
+          typeof updater === 'function'
+            ? (updater as (old: DataTableState[K]) => DataTableState[K])(prevState[key])
+            : updater;
+        return { ...prev, [tableId]: { ...prevState, [key]: value } };
+      });
+    };
 
   return {
-    ...(store.tableState[initProps.tableId] ?? defaultTableState(initProps)),
-    setRowSelection: store.setRowSelection(initProps.tableId),
-    setColumnVisibility: store.setColumnVisibility(initProps.tableId),
-    setColumnFilters: store.setColumnFilters(initProps.tableId),
-    setSorting: store.setSorting(initProps.tableId),
-    setColumnSizing: store.setColumnSizing(initProps.tableId),
-    setColumnOrder: store.setColumnOrder(initProps.tableId),
+    ...current,
+    setRowSelection: makeSetter('rowSelection'),
+    setColumnVisibility: makeSetter('columnVisibility'),
+    setColumnFilters: makeSetter('columnFilters'),
+    setSorting: makeSetter('sorting'),
+    setColumnSizing: makeSetter('columnSizing'),
+    setColumnOrder: makeSetter('columnOrder'),
   };
+};
+
+/** The full per-table state map (e.g. to derive selected map markers). */
+export const useTableStateMap = (): TableStateMap => useAtomValue(tableStateAtom);
+
+/** Row-selection controls used outside a single table (e.g. the map section). */
+export const useRowSelectionControls = () => {
+  const setTableState = useAtomSet(tableStateAtom);
+
+  const setRowSelection =
+    (tableId: TableId): OnChangeFn<RowSelectionState> =>
+    (updater) => {
+      setTableState((prev) => {
+        const prevState = prev[tableId] ?? defaultTableState({ tableId });
+        const rowSelection =
+          typeof updater === 'function' ? updater(prevState.rowSelection) : updater;
+        return { ...prev, [tableId]: { ...prevState, rowSelection } };
+      });
+    };
+
+  const clearAllRowSelection = () => {
+    setTableState(
+      (prev) =>
+        Object.fromEntries(
+          Object.entries(prev).map(([id, state]) => [
+            id,
+            state ? { ...state, rowSelection: {} } : state,
+          ]),
+        ) as TableStateMap,
+    );
+  };
+
+  return { setRowSelection, clearAllRowSelection };
 };

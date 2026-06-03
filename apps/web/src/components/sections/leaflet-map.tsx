@@ -52,7 +52,7 @@ export interface MapManifest {
   maps: MapEntry[];
 }
 
-const BASE_LAYER = '00000000';
+const BASE_LAYER = 'base';
 
 const markerIcon = icon({
   iconUrl,
@@ -179,6 +179,7 @@ export default function LeafletMap({
       maxZoom={manifest.maxNativeZoom + 2}
       center={[0, 0]}
       zoom={2}
+      attributionControl={false}
       style={{ height: '100%', width: '100%', background: '#0a0a0a' }}
     >
       <MapBody

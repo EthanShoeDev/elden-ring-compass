@@ -7,6 +7,13 @@
 > **Equally central goal:** make `packages/er-extractor` → `packages/elden-ring-data`
 > the *single source of truth* for all game data + images, and **delete every legacy
 > data source** (erdb-derived TS, the 1.7 GB erdb assets, hand-authored tables).
+>
+> **Progress (2026-06-02):** Phase A foundation done — effect-atom adopted, React Query
+> ripped out, save-parse is an `AsyncResult` atom, **all Zustand stores migrated and
+> `zustand` removed**, weapons wired as the reference dataset. **Not yet done:** the
+> single-source-of-truth teardown — `@elden-ring-compass/data` is consumed by only one
+> web file, legacy `elden-ring-raw-db/` is still imported by ~7, and `assets/erdb/`
+> (1.7 GB), `lib/erdb.ts`, `lib/map-db.ts` all remain (Phases B/C/D + the parity audit).
 
 ## The committed stack
 
@@ -41,13 +48,14 @@ comes out of `package.json`. (We never adopt TanStack DB or effect-query either.
 - **TanStack Table (v8, headless)** stays — it's a presentation/column/sort-UI library,
   orthogonal to the data layer. It renders rows that come from an atom. (Sorting/filtering
   can live either in the table or in a derived atom; decide per-table.)
-- **Zustand → migrate to effect-atom (now a goal, decided 2026-06-02).** All Zustand
-  stores (save source, slot selection, table UI config, inventory selection) are replaced
-  with writable atoms so reactive state is one effect-native layer. Writable atoms are
-  drop-in reactive state; persisted stores (the localStorage `saveFileSourceUrl`, etc.) use
-  `Atom.writable(read, write)` with a side-effecting write, or `Atom.kvs` for schema-backed
-  localStorage. Exception: `interactive-map.tsx`'s map store is owned by the in-progress
-  tiled-map work — coordinate before touching it.
+- **Zustand → effect-atom: ✅ DONE (2026-06-02).** All Zustand stores are replaced with
+  writable atoms so reactive state is one effect-native layer, and **`zustand` is removed from
+  `apps/web` + the catalog**. Migrated: save source (`Atom.writable` over an `Atom.kvs`-persisted
+  url + a transient source atom), slot selection (`Atom.kvs` slot-by-steam-id memory), the
+  table UI config store (`data-table-store.ts` → `Atom.kvs` keyed `data-table-state`), and the
+  inventory table-selection store (`Atom.kvs` keyed `inventory-table-selection`). Persisted
+  stores use `Atom.kvs` for schema-backed localStorage — never raw localStorage. (No Zustand map
+  store ever existed; the tiled map keeps local React state.)
 
 ### ⚠️ The risk we're accepting
 
@@ -77,6 +85,11 @@ repeatable command against your install."
 deleted** — they keep joining save data to game data, just sourced from the new package.
 
 ### ⚠️ Deletion is GATED ON PARITY — the extractor must cover what the app uses
+
+> **The field-level parity audit is done — see [`data-parity-audit.md`](./data-parity-audit.md)**
+> (task #11). It traces every legacy importer, diffs against the new package, and lists the
+> exact `er-extractor` output each legacy source needs before deletion. The summary below is
+> kept; the audit is the authoritative, verified version.
 
 `elden-ring-data` currently emits: graces, bosses, weapons, armor, talismans, goods,
 ashes-of-war, arts, markers. The legacy data covers **more** than that. Each legacy file is
@@ -216,10 +229,9 @@ bosses, NPCs, items, graces, regions, …). Not an item-drop-only map. Consequen
   - Load one dataset (weapons) as a base atom from `@elden-ring-compass/data`; render its
     table from `useAtomValue` via a derived (search/sort) atom. Validate the pattern.
     **Delete the legacy weapons source** once it matches.
-  - **Migrate Zustand → effect-atom:** convert the save-source + slot-selection stores to
-    writable atoms (the save-parse atom then derives from the source atom directly, no
-    bridge), then the table/inventory UI stores. Remove `zustand` from `apps/web` once no
-    store remains (excluding the map store, owned by the tiled-map work).
+  - **Migrate Zustand → effect-atom: ✅ DONE.** Save-source + slot-selection stores converted
+    to writable atoms (the save-parse atom derives from the source atom directly, no bridge),
+    then the table + inventory UI stores. `zustand` removed from `apps/web` + the catalog.
 - **Phase B — close extractor gaps:** add the new `er-extractor`/codegen stages the audit
   surfaced (event flags, regions/maps, stats/classes, spells stats, reinforcements,
   per-item icons, …). Also: `layer`/`category` on markers + **ItemLotParam → placements**.

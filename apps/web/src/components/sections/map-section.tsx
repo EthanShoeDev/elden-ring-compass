@@ -8,7 +8,7 @@
  *
  * This component owns the non-map UI (map switcher, grace/boss selection buttons,
  * calibration toggle) and computes the selected markers from the shared data-table
- * selection (Zustand) — same wiring as the old `interactive-map.tsx`. Supersedes it.
+ * selection (effect-atom) — same wiring as the old `interactive-map.tsx`. Supersedes it.
  */
 import { InfoIcon } from 'lucide-react';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
@@ -17,7 +17,7 @@ import { useDataTableData } from '@/lib/data-table-data';
 import { ERDB, useAllErdb } from '@/lib/erdb';
 import type { MapItem } from '@/lib/map-db';
 
-import { useDataTableStore } from '../data-table/data-table-store';
+import { useRowSelectionControls, useTableStateMap } from '../data-table/data-table-store';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import type { MapManifest } from './leaflet-map';
@@ -32,9 +32,9 @@ function MapFallback({ message }: { message: string }) {
   );
 }
 
-/** Selected markers across events/regions/inventory tables (Zustand selection). */
+/** Selected markers across events/regions/inventory tables (effect-atom selection). */
 function useSelectedMapItems(): MapItem[] {
-  const tableState = useDataTableStore((s) => s.tableState);
+  const tableState = useTableStateMap();
   const eventsItems = useDataTableData('events');
   const regionItems = useDataTableData('regions');
   const allErdb = useAllErdb();
@@ -50,9 +50,8 @@ function useSelectedMapItems(): MapItem[] {
             if (tableId === 'regions')
               return regionItems.find((r) => r.id.toString() === id)?.map_data ?? [];
             return (
-              allErdb[tableId as keyof typeof ERDB].items.find(
-                (e) => e.id.toString() === id,
-              )?.map_data ?? []
+              allErdb[tableId as keyof typeof ERDB].items.find((e) => e.id.toString() === id)
+                ?.map_data ?? []
             );
           }),
       ),
@@ -69,8 +68,7 @@ export function MapSection() {
 
   const items = useSelectedMapItems();
   const eventsItems = useDataTableData('events');
-  const setRowSelection = useDataTableStore((s) => s.setRowSelection);
-  const clearPins = useDataTableStore((s) => s.clearAllRowSelection);
+  const { setRowSelection, clearAllRowSelection: clearPins } = useRowSelectionControls();
 
   useEffect(() => {
     setMounted(true);

@@ -1,6 +1,11 @@
 # WASM Save Parser Rewrite — ER-Save-Lib + Lean DTO
 
-> **Status (2026-06-02): IN PROGRESS.** Replacing the stale vendored save parser
+> **Status (2026-06-02): INTEGRATED — runtime-verify pending.** Build + typecheck +
+> production build are green and the work is committed (parent monorepo `b045fdb4`).
+> The only open items are verifying a real save in the browser and the follow-up UI
+> features the new DTO now feeds (Ash of War, active effects, quest compass).
+>
+> Replacing the stale vendored save parser
 > (a copy of the old **ER-Save-Editor** Rust, pre-DLC) with a thin `wasm-bindgen`
 > wrapper around a **fork of [ER-Save-Lib](https://github.com/ClayAmore/ER-Save-Lib)**
 > (ClayAmore + vswarte + Nordgaren), the maintainer's _new_ DLC-capable library.
@@ -128,7 +133,7 @@ per slot (PC); a save holds up to 10 slots.
 - [x] Web `typecheck` + production `build` green.
 - [x] Remove the dead `packages/ER-Save-Editor` submodule entry.
 - [ ] **Runtime-verify on a real save (base + DLC):** inventory item ids/names, equipped gear, discovered graces/bosses (event-flag offsets vs ER-Save-Lib's buffer), regions. Needs a browser + real `.sl2` (e.g. `/ER0000.sl2` or the DLC save).
-- [ ] Commit the parent monorepo (submodule gitlink + `.gitmodules` + wrapper + web changes + this doc). Note: the working tree currently also contains another agent's in-flight base-ui/map work — stage selectively.
+- [x] Commit the parent monorepo (submodule gitlink + `.gitmodules` + wrapper + web changes + this doc) — landed in `b045fdb4` alongside the tiled-map + Base UI work.
 - [ ] Follow-up features (data now plumbed): equipped **Ash of War** display (via `gem_gaitem_handle`), **active effects** (via `sp_effects`), **quest compass** (arbitrary event flags).
 </content>
 </invoke>

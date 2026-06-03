@@ -53,3 +53,4 @@ target/
 
 # Extractor output (unpacked artifacts, generated images) — re-extracted on demand
 .er-extractor-out/
+tmp/

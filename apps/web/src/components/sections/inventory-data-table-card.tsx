@@ -27,28 +27,25 @@ import {
 } from '@/lib/erdb';
 import { MapItem } from '@/lib/map-db';
 import { ColumnDef, ColumnHelper, createColumnHelper } from '@tanstack/react-table';
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { Schema } from 'effect';
+import { Atom } from 'effect/unstable/reactivity';
+import { useAtom } from '@effect/atom-react';
+import { browserKvsRuntime } from '@/lib/atoms/kvs';
 
-const useTableSelection = create<{
-  table: InventoryTableType;
-  setTableType: (table: InventoryTableType) => void;
-}>()(
-  persist(
-    (set) => ({
-      table: 'armaments',
-      setTableType: (table) => {
-        set({ table });
-      },
-    }),
-    {
-      name: 'inventory-table-selection',
-    },
-  ),
-);
+// Persisted current inventory table category (typesafe kvs; replaced the Zustand
+// `persist` store). Stored as a plain string and narrowed to `InventoryTableType`
+// at the use site — the valid keys are defined by `tables` below.
+const inventoryTableSelectionAtom = Atom.kvs({
+  runtime: browserKvsRuntime,
+  key: 'inventory-table-selection',
+  schema: Schema.String,
+  defaultValue: () => 'armaments',
+});
 
 export function InventoryDataTableCard() {
-  const { table, setTableType } = useTableSelection();
+  const [tableName, setTableName] = useAtom(inventoryTableSelectionAtom);
+  const table = tableName as InventoryTableType;
+  const setTableType = (next: InventoryTableType) => setTableName(next);
   const allErdb = useAllErdb();
 
   const items = useDataTableData(table);

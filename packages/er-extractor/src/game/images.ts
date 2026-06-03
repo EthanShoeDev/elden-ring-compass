@@ -22,6 +22,13 @@ import {
   parseTileName,
   TILE_PX,
 } from './map-pyramid.ts';
+import {
+  EVENT_BITS,
+  type MapMask,
+  type MapMaskError,
+  parseMapMasks,
+  pickVanillaVariant,
+} from './map-mask.ts';
 
 /**
  * Image extraction: TPF textures → PNG (BCn decode in Rust, see image-codec.ts).
@@ -53,7 +60,8 @@ type ImgErrors =
   | OodleError
   | TpfError
   | ImageCodecError
-  | MapPyramidError;
+  | MapPyramidError
+  | MapMaskError;
 
 export interface ImageEncodeOptions {
   readonly format: ImageFormat;
@@ -110,20 +118,19 @@ const MAP_NAMES: Record<string, string> = {
   M10: 'Land of Shadow (DLC)',
   M11: 'Land of Shadow — Underground (DLC)',
 };
-const BASE_LAYER = '00000000';
 /**
- * Which layers to emit. `'base'` = the base map only (`00000000`). Flip to
- * `'all'` to also emit the event/elevation overlays (e.g. the crater =
- * `00004000`, the underground floors); the pipeline is generic over layer and
- * the manifest enumerates whatever is emitted. Overlays are sparse, so
- * `skipBlanks` keeps them tiny on disk.
+ * Output sub-dir + manifest layer id for the single rendered map per map-id: the
+ * **vanilla, all-fragments-revealed** map (event bits like the crater excluded).
+ * The old `00000000` (fully-undiscovered) dir is superseded and cleaned up.
+ * Phase 2 (the save-driven "collected maps" toggle) may add sibling overlay dirs.
+ * See `docs/projects/map-tile-fragments.md`.
  */
-const EMIT_LAYERS: 'base' | 'all' = 'base';
+const BASE_LAYER_ID = 'base';
 
 const LayerSummary = Schema.Struct({
   id: Schema.String,
   base: Schema.Boolean,
-  tileCount: Schema.Number, // L0 tiles composited into the master
+  tileCount: Schema.Number, // L0 cells composited into the master
 });
 type LayerSummary = typeof LayerSummary.Type;
 
@@ -132,6 +139,10 @@ const MapSummary = Schema.Struct({
   name: Schema.String,
   /** world→pixel affine; calibrated during web integration (TODO). */
   worldToPixelAffine: Schema.Null,
+  /** map-fragment reveal bits (the `variant` bitmask); drives the Phase-2 toggle. */
+  fragmentBits: Schema.Array(Schema.Number),
+  /** world-event/state bits (e.g. the crater) excluded from the vanilla map. */
+  eventBits: Schema.Array(Schema.Number),
   layers: Schema.Array(LayerSummary),
 });
 type MapSummary = typeof MapSummary.Type;
@@ -184,9 +195,14 @@ export const extractImages = (
     yield* Effect.promise(() => mkdir(tileDir, { recursive: true }));
     yield* Effect.promise(() => mkdir(iconDir, { recursive: true }));
 
-    // --- Map tiles → per-(map,layer) power-of-2 pyramids + manifest ---
+    // --- Map tiles → per-map vanilla (all-fragments) pyramid + manifest ---
+    // Each tile name ends in a 32-bit `variant` bitmask (collected fragments /
+    // world events). We render the *vanilla, fully-revealed* map: per cell, drop
+    // event-bit variants and pick the one with the most fragment bits set. See
+    // `game/map-mask.ts` + `docs/projects/map-tile-fragments.md`.
     const bhdPath = `${gameRoot}/menu/71_maptile.tpfbhd`;
     const bdtPath = `${gameRoot}/menu/71_maptile.tpfbdt`;
+    const mtmskPath = `${gameRoot}/menu/71_maptile.mtmskbnd.dcx`;
     let tiles = 0;
     let tilesSkipped = 0;
     if (yield* fileExists(bhdPath)) {
@@ -206,92 +222,130 @@ export const extractImages = (
         );
       }
 
+      // Authoritative fragment/event taxonomy from the mask binder.
+      const masks: Map<string, MapMask> = (yield* fileExists(mtmskPath))
+        ? yield* parseMapMasks(
+            new Uint8Array(
+              yield* Effect.promise(() => Bun.file(mtmskPath).arrayBuffer()),
+            ),
+            oo2corePath,
+          )
+        : new Map();
+
       const bhd = new Uint8Array(
         yield* Effect.promise(() => Bun.file(bhdPath).arrayBuffer()),
       );
       const headers = yield* parseBnd4Headers(bhd);
       yield* log(`map tiles: ${headers.length} archive entries`);
 
-      // Group L0 tiles by map → layer (filtered to the layers we emit).
-      const byMap = new Map<
-        string,
-        Map<
-          string,
-          { col: number; row: number; offset: number; size: number }[]
-        >
-      >();
+      // Group L0 tiles by map → "col_row" → variants (the bitmask + its bytes).
+      interface Variant {
+        variant: number;
+        col: number;
+        row: number;
+        offset: number;
+        size: number;
+      }
+      const byMap = new Map<string, Map<string, Variant[]>>();
       for (const h of headers) {
         const base = (h.name ?? '').split(/[\\/]/).pop() ?? '';
         const stem = base.replace(/\.tpf(\.dcx)?$/i, '');
         const t = parseTileName(stem);
         if (!t || t.lod !== 0) continue;
-        if (EMIT_LAYERS === 'base' && t.layer !== BASE_LAYER) continue;
-        let layers = byMap.get(t.map);
-        if (!layers) {
-          layers = new Map();
-          byMap.set(t.map, layers);
+        let cells = byMap.get(t.map);
+        if (!cells) {
+          cells = new Map();
+          byMap.set(t.map, cells);
         }
-        const arr = layers.get(t.layer) ?? [];
+        const key = `${t.col}_${t.row}`;
+        const arr = cells.get(key) ?? [];
         arr.push({
+          variant: parseInt(t.layer, 16) >>> 0,
           col: t.col,
           row: t.row,
           offset: h.dataOffset,
           size: h.size,
         });
-        layers.set(t.layer, arr);
+        cells.set(key, arr);
       }
 
       const manifestMaps: MapSummary[] = [];
       for (const map of [...byMap.keys()].sort()) {
-        const layers = byMap.get(map)!;
-        // Base layer first, then overlays by id.
-        const layerIds = [...layers.keys()].sort((a, b) =>
-          a === BASE_LAYER ? -1 : b === BASE_LAYER ? 1 : a.localeCompare(b),
+        const cells = byMap.get(map)!;
+        const eventMask = EVENT_BITS[map] ?? 0;
+        const outBaseDir = `${tileDir}/${map}/${BASE_LAYER_ID}`;
+
+        // Fragment/event bits: prefer the mask binder; else derive from on-disk.
+        const maskInfo = masks.get(map);
+        const fragmentBits = maskInfo
+          ? [...maskInfo.fragmentBits]
+          : (() => {
+              const all = new Set<number>();
+              for (const vs of cells.values())
+                for (const v of vs)
+                  for (let b = 0; b < 32; b++)
+                    if (v.variant & (1 << b)) all.add(1 << b);
+              return [...all]
+                .filter((b) => (b & eventMask) === 0)
+                .sort((a, b) => a - b);
+            })();
+        const eventBits = maskInfo
+          ? [...maskInfo.eventBits]
+          : eventMask
+            ? [eventMask]
+            : [];
+
+        // Drop any superseded fully-undiscovered `00000000` pyramid for this map.
+        yield* Effect.promise(() =>
+          rm(`${tileDir}/${map}/00000000`, { recursive: true, force: true }),
         );
-        const layerSummaries: LayerSummary[] = [];
-        for (const layer of layerIds) {
-          const group = layers.get(layer)!;
-          const isBase = layer === BASE_LAYER;
-          const outBaseDir = `${tileDir}/${map}/${layer}`;
-          if (yield* dirHasEntries(outBaseDir)) {
-            tilesSkipped += group.length;
-            layerSummaries.push({
-              id: layer,
-              base: isBase,
-              tileCount: group.length,
-            });
-            continue;
-          }
-          // Decode every L0 tile in the group (BCn → lossless PNG, in Rust).
-          const decoded: { col: number; row: number; png: Uint8Array }[] = [];
-          for (const g of group) {
-            const slice = new Uint8Array(
-              yield* Effect.promise(() =>
-                Bun.file(bdtPath)
-                  .slice(g.offset, g.offset + g.size)
-                  .arrayBuffer(),
-              ),
-            );
-            const textures = yield* tpfTextures(slice, oo2corePath);
-            if (textures.length === 0) continue;
-            const png = yield* ddsToPng(textures[0]!.dds);
-            decoded.push({ col: g.col, row: g.row, png });
-          }
-          const { tileCount } = yield* buildLayerPyramid(
-            decoded,
-            outBaseDir,
-            opts,
-          );
-          tiles += tileCount;
-          layerSummaries.push({ id: layer, base: isBase, tileCount });
-          yield* log(`  ${map}/${layer}: ${tileCount} L0 tiles → pyramid`);
-        }
-        manifestMaps.push({
+
+        const mkSummary = (tileCount: number): MapSummary => ({
           id: map,
           name: MAP_NAMES[map] ?? map,
           worldToPixelAffine: null,
-          layers: layerSummaries,
+          fragmentBits,
+          eventBits,
+          layers: [{ id: BASE_LAYER_ID, base: true, tileCount }],
         });
+
+        if (yield* dirHasEntries(outBaseDir)) {
+          tilesSkipped += cells.size;
+          manifestMaps.push(mkSummary(cells.size));
+          continue;
+        }
+
+        // Pick + decode the vanilla all-fragments variant for each cell.
+        const decoded: { col: number; row: number; png: Uint8Array }[] = [];
+        for (const [, vs] of cells) {
+          const chosen = pickVanillaVariant(
+            vs.map((v) => v.variant),
+            eventMask,
+          );
+          const pick = vs.find((v) => v.variant === chosen) ?? vs[0]!;
+          const slice = new Uint8Array(
+            yield* Effect.promise(() =>
+              Bun.file(bdtPath)
+                .slice(pick.offset, pick.offset + pick.size)
+                .arrayBuffer(),
+            ),
+          );
+          const textures = yield* tpfTextures(slice, oo2corePath);
+          if (textures.length === 0) continue;
+          const png = yield* ddsToPng(textures[0]!.dds);
+          decoded.push({ col: pick.col, row: pick.row, png });
+        }
+        const { tileCount } = yield* buildLayerPyramid(
+          decoded,
+          outBaseDir,
+          opts,
+        );
+        tiles += tileCount;
+        manifestMaps.push(mkSummary(tileCount));
+        yield* log(
+          `  ${map}: ${tileCount} cells → vanilla pyramid ` +
+            `(${fragmentBits.length} fragment bits, ${eventBits.length} event bits)`,
+        );
       }
 
       const manifest = {
@@ -300,7 +354,7 @@ export const extractImages = (
         height: MASTER_PX,
         maxNativeZoom: MAX_NATIVE_ZOOM,
         format: ext,
-        tileUrlTemplate: `{map}/{layer}/{z}/{y}/{x}.${ext}`,
+        tileUrlTemplate: `{map}/${BASE_LAYER_ID}/{z}/{y}/{x}.${ext}`,
         maps: manifestMaps,
       };
       yield* Effect.promise(() =>

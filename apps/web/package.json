@@ -37,8 +37,7 @@
     "react-markdown": "catalog:",
     "react-zoom-pan-pinch": "catalog:",
     "scheduler": "*",
-    "tailwind-merge": "catalog:",
-    "zustand": "catalog:"
+    "tailwind-merge": "catalog:"
   },
   "devDependencies": {
     "@elden-ring-compass/config": "workspace:*",
