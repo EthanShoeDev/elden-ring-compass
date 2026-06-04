@@ -12,7 +12,8 @@
     ".": {
       "import": "./pkg/elden_ring_save_parser.js",
       "types": "./pkg/elden_ring_save_parser.d.ts"
-    }
+    },
+    "./elden_ring_save_parser_bg.wasm": "./pkg/elden_ring_save_parser_bg.wasm"
   },
   "scripts": {
     "build": "wasm-pack build --target web",

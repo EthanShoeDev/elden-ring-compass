@@ -16,19 +16,19 @@
  */
 import 'leaflet/dist/leaflet.css';
 
-import { CRS, icon, latLngBounds } from 'leaflet';
+import {
+  CRS,
+  GridLayer,
+  icon,
+  type LatLngBounds,
+  latLngBounds,
+  TileLayer as LeafletTileLayer,
+} from 'leaflet';
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 import { useEffect, useMemo, useState } from 'react';
-import {
-  MapContainer,
-  Marker,
-  Popup,
-  TileLayer,
-  useMap,
-  useMapEvents,
-} from 'react-leaflet';
+import { MapContainer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 
 /** A map pin already resolved to a specific master (`M00`/`M10`) + master pixel. */
 export interface MapPin {
@@ -61,7 +61,68 @@ export interface MapManifest {
   maps: MapEntry[];
 }
 
+/**
+ * Existence index from `tile-index.json` (derived from the on-disk pyramid by the
+ * `er-data-tiles` Vite plugin): `{ [mapId]: { [zoom]: [x0, y0, x1, y1, …] } }`.
+ * The extractor drops blank tiles, so this lets us skip requesting them.
+ */
+export type TileIndex = Record<string, Record<string, number[]>>;
+
 const BASE_LAYER = 'base';
+
+/** Pack a tile coord into one int key (x, y < 2^16 — far above any zoom's grid). */
+const tileKey = (x: number, y: number) => (x << 16) | y;
+
+/**
+ * A `TileLayer` that won't even request tiles the extractor never wrote (the blank
+ * corners dropped by `skipBlanks`). Leaflet's `_isValidTile` is the gate it calls
+ * before creating each tile — we AND the default bounds check with an existence
+ * lookup, so missing tiles produce neither a request nor a 404. Implemented
+ * imperatively (not via react-leaflet's `<TileLayer>`) because the gate is a
+ * subclass override, not an option.
+ */
+function ExistenceTileLayer({
+  url,
+  tileSize,
+  maxNativeZoom,
+  bounds,
+  exists,
+}: {
+  url: string;
+  tileSize: number;
+  maxNativeZoom: number;
+  bounds: LatLngBounds;
+  exists: (z: number, x: number, y: number) => boolean;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    // `.extend()` loses TileLayer's `(url, options)` constructor signature in
+    // @types/leaflet, so re-assert it.
+    const ExistenceTL = LeafletTileLayer.extend({
+      _isValidTile(coords: { x: number; y: number; z: number }) {
+        // `GridLayer._isValidTile` applies the `bounds`/`noWrap` envelope; we add existence.
+        const inEnvelope = (
+          GridLayer.prototype as unknown as {
+            _isValidTile(c: { x: number; y: number; z: number }): boolean;
+          }
+        )._isValidTile.call(this, coords);
+        return inEnvelope && exists(coords.z, coords.x, coords.y);
+      },
+    }) as unknown as typeof LeafletTileLayer;
+    const layer = new ExistenceTL(url, {
+      tileSize,
+      minNativeZoom: 0,
+      maxNativeZoom,
+      noWrap: true,
+      bounds,
+    });
+    layer.addTo(map);
+    return () => {
+      layer.remove();
+    };
+  }, [map, url, tileSize, maxNativeZoom, bounds, exists]);
+  return null;
+}
 
 const markerIcon = icon({
   iconUrl,
@@ -124,14 +185,30 @@ function MapBody({
   activeMapId,
   pins,
   calibrate,
+  tileIndex,
 }: {
   manifest: MapManifest;
   activeMapId: string;
   pins: MapPin[];
   calibrate: boolean;
+  tileIndex?: TileIndex;
 }) {
   const map = useMap();
   const z = manifest.maxNativeZoom;
+
+  // Existence lookup for the active map. No index (not loaded / fetch failed) →
+  // allow every tile, i.e. fall back to the previous request-and-maybe-404 behavior.
+  const exists = useMemo(() => {
+    const perZoom = tileIndex?.[activeMapId];
+    if (!perZoom) return () => true;
+    const sets = new Map<number, Set<number>>();
+    for (const [zoom, pairs] of Object.entries(perZoom)) {
+      const set = new Set<number>();
+      for (let i = 0; i + 1 < pairs.length; i += 2) set.add(tileKey(pairs[i]!, pairs[i + 1]!));
+      sets.set(Number(zoom), set);
+    }
+    return (tz: number, tx: number, ty: number) => sets.get(tz)?.has(tileKey(tx, ty)) ?? false;
+  }, [tileIndex, activeMapId]);
 
   // rastercoords getMaxBounds(): SW = unproject([0,h]), NE = unproject([w,0]).
   const bounds = useMemo(
@@ -154,14 +231,13 @@ function MapBody({
 
   return (
     <>
-      <TileLayer
+      <ExistenceTileLayer
         key={activeMapId}
         url={`/map-tiles/${activeMapId}/${BASE_LAYER}/{z}/{y}/{x}.webp`}
         tileSize={manifest.tileSize}
-        minNativeZoom={0}
         maxNativeZoom={z}
-        noWrap
         bounds={bounds}
+        exists={exists}
       />
       <MarkerLayer pins={pins.filter((p) => p.master === activeMapId)} zoom={z} />
       {calibrate && <CalibrationReadout zoom={z} />}
@@ -174,11 +250,13 @@ export default function LeafletMap({
   activeMapId,
   pins,
   calibrate = false,
+  tileIndex,
 }: {
   manifest: MapManifest;
   activeMapId: string;
   pins: MapPin[];
   calibrate?: boolean;
+  tileIndex?: TileIndex;
 }) {
   return (
     <MapContainer
@@ -195,6 +273,7 @@ export default function LeafletMap({
         activeMapId={activeMapId}
         pins={pins}
         calibrate={calibrate}
+        tileIndex={tileIndex}
       />
     </MapContainer>
   );

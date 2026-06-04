@@ -20,7 +20,7 @@ import { itemIdToPins } from '@/lib/vm/map-pins';
 import { useRowSelectionControls, useTableStateMap } from '../data-table/data-table-store';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
-import type { MapManifest, MapPin } from './leaflet-map';
+import type { MapManifest, MapPin, TileIndex } from './leaflet-map';
 
 const LeafletMap = lazy(() => import('./leaflet-map'));
 
@@ -91,6 +91,7 @@ function useSelectedPins(): MapPin[] {
 export function MapSection() {
   const [mounted, setMounted] = useState(false);
   const [manifest, setManifest] = useState<MapManifest | null>(null);
+  const [tileIndex, setTileIndex] = useState<TileIndex | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [activeMapId, setActiveMapId] = useState('M00');
   const [calibrate, setCalibrate] = useState(false);
@@ -117,6 +118,14 @@ export function MapSection() {
       .catch((e: unknown) => {
         if (!cancelled) setError(String(e));
       });
+    // Existence index — best-effort: if it fails the map still works (it just
+    // falls back to requesting every tile, blank ones included).
+    fetch('/map-tiles/tile-index.json')
+      .then((r) => (r.ok ? (r.json() as Promise<TileIndex>) : null))
+      .then((idx) => {
+        if (!cancelled && idx) setTileIndex(idx);
+      })
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -148,6 +157,7 @@ export function MapSection() {
               activeMapId={activeMapId}
               pins={pins}
               calibrate={calibrate}
+              tileIndex={tileIndex}
             />
           </Suspense>
         ) : (

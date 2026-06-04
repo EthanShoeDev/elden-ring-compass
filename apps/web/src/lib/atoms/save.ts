@@ -23,7 +23,7 @@ let workerApi: Comlink.Remote<SaveParserWorker> | null = null;
 const getWorkerApi = (): Comlink.Remote<SaveParserWorker> | null => {
   if (typeof window === 'undefined') return null;
   if (!workerApi) {
-    const worker = new Worker(new URL('../er-save-parser.js', import.meta.url), {
+    const worker = new Worker(new URL('../er-save-parser.worker.ts', import.meta.url), {
       name: 'EldenRingSaveParser',
       type: 'module',
     });
