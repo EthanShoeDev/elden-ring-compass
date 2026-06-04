@@ -2,7 +2,12 @@ import { Data, Effect, FileSystem } from 'effect';
 
 import type { OodleError } from '../external/oodle.ts';
 import { type DcxError, dcxDecompress } from '../formats/dcx.ts';
-import { type MsbError, type MsbMarker, parseMsb } from '../formats/msb.ts';
+import {
+  type MsbError,
+  type MsbMarker,
+  type MsbTreasure,
+  parseMsb,
+} from '../formats/msb.ts';
 
 /**
  * Loads every map's placed entities from the unpacked `map/mapstudio/*.msb.dcx`.
@@ -25,8 +30,14 @@ export interface MapEntity extends MsbMarker {
   readonly mapId: string; // e.g. "m10_00_00_00", "m60_42_36_00"
 }
 
+/** A placed-treasure pickup in a specific map (`ItemLotParam_map` ⨝ a Part's coords). */
+export interface MapTreasure extends MsbTreasure {
+  readonly mapId: string;
+}
+
 export interface MapMarkers {
   readonly entities: MapEntity[];
+  readonly treasures: MapTreasure[];
   readonly mapCount: number;
 }
 
@@ -63,6 +74,7 @@ export const loadMapMarkers = (
     }
 
     const entities: MapEntity[] = [];
+    const treasures: MapTreasure[] = [];
     for (const path of paths) {
       const mapId = (path.split(/[\\/]/).pop() ?? '').replace(
         /\.msb\.dcx$/i,
@@ -81,7 +93,8 @@ export const loadMapMarkers = (
       for (const m of [...msb.parts, ...msb.regions]) {
         if (hasEntityId(m.entityID)) entities.push({ ...m, mapId });
       }
+      for (const t of msb.treasures) treasures.push({ ...t, mapId });
     }
 
-    return { entities, mapCount: paths.length };
+    return { entities, treasures, mapCount: paths.length };
   });

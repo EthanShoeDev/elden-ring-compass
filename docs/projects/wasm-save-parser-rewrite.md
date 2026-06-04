@@ -139,4 +139,19 @@ per slot (PC); a save holds up to 10 slots.
 - [x] **Runtime-verify the base save via vitest** (not manual browser testing) — `apps/web/src/lib/wasm-save-parser.test.ts`, an `@effect/vitest` suite that `initSync`s the wasm from disk bytes (no fetch/DOM/browser-mode needed) and asserts the lean DTO against `apps/web/public/ER0000.sl2`: top-level shape, per-slot stats/level/runes, the trimmed event-flag bitfield, `ga_items` handles+ids, `chr_asm2`, and the regions parity. Uses `@effect/platform-node` `NodeServices.layer` for `FileSystem`/`Path` (vitest workers run on Node even under `bun run`). **Finding (resolved):** the regions verification surfaced that `unlocked_regions` mixes placed regions (`REGIONS`) with multiplayer matchmaking siblings (`MATCHMAKING_REGION_IDS`); the extractor now emits both (placed 207→213 via boss-arena naming) and the test asserts the full classification — see `data-parity-audit.md`.
 - [ ] **Runtime-verify a DLC save** — add a committed DLC `.sl2` fixture (or wire the submodule's `packages/er-save-lib/test/*.sl2`) and extend the suite: DLC item ids, DLC graces/bosses, larger region set.
 - [x] Commit the parent monorepo (submodule gitlink + `.gitmodules` + wrapper + web changes + this doc) — landed in `b045fdb4` alongside the tiled-map + Base UI work.
-- [ ] Follow-up features (data now plumbed): equipped **Ash of War** display (via `gem_gaitem_handle`), **active effects** (via `sp_effects`), **quest compass** (arbitrary event flags).
+- [x] **Equipped Ash of War** display (via `gem_gaitem_handle`) — `equipmentDbView` resolves each
+  armament's gem handle → AoW id → name; surfaced in the new **Equipment card** (`components/sections/
+  equipment-card.tsx`) in the Overview (no equipment panel existed before — the VM had been dormant).
+- [x] **Active effects** display (via `sp_effects`) — new install-derived `SP_EFFECT_LABELS` dataset
+  (`er-extractor/src/game/sp-effect-labels.ts`, 1,626 labels) inverts item→SpEffect refs
+  (consumable `refId_default`, talisman/spell `refId`, gear `residentSpEffectId*`) so a save's active
+  `sp_effects[]` get item names; rendered in the new **Active Effects card**. **⚠️ Known limitation
+  (documented, deferred): nested-ref coverage.** Many *active* SpEffect ids are **leaf** effects reached
+  only by walking an item's directly-referenced SpEffect through its own ref fields
+  (`cycleOccurrenceSpEffectId`, conditional sub-effects, Bullet→SpEffect for buff spells). We map only
+  direct refs, so coverage is partial (e.g. Golden Vow resolves — direct ref; Flame Grant Me Strength /
+  Wondrous Physick don't — nested). The web shows `Effect #<id>` (here: an unlabeled count) for those.
+  Closing it needs a recursive SpEffectParam ref-walk — the same fast-follow noted in `game/effects.ts`;
+  revisit both together. NOTE: the `ER0000.sl2` test fixture is a fresh save with ~no active buffs, so
+  end-to-end card verification needs a save that has them.
+- [ ] Follow-up feature still open: **quest compass** (arbitrary event flags) — deferred.

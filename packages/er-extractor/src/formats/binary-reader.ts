@@ -159,6 +159,11 @@ export class BinaryReader {
     return this.dv.getUint32(offset, this.little);
   }
 
+  /** i32 at an absolute offset (does not move cursor). */
+  getI32(offset: number): number {
+    return this.dv.getInt32(offset, this.little);
+  }
+
   /** i64 at an absolute offset, narrowed to number (does not move cursor). */
   getI64(offset: number): number {
     return Number(this.dv.getBigInt64(offset, this.little));

@@ -84,10 +84,12 @@ only, needs generalizing]; (b) ~~marker layer/category + English labels [#9]~~ *
 `game/marker-classify.ts`) + `displayName` (graces via bonfire-entity join, NPCs via
 `NpcParam.nameId → NpcName`; 924 labelled); (c) **`ItemLotParam` item placements** [#10] —
 **✅ enemy/boss drops DONE** (`PLACEMENTS`, 7,700 rows via `npcParamId → NpcParam.itemLotId_enemy
-→ ItemLotParam_enemy`, joined to marker coords; `game/placements.ts`); **⏳ map treasure DEFERRED
-(#10b)** — `ItemLotParam_map` has no static MSB coord link, needs EMEVD item-award parsing. NOTE the
-rich inventory tables' `hasCoords`/map-jump column also depends on (c). The web still needs to
-_wire_ the categories/placements to toggleable layers + calibrated rendering.
+→ ItemLotParam_enemy`, joined to marker coords; `game/placements.ts`); **✅ map treasure DONE
+(#10b)** — the link is the **MSB `Treasure` event** (`EVENT_PARAM_ST`), naming a placed Part
+(→ coords) + an `ItemLotParam_map` row, NOT EMEVD (the scripts reference only ~220 of ~5,400 map
+lots). **3,661 map placements** added → `PLACEMENTS` is now 11,361 rows (`source: 'enemy' | 'map'`).
+NOTE the rich inventory tables' `hasCoords`/map-jump column also depends on (c). The web still needs
+to _wire_ the categories/placements to toggleable layers + calibrated rendering.
 This is a separate effort (tiled-map work) and is the **largest remaining legacy dependency.**
 
 **💀 ACCEPTED DROPS / re-mechanism (NOT install-derivable — need your sign-off to drop the UI):**

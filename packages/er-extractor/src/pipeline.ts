@@ -7,6 +7,7 @@ import { images } from './stages/images.ts';
 import { join } from './stages/join.ts';
 import { markers } from './stages/markers.ts';
 import { loadPlacements } from './game/placements.ts';
+import { loadSpEffectLabels } from './game/sp-effect-labels.ts';
 import { params } from './stages/params.ts';
 import { text } from './stages/text.ts';
 import { unpack } from './stages/unpack.ts';
@@ -40,18 +41,33 @@ export const runPipeline = Effect.gen(function* () {
     archetypes,
   } = yield* flags(paramFiles).pipe(Effect.annotateLogs('stage', '5-flags'));
   // markers runs after flags: it classifies entities using `graces` (the bonfire
-  // entity→name join) and `paramFiles` (NpcParam → NpcName for named NPCs).
-  const markerEntities = yield* markers(paramFiles, graces).pipe(
-    Effect.annotateLogs('stage', '6-markers'),
-  );
-  // placements: enemy/boss item drops (npcParamId → NpcParam.itemLotId_enemy →
-  // ItemLotParam_enemy), joined to each enemy marker's coords.
-  const placementRows = yield* loadPlacements(paramFiles, markerEntities).pipe(
-    Effect.annotateLogs('stage', '7-placements'),
-  );
-  yield* Effect.logInfo(
-    `placements — ${placementRows.length} enemy/boss item drops`,
+  // entity→name join) and `paramFiles` (NpcParam → NpcName for named NPCs). It also
+  // returns MSB Treasure events (placed-treasure Part coords ⨝ ItemLotParam_map).
+  const { markers: markerEntities, treasures } = yield* markers(
+    paramFiles,
+    graces,
+  ).pipe(Effect.annotateLogs('stage', '6-markers'));
+  // placements: enemy/boss drops (npcParamId → NpcParam.itemLotId_enemy →
+  // ItemLotParam_enemy, joined to enemy marker coords) PLUS map treasure (MSB
+  // Treasure event Part coords → ItemLotParam_map).
+  const placementRows = yield* loadPlacements(
+    paramFiles,
+    markerEntities,
+    treasures,
   ).pipe(Effect.annotateLogs('stage', '7-placements'));
+  const enemyCount = placementRows.filter((p) => p.source === 'enemy').length;
+  yield* Effect.logInfo(
+    `placements — ${placementRows.length} item drops (enemy:${enemyCount} map:${placementRows.length - enemyCount})`,
+  ).pipe(Effect.annotateLogs('stage', '7-placements'));
+  // sp-effect labels: invert item→SpEffect refs so a save's active sp_effects[]
+  // can be named (consumables/spells/talismans/gear). Partial coverage by design.
+  const spEffects = yield* loadSpEffectLabels(paramFiles, names).pipe(
+    Effect.annotateLogs('stage', '8-sp-effects'),
+  );
+  yield* Effect.logInfo(`sp-effect labels — ${spEffects.length}`).pipe(
+    Effect.annotateLogs('stage', '8-sp-effects'),
+  );
+
   yield* images.pipe(Effect.annotateLogs('stage', '8-images'));
   yield* codegen({
     graces,
@@ -69,6 +85,7 @@ export const runPipeline = Effect.gen(function* () {
     spiritAshes,
     markers: markerEntities,
     placements: placementRows,
+    spEffects,
     names,
   }).pipe(Effect.annotateLogs('stage', '9-codegen'));
 

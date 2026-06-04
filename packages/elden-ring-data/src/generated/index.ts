@@ -16,4 +16,5 @@ export * from './map-fragments.ts';
 export * from './archetypes.ts';
 export * from './markers.ts';
 export * from './placements.ts';
+export * from './sp-effects.ts';
 export * from './event-flags.ts';

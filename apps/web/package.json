@@ -34,7 +34,6 @@
     "react-dom": "catalog:",
     "react-leaflet": "catalog:",
     "react-markdown": "catalog:",
-    "react-zoom-pan-pinch": "catalog:",
     "scheduler": "*",
     "tailwind-merge": "catalog:"
   },

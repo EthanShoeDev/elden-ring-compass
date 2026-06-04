@@ -154,6 +154,12 @@ const armamentColumns = (() => {
     commonAccessorColumnDef(h, 'isBuffable', 'Buffable'),
     commonAccessorColumnDef(h, 'weaponUpgradeLevel', 'Upgrade Level'),
     commonAccessorColumnDef(h, 'weight', 'Weight'),
+    // Stat requirements (Str/Dex/Int/Fai/Arc) — same fields the weapons browser shows.
+    commonAccessorColumnDef(h, 'reqStrength', 'Str'),
+    commonAccessorColumnDef(h, 'reqDexterity', 'Dex'),
+    commonAccessorColumnDef(h, 'reqIntelligence', 'Int'),
+    commonAccessorColumnDef(h, 'reqFaith', 'Fai'),
+    commonAccessorColumnDef(h, 'reqArcane', 'Arc'),
     commonAccessorColumnDef(h, 'upgradeMaterial', 'Upgrade Material'),
     commonAccessorColumnDef(h, (row) => effectsText(row.effects), 'Effects'),
   ];

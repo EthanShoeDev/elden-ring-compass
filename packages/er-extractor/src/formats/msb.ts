@@ -16,6 +16,13 @@ import { BinaryReader } from './binary-reader.ts';
  * SoulsFormatsNEXT MSBE: `MSBE.cs` (header + Param.Read), `PartsParam.cs`
  * (Part base), `PointParam.cs` (Region base). ER MSBs are little-endian with
  * 64-bit offsets.
+ *
+ * We ALSO decode `EVENT_PARAM_ST` Treasure events (`EventParam.cs` `Event.Treasure`,
+ * type 4): each links a placed treasure Part (`TreasurePartIndex` → the chest/item
+ * asset, which carries the world coords) to an `ItemLotParam_map` row (`ItemLotID`).
+ * This is the authoritative, fully static source for "this item is found here" map
+ * pickups — the EMEVD scripts do NOT carry the asset→lot link (verified: only ~220
+ * of ~5400 map lots appear in any event instruction).
  */
 
 export class MsbError extends Data.TaggedError('MsbError')<{
@@ -40,9 +47,31 @@ export interface MsbMarker {
 // struct, so NPCParamID sits at typeDataOffset + 0x0C.
 const ENEMY_TYPES = new Set([2 /* Enemy */, 10 /* DummyEnemy */]);
 
+/**
+ * A placed-treasure pickup: an `ItemLotParam_map` lot tied to a Part's world
+ * position (the chest / item-on-ground asset). `EventParam.cs` `Event.Treasure`.
+ */
+export interface MsbTreasure {
+  readonly itemLotId: number; // ItemLotParam_map row
+  readonly partName: string; // the treasure Part's name (for provenance/debug)
+  readonly entityID: number; // the treasure Part's entity id (0/0xFFFFFFFF if unset)
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly inChest: boolean;
+}
+
 export interface MsbMarkers {
   readonly parts: MsbMarker[];
   readonly regions: MsbMarker[];
+  readonly treasures: MsbTreasure[];
+}
+
+/** Raw treasure event before its `TreasurePartIndex` is resolved to a Part. */
+interface RawTreasure {
+  readonly treasurePartIndex: number;
+  readonly itemLotId: number;
+  readonly inChest: boolean;
 }
 
 // MSB header is 16 bytes; the first param list begins immediately after it.
@@ -87,6 +116,33 @@ const readPart = (r: BinaryReader, start: number): MsbMarker => {
   return { kind: 'part', type, name, entityID, x, y, z, npcParamId };
 };
 
+// MSBE EventType for placed treasure (EventParam.cs `enum EventType`).
+const EVENT_TREASURE = 4;
+
+/**
+ * Decode an Event entry's treasure data if it is a Treasure event, else null.
+ * Event base header (EventParam.cs `Event(BinaryReaderEx)`): name@+0x00,
+ * eventId@+0x08, type@+0x0C, otherId@+0x10, unk14@+0x14, baseDataOffset@+0x18,
+ * typeDataOffset@+0x20. Treasure type data (`Treasure.ReadTypeData`): two i32 pads,
+ * `TreasurePartIndex`@+0x08, i32 pad, `ItemLotID`@+0x10, 0x24 bytes 0xFF,
+ * actionButton@+0x38, pickupAnim@+0x3C, `InChest`(byte)@+0x40.
+ */
+const readTreasureEvent = (
+  r: BinaryReader,
+  start: number,
+): RawTreasure | null => {
+  const type = r.getU32(start + 0x0c);
+  if (type !== EVENT_TREASURE) return null;
+  const typeDataOffset = r.getI64(start + 0x20);
+  if (typeDataOffset <= 0) return null;
+  const td = start + typeDataOffset;
+  return {
+    treasurePartIndex: r.getI32(td + 0x08),
+    itemLotId: r.getI32(td + 0x10),
+    inChest: r.byteAt(td + 0x40) !== 0,
+  };
+};
+
 /** Decode the shared header of a Region entry (PointParam.cs `Region` base). */
 const readRegion = (r: BinaryReader, start: number): MsbMarker => {
   const nameOffset = r.getI64(start + 0x00);
@@ -127,6 +183,7 @@ export const parseMsb = (
     r.pos = HEADER_SIZE;
     const parts: MsbMarker[] = [];
     const regions: MsbMarker[] = [];
+    const rawTreasures: RawTreasure[] = [];
 
     for (let i = 0; i < 6; i++) {
       const listStart = r.pos;
@@ -138,7 +195,18 @@ export const parseMsb = (
           }),
       });
 
-      if (list.name === 'PARTS_PARAM_ST') {
+      if (list.name === 'EVENT_PARAM_ST') {
+        for (const off of list.entryOffsets) {
+          const t = yield* Effect.try({
+            try: () => readTreasureEvent(r, off),
+            catch: (cause) =>
+              new MsbError({
+                detail: `event @0x${off.toString(16)}: ${String(cause)}`,
+              }),
+          });
+          if (t) rawTreasures.push(t);
+        }
+      } else if (list.name === 'PARTS_PARAM_ST') {
         for (const off of list.entryOffsets) {
           parts.push(
             yield* Effect.try({
@@ -168,5 +236,24 @@ export const parseMsb = (
       r.pos = list.nextParamOffset;
     }
 
-    return { parts, regions };
+    // Resolve each treasure event's part index (now that all Parts are read) to
+    // the placed asset's coords. `TreasurePartIndex` indexes the global Parts list
+    // in file order — the same order we pushed `parts`.
+    const treasures: MsbTreasure[] = [];
+    for (const t of rawTreasures) {
+      if (t.itemLotId <= 0 || t.treasurePartIndex < 0) continue;
+      const part = parts[t.treasurePartIndex];
+      if (!part) continue;
+      treasures.push({
+        itemLotId: t.itemLotId,
+        partName: part.name,
+        entityID: part.entityID,
+        x: part.x,
+        y: part.y,
+        z: part.z,
+        inChest: t.inChest,
+      });
+    }
+
+    return { parts, regions, treasures };
   });

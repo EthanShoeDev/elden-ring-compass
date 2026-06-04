@@ -2,10 +2,11 @@
  * World → master-pixel affine for the overworld map (M00).
  *
  * Marker coordinates in `map-db.ts` are game-world (x, y) (originally scraped).
- * The old map (`interactive-map.tsx` `MapDbWidget`) placed them on the erdb
- * overworld JPEG via a hand-calibrated affine. That JPEG was stitched by erdb
- * from the *same* game map tiles starting at tile (0,0), so the identical affine
- * maps onto our 10496² L0 master (the pixels coincide in the overlapping region).
+ * These constants are the hand-calibrated affine that placed them on erdb's
+ * overworld JPEG. That JPEG was stitched by erdb from the *same* game map tiles
+ * starting at tile (0,0); the affine was assumed to carry onto our 10496² L0
+ * master, but the master size differs (10496² vs erdb 9728×9216), so this NEEDS
+ * recalibration against the new tile pyramid (see the map-tile-fragments project).
  *
  * Anchor (for re-calibration): Isolated Divine Tower — world (x = -134.453125,
  * y = 156.395274) → master pixel ≈ (456.13, 364.37).

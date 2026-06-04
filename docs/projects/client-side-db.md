@@ -17,10 +17,12 @@
 > via `eventFlagOffset()`), regions, share encode/decode, and the inventory catalog all read
 > from the new datasets; per-item + boss-portrait icons come from the package via `import.meta.glob`.
 > **Only one legacy source remains: `lib/map-db.ts`** (1.2 MB, 8 importers) — intentionally
-> retained, gated on the map-coordinate subsystem: **#9 marker classification ✅ done** and
-> **#15 parser runtime-verify ✅ done**, **#10 enemy/boss placements ✅ done** (7,700 rows);
-> remaining **#4 calibration generalization** + **#10b map-treasure placements (EMEVD)** + wiring
-> the layers into the web map. Phase D polish still open.
+> retained, gated on the map-coordinate subsystem: **#9 marker classification ✅ done**,
+> **#15 parser runtime-verify ✅ done**, **#10 enemy/boss placements ✅ done** (7,700 rows), and
+> **#10b map-treasure placements ✅ done** (3,661 rows via MSB `Treasure` events — `PLACEMENTS`
+> now 11,361 rows). Remaining: **web migration** (rewire `map-db.ts`'s consumers onto the new
+> datasets, then delete it) + **#4 calibration generalization** (overworld local→unified tile
+> coords for rendering). Phase D polish still open.
 
 ## The committed stack
 
@@ -210,19 +212,19 @@ bosses, NPCs, items, graces, regions, …). Not an item-drop-only map. Consequen
     `marker.npcParamId → NpcParam.itemLotId_enemy → ItemLotParam_enemy`, joined to the enemy
     marker's coords. **7,700 placements** across 354 maps (bosses are enemy markers, so their
     unique drops are covered). Emitted as the `PLACEMENTS` dataset.
-  - ⏳ **map treasure — DEFERRED (#10b).** `ItemLotParam_map` chests/ground items have **no
-    static MSB link** to a position (the Asset part has no lot field) — the entity→lot mapping
-    lives in the **EMEVD** event scripts. **Foundation laid (`formats/emedf.ts`):** the vendored
-    soulstruct **EMEDF** instruction dictionary (`vendor/er-common.emedf.json`) + a typed,
-    self-aligned arg decoder turn raw EMEVD instructions into named args — **verified 100% opcode
-    coverage on 107k instructions / 589 EMEVDs**. **Scouting result:** direct `Award Item Lot`
-    calls reference only **15 of 5,564 map lots** — treasure is configured via the indirect
-    **asset-treasure system** (`Set Asset Treasure State`, opcode 2005,4), so #10b needs
-    event-flow analysis (trigger entity ⨝ lot), not an opcode scan. A real RE project, grouped
-    with the map-coordinate work (#4). The EMEDF layer is shared with the quest compass. Until
-    #10b lands, `PLACEMENTS.source` is always `'enemy'`.
+  - ✅ **map treasure — DONE (#10b, `formats/msb.ts` + `game/placements.ts`).** The link is the
+    **MSB `Treasure` event** (`EVENT_PARAM_ST`, `EventParam.cs` `Event.Treasure`): each names a
+    placed Part (`TreasurePartIndex` → the chest/item `AEG099_*` asset, which carries world coords)
+    and an `ItemLotParam_map` row (`ItemLotID`). Fully static, no EMEVD needed. **3,831 treasure
+    events → 3,661 map placements** (goods 3201, weapon 258, talisman 116, armor 68, ash-of-war 13;
+    761 in-chest / 3070 on-ground; 95% of lots resolve). **`PLACEMENTS` is now 11,361 rows** (enemy
+    7,700 + map 3,661); `source: 'enemy' | 'map'`, `npcParamId: number | null`.
+    **EMEVD was ruled out** (verified by scout): scripts reference only ~220 of ~5,400 map lots, and
+    `Set Asset Treasure State` (2005,4) carries no lot id — the earlier "asset-treasure event-flow"
+    hypothesis was wrong. The EMEDF layer (`formats/emedf.ts`) remains for the quest compass.
 
-  `map-db.ts` is NOT used; its deletion still waits on #10b + #4 calibration.
+  `map-db.ts` is NOT used; its deletion now waits only on the web migration + #4 calibration
+  (overworld local→unified tile-coord conversion for rendering).
 
 ### In-memory marker / placement model
 

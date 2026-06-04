@@ -14,6 +14,7 @@ import {
   ARMOR,
   ASHES_OF_WAR,
   GOODS,
+  SP_EFFECT_LABELS,
   TALISMANS,
   WEAPONS,
 } from '@elden-ring-compass/data';
@@ -44,6 +45,15 @@ export const nameById: ReadonlyMap<number, string> = new Map<number, string>([
 /** Starting-class archetype id → label (was `ARCHE_TYPE`). */
 export const archetypeNameById: ReadonlyMap<number, string> = new Map(
   ARCHETYPES.map((a) => [a.id, a.name]),
+);
+
+/**
+ * SpEffect id → granting-item label, for naming a save's active `sp_effects[]`.
+ * Coverage is partial (direct item refs only; nested-leaf effects are unlabeled —
+ * see `packages/er-extractor/src/game/sp-effect-labels.ts`).
+ */
+export const spEffectLabelById: ReadonlyMap<number, { label: string; source: string }> = new Map(
+  SP_EFFECT_LABELS.map((e) => [e.id, { label: e.label, source: e.source }]),
 );
 
 /** Goods looked up by display name (for overview lookups: flasks, bell bearings, materials). */

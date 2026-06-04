@@ -9,6 +9,7 @@ import type { MapFragment } from '../game/map-fragments.ts';
 import type { Region } from '../game/regions.ts';
 import type { ClassifiedMarker } from '../game/marker-classify.ts';
 import type { Placement } from '../game/placements.ts';
+import type { SpEffectLabel } from '../game/sp-effect-labels.ts';
 import type {
   ArmorRecord,
   AshOfWarRecord,
@@ -44,6 +45,7 @@ export interface CodegenInput {
   readonly spiritAshes: readonly SpiritAshRecord[];
   readonly markers: readonly ClassifiedMarker[];
   readonly placements: readonly Placement[];
+  readonly spEffects: readonly SpEffectLabel[];
   // Name tables for the remaining categories without a decoded stat record
   // (weapon arts) — emitted as {id, name}.
   readonly names: ItemText;
@@ -196,6 +198,8 @@ export const renderPlacementsFile = (
   const placements = [...placementsInput].sort(
     (a, b) =>
       a.mapId.localeCompare(b.mapId) ||
+      a.source.localeCompare(b.source) ||
+      a.lotId - b.lotId ||
       a.entityId - b.entityId ||
       a.itemId - b.itemId,
   );
@@ -207,7 +211,7 @@ export const renderPlacementsFile = (
       'readonly x: number;',
       'readonly y: number;',
       'readonly z: number;',
-      'readonly npcParamId: number;',
+      'readonly npcParamId: number | null;',
       'readonly lotId: number;',
       'readonly itemId: number;',
       'readonly itemType: string;',
@@ -217,6 +221,28 @@ export const renderPlacementsFile = (
     ],
     'PLACEMENTS',
     placements.map((p) => ({ ...p })),
+  );
+};
+
+/**
+ * Render `generated/sp-effects.ts` — `sp_effect_id → granting-item label`, for
+ * naming a save's active `sp_effects[]`. Self-contained (sorts its inputs).
+ * Coverage is PARTIAL by design (direct refs only; nested-leaf SpEffects are
+ * unlabeled — see `game/sp-effect-labels.ts`).
+ */
+export const renderSpEffectsFile = (
+  spEffectsInput: readonly SpEffectLabel[],
+): string => {
+  const rows = [...spEffectsInput].sort((a, b) => a.id - b.id);
+  return renderDataset(
+    'SpEffectLabel',
+    [
+      'readonly id: number;',
+      'readonly label: string;',
+      'readonly source: string;',
+    ],
+    'SP_EFFECT_LABELS',
+    rows.map((r) => ({ ...r })),
   );
 };
 
@@ -484,6 +510,8 @@ export const codegen = (input: CodegenInput) =>
 
     yield* write('placements.ts', renderPlacementsFile(input.placements));
 
+    yield* write('sp-effects.ts', renderSpEffectsFile(input.spEffects));
+
     yield* write(
       'regions.ts',
       renderRegionsFile(input.regions, input.matchmakingRegionIds),
@@ -539,6 +567,7 @@ export const codegen = (input: CodegenInput) =>
       'archetypes',
       'markers',
       'placements',
+      'sp-effects',
       'event-flags',
     ];
     const index =
@@ -552,6 +581,7 @@ export const codegen = (input: CodegenInput) =>
         `${weapons.length} weapons, ${armor.length} armor, ${talismans.length} talismans, ` +
         `${goods.length} goods, ${ashesOfWar.length} ashes of war, ${spells.length} spells, ` +
         `${spiritAshes.length} spirit ashes, ${mapFragments.length} map fragments, ` +
-        `${input.markers.length} markers, ${input.placements.length} placements (+ arts name table)`,
+        `${input.markers.length} markers, ${input.placements.length} placements, ` +
+        `${input.spEffects.length} sp-effect labels (+ arts name table)`,
     );
   });

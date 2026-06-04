@@ -36,7 +36,10 @@ export const markers = (
   Effect.gen(function* () {
     const ctx = yield* PipelineContext;
     const oo2core = yield* findOodleDll(ctx.gameRoot);
-    const { entities, mapCount } = yield* loadMapMarkers(ctx.gameRoot, oo2core);
+    const { entities, treasures, mapCount } = yield* loadMapMarkers(
+      ctx.gameRoot,
+      oo2core,
+    );
 
     // npcParamId → English name, for the named NPCs only (generic mobs have nameId<=0).
     const npcName = yield* loadFmgTable(
@@ -101,5 +104,9 @@ export const markers = (
           `@ (${sample.x.toFixed(1)}, ${sample.y.toFixed(1)}, ${sample.z.toFixed(1)})`,
       );
     }
-    return classified;
+
+    yield* Effect.logInfo(
+      `markers — ${treasures.length} MSB treasure pickups (ItemLotParam_map ⨝ Part coords)`,
+    );
+    return { markers: classified, treasures };
   });

@@ -4,6 +4,8 @@ import { assertDefined, cn } from '@/lib/utils';
 import { eventsDbView } from '@/lib/vm/events';
 import { inventoryDbView } from '@/lib/vm/inventory';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
+import { ActiveEffectsCard } from './active-effects-card';
+import { EquipmentCard } from './equipment-card';
 import { SlotOverview } from './slot-overview';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
@@ -151,6 +153,8 @@ export function OverviewSection() {
       </CardHeader>
       <CardContent className='flex flex-wrap gap-4 overflow-hidden p-2 sm:p-4'>
         <SlotOverview />
+        <EquipmentCard />
+        <ActiveEffectsCard />
         <Card className=''>
           <CardHeader>
             <CardTitle>Flasks</CardTitle>

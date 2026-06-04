@@ -1,11 +1,15 @@
-import { nameById } from '../game-data';
+import { aowNameById, nameById } from '../game-data';
 import { Slot } from '../wasm-wrapper';
 import { InventoryGaItemTypeToOffset, InventoryItemTypeToOffset } from './inventory';
+/** No Ash of War attached (the gem handle on a weapon reads 0). */
+const noAsh = { id: 0, name: 'None' } as const;
+export type EquippedAsh = { id: number; name: string };
 const empty = {
   gaitem_handle: 0,
   id: 0,
   equip_index: 0,
   name: 'Empty',
+  ashOfWar: noAsh,
 };
 export function equipmentDbView(slot?: Readonly<Slot>) {
   if (!slot)
@@ -23,6 +27,20 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
       talismans: [empty, empty, empty, empty],
     };
   const gaHandleToGaItemId = new Map(slot.ga_items.map((g) => [g.gaitem_handle, g.item_id]));
+  // handle -> the full ga_item, so a weapon can resolve its attached Ash of War
+  // (gem) by following `gem_gaitem_handle` to another ga_item.
+  const gaByHandle = new Map(slot.ga_items.map((g) => [g.gaitem_handle, g]));
+
+  /** Resolve a weapon's equipped Ash of War via its gem handle (None if unattached). */
+  const ashOfWarFor = (weaponGaHandle: number): EquippedAsh => {
+    const gemHandle = gaByHandle.get(weaponGaHandle)?.gem_gaitem_handle ?? 0;
+    if (!gemHandle) return noAsh;
+    const gemItemId = gaByHandle.get(gemHandle)?.item_id ?? 0;
+    if (!gemItemId) return noAsh;
+    // AoW gems carry the AOW data offset; de-offset to the AshOfWar id.
+    const aowId = (gemItemId ^ InventoryItemTypeToOffset.AOW) >>> 0;
+    return { id: aowId, name: aowNameById.get(aowId) ?? 'Unknown' };
+  };
 
   const talisman_count = (() => {
     let count = 1;
@@ -57,6 +75,7 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
         id,
         equip_index,
         name: id ? (nameById.get(id) ?? 'Unknown') : 'Empty',
+        ashOfWar: id ? ashOfWarFor(gaitem_handle) : noAsh,
       };
     });
 

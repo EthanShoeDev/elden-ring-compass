@@ -8,7 +8,7 @@
  *
  * This component owns the non-map UI (map switcher, grace/boss selection buttons,
  * calibration toggle) and computes the selected markers from the shared data-table
- * selection (effect-atom) — same wiring as the old `interactive-map.tsx`. Supersedes it.
+ * selection (effect-atom).
  */
 import { InfoIcon } from 'lucide-react';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
