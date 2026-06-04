@@ -1,6 +1,8 @@
+import { existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { NodeServices } from '@effect/platform-node';
 import { it } from '@effect/vitest';
-import { Data, Effect, FileSystem, Path } from 'effect';
+import { Data, Effect, FileSystem } from 'effect';
 import { expect } from 'vitest';
 import { MATCHMAKING_REGION_IDS, REGIONS } from '@elden-ring-compass/data';
 import { initSync } from '@elden-ring-compass/save-parser';
@@ -26,24 +28,33 @@ class SaveParseError extends Data.TaggedError('SaveParseError')<{
   readonly cause: unknown;
 }> {}
 
-/** Resolve repo fixture paths via the Path service (cwd = apps/web under vitest). */
-const savePaths = Effect.gen(function* () {
-  const path = yield* Path.Path;
-  const appRoot = process.cwd();
-  const repoRoot = path.resolve(appRoot, '..', '..');
-  return {
-    wasm: path.join(
-      repoRoot,
-      'packages',
-      'elden-ring-save-parser',
-      'pkg',
-      'elden_ring_save_parser_bg.wasm',
-    ),
-    // A committed base-game save shipped in public/. (DLC fixtures can join this list once a
-    // committed `.sl2` lives in the repo — packages/er-save-lib/test/* is a submodule, not relied on.)
-    baseSave: path.join(appRoot, 'public', 'ER0000.sl2'),
-  };
-});
+// Resolve the repo root by walking up for `turbo.jsonc`, NOT from `process.cwd()` or
+// `import.meta.url`: the test runs both per-package (cwd = apps/web) and via the root
+// vitest config (cwd = repo root), and in the jsdom env `import.meta.url` isn't a
+// `file://` URL. Walking up to a known root marker is stable across all of these.
+const REPO_ROOT = (() => {
+  let dir = process.cwd();
+  for (let i = 0; i < 10; i++) {
+    if (existsSync(join(dir, 'turbo.jsonc'))) return dir;
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return process.cwd();
+})();
+
+const savePaths = Effect.sync(() => ({
+  wasm: join(
+    REPO_ROOT,
+    'packages',
+    'elden-ring-save-parser',
+    'pkg',
+    'elden_ring_save_parser_bg.wasm',
+  ),
+  // A committed base-game save shipped in public/. (DLC fixtures can join this list once a
+  // committed `.sl2` lives in the repo — packages/er-save-lib/test/* is a submodule, not relied on.)
+  baseSave: join(REPO_ROOT, 'apps', 'web', 'public', 'ER0000.sl2'),
+}));
 
 /**
  * Initialise the wasm singleton from disk bytes (idempotent — `initSync` returns early once set).

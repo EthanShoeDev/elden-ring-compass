@@ -18,6 +18,15 @@
 > (`er:parser-backend`), defaulting `'wasm'`. The perf bench
 > (`er-save-parser.perf.browser.ts`) now has a `ts (direct)` variant alongside wasm.
 >
+> **Perf — MEASURED (ER0000.sl2), and the TS port wins big.** Side-by-side on the same
+> buffer: in node (tinybench, `vitest bench`) **TS ≈ 1.6 ms vs WASM ≈ 95 ms — ~60× faster**;
+> in real Chromium **TS ≈ 3 ms vs WASM ≈ 99 ms — ~33× faster**; retained heap ~0.2–0.4 MB
+> either way. The `serde-wasm-bindgen` marshalling tax (rebuilding the whole DTO out of linear
+> memory every call) dominates, exactly as the "Why JS could win" section predicted. So perf is
+> not just "not worse" — it's decisively better. Benches: `packages/save-parser/perf/*.bench.ts`
+> (timing) + `*.mem.test.ts` (heap) in the `save-parser-perf` project; the browser numbers come
+> from the `web-perf` project (`apps/web/.../er-save-parser.perf.browser.ts`).
+>
 > **Still WASM-only / deferred:** the actual deletion of the `er-save-lib` submodule +
 > `elden-ring-save-parser` wrapper + `build:wasm-parser` + Comlink (Phase 1 below), and
 > DLC/PS-platform fixtures (Phase 2). The sections below are the original decision doc,

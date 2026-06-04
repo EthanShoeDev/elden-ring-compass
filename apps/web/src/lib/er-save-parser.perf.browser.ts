@@ -57,8 +57,9 @@ it.effect('parse (direct): median time + retained heap within bounds', () =>
 
     const med = median(times);
     const heapDeltaMb = mb(heapAfter - heapBefore);
-    yield* Effect.log(
-      `parse direct: median ${med.toFixed(1)}ms (${RUNS} runs), retained +${heapDeltaMb}MB`,
+    // `console.log` (not `Effect.log`) so the number surfaces in the vitest terminal output.
+    console.log(
+      `[perf][browser] wasm  (direct): median ${med.toFixed(1)}ms (${RUNS} runs), retained +${heapDeltaMb}MB`,
     );
 
     expect((save?.slots.length ?? 0) > 0).toBe(true);
@@ -89,8 +90,9 @@ it.effect('parse TS (direct): median time + retained heap within bounds', () =>
 
     const med = median(times);
     const heapDeltaMb = mb(heapAfter - heapBefore);
-    yield* Effect.log(
-      `parse TS direct: median ${med.toFixed(1)}ms (${RUNS} runs), retained +${heapDeltaMb}MB`,
+    // `console.log` (not `Effect.log`) so the number surfaces in the vitest terminal output.
+    console.log(
+      `[perf][browser] ts    (direct): median ${med.toFixed(1)}ms (${RUNS} runs), retained +${heapDeltaMb}MB`,
     );
 
     expect((save?.slots.length ?? 0) > 0).toBe(true);

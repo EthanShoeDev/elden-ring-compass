@@ -4,6 +4,6 @@
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*", "scripts/**/*", "test/**/*"],
+  "include": ["src/**/*", "scripts/**/*", "test/**/*", "perf/**/*"],
   "exclude": ["node_modules", "dist"]
 }

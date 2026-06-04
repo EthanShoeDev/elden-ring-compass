@@ -6,6 +6,7 @@ import { defineConfig } from 'vitest/config';
 // (e.g. the EMEDF instruction decoder).
 export default defineConfig({
   test: {
+    name: 'extractor',
     include: ['src/**/*.test.ts'],
   },
 });

@@ -13,7 +13,9 @@
     "clean": "rm -rf .turbo *.tsbuildinfo",
     "typecheck": "tsgo --noEmit",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:perf": "NODE_OPTIONS=--expose-gc vitest run -c vitest.config.perf.ts",
+    "bench": "vitest bench -c vitest.config.perf.ts"
   },
   "devDependencies": {
     "@elden-ring-compass/config": "workspace:*",
