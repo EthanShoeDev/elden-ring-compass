@@ -140,7 +140,7 @@ function defaultColumns<T extends BaseRow>(columnHelperT: ColumnHelper<T>): Arra
     commonAccessorColumnDef(columnHelper, 'name', 'Name', { filterFn: 'includesString' }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
-    commonAccessorColumnDef(columnHelper, (row) => !!row.map_data, 'Has Coordinates'),
+    commonAccessorColumnDef(columnHelper, (row) => row.hasCoords, 'Has Coordinates'),
     // oxlint-disable-next-line unknown-cast/forbidden -- columns built against BaseRow are structurally valid for the caller's narrower T
   ] as unknown as Array<ColumnDef<T>>;
 }

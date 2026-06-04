@@ -1,6 +1,5 @@
 import { REGIONS } from '@elden-ring-compass/data';
 
-import { MAP_DB_ITEMS } from '../map-db';
 import { Slot } from '../wasm-wrapper';
 
 export function regionsDbView(slot?: Readonly<Slot>) {
@@ -20,6 +19,5 @@ export function regionsDbView(slot?: Readonly<Slot>) {
     isOpenWorld: r.isOpenWorld,
     isDungeon: r.isDungeon,
     found: unlockedRegionSet.has(r.id),
-    map_data: MAP_DB_ITEMS.get(r.name)?.filter((m) => m.category != 'Site of Grace'),
   }));
 }

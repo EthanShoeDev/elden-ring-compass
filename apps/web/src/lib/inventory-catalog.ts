@@ -15,8 +15,8 @@ import {
 } from '@elden-ring-compass/data';
 
 import { useSelectedSlot } from '@/stores/slot-selection-store';
-import { MAP_DB_ITEMS, type MapItem } from './map-db';
 import { inventoryDbView } from './vm/inventory';
+import { itemIdToPins } from './vm/map-pins';
 
 const AMMO_CATEGORIES = new Set(['Arrow', 'Bolt', 'Greatarrow', 'Greatbolt']);
 const goodsIn = (category: string) => GOODS.filter((g) => g.category === category);
@@ -55,7 +55,9 @@ export type InventoryTableType = keyof typeof CATALOG;
 export type WithOwnership<T> = T & {
   quantity: number;
   weaponUpgradeLevel: number;
-  map_data: MapItem[] | undefined;
+  // Whether the item has any extracted overworld pickup location (drives the
+  // "Has Coordinates" column + map pinning). The actual pins live in `itemIdToPins`.
+  hasCoords: boolean;
 };
 
 /** Broad shape every joined row satisfies (used where the category isn't statically known). */
@@ -78,17 +80,13 @@ export function useInventoryTables(): Record<InventoryTableType, InventoryTableR
   const slot = useSelectedSlot();
 
   return useMemo(() => {
-    const owned = new Map<
-      number,
-      { quantity: number; upgradeLevel: number; map_data?: MapItem[] }
-    >();
+    const owned = new Map<number, { quantity: number; upgradeLevel: number }>();
     if (slot) {
       for (const item of inventoryDbView(slot).items) {
         const cur = owned.get(item.item_id);
         owned.set(item.item_id, {
           quantity: (cur?.quantity ?? 0) + item.quantity,
           upgradeLevel: Math.max(cur?.upgradeLevel ?? 0, item.upgrade_level),
-          map_data: cur?.map_data ?? item.map_data,
         });
       }
     }
@@ -104,7 +102,7 @@ export function useInventoryTables(): Record<InventoryTableType, InventoryTableR
           quantity: o?.quantity ?? 0,
           weaponUpgradeLevel,
           name: weaponUpgradeLevel > 0 ? `${row.name} +${weaponUpgradeLevel.toString()}` : row.name,
-          map_data: o?.map_data ?? MAP_DB_ITEMS.get(row.name),
+          hasCoords: itemIdToPins.has(row.id),
         };
       });
       return { items, ownedCount: items.filter((i) => i.quantity > 0).length };

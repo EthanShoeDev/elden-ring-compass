@@ -10,7 +10,9 @@
  * leaflet-rastercoords projection — pixel↔latlng via `unproject(px, nativeZoom)`,
  * where `nativeZoom = ceil(log2(maxDim/tileSize))` (== manifest.maxNativeZoom).
  *
- * Markers are game-world coords projected through `M00_AFFINE` (overworld only).
+ * Markers are precomputed master-pixel pins (`MapPin`) — extracted overworld
+ * coords (graces / field bosses) or the corrected wiki fallback — unprojected at
+ * native zoom. See `map-affine.ts` for the projection and its derivation.
  */
 import 'leaflet/dist/leaflet.css';
 
@@ -28,8 +30,15 @@ import {
   useMapEvents,
 } from 'react-leaflet';
 
-import { M00_AFFINE, worldToMasterPixel } from '@/lib/map-affine';
-import type { MapItem } from '@/lib/map-db';
+/** A map pin already resolved to a specific master (`M00`/`M10`) + master pixel. */
+export interface MapPin {
+  name: string;
+  category: string;
+  description: string;
+  master: string;
+  px: number;
+  py: number;
+}
 
 export interface MapLayer {
   id: string;
@@ -64,33 +73,32 @@ const markerIcon = icon({
   shadowSize: [41, 41],
 });
 
-/** Pins (overworld only) — game-world coords → master pixel → latlng. */
-function MarkerLayer({ items, zoom }: { items: MapItem[]; zoom: number }) {
+/** Pins — already in master-pixel space; unproject at native zoom → latlng. */
+function MarkerLayer({ pins, zoom }: { pins: MapPin[]; zoom: number }) {
   const map = useMap();
   return (
     <>
-      {items.map((item, i) => {
-        const [px, py] = worldToMasterPixel(M00_AFFINE, item.x, item.y);
-        return (
-          <Marker key={i} position={map.unproject([px, py], zoom)} icon={markerIcon}>
-            <Popup>
-              <div className='select-text'>
-                <strong>{item.name}</strong>
-                <p>{item.category}</p>
+      {pins.map((pin, i) => (
+        <Marker key={i} position={map.unproject([pin.px, pin.py], zoom)} icon={markerIcon}>
+          <Popup>
+            <div className='select-text'>
+              <strong>{pin.name}</strong>
+              {pin.category && <p>{pin.category}</p>}
+              {pin.description && (
                 <p
                   className='prose max-w-sm dark:prose-invert'
-                  dangerouslySetInnerHTML={{ __html: item.description }}
+                  dangerouslySetInnerHTML={{ __html: pin.description }}
                 />
-              </div>
-            </Popup>
-          </Marker>
-        );
-      })}
+              )}
+            </div>
+          </Popup>
+        </Marker>
+      ))}
     </>
   );
 }
 
-/** Click-to-read master-pixel readout, for calibrating M00_AFFINE. */
+/** Click-to-read master-pixel readout, for verifying / recalibrating the projection. */
 function CalibrationReadout({ zoom }: { zoom: number }) {
   const [pt, setPt] = useState<[number, number] | null>(null);
   useMapEvents({
@@ -114,12 +122,12 @@ function CalibrationReadout({ zoom }: { zoom: number }) {
 function MapBody({
   manifest,
   activeMapId,
-  items,
+  pins,
   calibrate,
 }: {
   manifest: MapManifest;
   activeMapId: string;
-  items: MapItem[];
+  pins: MapPin[];
   calibrate: boolean;
 }) {
   const map = useMap();
@@ -155,7 +163,7 @@ function MapBody({
         noWrap
         bounds={bounds}
       />
-      {activeMapId === 'M00' && <MarkerLayer items={items} zoom={z} />}
+      <MarkerLayer pins={pins.filter((p) => p.master === activeMapId)} zoom={z} />
       {calibrate && <CalibrationReadout zoom={z} />}
     </>
   );
@@ -164,12 +172,12 @@ function MapBody({
 export default function LeafletMap({
   manifest,
   activeMapId,
-  items,
+  pins,
   calibrate = false,
 }: {
   manifest: MapManifest;
   activeMapId: string;
-  items: MapItem[];
+  pins: MapPin[];
   calibrate?: boolean;
 }) {
   return (
@@ -185,7 +193,7 @@ export default function LeafletMap({
       <MapBody
         manifest={manifest}
         activeMapId={activeMapId}
-        items={items}
+        pins={pins}
         calibrate={calibrate}
       />
     </MapContainer>

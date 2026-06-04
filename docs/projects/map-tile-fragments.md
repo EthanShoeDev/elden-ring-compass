@@ -76,10 +76,11 @@ Verified: produces the correct north-up, colourful, fully-revealed Lands Between
 > ocean-heavy region looked sepia — it isn't.) If a future need arises, the game
 > also ships coarser LODs (L1/L2) with their own art for zoomed-out views.
 
-> **Markers/affine:** flipping to north-up matches erdb's orientation (which the
-> old `M00_AFFINE` was calibrated against), but the master size differs
-> (10496² vs erdb 9728×9216) so marker placement still needs recalibration via
-> the in-app Calibrate tool — tracked separately, not part of this fix.
+> **Markers/affine:** ~~marker placement still needs recalibration~~ — **DONE**.
+> The north-up flip (around the 41-tile master, GRID−1−row) means the menu master
+> grid lands exactly on the m60 small-tile grid: `masterPx = worldX − 8448`,
+> `masterPy = 16896 − worldZ` (1 px = 1 world-unit). See
+> `docs/projects/tiled-map-image-viewer-interactive.md` step 3 + `scripts/map-calibrate.ts`.
 
 ### Phase 2 — save-driven "collected maps" toggle (user-requested)
 

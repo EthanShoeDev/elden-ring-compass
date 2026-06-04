@@ -38,5 +38,5 @@ const columns: Array<ColumnDef<Event>> = [
   }),
   commonAccessorColumnDef(columnHelper, 'on', 'Complete'),
   commonAccessorColumnDef(columnHelper, 'type', 'Type'),
-  commonAccessorColumnDef(columnHelper, (row) => !!row.map_data, 'Has Coordinates'),
+  commonAccessorColumnDef(columnHelper, (row) => !!row.pixel, 'Has Coordinates'),
 ];

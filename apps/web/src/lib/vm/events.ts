@@ -1,15 +1,16 @@
 import { BOSSES, eventFlagOffset, GRACES, MAP_FRAGMENTS, GOODS } from '@elden-ring-compass/data';
 
-import { MAP_DB_ITEMS } from '../map-db';
 import { Slot } from '../wasm-wrapper';
 import { inventoryDbView } from './inventory';
+import { bossFlagToPixel, graceFlagToPixel } from './map-pins';
 
 function get_bit(byte: number, bit_pos: number) {
   return (byte & (1 << bit_pos)) != 0;
 }
 
 export type EventType = 'grace' | 'boss' | 'map' | 'cookbook' | 'whetblade';
-type BaseEvent = { id: number; name: string; type: EventType };
+// `subtitle` is shown under the name in the map popup (a grace's region, etc.).
+type BaseEvent = { id: number; name: string; type: EventType; subtitle?: string };
 
 /**
  * Flag-driven events (graces, bosses, map fragments) — `on` is read from the save's
@@ -19,7 +20,12 @@ type BaseEvent = { id: number; name: string; type: EventType };
 const FLAG_EVENTS: ReadonlyArray<BaseEvent & { flagId: number }> = [
   ...new Map(
     [
-      ...GRACES.map((g) => ({ id: g.flagId, name: g.name, type: 'grace' as const })),
+      ...GRACES.map((g) => ({
+        id: g.flagId,
+        name: g.name,
+        type: 'grace' as const,
+        subtitle: g.region ?? undefined,
+      })),
       ...BOSSES.filter((b): b is typeof b & { name: string } => b.name !== null).map((b) => ({
         id: b.defeatFlagId,
         name: b.name,
@@ -66,17 +72,23 @@ export function eventsDbView(slot?: Readonly<Slot>) {
     }
   }
 
-  const withMapData = <T extends BaseEvent>(e: T, on: boolean) => ({
+  // Install-derived overworld pixel (graces / field bosses), keyed by flag id.
+  // `undefined` for dungeon markers (need WorldMapLegacyConvParam) and collectibles.
+  const pixelFor = (e: BaseEvent, flagId: number) =>
+    e.type === 'grace'
+      ? graceFlagToPixel.get(flagId)
+      : e.type === 'boss'
+        ? bossFlagToPixel.get(flagId)
+        : undefined;
+
+  const withPin = <T extends BaseEvent>(e: T, on: boolean, flagId: number) => ({
     ...e,
     on,
-    map_data: MAP_DB_ITEMS.get(e.name)
-      ?.filter((m) => m.category != 'Locations')
-      .filter((m) => (e.type == 'grace' ? m.category == 'Site of Grace' : true))
-      .filter((m) => (e.type == 'boss' ? m.category == 'Bosses' : true)),
+    pixel: pixelFor(e, flagId),
   });
 
   return [
-    ...FLAG_EVENTS.map(({ flagId, ...e }) => withMapData(e, isFlagOn(flagId))),
-    ...COLLECTIBLE_EVENTS.map((e) => withMapData(e, ownedItemIds.has(e.id))),
+    ...FLAG_EVENTS.map(({ flagId, ...e }) => withPin(e, isFlagOn(flagId), flagId)),
+    ...COLLECTIBLE_EVENTS.map((e) => withPin(e, ownedItemIds.has(e.id), e.id)),
   ];
 }

@@ -19,7 +19,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-import { MapItem } from '@/lib/map-db';
 import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { DataTablePagination } from './data-table-pagination';
@@ -60,7 +59,12 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
       minSize: 50,
     },
     columnResizeMode: 'onChange',
-    enableRowSelection: (row) => !!(row.original as { map_data?: MapItem }).map_data,
+    enableRowSelection: (row) => {
+      // A row is pinnable if it has an extracted overworld position: an event
+      // pixel (graces / field bosses) or an item with overworld pickup locations.
+      const r = row.original as { pixel?: unknown; hasCoords?: boolean };
+      return !!(r.pixel || r.hasCoords);
+    },
     getRowId: (row) => row.id.toString(),
     onRowSelectionChange: state.setRowSelection,
     onSortingChange: state.setSorting,

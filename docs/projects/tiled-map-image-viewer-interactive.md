@@ -199,9 +199,26 @@ run against the game archive (DLL built, sharp installed) — produces a large d
    `dev`/`build`). **Blocked on visual confirm:** the index route 500s until the Rust→WASM
    save-parser is built (`bun run build:wasm-parser`, needs the Nix shell's cargo) — pre-existing,
    unrelated to the map.
-3. Derive & unit-test the world→pixel affine against known anchors (Isolated Divine Tower).
-   Best done once the map renders (click-to-calibrate); lands in manifest `worldToPixelAffine`.
-4. Port marker groups from `interactive-map.tsx`, driven by existing Zustand selection.
+3. ~~Derive & unit-test the world→pixel affine against known anchors.~~ **DONE** —
+   `scripts/map-calibrate.ts` + `apps/web/src/lib/map-affine.ts`. The MENU_MapTile
+   master grid IS the m60 small-tile grid (256 px == 256 world-units), so extracted
+   overworld coords project EXACTLY: `masterPx = worldX − 8448`, `masterPy =
+   16896 − worldZ` (1 px = 1 world-unit), where `worldX = col*size + size/2 + localX`,
+   `size = 256*2^tier`. Proven by a 154/154 grace-on-existing-tile occupancy match +
+   correct N/S/E/W extremes + isotropy. The **DLC (M10)** uses the SAME transform — the
+   occupancy grid-search finds the same offset (−33,−25) for `m61`→M10 (59/59 DLC graces
+   in-bounds); the tile suffix's last digit is the size-tier, the first digit an elevation
+   layer (ignored for XZ). Pins carry precomputed master pixels + their master id (`MapPin`);
+   `leaflet-map.tsx` `unproject`s and filters by the active map. **Follow-up:** legacy
+   *dungeon* markers (~206 dungeon graces + ~106 dungeon bosses) need `WorldMapLegacyConvParam`
+   to convert dungeon-local → overworld coords; and the extractor should emit
+   `worldToPixelAffine` per map into the manifest (web uses the documented constants;
+   manifest field stays `null`).
+4. ~~Port marker groups from `interactive-map.tsx`.~~ **DONE** — ALL marker positions are now
+   install-derived (`lib/vm/map-pins.ts`): `events.ts` attaches the overworld pixel for graces +
+   field bosses; inventory item pins come from extracted `PLACEMENTS` (overworld treasure/drops);
+   `map-section.tsx` builds master-tagged `MapPin[]`. **The scraped `map-db.ts` is DELETED** — no
+   wiki coords anywhere. Regions no longer pin (they're areas; region pins were a scraped-only artifact).
 5. ~~Add remaining maps (M01/M10/M11) as base layers.~~ **DONE** (all 4 in the manifest + switcher).
 6. Delete `react-zoom-pan-pinch`, `lod_0.jpeg`, `underground_lod_0.jpeg`, `BetterKeepScale`,
    and `interactive-map.tsx` (kept for now as marker-wiring reference until step 4 lands).
@@ -230,11 +247,11 @@ handling, weaker marker/overlay story — not chosen because this app is marker-
 - ~~`sharp` install under Bun~~ → **CONFIRMED**: `sharp@0.34.5` prebuilt libvips binary resolves
   on Windows x64 via `bun add sharp`, no build step. (`.tile()` is unsupported only on the
   Wasm build; the native prebuilt is fine.)
-- World→pixel affine: derive `{sx, sy, ox, oy}` from ≥2 known anchors; confirm sign conventions
-  vs current `MapDbWidget` (`x = item.y*dx + bx`, `y = -item.x*dy + by`). Lands in each map's
-  `worldToPixelAffine` (currently `null`). Note overworld (M00/M01) and DLC (M10/M11) each share
-  one affine within their world; M11's base only covers a sub-region but tiles into the same
-  10496² geometry, so its affine = M10's (verify during calibration).
+- ~~World→pixel affine~~ → **RESOLVED** for the overworld (M00): it's not a fitted floating
+  affine at all — the menu grid equals the m60 small-tile grid, so `masterPx = worldX − 8448`,
+  `masterPy = 16896 − worldZ` (1 px = 1 world-unit). See migration step 3 + `scripts/map-calibrate.ts`.
+  Remaining: the same integer-offset derivation for the DLC master (M10, from `m61` tiles) — the
+  occupancy grid-search in the calibration script generalizes directly (rerun against M10 tiles).
 - Elevation/overlay layers (the suffix bitfield): structure is ready (`{map}/{layer}/…` + the
   `EMIT_LAYERS` flag); decide *which* overlays to ship and how the web app models each
   (exclusive base-alternate vs additive overlay) when we wire the crater/floor toggles.

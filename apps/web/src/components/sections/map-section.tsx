@@ -15,12 +15,12 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 
 import { useDataTableData } from '@/lib/data-table-data';
 import { type InventoryTableType, useInventoryTables } from '@/lib/inventory-catalog';
-import type { MapItem } from '@/lib/map-db';
+import { itemIdToPins } from '@/lib/vm/map-pins';
 
 import { useRowSelectionControls, useTableStateMap } from '../data-table/data-table-store';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
-import type { MapManifest } from './leaflet-map';
+import type { MapManifest, MapPin } from './leaflet-map';
 
 const LeafletMap = lazy(() => import('./leaflet-map'));
 
@@ -41,11 +41,10 @@ function MapFallback({ message }: { message: string }) {
   );
 }
 
-/** Selected markers across events/regions/inventory tables (effect-atom selection). */
-function useSelectedMapItems(): MapItem[] {
+/** Selected markers across the events/inventory tables → extracted overworld pins. */
+function useSelectedPins(): MapPin[] {
   const tableState = useTableStateMap();
   const eventsItems = useDataTableData('events');
-  const regionItems = useDataTableData('regions');
   const allTables = useInventoryTables();
 
   return useMemo(
@@ -53,19 +52,39 @@ function useSelectedMapItems(): MapItem[] {
       Object.entries(tableState).flatMap(([tableId, sel]) =>
         Object.entries(sel?.rowSelection ?? {})
           .filter(([, v]) => v)
-          .flatMap(([id]) => {
-            if (tableId === 'events')
-              return eventsItems.find((e) => e.id.toString() === id)?.map_data ?? [];
-            if (tableId === 'regions')
-              return regionItems.find((r) => r.id.toString() === id)?.map_data ?? [];
-            if (tableId === 'weapons') return [];
-            return (
-              allTables[tableId as InventoryTableType].items.find((e) => e.id.toString() === id)
-                ?.map_data ?? []
+          .flatMap(([id]): MapPin[] => {
+            if (tableId === 'events') {
+              const e = eventsItems.find((ev) => ev.id.toString() === id);
+              if (!e?.pixel) return [];
+              return [
+                {
+                  name: e.name,
+                  category: e.type === 'grace' ? 'Site of Grace' : 'Boss',
+                  description: e.subtitle ?? '',
+                  master: e.pixel.master,
+                  px: e.pixel.px,
+                  py: e.pixel.py,
+                },
+              ];
+            }
+            // Inventory item → its extracted overworld pickup locations.
+            if (tableId === 'regions' || tableId === 'weapons') return [];
+            const row = allTables[tableId as InventoryTableType].items.find(
+              (e) => e.id.toString() === id,
             );
+            if (!row) return [];
+            return (itemIdToPins.get(row.id) ?? []).map((p) => ({
+              name: row.name,
+              category: p.source === 'map' ? 'Treasure' : 'Enemy drop',
+              description:
+                p.chance < 1 ? `${(p.chance * 100).toFixed(0)}% drop` : '',
+              master: p.master,
+              px: p.px,
+              py: p.py,
+            }));
           }),
       ),
-    [tableState, eventsItems, regionItems, allTables],
+    [tableState, eventsItems, allTables],
   );
 }
 
@@ -76,7 +95,7 @@ export function MapSection() {
   const [activeMapId, setActiveMapId] = useState('M00');
   const [calibrate, setCalibrate] = useState(false);
 
-  const items = useSelectedMapItems();
+  const pins = useSelectedPins();
   const eventsItems = useDataTableData('events');
   const { setRowSelection, clearAllRowSelection: clearPins } = useRowSelectionControls();
 
@@ -103,9 +122,9 @@ export function MapSection() {
     };
   }, [mounted]);
 
-  /** Select all events of `type` matching `on`, that have map data. */
+  /** Select all events of `type` matching `on`, that have a placeable position. */
   const selectEvents = (type: 'grace' | 'boss', on: boolean) => {
-    const matches = eventsItems.filter((e) => e.type === type && e.on === on && e.map_data);
+    const matches = eventsItems.filter((e) => e.type === type && e.on === on && e.pixel);
     setRowSelection('events')(
       matches.reduce<Record<string, boolean>>((acc, e) => {
         acc[e.id.toString()] = true;
@@ -127,7 +146,7 @@ export function MapSection() {
             <LeafletMap
               manifest={manifest}
               activeMapId={activeMapId}
-              items={items}
+              pins={pins}
               calibrate={calibrate}
             />
           </Suspense>

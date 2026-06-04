@@ -2,7 +2,7 @@ import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 
 import { useDataTableData } from '@/lib/data-table-data';
 import { regionsDbView } from '@/lib/vm/regions';
-import { commonAccessorColumnDef, commonSelectColumnDef } from '../data-table/common-column-defs';
+import { commonAccessorColumnDef } from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
@@ -29,14 +29,14 @@ export function RegionsDataTable() {
   );
 }
 
+// Regions are areas, not points — they carry no extracted marker position, so the
+// table has no select/pin column (region pins were a scraped-map-db artifact, removed).
 const columnHelper = createColumnHelper<Region>();
 const columns: Array<ColumnDef<Region>> = [
-  commonSelectColumnDef(columnHelper),
   commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
   commonAccessorColumnDef(columnHelper, 'name', 'Name'),
   commonAccessorColumnDef(columnHelper, 'found', 'Found'),
   commonAccessorColumnDef(columnHelper, 'map', 'Map'),
   commonAccessorColumnDef(columnHelper, 'isDungeon', 'Is Dungeon'),
   commonAccessorColumnDef(columnHelper, 'isOpenWorld', 'Is Open World'),
-  commonAccessorColumnDef(columnHelper, (row) => !!row.map_data, 'Has Coordinates'),
 ];
