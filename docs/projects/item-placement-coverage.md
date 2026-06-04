@@ -64,10 +64,32 @@ defeat). The classes of missing coverage:
   are pinned at their **tile centre** as `source: 'event'` — covers invader/boss/NPC event
   drops like Reduvia (lot `1042370700` → `m60_42_37`). **188 placements; ±1 tile accuracy.**
   Pinnable distinct items 633 → **801**. The web tags these "Drop · approx. area".
-  - **Phase 2b — EXACT coords (open).** The lot-id tile is ±1 tile (Reduvia lands one tile
-    W of the real Nerijus spawn). Exact coords need an EMEVD reader: *Award Item Lot* (2003,4)
-    → firing entity/region → MSB coords. Also: **DLC `m61` orphan lots** (different id prefix,
-    not yet decoded) — verify the prefix and extend `decodeMapLotTile`.
+  - **Phase 2b — EXACT coords (open, tracked).** The lot-id tile is ±1 tile (Reduvia pins at
+    tile `42_37` centre, ~347px / ~1.3 tiles W of where Nerijus actually fights in `43_37`).
+    The right pin location for an **invader / NPC-event drop is its trigger region** — the
+    in-game bounding box that, when the player enters it, spawns the invasion/encounter that
+    eventually awards the lot. That region IS placed in the MSB (we already read `POINT_PARAM_ST`
+    regions as markers), but **we can't yet link `lot → invader → trigger region`** from the
+    extractor's current outputs. Closing it needs the EMEVD wiring:
+      - parse `event/*.emevd.dcx`: an invasion setup (e.g. the SpawnOneShotNPC / invasion
+        instruction family) ties a **trigger region entity** + an **invader NPC** + the
+        **defeat flag** whose `Award Item Lot` (2003,4) grants the drop lot;
+      - resolve: `ItemLotParam_map` lot → awarding event → trigger-region entity →
+        `POINT_PARAM_ST` region coords (the bounding-box centre) → exact-ish pin.
+    Same EMEVD machinery also fixes non-invader event drops (boss/remembrance/NPC-defeat).
+    Until then, event-drop pins stay tile-level and are labelled "Drop · approx. area".
+  - **DLC `m61` orphan lots (open).** Their lot ids use a different prefix than the `10…`
+    m60 form — verify it and extend `decodeMapLotTile` so DLC event drops pin too.
+
+## Open data gaps the extractor doesn't surface yet
+
+- **EMEVD** is not parsed at all (no `formats/emevd.ts`). It's the missing link for: exact
+  event-drop coords (above), invasion trigger regions, scripted item grants, and quest steps
+  ([[quest-compass]]). A general EMEVD reader is the single highest-leverage addition for this
+  project and several others.
+- **Invasion / NPC-spawn params** (e.g. spawn-point / invasion setup params) — if a param,
+  rather than EMEVD, holds the `trigger region ↔ invader` link, that's a cheaper path; TBD
+  which param (investigate alongside the EMEVD work).
 - **Phase 3 — dungeon → overworld projection.** Apply `WorldMapLegacyConvParam` so dungeon
   enemy/treasure/event placements project onto the overworld (and DLC) masters. (Also
   unblocks dungeon graces/bosses for the map — same conv-param work.) **Biggest remaining
