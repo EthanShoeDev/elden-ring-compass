@@ -23,9 +23,15 @@ import type { MapTreasure } from './map-markers.ts';
  *
  * **Map treasure (`source: 'map'`, #10b):** chests / items-on-the-ground. The link
  * is the MSB **Treasure event** (`EventParam.cs` `Event.Treasure`), which names a
- * placed Part (→ coords) and an `ItemLotParam_map` row (→ items). The EMEVD scripts
- * were ruled out (verified: they reference only ~220 of ~5400 map lots, and
- * `Set Asset Treasure State` carries no lot id) — the authoritative link is the MSB.
+ * placed Part (→ coords) and an `ItemLotParam_map` row (→ items).
+ *
+ * **Event-awarded overworld lots (`source: 'event'`):** ~hundreds of `ItemLotParam_map`
+ * rows are granted by EMEVD scripts on a boss/invader/NPC defeat (e.g. Reduvia from
+ * Bloody Finger Nerijus) and so have no MSB Treasure Part. Their row id encodes the
+ * overworld tile (`10<col><row><seq>`, validated: 1144/1144 placed m60 lots decode to
+ * their tile), so we pin them at that **tile centre** (±1 tile — coarser than the exact
+ * Part/enemy coords above). Exact spawn coords would need an EMEVD reader; see
+ * `docs/projects/item-placement-coverage.md`.
  */
 
 export interface Placement {
@@ -40,12 +46,23 @@ export interface Placement {
   readonly itemType: ItemType;
   readonly quantity: number;
   readonly chance: number; // 0..1 within the lot
-  readonly source: 'enemy' | 'map';
+  readonly source: 'enemy' | 'map' | 'event';
 }
 
 const num = (row: ReadonlyMap<string, RowValue>, key: string): number => {
   const v = row.get(key);
   return typeof v === 'number' ? v : 0;
+};
+
+/**
+ * Decode an `ItemLotParam_map` row id into its overworld tile, or `null` if it isn't
+ * a 10-digit Lands Between (`m60`) map-lot id. Format `10<col2><row2><seq4>`.
+ * (DLC `m61` lots use a different prefix — TODO once verified.)
+ */
+const decodeMapLotTile = (lotId: number): { col: number; row: number } | null => {
+  const s = lotId.toString();
+  if (!/^10\d{8}$/.test(s)) return null;
+  return { col: Number(s.slice(2, 4)), row: Number(s.slice(4, 6)) };
 };
 
 export const loadPlacements = (
@@ -59,49 +76,64 @@ export const loadPlacements = (
 > =>
   Effect.gen(function* () {
     const out: Placement[] = [];
-
-    // --- Enemy / boss drops: marker.npcParamId → ItemLotParam_enemy. ---
     const enemyLots = yield* loadItemLots(params, 'ItemLotParam_enemy');
-    const enemyLotByNpc = new Map<number, number>();
+    const mapLots = yield* loadItemLots(params, 'ItemLotParam_map');
+    const usedMapLot = new Set<number>(); // map lots already placed (treasure / NPC)
+
+    // --- Enemy / boss / NPC drops: marker.npcParamId → NpcParam lots → coords. ---
+    // NpcParam carries FOUR drop-lot fields: direct (`itemLotId_enemy` → ItemLotParam_enemy)
+    // and on-the-ground (`itemLotId_map` → ItemLotParam_map), each with a `sleepCollector`
+    // variant. Pull all four so NPC drops that live in the map table aren't missed.
+    const NPC_LOT_FIELDS = [
+      { field: 'itemLotId_enemy', map: false },
+      { field: 'itemLotId_map', map: true },
+      { field: 'sleepCollectorItemLotId_enemy', map: false },
+      { field: 'sleepCollectorItemLotId_map', map: true },
+    ] as const;
+    const lotsByNpc = new Map<number, Array<{ lotId: number; map: boolean }>>();
     const npcBytes = params.get('NpcParam');
     if (npcBytes) {
       const npcParam = yield* parseParam(npcBytes);
       const def = yield* loadParamdef('NpcParam');
       for (const r of npcParam.rows) {
         const row = decodeRow(npcBytes, r.dataOffset, def, npcParam.little);
-        const lot = num(row, 'itemLotId_enemy');
-        if (lot > 0) enemyLotByNpc.set(r.id, lot);
+        const lots = NPC_LOT_FIELDS.flatMap(({ field, map }) => {
+          const lotId = num(row, field);
+          return lotId > 0 ? [{ lotId, map }] : [];
+        });
+        if (lots.length) lotsByNpc.set(r.id, lots);
       }
     }
     for (const m of markers) {
       if (m.npcParamId === null) continue; // only enemy/dummy-enemy markers carry it
-      const lotId = enemyLotByNpc.get(m.npcParamId);
-      if (lotId === undefined) continue;
-      const items = enemyLots.get(lotId);
-      if (items === undefined) continue;
-      for (const it of items) {
-        out.push({
-          mapId: m.mapId,
-          entityId: m.entityID,
-          x: m.x,
-          y: m.y,
-          z: m.z,
-          npcParamId: m.npcParamId,
-          lotId,
-          itemId: it.itemId,
-          itemType: it.itemType,
-          quantity: it.quantity,
-          chance: it.chance,
-          source: 'enemy',
-        });
+      for (const { lotId, map } of lotsByNpc.get(m.npcParamId) ?? []) {
+        const items = (map ? mapLots : enemyLots).get(lotId);
+        if (items === undefined) continue;
+        if (map) usedMapLot.add(lotId);
+        for (const it of items) {
+          out.push({
+            mapId: m.mapId,
+            entityId: m.entityID,
+            x: m.x,
+            y: m.y,
+            z: m.z,
+            npcParamId: m.npcParamId,
+            lotId,
+            itemId: it.itemId,
+            itemType: it.itemType,
+            quantity: it.quantity,
+            chance: it.chance,
+            source: 'enemy',
+          });
+        }
       }
     }
 
     // --- Map treasure: MSB Treasure event (Part coords) → ItemLotParam_map. ---
-    const mapLots = yield* loadItemLots(params, 'ItemLotParam_map');
     for (const t of treasures) {
       const items = mapLots.get(t.itemLotId);
       if (items === undefined) continue;
+      usedMapLot.add(t.itemLotId);
       for (const it of items) {
         out.push({
           mapId: t.mapId,
@@ -116,6 +148,32 @@ export const loadPlacements = (
           quantity: it.quantity,
           chance: it.chance,
           source: 'map',
+        });
+      }
+    }
+
+    // --- Event-awarded overworld lots: orphan ItemLotParam_map rows whose id decodes to
+    //     an m60 tile, pinned at that tile's centre (x=z=0). Covers invader/boss/NPC
+    //     event drops (e.g. Reduvia) the MSB Treasure/enemy joins miss. Coarse (±1 tile).
+    for (const [lotId, items] of mapLots) {
+      if (usedMapLot.has(lotId)) continue;
+      const tile = decodeMapLotTile(lotId);
+      if (!tile) continue;
+      const mapId = `m60_${String(tile.col).padStart(2, '0')}_${String(tile.row).padStart(2, '0')}_00`;
+      for (const it of items) {
+        out.push({
+          mapId,
+          entityId: 0,
+          x: 0,
+          y: 0,
+          z: 0,
+          npcParamId: null,
+          lotId,
+          itemId: it.itemId,
+          itemType: it.itemType,
+          quantity: it.quantity,
+          chance: it.chance,
+          source: 'event',
         });
       }
     }

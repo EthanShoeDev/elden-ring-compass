@@ -54,19 +54,30 @@ defeat). The classes of missing coverage:
 
 ## Proposed approach (phased)
 
-- **Phase 1 — exhaust the param lots (cheap, high value).** Extend the enemy join to also
-  read `itemLotId_map` + the two `sleepCollector*` lots from `NpcParam`, joined to the
-  enemy marker's coords. Tag `source` accordingly. No new parsing. Re-measure coverage.
-- **Phase 2 — EMEVD award-lot → location.** Add an `emevd` stage: parse `event/*.emevd.dcx`,
-  collect *Award Item Lot* instructions, and resolve each awarding event to a world point
-  (the event's region/entity argument → MSB Part/Region coords; fall back to the event
-  file's map id + a representative coord). Emit `source: 'event'` placements. Validate
-  against known cases (Reduvia@Murkwater, remembrance drops, NPC-defeat uniques).
+- **Phase 1 — exhaust the param lots (cheap, high value). ✅ DONE.** The enemy join now reads
+  all four `NpcParam` lot fields (`itemLotId_enemy`, `itemLotId_map`,
+  `sleepCollectorItemLotId_enemy/map`) against the right lot table, joined to the enemy
+  marker's coords. Enemy placements 7,700 → **9,573**.
+- **Phase 2 — orphan overworld map lots → tile (lot-id decode). ✅ DONE (coarse).** Instead of
+  the full EMEVD parse, exploit that an `ItemLotParam_map` row id encodes its tile
+  (`10<col><row><seq>`, validated 1144/1144). Orphan map lots (not reached by Treasure/NPC)
+  are pinned at their **tile centre** as `source: 'event'` — covers invader/boss/NPC event
+  drops like Reduvia (lot `1042370700` → `m60_42_37`). **188 placements; ±1 tile accuracy.**
+  Pinnable distinct items 633 → **801**. The web tags these "Drop · approx. area".
+  - **Phase 2b — EXACT coords (open).** The lot-id tile is ±1 tile (Reduvia lands one tile
+    W of the real Nerijus spawn). Exact coords need an EMEVD reader: *Award Item Lot* (2003,4)
+    → firing entity/region → MSB coords. Also: **DLC `m61` orphan lots** (different id prefix,
+    not yet decoded) — verify the prefix and extend `decodeMapLotTile`.
 - **Phase 3 — dungeon → overworld projection.** Apply `WorldMapLegacyConvParam` so dungeon
   enemy/treasure/event placements project onto the overworld (and DLC) masters. (Also
-  unblocks dungeon graces/bosses for the map — same conv-param work.)
+  unblocks dungeon graces/bosses for the map — same conv-param work.) **Biggest remaining
+  lever** (most items are dungeon-only).
 - **Phase 4 (optional) — vendors.** `ShopLineupParam` → merchant NPC marker; pin as
   "purchasable from <NPC>".
+
+> **Codegen note:** `PLACEMENTS` is now emitted via `JSON.parse(...)` (`renderDatasetJson`),
+> not an inline array — at 13k+ rows the inline literal trips TypeScript's TS2590
+> ("union type too complex"). JSON is `any` at parse time, so it sidesteps that and checks faster.
 
 ## Data sources / params
 

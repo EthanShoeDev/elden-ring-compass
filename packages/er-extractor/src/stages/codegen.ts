@@ -86,6 +86,24 @@ const renderDataset = (
   return `${HEADER}${iface}export const ${constName}: readonly ${typeName}[] = [\n${body}\n];\n`;
 };
 
+/**
+ * Like `renderDataset`, but emits the rows via a single `JSON.parse(...)` literal
+ * instead of an inline array. For very large datasets the inline-array form makes
+ * TypeScript infer a giant element union and bail with TS2590 ("union type too
+ * complex"); a JSON string is `any` at parse time, so it sidesteps that (and
+ * type-checks + parses faster). Runtime cost is one parse at module load.
+ */
+const renderDatasetJson = (
+  typeName: string,
+  fields: readonly string[],
+  constName: string,
+  rows: readonly object[],
+): string => {
+  const iface = `export interface ${typeName} {\n${fields.map((f) => `  ${f}`).join('\n')}\n}\n\n`;
+  const json = JSON.stringify(JSON.stringify(rows));
+  return `${HEADER}${iface}export const ${constName}: readonly ${typeName}[] =\n  JSON.parse(${json}) as readonly ${typeName}[];\n`;
+};
+
 const write = (fileName: string, contents: string) =>
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
@@ -203,7 +221,9 @@ export const renderPlacementsFile = (
       a.entityId - b.entityId ||
       a.itemId - b.itemId,
   );
-  return renderDataset(
+  // JSON.parse form: PLACEMENTS is large enough that an inline array literal trips
+  // TS2590 ("union type too complex"). See `renderDatasetJson`.
+  return renderDatasetJson(
     'Placement',
     [
       'readonly mapId: string;',
