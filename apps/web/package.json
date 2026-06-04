@@ -20,6 +20,7 @@
     "@effect/atom-react": "catalog:",
     "@elden-ring-compass/data": "workspace:*",
     "@elden-ring-compass/save-parser": "workspace:*",
+    "@elden-ring-compass/save-parser-ts": "workspace:*",
     "@faker-js/faker": "catalog:",
     "@tanstack/react-router": "catalog:",
     "@tanstack/react-table": "catalog:",

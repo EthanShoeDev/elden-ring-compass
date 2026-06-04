@@ -9,7 +9,9 @@
 // the glue's default `new URL(..., import.meta.url)` self-fetch resolves to the wrong path.
 import init from '@elden-ring-compass/save-parser';
 import wasmUrl from '@elden-ring-compass/save-parser/elden_ring_save_parser_bg.wasm?url';
+import { parseSave } from '@elden-ring-compass/save-parser-ts';
 import * as Comlink from 'comlink';
+import type { WasmEldenRingSave } from './wasm-wrapper';
 import { parseEldenRingData } from './er-save-parser';
 
 // `Comlink.expose` MUST run synchronously at module eval so the worker's message listener is
@@ -23,8 +25,17 @@ let wasmReady: Promise<unknown> | undefined;
 const ensureWasm = () => (wasmReady ??= init({ module_or_path: wasmUrl }));
 
 Comlink.expose({
+  // Rust/WASM backend (default). Needs a one-time wasm init.
   async parseEldenRingData(buffer: ArrayBuffer) {
     await ensureWasm();
     return parseEldenRingData(buffer);
+  },
+  // Pure-TS backend (no wasm init). Emits the identical lean DTO — verified
+  // byte-for-byte against WASM in `packages/save-parser/test/parity.test.ts`. The
+  // structurally-identical `LeanSave` is cast to the web's `WasmEldenRingSave` so
+  // every downstream view-model stays unchanged. See
+  // `docs/projects/typescript-save-parser-port.md`.
+  parseEldenRingDataTs(buffer: ArrayBuffer) {
+    return parseSave(buffer) as unknown as WasmEldenRingSave;
   },
 });

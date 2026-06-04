@@ -4,6 +4,7 @@ import { Atom } from 'effect/unstable/reactivity';
 import * as AsyncResult from 'effect/unstable/reactivity/AsyncResult';
 import { useAtomRefresh, useAtomValue } from '@effect/atom-react';
 import { reconstructSlot } from '@/lib/share/decode';
+import { getSaveParserBackend } from '@/lib/save-parser-backend';
 import { isSharedSource, saveFileSourceAtom } from '@/stores/save-file-source-store';
 import type { WasmEldenRingSave } from '@/lib/wasm-wrapper';
 
@@ -17,6 +18,7 @@ class SaveParseError extends Data.TaggedError('SaveParseError')<{ readonly messa
 
 type SaveParserWorker = {
   parseEldenRingData: (buffer: ArrayBuffer) => Promise<WasmEldenRingSave>;
+  parseEldenRingDataTs: (buffer: ArrayBuffer) => Promise<WasmEldenRingSave>;
 };
 
 let workerApi: Comlink.Remote<SaveParserWorker> | null = null;
@@ -74,12 +76,17 @@ export const saveAtom = Atom.make((get) =>
             catch: toParseError,
           });
 
+    const backend = getSaveParserBackend();
     const save = yield* Effect.tryPromise({
-      try: () => api.parseEldenRingData(buffer),
+      try: () =>
+        backend === 'ts'
+          ? api.parseEldenRingDataTs(buffer)
+          : api.parseEldenRingData(buffer),
       catch: toParseError,
     });
     yield* Effect.logInfo(`save parse #${parseRunCount}: success`).pipe(
       Effect.annotateLogs('slots', save.slots.length),
+      Effect.annotateLogs('backend', backend),
     );
     return save;
   }),

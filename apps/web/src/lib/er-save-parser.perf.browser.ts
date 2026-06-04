@@ -1,4 +1,5 @@
 import initWasm from '@elden-ring-compass/save-parser';
+import { parseSave as parseSaveTs } from '@elden-ring-compass/save-parser-ts';
 import * as Comlink from 'comlink';
 import { it } from '@effect/vitest';
 import { Effect } from 'effect';
@@ -58,6 +59,38 @@ it.effect('parse (direct): median time + retained heap within bounds', () =>
     const heapDeltaMb = mb(heapAfter - heapBefore);
     yield* Effect.log(
       `parse direct: median ${med.toFixed(1)}ms (${RUNS} runs), retained +${heapDeltaMb}MB`,
+    );
+
+    expect((save?.slots.length ?? 0) > 0).toBe(true);
+    expect(med).toBeLessThan(PARSE_DIRECT_MS);
+    expect(heapDeltaMb).toBeLessThan(PARSE_HEAP_MB);
+  }),
+);
+
+it.effect('parse TS (direct): median time + retained heap within bounds', () =>
+  Effect.gen(function* () {
+    // Pure-TS parser: no wasm init, no marshalling boundary — it builds the JS object
+    // graph directly. Measured the same way as the WASM direct test so the two numbers
+    // are comparable back-to-back on the same buffer/machine. See
+    // `docs/projects/typescript-save-parser-port.md` (Performance).
+    const buffer = yield* loadSaveBuffer;
+
+    for (let i = 0; i < WARMUP; i++) parseSaveTs(buffer);
+
+    const heapBefore = yield* Effect.promise(forceGcHeapUsedBytes);
+    const times: number[] = [];
+    let save: WasmEldenRingSave | undefined;
+    for (let i = 0; i < RUNS; i++) {
+      const start = performance.now();
+      save = parseSaveTs(buffer) as unknown as WasmEldenRingSave;
+      times.push(performance.now() - start);
+    }
+    const heapAfter = yield* Effect.promise(forceGcHeapUsedBytes);
+
+    const med = median(times);
+    const heapDeltaMb = mb(heapAfter - heapBefore);
+    yield* Effect.log(
+      `parse TS direct: median ${med.toFixed(1)}ms (${RUNS} runs), retained +${heapDeltaMb}MB`,
     );
 
     expect((save?.slots.length ?? 0) > 0).toBe(true);

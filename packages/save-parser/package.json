@@ -1,0 +1,27 @@
+{
+  "name": "@elden-ring-compass/save-parser-ts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "files": ["src"],
+  "scripts": {
+    "gen-oracle": "bun scripts/gen-oracle.ts",
+    "clean": "rm -rf .turbo *.tsbuildinfo",
+    "typecheck": "tsgo --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "devDependencies": {
+    "@elden-ring-compass/config": "workspace:*",
+    "@elden-ring-compass/save-parser": "workspace:*",
+    "@types/node": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:"
+  }
+}

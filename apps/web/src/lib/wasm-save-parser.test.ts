@@ -4,6 +4,7 @@ import { Data, Effect, FileSystem, Path } from 'effect';
 import { expect } from 'vitest';
 import { MATCHMAKING_REGION_IDS, REGIONS } from '@elden-ring-compass/data';
 import { initSync } from '@elden-ring-compass/save-parser';
+import { parseSave as parseSaveTs } from '@elden-ring-compass/save-parser-ts';
 import { parseEldenRingData } from './er-save-parser';
 import type { Slot, WasmEldenRingSave } from './wasm-wrapper';
 
@@ -189,5 +190,43 @@ it.layer(NodeServices.layer)('WASM save parser — lean DTO (ER0000.sl2)', (it) 
         // ...and nothing should fall outside placed ∪ matchmaking ∪ known-outliers (no silent gap).
         expect(unclassified).toEqual([]);
       }),
+  );
+
+  // The pure-TS port (`@elden-ring-compass/save-parser-ts`) must produce the IDENTICAL
+  // lean DTO as WASM — this is the gate that lets the app A/B the backends and eventually
+  // retire the Rust stack. (The package's own parity test pins the same invariant against a
+  // committed oracle; this runs them truly back-to-back on the live wasm.) See
+  // docs/projects/typescript-save-parser-port.md.
+  it.effect('TS port matches the WASM parser byte-for-byte (full DTO)', () =>
+    Effect.gen(function* () {
+      yield* ensureParser;
+      const fs = yield* FileSystem.FileSystem;
+      const { baseSave } = yield* savePaths;
+      const bytes = yield* fs.readFile(baseSave);
+      const buffer = bytes.buffer.slice(
+        bytes.byteOffset,
+        bytes.byteOffset + bytes.byteLength,
+      ) as ArrayBuffer;
+      const wasm = parseEldenRingData(buffer);
+      const ts = parseSaveTs(buffer);
+
+      // Replace each slot's multi-MB event-flag bitfield with a fast rolling checksum so
+      // `toEqual` doesn't spend ~14 s deep-comparing ~8.5 MB of bytes. The checksum pins the
+      // bitfield byte-for-byte; the rest of the DTO is compared structurally.
+      const checksum = (b: Uint8Array): { len: number; sum: number } => {
+        let sum = 0;
+        for (let i = 0; i < b.length; i++) sum = (sum * 31 + b[i]!) >>> 0;
+        return { len: b.length, sum };
+      };
+      const normalize = (s: WasmEldenRingSave) => ({
+        ...s,
+        slots: s.slots.map((slot) => ({
+          ...slot,
+          event_flags: checksum(slot.event_flags.flags as Uint8Array),
+        })),
+      });
+
+      expect(normalize(ts as unknown as WasmEldenRingSave)).toEqual(normalize(wasm));
+    }),
   );
 });
