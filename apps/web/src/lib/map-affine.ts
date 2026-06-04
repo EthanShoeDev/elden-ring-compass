@@ -21,6 +21,22 @@
 /** Native (z6) master edge in px: 41 tiles × 256. Pins live in this space; Leaflet unprojects at `maxNativeZoom`. */
 export const MASTER_PX = 10496;
 
+/**
+ * Absolute world→master-pixel offsets: `px = worldX + OFFSET_X`, `py = OFFSET_Y − worldZ`.
+ * Scale is exactly 1 px = 1 world-unit, and the offset is an exact INTEGER number of
+ * 256px tiles (both grids are 256-aligned 1:1). It can't be derived from data alone —
+ * the map art has large unknown ocean margins (occupancy/bbox ambiguous by ±8 tiles) and
+ * the game's WorldMap* params use a different stylized image projection — so it's pinned
+ * from ONE ground-truth Calibrate click, rounded to the nearest tile (so click error
+ * <128px is irrelevant). TODO: move this into the extractor manifest (`worldToPixelAffine`).
+ *
+ * Anchor — Claymore @ Castle Morne (m60_43_31_00): world (11142.3, 8036.3) ⇒ clicked
+ * master pixel (3978, 8596) ⇒ OFFSET_X = round((3978−11142.3)/256)·256 = −7168,
+ * OFFSET_Y = round((8596+8036.3)/256)·256 = 16640.
+ */
+const OFFSET_X = -7168;
+const OFFSET_Y = 16640;
+
 /** Which tile-pyramid master a pin belongs to. */
 export type MasterId = 'M00' | 'M10';
 
@@ -58,5 +74,27 @@ export function overworldMarkerToMasterPixel(
   const size = 256 * 2 ** tier;
   const worldX = Number(m[2]) * size + size / 2 + x;
   const worldZ = Number(m[3]) * size + size / 2 + z;
-  return { master: m[1] === '60' ? 'M00' : 'M10', px: worldX - 8448, py: 16896 - worldZ };
+  return { master: m[1] === '60' ? 'M00' : 'M10', px: worldX + OFFSET_X, py: OFFSET_Y - worldZ };
+}
+
+/**
+ * The save's current player position (`player_coords`: local [x, y(elevation), z];
+ * `map_id`: 4 raw bytes) → master pixel, or `null` if the player is not in an
+ * overworld tile (e.g. inside a legacy dungeon — needs WorldMapLegacyConvParam).
+ * The byte order of `map_id` is unknown, so both orders are tried; only the one
+ * that forms a valid `m60`/`m61` overworld id projects (the other returns null).
+ */
+export function playerToMasterPixel(
+  mapId: ReadonlyArray<number>,
+  coords: ReadonlyArray<number>,
+): MasterPixel | null {
+  if (mapId.length < 4 || coords.length < 3) return null;
+  const [a, b, c, d] = mapId as [number, number, number, number];
+  const x = coords[0]!;
+  const z = coords[2]!;
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return (
+    overworldMarkerToMasterPixel(`m${pad(a)}_${pad(b)}_${pad(c)}_${pad(d)}`, x, z) ??
+    overworldMarkerToMasterPixel(`m${pad(d)}_${pad(c)}_${pad(b)}_${pad(a)}`, x, z)
+  );
 }

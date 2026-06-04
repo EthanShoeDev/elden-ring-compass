@@ -40,16 +40,26 @@ export const bossFlagToPixel: ReadonlyMap<number, MasterPixel> = new Map(
   }),
 );
 
-/** Item id → its overworld pickup locations (treasure + enemy drops). */
-export const itemIdToPins: ReadonlyMap<number, ItemPin[]> = (() => {
-  const map = new Map<number, ItemPin[]>();
+// Item ids are NOT globally unique — each item TYPE (weapon/armor/goods/talisman/
+// ash-of-war) has its own id space, so e.g. weapon 1040000 (Reduvia) and armor
+// 1040000 are different items. Key pins by `${itemType}:${itemId}` to avoid
+// cross-type collisions.
+const itemKey = (itemType: string, itemId: number) => `${itemType}:${itemId}`;
+
+const itemPinsByKey: ReadonlyMap<string, ItemPin[]> = (() => {
+  const map = new Map<string, ItemPin[]>();
   for (const p of PLACEMENTS) {
     const px = overworldMarkerToMasterPixel(p.mapId, p.x, p.z);
     if (!px) continue;
     const pin: ItemPin = { ...px, source: p.source, chance: p.chance, quantity: p.quantity };
-    const cur = map.get(p.itemId);
+    const k = itemKey(p.itemType, p.itemId);
+    const cur = map.get(k);
     if (cur) cur.push(pin);
-    else map.set(p.itemId, [pin]);
+    else map.set(k, [pin]);
   }
   return map;
 })();
+
+/** Overworld pickup locations for an item, by its placement type + id. */
+export const itemPins = (itemType: string, itemId: number): ItemPin[] =>
+  itemPinsByKey.get(itemKey(itemType, itemId)) ?? [];

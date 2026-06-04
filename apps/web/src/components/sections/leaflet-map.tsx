@@ -18,6 +18,7 @@ import 'leaflet/dist/leaflet.css';
 
 import {
   CRS,
+  divIcon,
   GridLayer,
   icon,
   type LatLngBounds,
@@ -134,6 +135,17 @@ const markerIcon = icon({
   shadowSize: [41, 41],
 });
 
+/** Distinct "you are here" marker — a pulsing amber dot, centered on its point. */
+const playerIcon = divIcon({
+  className: '',
+  html:
+    '<div style="width:18px;height:18px;border-radius:50%;background:#f59e0b;' +
+    'border:3px solid #fff;box-shadow:0 0 0 2px #f59e0b,0 0 8px 2px rgba(245,158,11,.8)"></div>',
+  iconSize: [18, 18],
+  iconAnchor: [9, 9],
+  popupAnchor: [0, -10],
+});
+
 /** Pins — already in master-pixel space; unproject at native zoom → latlng. */
 function MarkerLayer({ pins, zoom }: { pins: MapPin[]; zoom: number }) {
   const map = useMap();
@@ -184,12 +196,14 @@ function MapBody({
   manifest,
   activeMapId,
   pins,
+  playerPin,
   calibrate,
   tileIndex,
 }: {
   manifest: MapManifest;
   activeMapId: string;
   pins: MapPin[];
+  playerPin?: MapPin | null;
   calibrate: boolean;
   tileIndex?: TileIndex;
 }) {
@@ -240,6 +254,16 @@ function MapBody({
         exists={exists}
       />
       <MarkerLayer pins={pins.filter((p) => p.master === activeMapId)} zoom={z} />
+      {playerPin && playerPin.master === activeMapId && (
+        <Marker position={map.unproject([playerPin.px, playerPin.py], z)} icon={playerIcon}>
+          <Popup>
+            <div className='select-text'>
+              <strong>{playerPin.name}</strong>
+              {playerPin.description && <p>{playerPin.description}</p>}
+            </div>
+          </Popup>
+        </Marker>
+      )}
       {calibrate && <CalibrationReadout zoom={z} />}
     </>
   );
@@ -249,12 +273,14 @@ export default function LeafletMap({
   manifest,
   activeMapId,
   pins,
+  playerPin,
   calibrate = false,
   tileIndex,
 }: {
   manifest: MapManifest;
   activeMapId: string;
   pins: MapPin[];
+  playerPin?: MapPin | null;
   calibrate?: boolean;
   tileIndex?: TileIndex;
 }) {
@@ -272,6 +298,7 @@ export default function LeafletMap({
         manifest={manifest}
         activeMapId={activeMapId}
         pins={pins}
+        playerPin={playerPin}
         calibrate={calibrate}
         tileIndex={tileIndex}
       />

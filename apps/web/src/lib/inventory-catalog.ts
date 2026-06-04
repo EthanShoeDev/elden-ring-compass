@@ -16,7 +16,7 @@ import {
 
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { inventoryDbView } from './vm/inventory';
-import { itemIdToPins } from './vm/map-pins';
+import { itemPins } from './vm/map-pins';
 
 const AMMO_CATEGORIES = new Set(['Arrow', 'Bolt', 'Greatarrow', 'Greatbolt']);
 const goodsIn = (category: string) => GOODS.filter((g) => g.category === category);
@@ -50,6 +50,32 @@ export const CATALOG = {
 } as const;
 
 export type InventoryTableType = keyof typeof CATALOG;
+
+/**
+ * Each inventory table's corresponding `PLACEMENTS.itemType` (item ids are only
+ * unique WITHIN a type). Spells and spirit ashes are `goods` in the placement data.
+ */
+export const TABLE_PLACEMENT_TYPE: Record<InventoryTableType, string> = {
+  armaments: 'weapon',
+  ammo: 'weapon',
+  armor: 'armor',
+  talismans: 'talisman',
+  ashes: 'ash-of-war',
+  sorceries: 'goods',
+  incantations: 'goods',
+  spirits: 'goods',
+  consumables: 'goods',
+  craftingMaterials: 'goods',
+  upgradeMaterials: 'goods',
+  keyItems: 'goods',
+  infoItems: 'goods',
+  crystalTears: 'goods',
+  remembrances: 'goods',
+  greatRunes: 'goods',
+  craftingTools: 'goods',
+  gestures: 'goods',
+  physick: 'goods',
+};
 
 /** A catalog row joined with the active save's ownership. */
 export type WithOwnership<T> = T & {
@@ -93,6 +119,7 @@ export function useInventoryTables(): Record<InventoryTableType, InventoryTableR
 
     const join = (
       rows: ReadonlyArray<{ id: number; name: string; icon: number; rarity: string }>,
+      placementType: string,
     ): InventoryTableResult => {
       const items: InventoryRow[] = rows.map((row) => {
         const o = owned.get(row.id);
@@ -102,14 +129,17 @@ export function useInventoryTables(): Record<InventoryTableType, InventoryTableR
           quantity: o?.quantity ?? 0,
           weaponUpgradeLevel,
           name: weaponUpgradeLevel > 0 ? `${row.name} +${weaponUpgradeLevel.toString()}` : row.name,
-          hasCoords: itemIdToPins.has(row.id),
+          hasCoords: itemPins(placementType, row.id).length > 0,
         };
       });
       return { items, ownedCount: items.filter((i) => i.quantity > 0).length };
     };
 
     return Object.fromEntries(
-      Object.entries(CATALOG).map(([key, rows]) => [key, join(rows)]),
+      Object.entries(CATALOG).map(([key, rows]) => [
+        key,
+        join(rows, TABLE_PLACEMENT_TYPE[key as InventoryTableType]),
+      ]),
     ) as Record<InventoryTableType, InventoryTableResult>;
   }, [slot]);
 }

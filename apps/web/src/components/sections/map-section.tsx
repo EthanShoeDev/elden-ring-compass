@@ -14,8 +14,14 @@ import { InfoIcon } from 'lucide-react';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 
 import { useDataTableData } from '@/lib/data-table-data';
-import { type InventoryTableType, useInventoryTables } from '@/lib/inventory-catalog';
-import { itemIdToPins } from '@/lib/vm/map-pins';
+import {
+  type InventoryTableType,
+  TABLE_PLACEMENT_TYPE,
+  useInventoryTables,
+} from '@/lib/inventory-catalog';
+import { playerToMasterPixel } from '@/lib/map-affine';
+import { itemPins } from '@/lib/vm/map-pins';
+import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 import { useRowSelectionControls, useTableStateMap } from '../data-table/data-table-store';
 import { Button } from '../ui/button';
@@ -69,11 +75,12 @@ function useSelectedPins(): MapPin[] {
             }
             // Inventory item → its extracted overworld pickup locations.
             if (tableId === 'regions' || tableId === 'weapons') return [];
+            const type = TABLE_PLACEMENT_TYPE[tableId as InventoryTableType];
             const row = allTables[tableId as InventoryTableType].items.find(
               (e) => e.id.toString() === id,
             );
             if (!row) return [];
-            return (itemIdToPins.get(row.id) ?? []).map((p) => ({
+            return itemPins(type, row.id).map((p) => ({
               name: row.name,
               category: p.source === 'map' ? 'Treasure' : 'Enemy drop',
               description:
@@ -88,6 +95,25 @@ function useSelectedPins(): MapPin[] {
   );
 }
 
+/** "You are here" pin from the active save's player position (overworld only). */
+function usePlayerPin(): MapPin | null {
+  const slot = useSelectedSlot();
+  return useMemo(() => {
+    if (!slot) return null;
+    const { player_coords, map_id } = slot.player_coords;
+    const px = playerToMasterPixel(map_id, player_coords);
+    if (!px) return null; // in a dungeon / not overworld
+    return {
+      name: slot.player_game_data.character_name || 'Current location',
+      category: '',
+      description: 'Your current position',
+      master: px.master,
+      px: px.px,
+      py: px.py,
+    };
+  }, [slot]);
+}
+
 export function MapSection() {
   const [mounted, setMounted] = useState(false);
   const [manifest, setManifest] = useState<MapManifest | null>(null);
@@ -97,6 +123,7 @@ export function MapSection() {
   const [calibrate, setCalibrate] = useState(false);
 
   const pins = useSelectedPins();
+  const playerPin = usePlayerPin();
   const eventsItems = useDataTableData('events');
   const { setRowSelection, clearAllRowSelection: clearPins } = useRowSelectionControls();
 
@@ -156,6 +183,7 @@ export function MapSection() {
               manifest={manifest}
               activeMapId={activeMapId}
               pins={pins}
+              playerPin={playerPin}
               calibrate={calibrate}
               tileIndex={tileIndex}
             />
