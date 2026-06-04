@@ -82,12 +82,7 @@ function useSelectedPins(): MapPin[] {
             if (!row) return [];
             return itemPins(type, row.id).map((p) => ({
               name: row.name,
-              category:
-                p.source === 'map'
-                  ? 'Treasure'
-                  : p.source === 'event'
-                    ? 'Drop · approx. area'
-                    : 'Enemy drop',
+              category: p.source === 'map' ? 'Treasure' : p.approx ? 'Drop · approx. area' : 'Drop',
               description:
                 p.chance < 1 ? `${(p.chance * 100).toFixed(0)}% drop` : '',
               master: p.master,

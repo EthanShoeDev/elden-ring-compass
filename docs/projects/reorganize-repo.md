@@ -162,6 +162,56 @@ the prefix inconsistency. (The user floated `elden-ring-ts-save-parser` for the 
 public name can stay `@elden-ring-compass/save-parser` — "ts" is an implementation detail
 that won't be true forever — with the _dir_ just `save-parser`.)
 
+## Extractor hygiene: fold one-off scripts back into real stages
+
+While building the extractor we accumulated **one-off debug/derivation scripts that never got
+folded into the pipeline**. They drift, rot, and duplicate logic that belongs in a stage.
+Known offenders (audit for more):
+
+- `scripts/map-calibrate.ts` (repo root) — derives + validates the MSB-marker → tile-pixel
+  affine transforms. This is **real extraction logic** (map calibration, #4) masquerading as a
+  script; it belongs as a proper `calibrate`/`markers`-adjacent stage that emits the transform
+  into `data`, not a `bun scripts/...` you have to remember to run.
+- `scripts/req-bin.ts` — a throwaway debug HTTP request-bin. Pure dev scratch → **delete** (or
+  move out of the project entirely).
+- `spike/gen-keys.ts`, `spike/oodle-spike.ts` — referenced in comments/PROVENANCE
+  (`er-archive-keys.ts`, `oodle.ts`). These are **legitimate one-shot vendor-derivation /
+  smoke-test** helpers. Keep them, but make them **first-class + documented**: a real
+  `package.json` script + a PROVENANCE row (like `update-paramdex`), not loose files.
+
+**The rule going forward** (to be encoded in a `packages/er-extractor/CLAUDE.md`, added as part
+of this track — see migration step 7):
+
+1. **No throwaway scripts for extraction work.** If you need to inspect/derive something from
+   the install, do it **inside a stage** (or extend one). Stages are the only place extraction
+   logic lives.
+2. **Legitimate maintenance commands** (vendor refresh, one-shot key/dict regeneration) get a
+   named `package.json` script + a PROVENANCE entry — they are *not* ad-hoc.
+3. **Iterating on one stage must not require a script.** The reason one-offs got written is
+   that re-running the whole pipeline to debug `join` or `codegen` is slow. **Fix the root
+   cause: make stages individually runnable** (next item).
+
+### Make stages individually runnable (the prevention)
+
+Today `runPipeline` is one linear `Effect.gen` that threads each stage's output to the next
+**in memory** (`paramFiles → join`, `graces → markers`, …), so you can't run or re-run a
+single stage — which is *why* people reach for scratch scripts. Fix:
+
+- **Per-stage on-disk artifacts.** Each stage serializes its output (real `Schema`, per memory
+  `effect-fs-not-bun-file`) to `outDir/.cache/<stage>.json`, and loads its upstream inputs from
+  there if not produced this run. Stages become resumable + independently runnable, and the
+  cache doubles as the debugging surface (inspect `join.json` directly — no script needed).
+- **CLI stage selection** on the `extract` command:
+  `--only <stage>` (run just one, from cached inputs), `--from <stage>` / `--to <stage>` (run a
+  range), default = full run. e.g. `bun src/bin.ts extract --only codegen` re-emits data files
+  from cached upstream artifacts in seconds.
+- Stage names are already stable (`unpack, params, text, join, flags, markers, placements,
+  sp-effects, images, codegen` — see `pipeline.ts`); expose them as the `--only`/`--from`/`--to`
+  choices.
+
+This is the durable fix: with single-stage runs + inspectable artifacts, there's **no reason to
+write a one-off script**, which is the whole point.
+
 ## Migration plan (incremental, each step independently shippable)
 
 1. **Extract `vendored-data` package.** Move `er-extractor/src/vendor/*` → new
@@ -184,6 +234,18 @@ that won't be true forever — with the _dir_ just `save-parser`.)
 
 Steps 1–4 are pure refactors doable now; 5–6 ride on the save-parser-port and quest-compass
 feature work respectively.
+
+**Extractor-hygiene track (independent of the package moves — do anytime):**
+
+7. **Add `packages/er-extractor/CLAUDE.md`** — the "no one-off scripts; fold into stages" rule
+   for agents (the prevention rules above, plus the pipeline conventions: Effect FileSystem not
+   `Bun.file`, no magic constants in stage logic → `vendor/`, parsers-ours-content-theirs).
+8. **Per-stage artifacts + CLI stage selection** — serialize each stage's output to
+   `outDir/.cache/<stage>.json`; add `--only` / `--from` / `--to` to the `extract` command.
+   The prerequisite that makes one-offs unnecessary; do this **first** in this track.
+9. **Audit + fold the existing one-offs** — `scripts/map-calibrate.ts` → a real
+   calibration stage; `scripts/req-bin.ts` → delete; `spike/*` → promote to documented
+   `package.json` scripts + PROVENANCE rows. Sweep for any others.
 
 ## Open questions
 

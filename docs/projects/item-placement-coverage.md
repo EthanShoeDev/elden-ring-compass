@@ -64,32 +64,51 @@ defeat). The classes of missing coverage:
   are pinned at their **tile centre** as `source: 'event'` — covers invader/boss/NPC event
   drops like Reduvia (lot `1042370700` → `m60_42_37`). **188 placements; ±1 tile accuracy.**
   Pinnable distinct items 633 → **801**. The web tags these "Drop · approx. area".
-  - **Phase 2b — EXACT coords (open, tracked).** The lot-id tile is ±1 tile (Reduvia pins at
-    tile `42_37` centre, ~347px / ~1.3 tiles W of where Nerijus actually fights in `43_37`).
-    The right pin location for an **invader / NPC-event drop is its trigger region** — the
-    in-game bounding box that, when the player enters it, spawns the invasion/encounter that
-    eventually awards the lot. That region IS placed in the MSB (we already read `POINT_PARAM_ST`
-    regions as markers), but **we can't yet link `lot → invader → trigger region`** from the
-    extractor's current outputs. Closing it needs the EMEVD wiring:
-      - parse `event/*.emevd.dcx`: an invasion setup (e.g. the SpawnOneShotNPC / invasion
-        instruction family) ties a **trigger region entity** + an **invader NPC** + the
-        **defeat flag** whose `Award Item Lot` (2003,4) grants the drop lot;
-      - resolve: `ItemLotParam_map` lot → awarding event → trigger-region entity →
-        `POINT_PARAM_ST` region coords (the bounding-box centre) → exact-ish pin.
-    Same EMEVD machinery also fixes non-invader event drops (boss/remembrance/NPC-defeat).
-    Until then, event-drop pins stay tile-level and are labelled "Drop · approx. area".
+  - **Phase 2b — EXACT coords via the EMEVD flag→entity trace. ◀ NEXT (proven end-to-end).**
+    The award is **flag-gated**: a `CommonFunc_900057xx(flag=F, item_lot=L)` wrapper grants `L`
+    once flag `F` is set, and `F` is set by the encounter's own event (`EnableFlag(F)` gated by
+    `CharacterDead(character)` / `CharacterInsideRegion(region)`). That event is initialized with
+    the **invader / boss / NPC character (or trigger region) entity**, which IS a placed MSB
+    marker with coordinates. So the trace is mechanical:
+
+        item_lot L  →  award-wrapper's flag F  →  the event that EnableFlag(F)  →
+        its character/region entity  →  MSB marker coords
+
+    **Proven (Reduvia):** `CommonFunc_90005774(flag=1043379262, item_lot=1042370700)` →
+    `Event_1043373722` does `EnableFlag(1043379262)` on `CharacterDead(character)`, initialized
+    with `character=1043370740` (`c0000_9001` = Bloody Finger Nerijus) → marker px **(4084,6999)
+    = 13px** from the hand-clicked true location. (Correction to an earlier note: invaders DO
+    have static MSB coords — they're placed, dormant NPCs; the enemy-join only missed Reduvia
+    because its drop is EMEVD-awarded, not a `NpcParam` drop.)
+
+    **The unlock was the award-wrapper signatures** (which arg of `90005774` is `item_lot` vs
+    `flag`) — supplied by **soulstruct's** decompiler (`docs/cloned-repos-as-docs/dlc-data-sources/
+    soulstruct/.../events/`, the `CommonFunc_*` defs + EMEDF). We don't need to parse its 478
+    `.evs.py`; we vendor the small wrapper-signature table and run the trace in our own
+    `formats/emevd.ts` reader (pattern: `game/boss-names.ts`).
+
+    **Plan (path A):** new `game/event-drop-locations.ts`:
+      1. index award-wrappers → `{flagArg, lotArg}` (from the vendored soulstruct signatures);
+      2. parse per-map EMEVDs → for each `RunCommonEvent(wrapper, …)` extract `(L, F)`;
+      3. find the instruction that `EnableFlag(F)` and the entity its containing event was
+         initialized with (`CharacterDead`/`InsideRegion` arg) → an entity/region id;
+      4. resolve id → MSB marker/region coords (we already read both);
+      5. emit `source:'event'` placement at those coords. **Fallbacks:** EMEVD-file tile if no
+         clean entity (world-state flags), then lot-id tile. Replaces the current tile-centre pins.
   - **DLC `m61` orphan lots (open).** Their lot ids use a different prefix than the `10…`
     m60 form — verify it and extend `decodeMapLotTile` so DLC event drops pin too.
 
-## Open data gaps the extractor doesn't surface yet
+## Notes
 
-- **EMEVD** is not parsed at all (no `formats/emevd.ts`). It's the missing link for: exact
-  event-drop coords (above), invasion trigger regions, scripted item grants, and quest steps
-  ([[quest-compass]]). A general EMEVD reader is the single highest-leverage addition for this
-  project and several others.
-- **Invasion / NPC-spawn params** (e.g. spawn-point / invasion setup params) — if a param,
-  rather than EMEVD, holds the `trigger region ↔ invader` link, that's a cheaper path; TBD
-  which param (investigate alongside the EMEVD work).
+- **EMEVD is already parsed** (`formats/emevd.ts` + `formats/emedf.ts`, ~100% opcode coverage,
+  used by `game/boss-names.ts`) — Phase 2b is a new *join* over existing tooling, not a new
+  parser. (See [[emevd-extractor-gap]].)
+- **soulstruct** (vendored, MIT) supplies the award-wrapper `CommonFunc` signatures — the only
+  missing piece. Its decompiled `.evs.py` also serves as the human-readable verification of the
+  trace. Belongs in `vendored-data` per [[reorganize-repo]] (same class as EMEDF/paramdex).
+- **er-save-manager doesn't help here:** its location data is curated per-map "safe spawn"
+  coords + NPC text locations, not invasion/drop coords. It IS valuable for [[quest-compass]]
+  (curated flag DBs). Pin sources here must stay install-derived ([[no-scraped-map-coords]]).
 - **Phase 3 — dungeon → overworld projection.** Apply `WorldMapLegacyConvParam` so dungeon
   enemy/treasure/event placements project onto the overworld (and DLC) masters. (Also
   unblocks dungeon graces/bosses for the map — same conv-param work.) **Biggest remaining

@@ -12,9 +12,12 @@ import { type MasterPixel, overworldMarkerToMasterPixel } from '../map-affine';
 
 /** A placed item-pickup location with its source/odds (for the popup). */
 export interface ItemPin extends MasterPixel {
-  source: string; // 'enemy' | 'map' (treasure)
+  source: string; // 'enemy' | 'map' (treasure) | 'event' (EMEVD-awarded)
   chance: number; // drop probability (1 = guaranteed)
   quantity: number;
+  // 'event' drops resolved to a real encounter entity are exact; those that fell
+  // back to the lot's tile centre (no entityId) are approximate (±1 tile).
+  approx: boolean;
 }
 
 /** entity id → overworld master pixel (m60/m61-placed entities only). */
@@ -51,7 +54,13 @@ const itemPinsByKey: ReadonlyMap<string, ItemPin[]> = (() => {
   for (const p of PLACEMENTS) {
     const px = overworldMarkerToMasterPixel(p.mapId, p.x, p.z);
     if (!px) continue;
-    const pin: ItemPin = { ...px, source: p.source, chance: p.chance, quantity: p.quantity };
+    const pin: ItemPin = {
+      ...px,
+      source: p.source,
+      chance: p.chance,
+      quantity: p.quantity,
+      approx: p.source === 'event' && p.entityId === 0,
+    };
     const k = itemKey(p.itemType, p.itemId);
     const cur = map.get(k);
     if (cur) cur.push(pin);

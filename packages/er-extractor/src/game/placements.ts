@@ -1,5 +1,9 @@
 import { Effect, FileSystem, Path } from 'effect';
 
+import type { DcxError } from '../formats/dcx.ts';
+import type { EmedfError } from '../formats/emedf.ts';
+import type { EmevdError } from '../formats/emevd.ts';
+import { findOodleDll, type OodleError } from '../external/oodle.ts';
 import {
   decodeRow,
   type ParamError,
@@ -7,6 +11,11 @@ import {
   type RowValue,
 } from '../formats/param.ts';
 import { loadParamdef, type ParamdefError } from '../formats/paramdef.ts';
+import {
+  EventDropError,
+  loadEventDropLocations,
+  type MarkerCoord,
+} from './event-drop-locations.ts';
 import { type ItemType, loadItemLots } from './item-lots.ts';
 import type { ClassifiedMarker } from './marker-classify.ts';
 import type { MapTreasure } from './map-markers.ts';
@@ -69,9 +78,10 @@ export const loadPlacements = (
   params: Map<string, Uint8Array>,
   markers: readonly ClassifiedMarker[],
   treasures: readonly MapTreasure[],
+  gameRoot: string,
 ): Effect.Effect<
   Placement[],
-  ParamError | ParamdefError,
+  ParamError | ParamdefError | EventDropError | DcxError | OodleError | EmevdError | EmedfError,
   FileSystem.FileSystem | Path.Path
 > =>
   Effect.gen(function* () {
@@ -152,21 +162,50 @@ export const loadPlacements = (
       }
     }
 
-    // --- Event-awarded overworld lots: orphan ItemLotParam_map rows whose id decodes to
-    //     an m60 tile, pinned at that tile's centre (x=z=0). Covers invader/boss/NPC
-    //     event drops (e.g. Reduvia) the MSB Treasure/enemy joins miss. Coarse (±1 tile).
-    for (const [lotId, items] of mapLots) {
-      if (usedMapLot.has(lotId)) continue;
-      const tile = decodeMapLotTile(lotId);
-      if (!tile) continue;
-      const mapId = `m60_${String(tile.col).padStart(2, '0')}_${String(tile.row).padStart(2, '0')}_00`;
+    // --- Event-awarded lots: orphan ItemLotParam_map rows (no Treasure Part, no NpcParam).
+    //     Resolve EXACT coords by tracing the EMEVD award→flag→encounter→entity chain
+    //     (`event-drop-locations.ts`); fall back to the lot-id tile centre for lots whose
+    //     flag has no clean encounter entity (world-state flags, templated invasions).
+    const orphanLots = new Set<number>();
+    for (const lotId of mapLots.keys()) if (!usedMapLot.has(lotId)) orphanLots.add(lotId);
+
+    const markerCoords = new Map<number, MarkerCoord>();
+    for (const m of markers) {
+      markerCoords.set(m.entityID, {
+        mapId: m.mapId,
+        x: m.x,
+        y: m.y,
+        z: m.z,
+        isCharacter: m.kind === 'part' && (m.type === 2 || m.type === 10),
+      });
+    }
+    const oo2corePath = yield* findOodleDll(gameRoot);
+    const exact = yield* loadEventDropLocations(gameRoot, oo2corePath, markerCoords, orphanLots);
+
+    for (const lotId of orphanLots) {
+      const items = mapLots.get(lotId)!;
+      const loc = exact.get(lotId);
+      let mapId: string;
+      let x = 0;
+      let z = 0;
+      let entityId = 0;
+      if (loc) {
+        mapId = loc.mapId;
+        x = loc.x;
+        z = loc.z;
+        entityId = loc.viaEntity;
+      } else {
+        const tile = decodeMapLotTile(lotId);
+        if (!tile) continue;
+        mapId = `m60_${String(tile.col).padStart(2, '0')}_${String(tile.row).padStart(2, '0')}_00`;
+      }
       for (const it of items) {
         out.push({
           mapId,
-          entityId: 0,
-          x: 0,
+          entityId,
+          x,
           y: 0,
-          z: 0,
+          z,
           npcParamId: null,
           lotId,
           itemId: it.itemId,

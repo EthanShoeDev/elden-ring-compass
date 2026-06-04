@@ -54,6 +54,7 @@ export const runPipeline = Effect.gen(function* () {
     paramFiles,
     markerEntities,
     treasures,
+    ctx.gameRoot,
   ).pipe(Effect.annotateLogs('stage', '7-placements'));
   const enemyCount = placementRows.filter((p) => p.source === 'enemy').length;
   yield* Effect.logInfo(
