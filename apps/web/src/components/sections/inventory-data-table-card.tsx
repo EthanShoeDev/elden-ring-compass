@@ -11,7 +11,7 @@ import {
 import { DataTable } from '@/components/data-table/data-table';
 import { TooltipImg } from '@/components/misc/tooltip-img';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Combobox } from '@/components/ui/combobox';
+import { ComboboxSelect } from '@/components/ui/combobox-select';
 import { browserKvsRuntime } from '@/lib/atoms/kvs';
 import { useDataTableData } from '@/lib/data-table-data';
 import { CATALOG, useInventoryTables, type WithOwnership } from '@/lib/inventory-catalog';
@@ -42,7 +42,7 @@ export function InventoryDataTableCard() {
     <Card className='w-full'>
       <CardHeader>
         <CardTitle>
-          <Combobox
+          <ComboboxSelect
             placeholder='Filter by category'
             valueState={[
               table,

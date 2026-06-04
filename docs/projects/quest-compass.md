@@ -21,6 +21,31 @@
 > placements (#10b), it is equally the way to mine the per-NPC quest state machine (talk-state flags,
 > `SetEventFlag` / condition instructions) from the install rather than hand-authoring it.
 > quest-compass itself remains deferred.
+>
+> **Update 2026-06-04 — THE BOTTLENECK IS GONE. A ready-made quest-flag dataset exists.**
+> Reviewing the newly-cloned **[er-save-manager](https://github.com/.../er-save-manager)** (Hapfel,
+> MIT; a Python reimpl of ER-Save-Lib) surfaced `src/er_save_manager/data/quest_flags_db.py`
+> (9,927 lines, **36 NPC questlines**) — this **is** the "quest-step → event-flag id mapping" this
+> doc has called the single bottleneck. Two findings collapse the remaining R&D:
+>
+> 1. **The "flag addressing" unknown is DISSOLVED — no Roderika spike needed.** The DB keys on
+>    **absolute** flag ids (`11109855`, `1040529256`), _not_ the relative per-NPC ids (`3707`) this
+>    doc feared. er-save-manager's `parser/event_flags.py` resolves them with the **identical
+>    `eventflag_bst.txt` BST formula our extractor already vendored** (`eventFlagOffset(id)→[byte,bit]`,
+>    verified 1178/1178 — `src/vendor/eventflag-bst.txt`, see `PROVENANCE.md`). **We can read every one
+>    of these flags from a parsed save today, zero parser/extractor work.** Phase 0 below (the
+>    addressing spike) is **obsolete**.
+> 2. **The completion model is decided (Open Question #1, below).** Each step carries _multiple_ flags
+>    with target values, **including `value: 0` (negations)** — i.e. a boolean **AND-expression**, not
+>    a single flag. The single-flag-per-objective model is insufficient; the dataset already proves the
+>    expression shape.
+>
+> Plus `parser/event_flags.py`'s `CorruptionDetector`/`FixFlags` encodes concrete **softlock/missable
+> logic** (Ranni blocking flag `1034500738`; Radahn/Morgott/Radagon/Sealing-Tree warp-sickness gates) —
+> a ready seed for **Phase 3 "atRisk" warnings**. The DB is a **CT/community-spreadsheet snapshot**
+> (Phase 2's "curated overlay" — exactly the planned curated boundary; log it in `PROVENANCE.md` when
+> adopted). This is reuse of already-done RE we are explicitly out-of-scope to do ourselves (CT
+> scraping / live memory), consistent with how we already vendor `eventflag-bst.txt` / EMEDF / Paramdex.
 
 ## Why
 
@@ -68,13 +93,14 @@ objective is the "next step," and missable steps carry an ordering warning.
 | Dependency                             | Status         | Source                                                                                                                                                                                                                                                    |
 | -------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Read any event flag from a save**    | ✅ done        | Lean DTO ships full `event_flags` bitfield; `vm/events.ts` already does grace/boss bit-math. Same bit formula works for quest flags.                                                                                                                      |
-| **Quest-step → event-flag id mapping** | ◐ **anchored** | The game ships per-NPC quest state machines as named flags (`EFID_Talk_NPCxxx` "event state" blocks in the soulsmods index); soulstruct's decompile shows the logic that reads them. Remaining unknown = _flag addressing_ (relative id → save byte/bit). |
+| **Quest-step → event-flag id mapping** | ✅ **available (curated)** | `er-save-manager/data/quest_flags_db.py` — **36 NPC questlines**, each an ordered list of steps `{description, location, flags:[{id,value}]}` keyed on **absolute** flag ids. Addressing already solved via our `eventFlagOffset()`. CT/spreadsheet-derived → a curated overlay (log in `PROVENANCE.md`). Durable EMEVD re-derivation stays the Phase-4 ideal. _(Original anchor — the soulsmods `EFID_Talk_NPCxxx` named-flag index + soulstruct decompile — remains the verification/durable source.)_ |
 | **Objective walkthrough content**      | ◐ partial      | `er-objectives.ts` (hand-authored, West Limgrave only). Expand by hand or semi-derive.                                                                                                                                                                    |
 | **NPC / boss / location names + ids**  | ◐ in progress  | Comes from the extractor data layer (`dlc-support.md` / `client-side-db.md`, task #7).                                                                                                                                                                    |
 
-**The bottleneck is the flag mapping**, not the parser. Each "Speak to Ranni", "Defeat
-X", "Discover Y" needs the event-flag id that flips when it's done — and the game ships a
-ready-made anchor for it.
+~~**The bottleneck is the flag mapping**, not the parser.~~ **As of 2026-06-04 the flag
+mapping is no longer a bottleneck** — `quest_flags_db.py` supplies the per-step absolute
+flag ids for 36 NPCs and our `eventFlagOffset()` reads them directly. The remaining work is
+**web-side wiring + content breadth + missable modeling**, not R&D.
 
 ## The quest-step spine: per-NPC event-state flags (found 2026-06-02)
 
@@ -115,19 +141,23 @@ soulstruct's decompile _is_ the durable EMEVD source (already on disk, more trus
 a CT snapshot), and the named event-state flags make this **alignment** work, not
 **reverse-engineering**.
 
-### The one real unknown: flag addressing
+### ~~The one real unknown: flag addressing~~ → RESOLVED (2026-06-04)
 
-The event-state flags appear as small _relative_ ids (`3707`) scoped per-NPC; the save is a
-global bitfield. Resolving relative id → absolute save `(byte, bit)` is the single R&D risk.
-Two complementary paths (see [save-flag-diff checkpoints](./save-flag-diff-checkpoints.md)):
+This section described the relative-id (`3707`) → absolute `(byte,bit)` problem and a
+Roderika spike to settle it. **It is moot.** The curated `quest_flags_db.py` keys on
+**absolute** flag ids, which our **already-vendored** event-flag addressing
+(`eventFlagOffset()` / `eventflag-bst.txt`, verified 1178/1178) reads directly. The
+analytical path it called for is **already implemented and shipped**.
 
-- **analytical** — implement ER's event-flag-id → `(byte, bit)` addressing formula once,
-  then any named flag is directly readable;
-- **empirical** — diff save snapshots taken around a known action to observe which bit
-  flips (also powers the flag-mining / speedrun-journey feature, and is patch-robust).
+The two paths below are retained only as the **durable / patch-robust** options for the
+Phase-4 ideal (re-deriving flags from the install instead of the curated snapshot), and the
+empirical one still powers the separate flag-mining / speedrun-journey feature:
 
-A Phase-0 spike on one NPC (Roderika: did-vs-didn't tune spirits → which bit is 3708)
-settles it.
+- **analytical** — ER's event-flag-id → `(byte, bit)` addressing formula (✅ done:
+  `er-extractor/src/game/event-flags.ts`);
+- **empirical** — diff save snapshots around a known action to observe which bit flips
+  (see [save-flag-diff checkpoints](./save-flag-diff-checkpoints.md); patch-robust, and the
+  way to _verify_ the curated ids against a real save).
 
 ## Data model (proposed)
 
@@ -135,8 +165,9 @@ settles it.
 QuestTrack (per NPC):
   npc, talkId
   statusFlags: { alive, hostileAbsolvable, hostileNot, dead }   // → failure detection
-  steps: [ { label, eventStateFlag?, location?, guidance,
-             gate?, requiresBefore? } ]                          // eventState flag = checkpoint
+  steps: [ { label, location?, guidance,
+             completion: [ { id, value } ],                      // AND over flags; value 0|1 (0 = must be UNset)
+             gate?, requiresBefore? } ]                          // checkpoint = all completion flags match
   dependsOn: [ other track checkpoints ]                         // cross-NPC edges
 
 WorldGate (global, shared): GODRICK_DEAD | ERDTREE_BURNED | LEYNDELL_REACHED | ...
@@ -164,8 +195,10 @@ Derived per save:
 
 ## Open questions
 
-1. **Completion model** — single flag per objective, or a small boolean expression
-   (AND/OR/NOT over flags) for multi-condition or fork steps?
+1. ~~**Completion model** — single flag per objective, or a small boolean expression?~~
+   **RESOLVED:** `quest_flags_db.py` uses an **AND over `{id, value}`** per step, where
+   `value: 0` means "must be unset" (a negation). Adopt that shape directly; revisit OR/fork
+   only if a specific questline needs it.
 2. **Missable-step modeling** — how to encode "do A before resting at grace G / before
    boss B"? An ordering/precedes relation between objectives + the flags that "lock" a path.
 3. **Scope of v1** — just NPC questlines (highest value, most missable), or the full
@@ -176,23 +209,33 @@ Derived per save:
 
 ## Phased plan (proposed)
 
-- **Phase 0 — addressing spike.** Resolve relative quest-flag id → save `(byte, bit)` on
-  **one** NPC (Roderika: `3708` "became Spirit Tuner"), verified did-vs-didn't against a real
-  save (via the diff tool or the addressing formula). This de-risks everything downstream.
-  Encode that one `QuestTrack` and prove the join: save flags → currentStep/nextStep.
+- **Phase 0 — ~~addressing spike~~ → dataset import (de-risked).** The addressing spike is
+  obsolete (addressing already shipped). Instead: **convert `quest_flags_db.py` → a typed TS
+  dataset** (`{ npc, steps: [{ description, location, completion: [{id,value}] }] }`), and
+  **prove the join** against `ER0000.sl2` via the existing `eventFlagOffset()` in a vitest
+  test (a fresh save → every step incomplete; flip a known flag → that step completes). Pick
+  one or two NPCs (e.g. Ranni, Roderika) to validate end-to-end first.
 - **Phase 1 — derived state + UI.** effect-atom derived state (objectives ⨝ event_flags →
   `{completed, currentStep, nextStep}`); fill in `quests-section.tsx` with a real tracker.
-- **Phase 2 — flag overlay (breadth).** Curate flag ids for the main NPC questlines (CT /
-  community sources), logged as a curated boundary. Expand objective content beyond West
-  Limgrave.
+- **Phase 2 — flag overlay (breadth).** Import all **36** `quest_flags_db.py` questlines as
+  the curated overlay (log the boundary in `PROVENANCE.md`); cross-check ids against a real
+  save via the diff tool. Expand objective prose/content beyond West Limgrave.
 - **Phase 3 — missable warnings.** Encode ordering/precedence; surface "do X before Y"
-  warnings from the player's current flag state.
+  warnings from the player's current flag state. **Seed from `er-save-manager`'s
+  `parser/event_flags.py` `CorruptionDetector`/`FixFlags`** — it already encodes softlock +
+  warp-sickness conditions as boolean flag expressions (e.g. Ranni blocking flag
+  `1034500738`; `EventFlag(310) && !EventFlag(9130)` = Radahn-alive warp), a working model
+  for `atRisk` predicates.
 - **Phase 4 — durable flags + DLC.** Replace the curated overlay with EMEVD-derived flags
   once that extractor stage exists; add DLC questlines. Optional: pin the next objective on
   the map.
 
 ## Resources
 
+- **Quest-flag dataset (curated, the unblock):** `docs/cloned-repos-as-docs/er-save-manager/
+  src/er_save_manager/data/quest_flags_db.py` — 36 NPC questlines, absolute flag ids, MIT.
+  Also `parser/event_flags.py` (`CorruptionDetector`/`FixFlags`) for missable/softlock logic,
+  and `data/event_flags_db.py` (1,295 named flags) + `data/boss_data.py` (208 bosses w/ flags).
 - Event-flag dictionary (named): `docs/cloned-repos-as-docs/dlc-data-sources/elden-ring-eventparam/index.md`
   (cloned soulsmods index; `EFID_Talk_NPCxxx` blocks = the per-NPC quest state machines).
   Also: Elden Ring Save Manager (948 flags), Grand Archives CT (`Elden-Ring-CT-TGA`, cloned).

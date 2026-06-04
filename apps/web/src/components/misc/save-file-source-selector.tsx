@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react';
 import { CodeSnippet } from './code-snippet';
 import { CopyCodeSnippet } from './copy-button';
 import { Button } from '../ui/button';
-import { Combobox } from '../ui/combobox';
+import { ComboboxSelect } from '../ui/combobox-select';
 import { Input } from '../ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Spinner } from '../ui/spinner';
@@ -188,7 +188,7 @@ function SlotSelector() {
   const slotState = useSlotNameSelection();
   if (!data) return <></>;
   return (
-    <Combobox
+    <ComboboxSelect
       valueState={slotState}
       emptyLabel='No slot selected'
       placeholder='Select slot from save file'

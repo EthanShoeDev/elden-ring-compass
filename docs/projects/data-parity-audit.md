@@ -104,6 +104,18 @@ This is a separate effort (tiled-map work) and is the **largest remaining legacy
 | map-fragment fine names | events table | scraped — dropped (coarse names ship) |
 | `STATS` / `STARTING_CLASSES` | none (dead) | delete |
 
+> **Fallback overlay option (2026-06-04, `er-save-manager`).** Several of the "accepted drops"
+> above are collectible **event-flag trackers** that aren't cleanly install-derivable. The newly
+> cloned **er-save-manager** (Python, MIT) ships them as curated, **named, absolute-id** flag DBs
+> we could vendor as a _logged boundary_ (à la `eventflag-bst.txt` in `PROVENANCE.md`) instead of
+> dropping the UI — reusing already-done CT RE we're out of scope to do ourselves:
+> `data/event_flags_db.py` has **105 Cookbook**, **62 Bell Bearings** (a category we don't track),
+> **6 Whetblades**, **32 Maps**, plus 419 Grace / 252 Boss for **cross-checking** our install-derived
+> `GRACES`/`BOSSES`, and `data/boss_data.py` gives 208 bosses with full flag sets + region (and
+> location-suffixed names that fix our boss name-collisions). Reading any of these needs **zero**
+> new work — they're absolute ids through the existing `eventFlagOffset()`. This is a sign-off
+> decision: keep the trackers via a curated overlay, or drop as planned.
+
 **✅ VERIFICATION DEBT → RESOLVED (2026-06-03, #15 vitest vs `ER0000.sl2`):** the
 `REGIONS.id == save.unlocked_regions` assumption is verified, and the scary "~47% coverage" turned
 out to **not be a data gap at all.** `unlocked_regions` interleaves **two** `PlayRegionParam` kinds:

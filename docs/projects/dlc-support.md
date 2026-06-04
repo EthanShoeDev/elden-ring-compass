@@ -187,6 +187,7 @@ Under `docs/cloned-repos-as-docs/dlc-data-sources/` (shallow, gitignored):
 | `Paramdex` (soulsmods)    | XML/data  | reverse-engineered PARAMDEF field schemas (not in the game). `ER/Defs` vendored into `src/vendor/paramdex/` via `bun run update-paramdex`, pinned by commit |
 | `elden-ring-eventparam`   | —         | gh-pages index only in clone                                                                                                                                |
 | `Impalers-Archive`        | text      | DLC names/descriptions, no ids                                                                                                                              |
+| `er-save-manager`         | Python/MIT | **Pure-Python reimpl of ER-Save-Lib** (same lib our WASM parser forks) + curated data layer. Use: (1) **byte-layout spec** (`docs/technical/save-file-structure.md`) — clearest format reference, incl. PS/Switch; (2) **curated flag DBs** as cross-check + fallback overlay — `data/quest_flags_db.py` (36 NPC questlines, absolute ids → unblocks quest-compass), `data/event_flags_db.py` (1,295 named flags: 419 grace / 252 boss / 105 cookbook / 62 bell-bearing / 32 map / 6 whetblade), `data/boss_data.py` (208 bosses + full flag sets). CT/spreadsheet snapshots → vendor only as logged boundaries, not install-derived. (3) Candidate to **port to TS**, retiring Rust/WASM — see `typescript-save-parser-port.md`. |
 
 Not cloned (GUI/large): **Smithbox** (vawser) — DLC MSB/regulation/FMG/TPF GUI editor + Paramdex source.
 

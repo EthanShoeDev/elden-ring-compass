@@ -16,7 +16,7 @@
     "clean": "rm -rf .turbo .output .nitro dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@base-ui/react": "catalog:",
+    "@base-ui/react": "^1.5.0",
     "@effect/atom-react": "catalog:",
     "@elden-ring-compass/data": "workspace:*",
     "@elden-ring-compass/save-parser": "workspace:*",
@@ -25,7 +25,6 @@
     "@tanstack/react-table": "catalog:",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
-    "cmdk": "catalog:",
     "comlink": "catalog:",
     "date-fns": "catalog:",
     "effect": "catalog:",

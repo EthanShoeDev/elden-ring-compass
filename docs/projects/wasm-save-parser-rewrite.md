@@ -14,6 +14,16 @@
 > wrapper around a **fork of [ER-Save-Lib](https://github.com/ClayAmore/ER-Save-Lib)**
 > (ClayAmore + vswarte + Nordgaren), the maintainer's _new_ DLC-capable library.
 > This is **Phase 3** of `dlc-support.md` ("Own the save parser"). Tracked as task #15.
+>
+> **Update 2026-06-04 — new reference + an open question about this whole approach.** We cloned
+> **[er-save-manager](https://github.com/.../er-save-manager)** (Hapfel, MIT), whose parser is a
+> **pure-Python reimplementation of ER-Save-Lib** — the same lib this WASM parser forks
+> (`parser/world.py`: _"Based on ER-Save-Lib Rust implementation"_). Two things came out of it:
+> (1) it ships a **complete byte-layout spec** (`docs/technical/save-file-structure.md`) and proves
+> the **save slots are plain little-endian structs — not Oodle/zstd-compressed** (the Python parser
+> imports only `struct` + `hashlib`); (2) that means **a pure-TS read-only parser is now feasible
+> with no Rust/clang/wasm toolchain at all**, which could let us delete this whole WASM stack.
+> Whether that's worth doing is its own decision → **`typescript-save-parser-port.md`**.
 
 ## Why
 
@@ -126,6 +136,28 @@ per slot (PC); a save holds up to 10 slots.
 
 ---
 
+## Cheap DTO additions surfaced by er-save-manager (2026-06-04)
+
+`er-save-manager/docs/technical/save-file-structure.md` is the clearest byte-layout spec we
+have for the format — keep it as the reference. It also highlights fields that sit inside
+structs **we already parse**, so re-adding them is a pure DTO change (no new struct walking):
+
+- **`PlayerGameData` (we already read it for stats) carries more than we surface:** current/
+  max/base **HP·FP·stamina**, the seven **buildup resistances** (poison/rot/bleed/death/frost/
+  sleep/madness, offsets `0x70–0x88`), **max crimson/cerulean flask counts** (`0xF9/0xFA`),
+  `additional_talisman_slot_count`, `summon_spirit_level`, `great_rune_on`, `voice_type`,
+  `gift`. Good candidates for a richer character-overview card.
+- **Small dropped structs with real display value** (see the DROP table above): `blood_stain`
+  (last-death marker), `horse`/Torrent state, `world_area_weather`/`world_area_time`,
+  `equipped_spells` (14 slots), `gestures` (er-save-manager ships a gesture name DB).
+- **Platform support:** the spec documents PC (`BND4`/`SL2\x00`), **PlayStation** (`CB019C2C`,
+  no checksums), and **Switch** magic + their offset/checksum differences. Our parser is
+  **PC-only**; adding magic detection is a bounded win if non-PC saves matter.
+
+(If we go the `typescript-save-parser-port.md` route, fold these in during the port instead.)
+
+---
+
 ## TODO
 
 - [x] Fork `ClayAmore/ER-Save-Lib` → `EthanShoeDev/ER-Save-Lib`, add as submodule `packages/er-save-lib` (branch `wasm-compat`).
@@ -154,4 +186,6 @@ per slot (PC); a save holds up to 10 slots.
   Closing it needs a recursive SpEffectParam ref-walk — the same fast-follow noted in `game/effects.ts`;
   revisit both together. NOTE: the `ER0000.sl2` test fixture is a fresh save with ~no active buffs, so
   end-to-end card verification needs a save that has them.
-- [ ] Follow-up feature still open: **quest compass** (arbitrary event flags) — deferred.
+- [ ] Follow-up feature still open: **quest compass** (arbitrary event flags) — deferred, but
+  **now unblocked**: a curated 36-questline absolute-flag dataset (`quest_flags_db.py`) reads
+  straight through the existing flag bitfield + `eventFlagOffset()`. See `quest-compass.md`.
