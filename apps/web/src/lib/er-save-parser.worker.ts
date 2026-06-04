@@ -10,18 +10,21 @@
 import init from '@elden-ring-compass/save-parser';
 import wasmUrl from '@elden-ring-compass/save-parser/elden_ring_save_parser_bg.wasm?url';
 import * as Comlink from 'comlink';
-import { Effect } from 'effect';
-import { clientRuntime } from './runtime/client';
 import { parseEldenRingData } from './er-save-parser';
 
-// Init first, then expose — no top-level await (Vite's worker bundling is flaky with it). The
-// caller's first Comlink message simply queues until `expose()` runs.
-init({ module_or_path: wasmUrl })
-  .then(() => {
-    Comlink.expose({ parseEldenRingData });
-  })
-  .catch((err: unknown) => {
-    // Non-Effect boundary (a Promise catch): emit the log through the client ManagedRuntime rather
-    // than `console.error` or an ad-hoc `Effect.runSync`.
-    clientRuntime.runFork(Effect.logError('save-parser worker: wasm init failed', err));
-  });
+// `Comlink.expose` MUST run synchronously at module eval so the worker's message listener is
+// attached before any call can arrive. `atoms/save.ts` calls `api.parseEldenRingData(...)` the
+// instant it creates the Worker; a message that arrives before the listener exists is dropped and
+// the caller hangs forever. (An earlier `init().then(expose)` lost that race intermittently.)
+//
+// The `--target web` wasm still needs `init()` before `parse_save`, so each call awaits a one-time
+// init — racing-safe because the listener is already up while init resolves.
+let wasmReady: Promise<unknown> | undefined;
+const ensureWasm = () => (wasmReady ??= init({ module_or_path: wasmUrl }));
+
+Comlink.expose({
+  async parseEldenRingData(buffer: ArrayBuffer) {
+    await ensureWasm();
+    return parseEldenRingData(buffer);
+  },
+});

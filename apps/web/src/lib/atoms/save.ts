@@ -35,15 +35,27 @@ const getWorkerApi = (): Comlink.Remote<SaveParserWorker> | null => {
 const toParseError = (cause: unknown) =>
   new SaveParseError({ message: cause instanceof Error ? cause.message : String(cause) });
 
+// Counts how many times the parse atom executes, surfaced in the logs below so a re-parse storm
+// (the atom re-running unexpectedly) is visible at a glance.
+let parseRunCount = 0;
+
 /** Async atom: parses the active save source via the WASM worker. */
 export const saveAtom = Atom.make((get) =>
   Effect.gen(function* () {
     const src = get(saveFileSourceAtom);
     if (!src) return yield* new NoSaveSourceError();
 
+    const sourceKind = isSharedSource(src) ? 'shared' : 'file' in src ? 'file' : 'url';
+    parseRunCount += 1;
+    yield* Effect.logInfo(`save parse #${parseRunCount}: start`).pipe(
+      Effect.annotateLogs('source', sourceKind),
+      Effect.annotateLogs('url', 'url' in src ? src.url : undefined),
+    );
+
     // Shared link: reconstruct a minimal save from the compressed payload.
     if (isSharedSource(src)) {
       const slot = reconstructSlot(src.sharedData);
+      yield* Effect.logInfo(`save parse #${parseRunCount}: success (shared)`);
       return {
         global_steam_id: '',
         character_steam_ids: [],
@@ -54,22 +66,22 @@ export const saveAtom = Atom.make((get) =>
     const api = getWorkerApi();
     if (!api) return yield* new SaveParseError({ message: 'Save parser unavailable' });
 
-    if ('file' in src) {
-      return yield* Effect.tryPromise({
-        try: () => api.parseEldenRingData(src.file.buffer),
-        catch: toParseError,
-      });
-    }
+    const buffer =
+      'file' in src
+        ? src.file.buffer
+        : yield* Effect.tryPromise({
+            try: () => fetch(src.url).then((r) => r.arrayBuffer()),
+            catch: toParseError,
+          });
 
-    // URL source: fetch the bytes, then parse.
-    const buffer = yield* Effect.tryPromise({
-      try: () => fetch(src.url).then((r) => r.arrayBuffer()),
-      catch: toParseError,
-    });
-    return yield* Effect.tryPromise({
+    const save = yield* Effect.tryPromise({
       try: () => api.parseEldenRingData(buffer),
       catch: toParseError,
     });
+    yield* Effect.logInfo(`save parse #${parseRunCount}: success`).pipe(
+      Effect.annotateLogs('slots', save.slots.length),
+    );
+    return save;
   }),
 );
 

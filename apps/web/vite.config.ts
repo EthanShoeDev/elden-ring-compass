@@ -26,7 +26,10 @@ export default defineConfig({
     port: 3005,
     strictPort: true,
   },
-  plugins: [erDataTiles(), wasm(), tailwindcss(), viteReact(), ...appOnlyPlugins],
+  // `viteReact()` MUST come after `tanstackStart()` — the TanStack Router plugin (inside
+  // tanstackStart/appOnlyPlugins) has to run before the JSX transform. Under VITEST appOnlyPlugins
+  // is empty, so react ends up last either way.
+  plugins: [erDataTiles(), wasm(), tailwindcss(), ...appOnlyPlugins, viteReact()],
   resolve: {
     tsconfigPaths: true,
     alias: {

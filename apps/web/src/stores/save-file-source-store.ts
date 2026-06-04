@@ -51,8 +51,12 @@ export const saveFileSourceAtom = Atom.writable<
     return url ? { url } : undefined;
   },
   (ctx, value) => {
-    ctx.set(persistedUrlAtom, value && 'url' in value ? value.url : '');
+    // Set the transient source FIRST: the read fn short-circuits on a defined transient and never
+    // reads `persistedUrlAtom`, so the subsequent persist below doesn't invalidate this derived
+    // atom a second time. Setting persisted first would fire the save-parse atom twice (once with
+    // transient still undefined → reads the new url, once after transient is set).
     ctx.set(transientSourceAtom, value);
+    ctx.set(persistedUrlAtom, value && 'url' in value ? value.url : '');
   },
 );
 

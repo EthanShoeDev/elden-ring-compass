@@ -33,11 +33,17 @@ export function DataTableFacetedFilter<TData, TValue>({
   options,
 }: DataTableFacetedFilterProps<TData, TValue>) {
   'use no memo';
+  // Only build the option list while the dropdown is open. JSX children are constructed during
+  // THIS render regardless of whether Base UI mounts them, so a high-cardinality faceted column
+  // (e.g. `weight`, `Effects` — hundreds of unique values) would otherwise create hundreds of
+  // `CommandItem` elements per filter, per table, on every render — the element explosion that
+  // froze the page after a save loaded. Gating on `open` defers that cost to first open.
+  const [open, setOpen] = React.useState(false);
   const facets = column?.getFacetedUniqueValues();
   const selectedValues = new Set(column?.getFilterValue() as Array<unknown>);
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={<Button variant='outline' size='sm' className='h-8 border-dashed' />}
       >
@@ -72,6 +78,7 @@ export function DataTableFacetedFilter<TData, TValue>({
           )}
       </PopoverTrigger>
       <PopoverContent className='p-0' align='start'>
+        {open && (
         <Command>
           {options.length > 4 && <CommandInput placeholder={title} />}
           <CommandList>
@@ -148,6 +155,7 @@ export function DataTableFacetedFilter<TData, TValue>({
             )}
           </CommandList>
         </Command>
+        )}
       </PopoverContent>
     </Popover>
   );
