@@ -4,6 +4,7 @@ import { fileToArrBuffer } from '@/lib/er-save-parser';
 import { saveFileSourceAtom } from '@/stores/save-file-source-store';
 import { useSlotNameSelection } from '@/stores/slot-selection-store';
 import { useAtomSet, useAtomValue } from '@effect/atom-react';
+import { ClientOnly } from '@tanstack/react-router';
 import { formatDistance } from 'date-fns';
 import {
   EditIcon,
@@ -31,38 +32,47 @@ export function SaveFileSourceSelector() {
   const [type, setType] = useState<'file' | 'url'>(
     saveFileSource && 'url' in saveFileSource ? 'url' : 'file',
   );
+
+  // The save source is restored from localStorage, which is empty during SSR.
+  // Source-dependent UI is therefore client-only (<ClientOnly>) so the server
+  // and first client render agree — both show the "connect" state — avoiding a
+  // hydration mismatch.
+  const connectLabel = (
+    <>
+      <UnplugIcon />
+      Connect your save file
+    </>
+  );
+
   return (
     <>
       <SteamIdLabel />
       <SlotSelector />
-      {saveFileSource && <RefreshButton />}
+      <ClientOnly>{saveFileSource && <RefreshButton />}</ClientOnly>
       <Popover>
         <PopoverTrigger render={<Button className='flex gap-2' />}>
-          {!saveFileSource && (
-            <>
-              <UnplugIcon />
-              Connect your save file
-            </>
-          )}
-          {saveFileSource && 'file' in saveFileSource && (
-            <>
-              <FileCheckIcon />
-              File Uploaded
-            </>
-          )}
-          {saveFileSource &&
-            'url' in saveFileSource &&
-            (save.isError ? (
+          <ClientOnly fallback={connectLabel}>
+            {!saveFileSource && connectLabel}
+            {saveFileSource && 'file' in saveFileSource && (
               <>
-                <Link2OffIcon />
-                Url Error
+                <FileCheckIcon />
+                File Uploaded
               </>
-            ) : (
-              <>
-                <LinkIcon />
-                Url Connected
-              </>
-            ))}
+            )}
+            {saveFileSource &&
+              'url' in saveFileSource &&
+              (save.isError ? (
+                <>
+                  <Link2OffIcon />
+                  Url Error
+                </>
+              ) : (
+                <>
+                  <LinkIcon />
+                  Url Connected
+                </>
+              ))}
+          </ClientOnly>
         </PopoverTrigger>
         <PopoverContent className='w-[600px] max-w-full'>
           <div className='flex flex-col items-start gap-4'>

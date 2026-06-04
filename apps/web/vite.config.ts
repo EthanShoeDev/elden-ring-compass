@@ -6,7 +6,6 @@ import { cpSync, createReadStream, existsSync, rmSync, statSync } from 'node:fs'
 import path from 'path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, type Plugin } from 'vite';
-// import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 import wasm from 'vite-plugin-wasm';
 import tailwindcss from '@tailwindcss/vite';
 import { nitro } from 'nitro/vite';
@@ -76,16 +75,12 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
   },
   server: {
-    port: 3000,
-    strictPort: false,
+    port: 3005,
+    strictPort: true,
   },
   plugins: [
     devtools(),
     erDataTiles(),
-    // ViteImageOptimizer({
-    //   cache: true,
-    //   cacheLocation: './node_modules/.cache/vite-plugin-image-optimizer',
-    // }),
     wasm(),
     tailwindcss(),
     tanstackStart({

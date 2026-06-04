@@ -136,7 +136,7 @@ export function MapSection() {
   return (
     <div className='flex flex-col gap-2 p-4 sm:px-8 md:px-24 lg:px-32'>
       <div
-        className='relative w-full overflow-hidden rounded-lg border border-muted'
+        className='relative isolate w-full overflow-hidden rounded-lg border border-muted'
         style={{ height: 720 }}
       >
         {error ? (
