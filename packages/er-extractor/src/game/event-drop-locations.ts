@@ -13,24 +13,28 @@ import type { OodleError } from '../external/oodle.ts';
 /**
  * Exact coordinates for event-awarded item lots (invader / boss / NPC drops that
  * have no MSB Treasure Part and no `NpcParam` lot — e.g. Reduvia from Bloody Finger
- * Nerijus). These are granted by EMEVD, and the award is **flag-gated**:
+ * Nerijus, or the Ruins Greatsword from the Redmane Castle duo boss). These are
+ * granted by EMEVD, and the award is **flag-gated**:
  *
  *   RunCommonEvent(award_wrapper, …, flag=F, item_lot=L, …)   // award L when F set
- *   def Event_N(character, region, …):                        // the encounter
+ *   def Event_N(…):                                           // the encounter
  *       if CharacterDead(character): SetEventFlag(F)           // F set on defeat
- *   RunEvent(N, character=<entity>, …)                        // N initialised here
  *
- * So we trace `L → its co-passed flag F → the event that SetEventFlag(F) → that
- * event's initialised character/region entity → the entity's placed MSB coords`.
- * The encounter character (invader/boss) is a real, placed (dormant) MSB marker,
- * so this yields the exact in-world location. Verified: Reduvia → Nerijus
- * (`c0000_9001`, entity 1043370740) → 13px from the hand-clicked spot.
+ * The encounter `character` reaches the flag-setting event in one of two shapes,
+ * and we follow **both**:
  *
- * Robustness: we resolve **constant** award flags (the common per-tile-event case).
- * Templated encounters whose flag is itself a parameter are not yet followed (the
- * caller falls back to the lot's tile). Award/encounter are matched **within one
- * EMEVD file** (the per-map file that handles the tile). See
- * `docs/projects/item-placement-coverage.md` (Phase 2b).
+ *   (a) passed as a `RunEvent(N, character=<entity>, …)` **init param** — templated
+ *       invasions (Reduvia → Nerijus `c0000_9001`/1043370740, 13px from truth); or
+ *   (b) **hard-coded as a literal** inside the event body — boss-death events such as
+ *       `Event_1051362800` whose `CharacterDead(1051360800) and CharacterDead(1051360801)`
+ *       gate `EnableFlag(9183)` (→ Ruins Greatsword, lot 10830, awarded by `common.emevd`).
+ *
+ * The character (invader/boss) is a real, placed (dormant) MSB marker, so either
+ * shape yields the exact in-world location. We therefore build **global** (cross-file)
+ * indices over **all** `*.emevd.dcx` except `common_func` — the award call and the
+ * flag-setting event routinely live in different files (the award in `common.emevd`,
+ * the flag set in the boss's `m60_xx_yy` tile). See
+ * `docs/projects/item-placement-coverage.md` (Phase 2b/2c).
  */
 
 export class EventDropError extends Data.TaggedError('EventDropError')<{
@@ -80,53 +84,67 @@ export const loadEventDropLocations = (
     const emedf = yield* loadEmedf;
     const setFlag = emedf.byName.get('set event flag');
     if (!setFlag) {
-      return yield* new EventDropError({ detail: 'EMEDF missing "Set Event Flag"' });
+      return yield* new EventDropError({
+        detail: 'EMEDF missing "Set Event Flag"',
+      });
     }
     const SETFLAG = opcodeKey(setFlag.bank, setFlag.id);
 
     const fs = yield* FileSystem.FileSystem;
     const dir = `${gameRoot}/event`;
-    // Only per-map files (`m*.emevd.dcx`); skip `common*`. Bun.Glob (no effect equiv).
-    const glob = new Bun.Glob('m*.emevd.dcx');
+    // All EMEVD files EXCEPT `common_func.emevd.dcx` — that's the template library, whose
+    // event bodies use unresolved param placeholders, not real lot/flag/entity ids. We DO
+    // include `common.emevd` (cross-map award wrappers like `Event_1100`). Bun.Glob (no
+    // effect equiv).
+    const glob = new Bun.Glob('*.emevd.dcx');
     const paths = yield* Effect.tryPromise({
       try: async () => {
         const out: string[] = [];
-        for await (const p of glob.scan({ cwd: dir, absolute: true })) out.push(p);
-        return out.sort();
+        for await (const p of glob.scan({ cwd: dir, absolute: true }))
+          out.push(p);
+        return out.filter((p) => !p.endsWith('common_func.emevd.dcx')).sort();
       },
-      catch: (cause) => new EventDropError({ detail: `scanning ${dir}: ${String(cause)}` }),
+      catch: (cause) =>
+        new EventDropError({ detail: `scanning ${dir}: ${String(cause)}` }),
     });
 
-    const out = new Map<number, EventDropLocation>();
+    // Global (cross-file) indices. The award call and the flag-setting encounter event
+    // routinely live in different EMEVD files, so everything is accumulated across all
+    // files before resolution.
+    const awardCalls: Array<{ lot: number; candidates: number[] }> = [];
+    const eventInitParams = new Map<number, number[]>(); // RunEvent target → entities passed in
+    const flagSetters = new Map<number, number[]>(); // flag → events that EnableFlag(flag)
+    const flagToEntities = new Map<number, Set<number>>(); // flag → character entities in the setter's body
+    const coPassed = new Map<number, Set<number>>(); // value → other values in the same Run* call
+
     for (const path of paths) {
       const dcx = yield* fs
         .readFile(path)
-        .pipe(Effect.mapError((cause) => new EventDropError({ detail: `reading ${path}: ${cause}` })));
+        .pipe(
+          Effect.mapError(
+            (cause) =>
+              new EventDropError({ detail: `reading ${path}: ${cause}` }),
+          ),
+        );
       const emevd = yield* parseEmevd(yield* dcxDecompress(dcx, oo2corePath));
 
-      // Pass 1 (cheap, argInts only): does this file award any of our lots?
-      const awardCalls: Array<{ lot: number; candidates: number[] }> = [];
       for (const ev of emevd.events) {
+        const enabledFlags: number[] = []; // flags this event EnableFlag()s
+        const bodyChars = new Set<number>(); // placed-character ids referenced anywhere in its body
         for (const ins of ev.instructions) {
-          if (ins.bank !== RUN_BANK || (ins.id !== RUN_COMMON && ins.id !== RUN_EVENT)) continue;
-          const params = argInts(ins.argData).slice(2); // after slot + event-id
-          const lot = params.find((p) => lotIds.has(p));
-          if (lot !== undefined) awardCalls.push({ lot, candidates: params.filter((p) => p !== lot) });
-        }
-      }
-      if (awardCalls.length === 0) continue;
-
-      // Pass 2: index init-params (entities per same-file event), constant flag setters,
-      // and — for templated encounters — the entities co-passed with each value in any
-      // Initialize call (so a setup that passes `(flag, npc, region)` links flag→entity).
-      const eventInitParams = new Map<number, number[]>();
-      const flagSetters = new Map<number, number[]>();
-      const coPassed = new Map<number, Set<number>>(); // value → other values in the same Run* call
-      for (const ev of emevd.events) {
-        for (const ins of ev.instructions) {
-          if (ins.bank === RUN_BANK && (ins.id === RUN_EVENT || ins.id === RUN_COMMON)) {
+          if (
+            ins.bank === RUN_BANK &&
+            (ins.id === RUN_EVENT || ins.id === RUN_COMMON)
+          ) {
             const ints = argInts(ins.argData);
-            const params = ints.slice(2);
+            const params = ints.slice(2); // after slot + event-id
+            const lot = params.find((p) => lotIds.has(p));
+            if (lot !== undefined) {
+              awardCalls.push({
+                lot,
+                candidates: params.filter((p) => p !== lot && p > 0),
+              });
+            }
             if (ins.id === RUN_EVENT && ints[1] !== undefined) {
               const cur = eventInitParams.get(ints[1]);
               if (cur) cur.push(...params);
@@ -141,40 +159,64 @@ export const loadEventDropLocations = (
             const d = decodeInstruction(emedf, ins);
             const flag = d?.args['Target Event Flag ID'];
             const state = d?.args['Desired Flag State'];
-            if (state === 1 && flag !== undefined && flag > 0) {
-              const cur = flagSetters.get(flag);
-              if (cur) cur.push(ev.id);
-              else flagSetters.set(flag, [ev.id]);
-            }
+            if (state === 1 && typeof flag === 'number' && flag > 0)
+              enabledFlags.push(flag);
+          }
+          // Body-entity scan: any raw int32 that is a placed CHARACTER marker. Safe because
+          // real (10-digit) entity ids never collide with flags/other args; `id > 0` excludes
+          // the ubiquitous 0 (and any unnamed entity-0 marker).
+          for (const v of argInts(ins.argData)) {
+            if (v > 0 && markers.get(v)?.isCharacter) bodyChars.add(v);
+          }
+        }
+        for (const flag of enabledFlags) {
+          const cur = flagSetters.get(flag);
+          if (cur) cur.push(ev.id);
+          else flagSetters.set(flag, [ev.id]);
+          if (bodyChars.size > 0) {
+            let set = flagToEntities.get(flag);
+            if (!set) flagToEntities.set(flag, (set = new Set()));
+            for (const e of bodyChars) set.add(e);
           }
         }
       }
+    }
 
-      const pickMarker = (ids: Iterable<number>): { e: number; m: MarkerCoord } | undefined => {
-        const resolved = [...ids].flatMap((e) => {
-          const m = markers.get(e);
-          return m ? [{ e, m }] : [];
-        });
-        // Prefer the encounter character (invader/boss) over leash/trigger regions.
-        return resolved.find((r) => r.m.isCharacter) ?? resolved[0];
-      };
+    const pickMarker = (
+      ids: Iterable<number>,
+    ): { e: number; m: MarkerCoord } | undefined => {
+      const resolved = [...ids].flatMap((e) => {
+        const m = markers.get(e);
+        return m ? [{ e, m }] : [];
+      });
+      // Prefer the encounter character (invader/boss) over leash/trigger regions.
+      return resolved.find((r) => r.m.isCharacter) ?? resolved[0];
+    };
 
-      // Trace each award → its co-passed flag → encounter entity → coords.
-      for (const { lot, candidates } of awardCalls) {
-        if (out.has(lot)) continue; // first resolution wins
-        for (const flag of candidates) {
-          // (1) constant flag set in a same-file event → that event's init entity.
-          let pick: { e: number; m: MarkerCoord } | undefined;
-          for (const setterId of flagSetters.get(flag) ?? []) {
-            pick = pickMarker(eventInitParams.get(setterId) ?? []);
-            if (pick) break;
-          }
-          // (2) templated: an entity co-passed with the flag in some setup call.
-          pick ??= pickMarker(coPassed.get(flag) ?? []);
-          if (pick) {
-            out.set(lot, { mapId: pick.m.mapId, x: pick.m.x, y: pick.m.y, z: pick.m.z, viaEntity: pick.e });
-            break;
-          }
+    // Resolve each award → its gate flag → encounter entity → coords.
+    const out = new Map<number, EventDropLocation>();
+    for (const { lot, candidates } of awardCalls) {
+      if (out.has(lot)) continue; // first resolution wins
+      for (const flag of candidates) {
+        // (1) precise: the flag-setting event's RunEvent init entity (templated invasions).
+        let pick: { e: number; m: MarkerCoord } | undefined;
+        for (const setterId of flagSetters.get(flag) ?? []) {
+          pick = pickMarker(eventInitParams.get(setterId) ?? []);
+          if (pick) break;
+        }
+        // (2) boss-death: a character hard-coded in the flag-setting event's body.
+        pick ??= pickMarker(flagToEntities.get(flag) ?? []);
+        // (3) templated: an entity co-passed with the flag in some setup call.
+        pick ??= pickMarker(coPassed.get(flag) ?? []);
+        if (pick) {
+          out.set(lot, {
+            mapId: pick.m.mapId,
+            x: pick.m.x,
+            y: pick.m.y,
+            z: pick.m.z,
+            viaEntity: pick.e,
+          });
+          break;
         }
       }
     }

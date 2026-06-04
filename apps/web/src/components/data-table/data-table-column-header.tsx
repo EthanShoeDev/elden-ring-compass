@@ -50,13 +50,13 @@ export function DataTableColumnHeader<TData, TValue>({
           }
         >
           <span>{title}</span>
-            {column.getIsSorted() === 'desc' ? (
-              <ArrowDownIcon className='ml-2 size-4' />
-            ) : column.getIsSorted() === 'asc' ? (
-              <ArrowUpIcon className='ml-2 size-4' />
-            ) : (
-              <CaretSortIcon className='ml-2 size-4' />
-            )}
+          {column.getIsSorted() === 'desc' ? (
+            <ArrowDownIcon className='ml-2 size-4' />
+          ) : column.getIsSorted() === 'asc' ? (
+            <ArrowUpIcon className='ml-2 size-4' />
+          ) : (
+            <CaretSortIcon className='ml-2 size-4' />
+          )}
         </DropdownMenuTrigger>
         <DropdownMenuContent align='start'>
           <DropdownMenuItem

@@ -110,8 +110,12 @@ export const parseMapMasks = (
         }
       }
       const eventBit = EVENT_BITS[map] ?? 0;
-      const eventBits = [...allBits].filter((b) => (b & eventBit) !== 0).sort((a, b) => a - b);
-      const fragmentBits = [...allBits].filter((b) => (b & eventBit) === 0).sort((a, b) => a - b);
+      const eventBits = [...allBits]
+        .filter((b) => (b & eventBit) !== 0)
+        .sort((a, b) => a - b);
+      const fragmentBits = [...allBits]
+        .filter((b) => (b & eventBit) === 0)
+        .sort((a, b) => a - b);
       out.set(map, { map, tiles, fragmentBits, eventBits, cellMasks });
     }
     return out;

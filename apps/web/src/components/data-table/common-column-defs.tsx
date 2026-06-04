@@ -10,9 +10,7 @@ export const commonSelectColumnDef = <T,>(columnHelper: ColumnHelper<T>): Column
     header: ({ table }) => (
       <Checkbox
         checked={table.getIsAllPageRowsSelected()}
-        indeterminate={
-          table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()
-        }
+        indeterminate={table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()}
         onCheckedChange={(value) => {
           table.toggleAllPageRowsSelected(!!value);
         }}

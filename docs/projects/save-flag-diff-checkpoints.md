@@ -15,7 +15,7 @@ The WASM save parser already exposes the **entire raw event-flag bitfield** —
 graces/bosses ported from ClayAmore's Rust editor (`RAW_ELDEN_RING_DB.EVENT_FLAGS` in
 `apps/web/src/lib/vm/events.ts`). The vast majority of bits are unlabeled.
 
-We can read every bit; we just don't know what most of them *mean*. This feature builds the
+We can read every bit; we just don't know what most of them _mean_. This feature builds the
 meaning **observationally**.
 
 ## The core idea
@@ -32,7 +32,7 @@ load save again → snapshot #2
    correlate the flipped bits with what the user did between snapshots → flag label
 ```
 
-A diff around a *single, known* action narrows "which bit is this quest step" to a handful of
+A diff around a _single, known_ action narrows "which bit is this quest step" to a handful of
 candidates; a few such diffs (or one clean isolated action) pin it exactly. This is precisely
 how we'd resolve Roderika `3708` ("became Spirit Tuner") → an absolute `(byte, bit)` for the
 quest-compass spike.
@@ -43,7 +43,7 @@ quest-compass spike.
 
 - **Manual labeling**: user tags a checkpoint ("just beat Margit", "gave Boc the sewing
   needle"); the diff's flipped bits become candidate labels for that action.
-- **Auto-correlation**: we *already* decode some deltas independently (a new grace lit, a boss
+- **Auto-correlation**: we _already_ decode some deltas independently (a new grace lit, a boss
   flag, a new inventory item from the parsed save). Cross-referencing those known deltas with
   the raw-bit diff lets us auto-confirm/auto-label without the user typing anything.
 - Output grows `eventId → [byte, bit]` coverage beyond the ClayAmore seed — feeding
@@ -59,16 +59,16 @@ An ordered series of checkpoints is a **timeline of a playthrough**: first-grace
 - shareable/exportable run history.
 
 The journey makes the (otherwise invisible) research engine worth using — players opt into
-snapshots because *they* get something, and we get diff data as a side effect.
+snapshots because _they_ get something, and we get diff data as a side effect.
 
 ## Resolution: empirical (this doc) vs analytical (formula)
 
 Two complementary ways to map a named flag to a save `(byte, bit)`:
 
-| | Analytical formula | Empirical diff (this feature) |
-| --- | --- | --- |
-| How | implement ER's event-flag-id → `(byte, bit)` addressing math once | observe which bit flips around a known action |
-| Strength | instant for any flag already named upstream (soulsmods/soulstruct) | finds **un-named** flags; **patch-robust**; needs no formula |
+|          | Analytical formula                                                  | Empirical diff (this feature)                                          |
+| -------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| How      | implement ER's event-flag-id → `(byte, bit)` addressing math once   | observe which bit flips around a known action                          |
+| Strength | instant for any flag already named upstream (soulsmods/soulstruct)  | finds **un-named** flags; **patch-robust**; needs no formula           |
 | Weakness | brittle if the layout/formula assumption is wrong; one-time RE cost | needs a player to perform the action; noisier (many bits move at once) |
 
 They reinforce each other: the formula proposes a `(byte, bit)`, a diff confirms it. Do both;
@@ -94,7 +94,7 @@ a later IndexedDB move is mechanical. Decide consciously and record it as a boun
 - The site is **client-only / static** (CLAUDE.md anti-pattern: "Don't add server-side
   logic"). All snapshotting + diffing is **local by default** — nothing leaves the browser.
 - **Crowdsourced aggregation** (many users' diffs converging the flag map fast) is the obvious
-  multiplier, but it requires *somewhere to send data* — which conflicts with static-only.
+  multiplier, but it requires _somewhere to send data_ — which conflicts with static-only.
   Treat it as **out of scope / later**, and when it comes: opt-in only, and via a minimal
   external sink (tiny serverless endpoint, or a GitHub-PR/issue submission of a labeled diff)
   rather than adding a backend to the app. Log this as a deliberate boundary if pursued.
@@ -106,7 +106,7 @@ a later IndexedDB move is mechanical. Decide consciously and record it as a boun
    ingests saves.)
 2. **What to store per checkpoint** — just the flag bitfield + timestamp + label, or also a
    richer derived summary (graces/bosses/region/playtime) so the journey UI needs no re-parse?
-3. **Diff granularity / noise** — a single session moves *many* bits (visited regions, killed
+3. **Diff granularity / noise** — a single session moves _many_ bits (visited regions, killed
    mobs). How to isolate the bit for one quest step: tight-window diffs, intersection across
    multiple users/runs, or excluding bits already known.
 4. **Labeling UX** — free-text tag per checkpoint vs a structured "I did: <action>" picker
@@ -121,7 +121,7 @@ a later IndexedDB move is mechanical. Decide consciously and record it as a boun
 - **[quest-compass](./quest-compass.md)** — primary consumer. The diff tool resolves the
   relative→absolute **flag addressing** unknown and confirms which bit = which quest step
   (Roderika `3708` is the worked spike). The named-flag dictionary (soulsmods) + decompiled
-  logic (soulstruct) tell us *what to look for*; the diff tool tells us *where it lives* in the
+  logic (soulstruct) tell us _what to look for_; the diff tool tells us _where it lives_ in the
   save.
 - **`wasm-save-parser-rewrite.md`** — the enabler. The full raw bitfield it ships is the only
   parser dependency; no parser changes needed.

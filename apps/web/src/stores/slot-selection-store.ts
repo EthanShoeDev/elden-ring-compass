@@ -26,10 +26,7 @@ export const useSlotNameSelection = () => {
     if (selectedSlotName === undefined && data && data.slots.length > 0) {
       const steamId = data.global_steam_id;
       const cached = slotMemory[steamId];
-      if (
-        cached &&
-        data.slots.some((s) => s.player_game_data.character_name === cached)
-      ) {
+      if (cached && data.slots.some((s) => s.player_game_data.character_name === cached)) {
         setSelectedSlotName(cached);
       } else {
         const firstSlot = data.slots[0];

@@ -38,7 +38,8 @@ export const MASTER_PX = TILE_PX * GRID;
 /** Deepest zoom level, native L0: ceil(log2(10496/256)) = 6. Matches rastercoords. */
 export const MAX_NATIVE_ZOOM = Math.ceil(Math.log2(MASTER_PX / TILE_PX));
 
-const TILE_RE = /^MENU_MapTile_(M\d{2})_L(\d)_(\d{2,})_(\d{2,})_([0-9A-Fa-f]{8})$/;
+const TILE_RE =
+  /^MENU_MapTile_(M\d{2})_L(\d)_(\d{2,})_(\d{2,})_([0-9A-Fa-f]{8})$/;
 
 export interface TileName {
   readonly map: string; // "M00"
@@ -72,7 +73,10 @@ export interface DecodedTile {
   readonly png: Uint8Array;
 }
 
-const encodeMaster = (pipe: sharp.Sharp, opts: ImageEncodeOptions): sharp.Sharp =>
+const encodeMaster = (
+  pipe: sharp.Sharp,
+  opts: ImageEncodeOptions,
+): sharp.Sharp =>
   opts.format === 'png'
     ? pipe.png()
     : opts.format === 'jpeg'

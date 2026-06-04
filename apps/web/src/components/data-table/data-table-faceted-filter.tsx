@@ -172,12 +172,7 @@ export function DataTableFacetedFilter<TData, TValue>({
         </ComboboxList>
         {selectedValues.size > 0 && (
           <div className='border-t p-1'>
-            <Button
-              variant='ghost'
-              size='sm'
-              className='w-full justify-center'
-              onClick={clear}
-            >
+            <Button variant='ghost' size='sm' className='w-full justify-center' onClick={clear}>
               Clear filters
             </Button>
           </div>

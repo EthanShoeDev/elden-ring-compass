@@ -95,8 +95,39 @@ defeat). The classes of missing coverage:
       4. resolve id → MSB marker/region coords (we already read both);
       5. emit `source:'event'` placement at those coords. **Fallbacks:** EMEVD-file tile if no
          clean entity (world-state flags), then lot-id tile. Replaces the current tile-centre pins.
+  - **Phase 2c — cross-file body-entity trace (the boss-death / common-award class). ◀ NEXT.**
+    Phase 2b's trace only catches awards that (i) live in a per-map `m*.emevd` file, (ii) pass the
+    encounter **character as a `RunEvent` init param** (templated invasions like Reduvia), and (iii)
+    set the gate flag **in that same file**. A large class fails all three — e.g. **Ruins Greatsword**
+    (weapon `4080000`, lot **`10830`**, awarded for the Misbegotten Warrior + Crucible Knight duo at
+    Redmane Castle Plaza). Its chain:
+
+        common.emevd:  Event_1100(slot=83, flag=9183, item_lot=10830, …)     # award, in COMMON not mXX
+        m60_51_36.emevd: Event_1051362800:                                   # flag set in a DIFFERENT file
+            await CharacterDead(1051360800) and CharacterDead(1051360801)     # bosses HARD-CODED in body,
+            EnableFlag(9183)                                                  #   not passed as init params
+        → MSB markers 1051360800 (CrucibleKnight) / 1051360801 (LeonineMisbegotten) → coords (97.3, 36.3).
+
+    The lot id `10830` is **not** tile-encoded (5 digits, not `10<col><row><seq>`), so even the coarse
+    tile fallback drops it — today it has **zero** placements. There are **4,138** such non-tile-encoded
+    `ItemLotParam_map` lots (vs 1,250 tile-encoded), so this is the biggest event-drop class.
+
+    **Generalization (implemented in `game/event-drop-locations.ts`):** scan **all** `*.emevd.dcx`
+    except `common_func` (the template lib), and build **global** (cross-file) indices in one pass:
+      - `flagToEntities[F]` — for every event that `EnableFlag(F)`, the set of ids referenced **anywhere
+        in its instruction args** that resolve to a placed **character** MSB marker (body-embedded boss
+        constants). This is the new path that catches the boss-death class.
+      - keep `eventInitParams` (RunEvent init args) + `flagSetters` (precise path — templated invasions)
+        and `coPassed` (setup-call co-params), now global instead of per-file.
+
+    Resolution per award `(lot, gate-flag F)`: try the precise init-param path, then the body-entity
+    path, then co-passed; first placed character wins (`pickMarker` prefers `isCharacter`). Raw-int
+    matching against the marker map is safe because real 10-digit entity ids never collide with flags
+    (guard `id > 0` to exclude the ubiquitous `0`). This also picks up DLC `m61` short lots for free
+    when their boss is a placed marker.
   - **DLC `m61` orphan lots (open).** Their lot ids use a different prefix than the `10…`
-    m60 form — verify it and extend `decodeMapLotTile` so DLC event drops pin too.
+    m60 form — verify it and extend `decodeMapLotTile` so DLC event drops pin too (the Phase 2c
+    body-entity trace already resolves the ones whose boss is a placed character).
 
 ## Notes
 

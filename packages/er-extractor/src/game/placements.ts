@@ -68,7 +68,9 @@ const num = (row: ReadonlyMap<string, RowValue>, key: string): number => {
  * a 10-digit Lands Between (`m60`) map-lot id. Format `10<col2><row2><seq4>`.
  * (DLC `m61` lots use a different prefix — TODO once verified.)
  */
-const decodeMapLotTile = (lotId: number): { col: number; row: number } | null => {
+const decodeMapLotTile = (
+  lotId: number,
+): { col: number; row: number } | null => {
   const s = lotId.toString();
   if (!/^10\d{8}$/.test(s)) return null;
   return { col: Number(s.slice(2, 4)), row: Number(s.slice(4, 6)) };
@@ -81,7 +83,13 @@ export const loadPlacements = (
   gameRoot: string,
 ): Effect.Effect<
   Placement[],
-  ParamError | ParamdefError | EventDropError | DcxError | OodleError | EmevdError | EmedfError,
+  | ParamError
+  | ParamdefError
+  | EventDropError
+  | DcxError
+  | OodleError
+  | EmevdError
+  | EmedfError,
   FileSystem.FileSystem | Path.Path
 > =>
   Effect.gen(function* () {
@@ -166,11 +174,20 @@ export const loadPlacements = (
     //     Resolve EXACT coords by tracing the EMEVD award→flag→encounter→entity chain
     //     (`event-drop-locations.ts`); fall back to the lot-id tile centre for lots whose
     //     flag has no clean encounter entity (world-state flags, templated invasions).
+    // Lots below 1000 are excluded from the EMEVD trace: their ids collide with the
+    // ubiquitous small ints in event args (0, counts, slot numbers) and would match
+    // spuriously. Real named-item award lots (Reduvia 1042370700, Ruins Greatsword 10830,
+    // …) are all larger; sub-1000 map lots are test/default rows with no overworld home.
     const orphanLots = new Set<number>();
-    for (const lotId of mapLots.keys()) if (!usedMapLot.has(lotId)) orphanLots.add(lotId);
+    for (const lotId of mapLots.keys()) {
+      if (!usedMapLot.has(lotId) && lotId >= 1000) orphanLots.add(lotId);
+    }
 
     const markerCoords = new Map<number, MarkerCoord>();
     for (const m of markers) {
+      // Skip unnamed (entity-0) parts: 0 is a ubiquitous event arg, so a 0-keyed marker
+      // would make the body-entity scan match constantly.
+      if (m.entityID <= 0) continue;
       markerCoords.set(m.entityID, {
         mapId: m.mapId,
         x: m.x,
@@ -180,11 +197,30 @@ export const loadPlacements = (
       });
     }
     const oo2corePath = yield* findOodleDll(gameRoot);
-    const exact = yield* loadEventDropLocations(gameRoot, oo2corePath, markerCoords, orphanLots);
+    const exact = yield* loadEventDropLocations(
+      gameRoot,
+      oo2corePath,
+      markerCoords,
+      orphanLots,
+    );
 
     for (const lotId of orphanLots) {
       const items = mapLots.get(lotId)!;
-      const loc = exact.get(lotId);
+      const tile = decodeMapLotTile(lotId);
+      let loc = exact.get(lotId);
+      // Precision guard: when the lot id encodes its tile, the EMEVD-traced entity must
+      // land within ±1 of that tile, else it's a spurious match (e.g. an entity id that
+      // collides with one in another map). Reject it and fall back to the tile centre.
+      if (loc && tile) {
+        const m = /^m60_(\d+)_(\d+)_/.exec(loc.mapId);
+        const off = m
+          ? Math.max(
+              Math.abs(Number(m[1]) - tile.col),
+              Math.abs(Number(m[2]) - tile.row),
+            )
+          : Infinity;
+        if (off > 1) loc = undefined;
+      }
       let mapId: string;
       let x = 0;
       let z = 0;
@@ -195,7 +231,6 @@ export const loadPlacements = (
         z = loc.z;
         entityId = loc.viaEntity;
       } else {
-        const tile = decodeMapLotTile(lotId);
         if (!tile) continue;
         mapId = `m60_${String(tile.col).padStart(2, '0')}_${String(tile.row).padStart(2, '0')}_00`;
       }

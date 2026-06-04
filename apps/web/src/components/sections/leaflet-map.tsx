@@ -227,10 +227,7 @@ function MapBody({
   // rastercoords getMaxBounds(): SW = unproject([0,h]), NE = unproject([w,0]).
   const bounds = useMemo(
     () =>
-      latLngBounds(
-        map.unproject([0, manifest.height], z),
-        map.unproject([manifest.width, 0], z),
-      ),
+      latLngBounds(map.unproject([0, manifest.height], z), map.unproject([manifest.width, 0], z)),
     [map, manifest.height, manifest.width, z],
   );
 
