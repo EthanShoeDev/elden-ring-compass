@@ -1,0 +1,21 @@
+{
+  "name": "@elden-ring-compass/vendored-data",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "files": ["src", "assets"],
+  "scripts": {
+    "clean": "rm -rf .turbo *.tsbuildinfo",
+    "typecheck": "tsgo --noEmit"
+  },
+  "devDependencies": {
+    "@elden-ring-compass/config": "workspace:*"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:"
+  }
+}

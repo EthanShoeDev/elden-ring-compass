@@ -1,19 +1,31 @@
-# Vendored data — provenance & patch-update guide
+# `@elden-ring-compass/vendored-data` — provenance & patch-update guide
 
-Everything in this directory is **baked/reverse-engineered data that the extractor
+Everything in this package is **baked/reverse-engineered data that the extractor
 cannot derive from the game install** (plan: `docs/projects/dlc-support.md` §7
 "Dependency robustness"). It's vendored verbatim from upstream tools and pinned here
-so the extractor is self-contained and reproducible.
+so the extractor is self-contained and reproducible. The organizing principle: _"could
+we extract this ourselves from the installed game, or did we rip it verbatim from
+someone else?"_ — if the latter, and external maintainers own its updates, it lives
+here (see `docs/projects/reorganize-repo.md`).
+
+**Build-time only.** The sole consumer is `@elden-ring-compass/extractor`, which
+joins these against the installed game and bakes whatever the runtime needs into
+`@elden-ring-compass/data` (the single runtime data source). Nothing here ships to the
+web bundle — small TS constants are exported from `src/index.ts`; large assets
+(`assets/`: the 9 MB path dictionary, the 194 Paramdex XMLs, EMEDF, BST) are exposed as
+file `URL`s the extractor streams. Do not import this package from `apps/web` or the
+save parser.
 
 This file exists so that **after an Elden Ring patch** you know exactly what might go
 stale, what the symptom is, and how to refresh it. Most of this is stable across
 _content_ patches; only a _save-format_ or _param-schema_ revision forces updates.
 
-> Note: the runtime **save parser** (`packages/er-save-lib`, our ER-Save-Lib fork →
-> WASM) carries its _own_ copies of the save-format constants (event-flag table, AES
-> key, struct offsets). The files here are the **extractor's** copies, used at build
-> time to emit `@elden-ring-compass/data`. They come from the same upstreams, so they
-> update together.
+> Historical note: the WASM **save parser** (`packages/er-save-lib`, our ER-Save-Lib
+> fork) carries its _own_ copies of the save-format constants (event-flag table, AES
+> key, struct offsets). That duplication goes away with the TypeScript save-parser port
+> (`docs/projects/typescript-save-parser-port.md`): the ported parser emits only the raw
+> event-flag bitfield and the `eventFlagOffset` addressing comes from
+> `@elden-ring-compass/data`, so the `eventflag-bst.txt` here becomes the single copy.
 
 | File                                            | What it is                                                                                                                                                                                                                                            | Upstream source                                                             | Goes stale when…                                                                                                                                     | Symptom                                                                                                | Refresh                                                                                                                                                                                                     |
 | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

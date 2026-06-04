@@ -1,3 +1,4 @@
+import { paramdexDefsUrl } from '@elden-ring-compass/vendored-data';
 import { Data, Effect, FileSystem, Path } from 'effect';
 
 /**
@@ -108,10 +109,7 @@ export const loadParamdef = (
     const fs = yield* FileSystem.FileSystem;
     const path = yield* Path.Path;
     const defName = DEF_FILENAME_ALIASES[paramType] ?? paramType;
-    const url = new URL(
-      `../vendor/paramdex/ER/Defs/${defName}.xml`,
-      import.meta.url,
-    );
+    const url = new URL(`${defName}.xml`, paramdexDefsUrl);
     const xml = yield* path.fromFileUrl(url).pipe(
       Effect.flatMap((filePath) => fs.readFileString(filePath)),
       Effect.mapError(

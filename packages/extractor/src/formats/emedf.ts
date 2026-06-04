@@ -1,3 +1,4 @@
+import { erCommonEmedfUrl } from '@elden-ring-compass/vendored-data';
 import { Data, Effect, FileSystem, Path, Schema } from 'effect';
 
 import type { EmevdInstruction, EmevdParameter } from './emevd.ts';
@@ -82,7 +83,7 @@ const EmedfJson = Schema.Struct({
 /** The decoded EMEDF document shape (the fields we read), derived from the schema. */
 export type EmedfJsonShape = typeof EmedfJson.Type;
 
-const EMEDF_URL = new URL('../vendor/er-common.emedf.json', import.meta.url);
+const EMEDF_URL = erCommonEmedfUrl;
 
 /** Index a parsed EMEDF document into opcode/name lookups. Pure (unit-testable). */
 export const indexEmedf = (raw: EmedfJsonShape): Emedf => {

@@ -1,11 +1,11 @@
 import { createDecipheriv } from 'node:crypto';
 
+import { ER_REGULATION_KEY } from '@elden-ring-compass/vendored-data';
 import { Data, Effect, FileSystem } from 'effect';
 
 import type { OodleError } from '../external/oodle.ts';
 import { type Bnd4Error, parseBnd4 } from '../formats/bnd4.ts';
 import { type DcxError, dcxDecompress } from '../formats/dcx.ts';
-import { ER_REGULATION_KEY } from '../vendor/er-regulation-key.ts';
 
 /**
  * Loads the param files from `regulation.bin`: AES-256-CBC decrypt (IV = first

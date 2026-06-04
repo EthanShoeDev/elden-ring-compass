@@ -50,7 +50,7 @@ interface Marker {
   z: number;
 }
 const markersSrc = readFileSync(
-  `${root}/packages/elden-ring-data/src/generated/markers.ts`,
+  `${root}/packages/data/src/generated/markers.ts`,
   'utf8',
 );
 const markers: Marker[] = [];

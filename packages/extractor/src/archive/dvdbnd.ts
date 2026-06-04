@@ -7,11 +7,16 @@
 import { cp, mkdir, rename, rm, stat } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
+import {
+  ER_ARCHIVE_KEYS,
+  ER_GAME_INFO,
+  erDictionaryUrl,
+  SD_ARCHIVES,
+} from '@elden-ring-compass/vendored-data';
+
 import { decryptBhdHeader } from '../crypto/rsa.ts';
 import { decryptAesRanges, parseBhd5 } from '../formats/bhd5.ts';
 import { erPathHash } from '../formats/path-hash.ts';
-import { ER_ARCHIVE_KEYS } from '../vendor/er-archive-keys.ts';
-import { ER_GAME_INFO, SD_ARCHIVES } from '../vendor/er-game-info.ts';
 
 export interface ArchiveSummary {
   readonly archive: string;
@@ -69,9 +74,7 @@ function guessExtension(b: Uint8Array): string {
 let dictionaryCache: Map<bigint, string> | null = null;
 async function loadDictionary(): Promise<Map<bigint, string>> {
   if (dictionaryCache) return dictionaryCache;
-  const text = await Bun.file(
-    new URL('../vendor/er-dictionary.txt', import.meta.url),
-  ).text();
+  const text = await Bun.file(erDictionaryUrl).text();
   const map = new Map<bigint, string>();
   for (const line of text.split(/[\r\n]+/)) {
     if (line.startsWith('#')) continue;

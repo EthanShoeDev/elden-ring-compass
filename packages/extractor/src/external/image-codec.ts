@@ -5,7 +5,7 @@ import { Data, Effect } from 'effect';
  * BCn DDS → PNG via the `er-image-codec` Rust cdylib (bun:ffi, same pattern as
  * Oodle). Bun has no native image codec and the ER textures are mostly BC7, so
  * decoding + PNG encoding happen in Rust (`image_dds` + `image`); see
- * `packages/er-image-codec`. Build it with `bun run build:image-codec`.
+ * `packages/extractor/native/image-codec`. Build it with `bun run build:image-codec`.
  */
 
 export class ImageCodecError extends Data.TaggedError('ImageCodecError')<{
@@ -13,9 +13,9 @@ export class ImageCodecError extends Data.TaggedError('ImageCodecError')<{
 }> {}
 
 // Resolved relative to this module so it's independent of the process cwd:
-// packages/er-extractor/src/external → packages/er-image-codec/target/release.
+// packages/extractor/src/external → packages/extractor/native/image-codec/target/release.
 const DLL_URL = new URL(
-  '../../../er-image-codec/target/release/er_image_codec.dll',
+  '../../native/image-codec/target/release/er_image_codec.dll',
   import.meta.url,
 );
 

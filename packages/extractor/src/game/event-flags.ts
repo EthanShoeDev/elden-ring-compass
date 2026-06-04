@@ -1,3 +1,4 @@
+import { eventFlagBstUrl } from '@elden-ring-compass/vendored-data';
 import { Effect, FileSystem, Path } from 'effect';
 
 /**
@@ -12,13 +13,11 @@ import { Effect, FileSystem, Path } from 'effect';
  * graces/bosses today, arbitrary quest flags later.
  */
 
-const BST_URL = new URL('../vendor/eventflag-bst.txt', import.meta.url);
-
 /** The vendored `block,multiplier` table as sorted [block, multiplier] pairs. */
 export const loadEventFlagBst = Effect.gen(function* () {
   const fs = yield* FileSystem.FileSystem;
   const path = yield* Path.Path;
-  const text = yield* fs.readFileString(yield* path.fromFileUrl(BST_URL));
+  const text = yield* fs.readFileString(yield* path.fromFileUrl(eventFlagBstUrl));
   const out: Array<[number, number]> = [];
   for (const line of text.split('\n')) {
     const trimmed = line.trim();

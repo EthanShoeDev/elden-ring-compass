@@ -1,4 +1,4 @@
-# @elden-ring-compass/er-extractor
+# @elden-ring-compass/extractor
 
 The **data backend** for eldenringcompass.com. Point it at an Elden Ring install
 dir and it regenerates everything the site needs — item/equipment names + stats,
@@ -14,14 +14,16 @@ See the full design + dependency-robustness analysis in
 - **[@effect/platform](https://effect.website) `Command`** — running external tools like WitchyBND (`src/external/witchy.ts`).
 - **Bun** runtime via `@effect/platform-bun` (`BunContext.layer` provides `FileSystem` + `CommandExecutor`).
 
-The companion **save parser** stays Rust → WASM (`packages/elden-ring-save-parser`);
-this package only generates the _data_ it consumes.
+The companion **save parser** has a pure-TS port (`packages/save-parser`,
+`@elden-ring-compass/save-parser-ts`) running alongside the Rust → WASM one
+(`packages/elden-ring-save-parser`) behind a flag; this package only generates the
+_data_ both consume. See `docs/projects/typescript-save-parser-port.md`.
 
 ## Usage
 
 ```bash
 # from the repo root
-bun --filter @elden-ring-compass/er-extractor extract \
+bun --filter @elden-ring-compass/extractor extract \
   --game-dir "C:\\Program Files (x86)\\Steam\\steamapps\\common\\ELDEN RING"
 
 # or from this package

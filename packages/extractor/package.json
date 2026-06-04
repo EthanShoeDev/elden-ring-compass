@@ -1,5 +1,5 @@
 {
-  "name": "@elden-ring-compass/er-extractor",
+  "name": "@elden-ring-compass/extractor",
   "version": "0.0.0",
   "private": true,
   "bin": {
@@ -12,7 +12,7 @@
   "scripts": {
     "start": "bun src/bin.ts",
     "extract": "bun src/bin.ts extract",
-    "build:image-codec": "cargo build --release --manifest-path ../er-image-codec/Cargo.toml",
+    "build:image-codec": "cargo build --release --manifest-path native/image-codec/Cargo.toml",
     "update-paramdex": "bun scripts/update-paramdex.ts",
     "clean": "rm -rf .turbo dist *.tsbuildinfo",
     "typecheck": "tsgo --noEmit",
@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@effect/platform-bun": "catalog:",
+    "@elden-ring-compass/vendored-data": "workspace:*",
     "effect": "catalog:",
     "sharp": "catalog:"
   },
