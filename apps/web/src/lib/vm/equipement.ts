@@ -1,5 +1,5 @@
 import { aowNameById, nameById } from '../game-data';
-import { Slot } from '../wasm-wrapper';
+import { Slot } from '../save-dto';
 import { InventoryGaItemTypeToOffset, InventoryItemTypeToOffset } from './inventory';
 /** No Ash of War attached (the gem handle on a weapon reads 0). */
 const noAsh = { id: 0, name: 'None' } as const;

@@ -9,7 +9,6 @@
   },
   "files": ["src"],
   "scripts": {
-    "gen-oracle": "bun scripts/gen-oracle.ts",
     "clean": "rm -rf .turbo *.tsbuildinfo",
     "typecheck": "tsgo --noEmit",
     "test": "vitest",
@@ -19,7 +18,6 @@
   },
   "devDependencies": {
     "@elden-ring-compass/config": "workspace:*",
-    "@elden-ring-compass/save-parser": "workspace:*",
     "@types/node": "catalog:",
     "vitest": "catalog:"
   },

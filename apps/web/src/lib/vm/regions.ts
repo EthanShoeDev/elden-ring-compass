@@ -1,6 +1,6 @@
 import { REGIONS } from '@elden-ring-compass/data';
 
-import { Slot } from '../wasm-wrapper';
+import { Slot } from '../save-dto';
 
 export function regionsDbView(slot?: Readonly<Slot>) {
   const unlockedRegionSet = new Set<number>();

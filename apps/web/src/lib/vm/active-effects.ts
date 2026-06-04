@@ -1,5 +1,5 @@
 import { spEffectLabelById } from '../game-data';
-import type { Slot } from '../wasm-wrapper';
+import type { Slot } from '../save-dto';
 
 /**
  * Active sp_effects on the character, labelled where the granting item is known.

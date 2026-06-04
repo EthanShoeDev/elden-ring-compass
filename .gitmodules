@@ -1,4 +1,0 @@
-[submodule "packages/er-save-lib"]
-	path = packages/er-save-lib
-	url = https://github.com/EthanShoeDev/ER-Save-Lib.git
-	branch = wasm-compat

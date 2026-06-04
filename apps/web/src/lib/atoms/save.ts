@@ -1,37 +1,58 @@
-import * as Comlink from 'comlink';
 import { Cause, Data, Effect } from 'effect';
 import { Atom } from 'effect/unstable/reactivity';
 import * as AsyncResult from 'effect/unstable/reactivity/AsyncResult';
 import { useAtomRefresh, useAtomValue } from '@effect/atom-react';
 import { reconstructSlot } from '@/lib/share/decode';
-import { getSaveParserBackend } from '@/lib/save-parser-backend';
+import type {
+  ParseRequest,
+  ParseResponse,
+} from '@/lib/er-save-parser.worker';
 import { isSharedSource, saveFileSourceAtom } from '@/stores/save-file-source-store';
-import type { WasmEldenRingSave } from '@/lib/wasm-wrapper';
+import type { WasmEldenRingSave } from '@/lib/save-dto';
 
-// Effect-atom replacement for the old React Query save hook. The Comlink
-// Worker → Rust/WASM parse is wrapped as an Effect and exposed as an async Atom
-// (`AsyncResult`), deriving from `saveFileSourceAtom`; when the source changes
-// the parse re-runs automatically. No QueryClient / React Query.
+// Effect-atom replacement for the old React Query save hook. The Worker → pure-TS parse is
+// wrapped as an Effect and exposed as an async Atom (`AsyncResult`), deriving from
+// `saveFileSourceAtom`; when the source changes the parse re-runs automatically. No QueryClient
+// / React Query, and no Comlink — a plain `postMessage` request/response (see the worker).
 
 class NoSaveSourceError extends Data.TaggedError('NoSaveSourceError')<object> {}
 class SaveParseError extends Data.TaggedError('SaveParseError')<{ readonly message: string }> {}
 
-type SaveParserWorker = {
-  parseEldenRingData: (buffer: ArrayBuffer) => Promise<WasmEldenRingSave>;
-  parseEldenRingDataTs: (buffer: ArrayBuffer) => Promise<WasmEldenRingSave>;
-};
+// Lazily-created parse worker + a request/response correlation map keyed by a monotonic id.
+let worker: Worker | null = null;
+let nextRequestId = 0;
+const pending = new Map<
+  number,
+  { resolve: (save: WasmEldenRingSave) => void; reject: (err: Error) => void }
+>();
 
-let workerApi: Comlink.Remote<SaveParserWorker> | null = null;
-const getWorkerApi = (): Comlink.Remote<SaveParserWorker> | null => {
+const getWorker = (): Worker | null => {
   if (typeof window === 'undefined') return null;
-  if (!workerApi) {
-    const worker = new Worker(new URL('../er-save-parser.worker.ts', import.meta.url), {
+  if (!worker) {
+    worker = new Worker(new URL('../er-save-parser.worker.ts', import.meta.url), {
       name: 'EldenRingSaveParser',
       type: 'module',
     });
-    workerApi = Comlink.wrap<SaveParserWorker>(worker);
+    worker.onmessage = (event: MessageEvent<ParseResponse>) => {
+      const res = event.data;
+      const p = pending.get(res.id);
+      if (!p) return;
+      pending.delete(res.id);
+      if (res.ok) p.resolve(res.save);
+      else p.reject(new Error(res.error));
+    };
   }
-  return workerApi;
+  return worker;
+};
+
+const parseInWorker = (buffer: ArrayBuffer): Promise<WasmEldenRingSave> => {
+  const w = getWorker();
+  if (!w) return Promise.reject(new Error('Save parser unavailable'));
+  const id = nextRequestId++;
+  return new Promise<WasmEldenRingSave>((resolve, reject) => {
+    pending.set(id, { resolve, reject });
+    w.postMessage({ id, buffer } satisfies ParseRequest);
+  });
 };
 
 const toParseError = (cause: unknown) =>
@@ -41,7 +62,7 @@ const toParseError = (cause: unknown) =>
 // (the atom re-running unexpectedly) is visible at a glance.
 let parseRunCount = 0;
 
-/** Async atom: parses the active save source via the WASM worker. */
+/** Async atom: parses the active save source via the TS worker. */
 export const saveAtom = Atom.make((get) =>
   Effect.gen(function* () {
     const src = get(saveFileSourceAtom);
@@ -65,8 +86,8 @@ export const saveAtom = Atom.make((get) =>
       } satisfies WasmEldenRingSave;
     }
 
-    const api = getWorkerApi();
-    if (!api) return yield* new SaveParseError({ message: 'Save parser unavailable' });
+    if (!getWorker())
+      return yield* new SaveParseError({ message: 'Save parser unavailable' });
 
     const buffer =
       'file' in src
@@ -76,17 +97,12 @@ export const saveAtom = Atom.make((get) =>
             catch: toParseError,
           });
 
-    const backend = getSaveParserBackend();
     const save = yield* Effect.tryPromise({
-      try: () =>
-        backend === 'ts'
-          ? api.parseEldenRingDataTs(buffer)
-          : api.parseEldenRingData(buffer),
+      try: () => parseInWorker(buffer),
       catch: toParseError,
     });
     yield* Effect.logInfo(`save parse #${parseRunCount}: success`).pipe(
       Effect.annotateLogs('slots', save.slots.length),
-      Effect.annotateLogs('backend', backend),
     );
     return save;
   }),

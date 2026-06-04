@@ -14,10 +14,10 @@ See the full design + dependency-robustness analysis in
 - **[@effect/platform](https://effect.website) `Command`** — running external tools like WitchyBND (`src/external/witchy.ts`).
 - **Bun** runtime via `@effect/platform-bun` (`BunContext.layer` provides `FileSystem` + `CommandExecutor`).
 
-The companion **save parser** has a pure-TS port (`packages/save-parser`,
-`@elden-ring-compass/save-parser-ts`) running alongside the Rust → WASM one
-(`packages/elden-ring-save-parser`) behind a flag; this package only generates the
-_data_ both consume. See `docs/projects/typescript-save-parser-port.md`.
+The companion **save parser** is now pure TypeScript (`packages/save-parser`,
+`@elden-ring-compass/save-parser-ts`) — it replaced the old Rust → WASM parser, which has
+been deleted (the TS port is ~60× faster). This package only generates the _data_ it
+consumes. See `docs/projects/typescript-save-parser-port.md`.
 
 ## Usage
 

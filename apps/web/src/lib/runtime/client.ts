@@ -2,8 +2,8 @@ import { Logger, ManagedRuntime } from 'effect';
 
 // Client-side Effect ManagedRuntime.
 //
-// Purpose: run Effects at non-Effect JavaScript boundaries — Web Workers, DOM event handlers,
-// Comlink callbacks — without reaching for ad-hoc `Effect.runSync(...)`. The runtime owns its
+// Purpose: run Effects at non-Effect JavaScript boundaries — Web Workers, DOM event handlers —
+// without reaching for ad-hoc `Effect.runSync(...)`. The runtime owns its
 // layer (here: the client logger), caches the built context, and exposes `runFork`/`runPromise`/
 // `runSync` for those boundaries.
 //

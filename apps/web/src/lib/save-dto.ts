@@ -1,18 +1,7 @@
-import { parse_save } from '@elden-ring-compass/save-parser';
-
-// Thin wrapper around the WASM `parse_save` entry. The Rust side (a wasm-bindgen wrapper
-// over our fork of ER-Save-Lib) parses the save and returns the lean, web-facing `LeanSave`
-// DTO — only what the site consumes, junk trimmed, IDs resolved in JS. See
-// docs/projects/wasm-save-parser-rewrite.md for the full kept/dropped inventory.
-export function parse_save_wasm(save_data: Uint8Array) {
-  try {
-    return parse_save(save_data) as WasmEldenRingSave;
-  } catch (e) {
-    console.error(e);
-    throw new Error('wasm parsing failure', { cause: e });
-  }
-}
-
+// The lean, web-facing save DTO the app consumes. Produced by the pure-TS parser
+// (`@elden-ring-compass/save-parser-ts`, `parseSave`) — see `er-save-parser.ts`. These types
+// mirror that parser's `LeanSave` (kept here so the app's view-models import a stable shape;
+// the historical `Wasm*`/`Slot` names predate the TS port and are unchanged to avoid churn).
 export type WasmEldenRingSave = {
   global_steam_id: Readonly<string>;
   character_steam_ids: ReadonlyArray<string>;

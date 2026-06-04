@@ -1,5 +1,5 @@
 import { archetypeNameById } from '@/lib/game-data';
-import { Slot } from '@/lib/wasm-wrapper';
+import { Slot } from '@/lib/save-dto';
 
 export function statsDbView(slot: Readonly<Slot>) {
   return {

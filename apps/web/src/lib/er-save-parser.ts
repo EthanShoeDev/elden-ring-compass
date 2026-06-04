@@ -1,4 +1,6 @@
-import { parse_save_wasm } from './wasm-wrapper';
+import { parseSave } from '@elden-ring-compass/save-parser-ts';
+
+import type { WasmEldenRingSave } from './save-dto';
 
 export function fileToArrBuffer(file: File) {
   return new Promise<ArrayBuffer>((resolve, reject) => {
@@ -31,8 +33,12 @@ export async function parseEldenRingUrl(url: string) {
   }
 }
 
-export function parseEldenRingData(rawSaveData: Readonly<ArrayBuffer>) {
-  const save = new Uint8Array(rawSaveData);
-  const saveData = parse_save_wasm(save);
-  return saveData;
+// Parses a save into the lean web DTO via the pure-TS parser
+// (`@elden-ring-compass/save-parser-ts`). Its `LeanSave` is structurally identical to the
+// app's `WasmEldenRingSave` (verified byte-for-byte vs the retired WASM parser); the cast
+// keeps the historical type name the view-models import.
+export function parseEldenRingData(
+  rawSaveData: Readonly<ArrayBuffer>,
+): WasmEldenRingSave {
+  return parseSave(rawSaveData as ArrayBuffer) as unknown as WasmEldenRingSave;
 }

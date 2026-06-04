@@ -1,6 +1,6 @@
 import LZString from 'lz-string';
 import { eventFlagOffset } from '@elden-ring-compass/data';
-import type { Slot } from '@/lib/wasm-wrapper';
+import type { Slot } from '@/lib/save-dto';
 import { MAX_EVENT_BYTE_OFFSET } from './shareable-events';
 import { type ShareableProgression, SHAREABLE_VERSION } from './types';
 

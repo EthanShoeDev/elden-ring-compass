@@ -6,10 +6,11 @@
 > `elden-ring-data` → `data` (npm name unchanged). ③ `er-image-codec` moved into
 > `packages/extractor/native/image-codec` (build script + `DLL_URL` fixed; dropped as a
 > top-level member). ④ The TS save-parser port landed in `packages/save-parser`
-> (`typescript-save-parser-port.md`), wired behind a flag alongside WASM. ⑤ Extractor
+> (`typescript-save-parser-port.md`) and the **Rust/WASM save stack was DELETED** (the
+> `er-save-lib` submodule + `elden-ring-save-parser` wrapper are gone; web parses TS-only). ⑤ Extractor
 > `CLAUDE.md` guardrail added; `scripts/req-bin.ts` deleted.
 >
-> **Deferred:** deleting the WASM save stack (gated on the flag rollout); the per-stage
+> **Deferred:** the per-stage
 > on-disk artifacts + `--only/--from/--to` CLI and folding `scripts/map-calibrate.ts`
 > into a stage (the "extractor hygiene" track — independent, do anytime); the curated
 > quest/flag vendored data (rides on quest-compass).
@@ -264,6 +265,23 @@ feature work respectively.
 9. **Audit + fold the existing one-offs** — `scripts/map-calibrate.ts` → a real
    calibration stage; `scripts/req-bin.ts` → delete; `spike/*` → promote to documented
    `package.json` scripts + PROVENANCE rows. Sweep for any others.
+
+## Future idea: group the config/tooling packages (not yet decided)
+
+> Added 2026-06-04 (user) — a possible later cleanup, **NOT scoped or started**:
+>
+> - Rename `packages/config` → `packages/config/typescript-config` (it's just the shared tsconfig
+>   base — the name should say so).
+> - Move `packages/oxlint-plugins` → `packages/config/oxlint-plugins`.
+> - i.e. fold the build/lint **tooling** packages under a `packages/config/` umbrella.
+> - **Open:** do the remaining (domain) packages stay at the top level, or get grouped under a
+>   `packages/core/` umbrella? _Undecided._ Leaning: only regroup the tooling/config packages and
+>   leave the domain packages (`data`, `extractor`, `vendored-data`, `save-parser`) where they are
+>   unless `packages/` gets crowded.
+> - **Gotcha:** the workspace glob is `packages/*`, which would NOT match `packages/config/*`.
+>   Nesting tooling packages under `packages/config/` means updating the workspace globs (e.g. to
+>   `packages/*` + `packages/config/*`) and every `@elden-ring-compass/config` consumer. Pure churn,
+>   so only worth doing as its own commit when `packages/` actually feels cluttered.
 
 ## Open questions
 

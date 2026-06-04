@@ -5,7 +5,7 @@ import {
   itemNameById,
   weaponNameById,
 } from '../game-data';
-import { EquipInventoryData, GaItem, Slot, StorageInventoryData } from '../wasm-wrapper';
+import { EquipInventoryData, GaItem, Slot, StorageInventoryData } from '../save-dto';
 
 // For converting gaitem.item_id to item
 export const InventoryItemTypeToOffset = {

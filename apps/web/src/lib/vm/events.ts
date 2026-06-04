@@ -1,6 +1,6 @@
 import { BOSSES, eventFlagOffset, GRACES, MAP_FRAGMENTS, GOODS } from '@elden-ring-compass/data';
 
-import { Slot } from '../wasm-wrapper';
+import { Slot } from '../save-dto';
 import { inventoryDbView } from './inventory';
 import { bossFlagToPixel, graceFlagToPixel } from './map-pins';
 

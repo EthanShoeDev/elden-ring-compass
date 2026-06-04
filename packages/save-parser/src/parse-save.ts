@@ -1,9 +1,11 @@
 /**
  * Pure-TypeScript Elden Ring save (`.sl2`) parser — read-only, PC saves.
  *
- * Ported field-for-field from the verified Rust reference
- * (`packages/er-save-lib/src/save/user_data_x.rs` + `user_data_10.rs`, projected by
- * `api/web_export.rs`). The byte layout is sequential and little-endian; we walk the
+ * Ported field-for-field from the verified Rust reference — our ER-Save-Lib fork's
+ * `save/user_data_x.rs` + `user_data_10.rs`, projected by `api/web_export.rs` (that fork +
+ * WASM build have since been retired from the repo; this parser replaced them — see
+ * docs/projects/typescript-save-parser-port.md). The byte layout is sequential and
+ * little-endian; we walk the
  * whole slot, capturing only the fields the lean DTO needs and advancing past the
  * rest by their exact byte size. Where a section is length-prefixed (`field_area`,
  * `world_area`, the two `world_geom_man`s, `rend_man`, the menu/tutorial blobs) we

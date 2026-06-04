@@ -1,10 +1,10 @@
 /**
- * The lean, web-facing DTO produced by the parser. Shape-identical to the WASM
- * parser's `LeanSave` (see `packages/er-save-lib/src/api/web_export.rs` and the web
- * app's `WasmEldenRingSave` in `apps/web/src/lib/wasm-wrapper.ts`) so this is a
- * drop-in backend swap: the website's view-models read the same fields unchanged.
+ * The lean, web-facing DTO produced by the parser. Shape-identical to the retired WASM
+ * parser's `LeanSave` (the ER-Save-Lib fork's `api/web_export.rs`) and the web app's
+ * `WasmEldenRingSave` in `apps/web/src/lib/save-dto.ts`, so this was a drop-in backend
+ * swap: the website's view-models read the same fields unchanged.
  *
- * Field names intentionally keep the WASM/serde snake_case (e.g. `souls`,
+ * Field names intentionally keep the original serde snake_case (e.g. `souls`,
  * `arche_type`, `map_id`) — they are the contract the web app already consumes.
  */
 

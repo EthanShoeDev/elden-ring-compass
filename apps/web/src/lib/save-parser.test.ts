@@ -5,23 +5,19 @@ import { it } from '@effect/vitest';
 import { Data, Effect, FileSystem } from 'effect';
 import { expect } from 'vitest';
 import { MATCHMAKING_REGION_IDS, REGIONS } from '@elden-ring-compass/data';
-import { initSync } from '@elden-ring-compass/save-parser';
-import { parseSave as parseSaveTs } from '@elden-ring-compass/save-parser-ts';
 import { parseEldenRingData } from './er-save-parser';
-import type { Slot, WasmEldenRingSave } from './wasm-wrapper';
+import type { Slot, WasmEldenRingSave } from './save-dto';
 
-// Runtime-verification of the lean-DTO WASM save parser (ER-Save-Lib fork) against a real
-// `.sl2`, replacing the manual browser check. See docs/projects/wasm-save-parser-rewrite.md (#15).
+// Runtime-verification of the lean-DTO save parser against a real `.sl2`: structural sanity of the
+// web-facing DTO (stats, event flags, ga_items, regions) through the app's `parseEldenRingData`
+// (the pure-TS parser). Byte-exact correctness is pinned separately by the parser package's parity
+// test (packages/save-parser/test/parity.test.ts).
 //
-// Why no browser / fetch / DOM: the parser is pure compute (bytes in -> JS object out). The
-// `--target web` wasm only couples to the browser via its default `fetch(import.meta.url)` init;
-// we sidestep that with `initSync(bytes)`, which compiles via `new WebAssembly.Module()` —
-// identical in Node, Bun, and the browser. So plain (non-browser-mode) vitest is sufficient.
+// Why no browser / fetch / DOM: `parseEldenRingData` is pure compute (bytes in -> JS object out).
 //
-// Why @effect/platform-node (not -bun): vitest's worker pool runs on Node even when launched via
-// `bun run` (verified: worker execPath is node.exe). `@effect/platform-bun` needs the Bun runtime
-// and is reserved for the er-extractor CLI; `NodeServices.layer` is the matching FileSystem + Path
-// provider for tests. The wasm itself is runtime-neutral.
+// Why @effect/platform-node: vitest's worker pool runs on Node even when launched via `bun run`;
+// `NodeServices.layer` is the matching FileSystem provider. (This used to verify the Rust/WASM
+// parser; that's been retired in favor of the byte-identical TS port.)
 
 class SaveParseError extends Data.TaggedError('SaveParseError')<{
   readonly message: string;
@@ -44,34 +40,14 @@ const REPO_ROOT = (() => {
 })();
 
 const savePaths = Effect.sync(() => ({
-  wasm: join(
-    REPO_ROOT,
-    'packages',
-    'elden-ring-save-parser',
-    'pkg',
-    'elden_ring_save_parser_bg.wasm',
-  ),
   // A committed base-game save shipped in public/. (DLC fixtures can join this list once a
-  // committed `.sl2` lives in the repo — packages/er-save-lib/test/* is a submodule, not relied on.)
+  // committed `.sl2` lives in the repo.)
   baseSave: join(REPO_ROOT, 'apps', 'web', 'public', 'ER0000.sl2'),
 }));
-
-/**
- * Initialise the wasm singleton from disk bytes (idempotent — `initSync` returns early once set).
- * `parseEldenRingData` -> `parse_save_wasm` -> `parse_save` all share this instance, so the real
- * app code path is exercised.
- */
-const ensureParser = Effect.gen(function* () {
-  const fs = yield* FileSystem.FileSystem;
-  const { wasm } = yield* savePaths;
-  const bytes = yield* fs.readFile(wasm);
-  initSync({ module: bytes });
-});
 
 /** Read a save fixture and parse it into the lean DTO, as a typed-failure Effect. */
 const parseFixture = (absPath: string) =>
   Effect.gen(function* () {
-    yield* ensureParser;
     const fs = yield* FileSystem.FileSystem;
     const bytes = yield* fs.readFile(absPath);
     // Tighten to an exact-size ArrayBuffer (the FileSystem view may sit in a larger buffer).
@@ -81,7 +57,7 @@ const parseFixture = (absPath: string) =>
     ) as ArrayBuffer;
     return yield* Effect.try({
       try: () => parseEldenRingData(buffer),
-      catch: (cause) => new SaveParseError({ message: 'wasm parse failed', cause }),
+      catch: (cause) => new SaveParseError({ message: 'TS parse failed', cause }),
     });
   });
 
@@ -89,7 +65,7 @@ const parseFixture = (absPath: string) =>
 const occupiedSlots = (save: WasmEldenRingSave): readonly Slot[] =>
   save.slots.filter((s) => s.player_game_data.character_name.length > 0);
 
-it.layer(NodeServices.layer)('WASM save parser — lean DTO (ER0000.sl2)', (it) => {
+it.layer(NodeServices.layer)('TS save parser — lean DTO (ER0000.sl2)', (it) => {
   it.effect('parses without throwing and yields the top-level shape', () =>
     Effect.gen(function* () {
       const { baseSave } = yield* savePaths;
@@ -203,41 +179,4 @@ it.layer(NodeServices.layer)('WASM save parser — lean DTO (ER0000.sl2)', (it) 
       }),
   );
 
-  // The pure-TS port (`@elden-ring-compass/save-parser-ts`) must produce the IDENTICAL
-  // lean DTO as WASM — this is the gate that lets the app A/B the backends and eventually
-  // retire the Rust stack. (The package's own parity test pins the same invariant against a
-  // committed oracle; this runs them truly back-to-back on the live wasm.) See
-  // docs/projects/typescript-save-parser-port.md.
-  it.effect('TS port matches the WASM parser byte-for-byte (full DTO)', () =>
-    Effect.gen(function* () {
-      yield* ensureParser;
-      const fs = yield* FileSystem.FileSystem;
-      const { baseSave } = yield* savePaths;
-      const bytes = yield* fs.readFile(baseSave);
-      const buffer = bytes.buffer.slice(
-        bytes.byteOffset,
-        bytes.byteOffset + bytes.byteLength,
-      ) as ArrayBuffer;
-      const wasm = parseEldenRingData(buffer);
-      const ts = parseSaveTs(buffer);
-
-      // Replace each slot's multi-MB event-flag bitfield with a fast rolling checksum so
-      // `toEqual` doesn't spend ~14 s deep-comparing ~8.5 MB of bytes. The checksum pins the
-      // bitfield byte-for-byte; the rest of the DTO is compared structurally.
-      const checksum = (b: Uint8Array): { len: number; sum: number } => {
-        let sum = 0;
-        for (let i = 0; i < b.length; i++) sum = (sum * 31 + b[i]!) >>> 0;
-        return { len: b.length, sum };
-      };
-      const normalize = (s: WasmEldenRingSave) => ({
-        ...s,
-        slots: s.slots.map((slot) => ({
-          ...slot,
-          event_flags: checksum(slot.event_flags.flags as Uint8Array),
-        })),
-      });
-
-      expect(normalize(ts as unknown as WasmEldenRingSave)).toEqual(normalize(wasm));
-    }),
-  );
 });

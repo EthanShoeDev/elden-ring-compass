@@ -4,7 +4,6 @@ import tailwindcss from '@tailwindcss/vite';
 import viteReact from '@vitejs/plugin-react';
 import { nitro } from 'nitro/vite';
 import path from 'path';
-import wasm from 'vite-plugin-wasm';
 // Pure Vite build/plugins config for the app (`vite dev`/`vite build`). The Vitest test
 // PROJECTS live in the root `vitest.config.ts` + `apps/web/vitest.config{,.browser}.ts`,
 // which `mergeConfig` THIS config to inherit the plugins below. `defineConfig` from
@@ -29,7 +28,7 @@ export default defineConfig({
   // `viteReact()` MUST come after `tanstackStart()` — the TanStack Router plugin (inside
   // tanstackStart/appOnlyPlugins) has to run before the JSX transform. Under VITEST appOnlyPlugins
   // is empty, so react ends up last either way.
-  plugins: [erDataTiles(), wasm(), tailwindcss(), ...appOnlyPlugins, viteReact()],
+  plugins: [erDataTiles(), tailwindcss(), ...appOnlyPlugins, viteReact()],
   resolve: {
     tsconfigPaths: true,
     alias: {

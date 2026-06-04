@@ -1,36 +1,31 @@
 # TypeScript Save-Parser Port — evaluating "drop Rust/WASM, port the Python parser"
 
-> **Status (2026-06-04): PORTED + VERIFIED, both backends shipping behind a flag.**
-> The read-path port is done and lives in `packages/save-parser`
-> (`@elden-ring-compass/save-parser-ts`). It emits the identical lean DTO and is
-> verified **byte-for-byte** against the WASM parser on `ER0000.sl2` (all 5 active
-> slots, incl. the full ~1.7 MB event-flag bitfield) by:
-> - `packages/save-parser/test/parity.test.ts` — diffs the parser against a committed
->   oracle (generated from the WASM build via `bun run gen-oracle`; flags pinned by
->   length + SHA-256), and
-> - `apps/web/src/lib/wasm-save-parser.test.ts` — a live back-to-back TS-vs-WASM
->   full-DTO equality run.
+> **Status (2026-06-04): DONE — TS-only; the Rust/WASM stack is DELETED.** The read-path
+> port lives in `packages/save-parser` (`@elden-ring-compass/save-parser-ts`,
+> `parseSave(buffer)`), emits the identical lean DTO, and was verified **byte-for-byte**
+> against the (now-removed) WASM parser on `ER0000.sl2` (all 5 active slots, incl. the full
+> ~1.7 MB event-flag bitfield) before deletion.
 >
-> **Decision taken (user): keep BOTH backends behind a flag; delete WASM later** once
-> the TS port is proven in the wild (NOT the doc's original "hard perf gate"). The web
-> worker exposes both `parseEldenRingData` (wasm) and `parseEldenRingDataTs`;
-> `apps/web/src/lib/save-parser-backend.ts` selects via `?parser=ts` / localStorage
-> (`er:parser-backend`), defaulting `'wasm'`. The perf bench
-> (`er-save-parser.perf.browser.ts`) now has a `ts (direct)` variant alongside wasm.
+> **Perf — MEASURED (ER0000.sl2), and the TS port won big** (this is what triggered the
+> deletion): node (tinybench, `vitest bench`) **TS ≈ 1.6 ms vs WASM ≈ 95 ms — ~60× faster**;
+> real Chromium **TS ≈ 3 ms vs WASM ≈ 99 ms — ~33× faster**; retained heap ~0.2–0.4 MB either
+> way. The `serde-wasm-bindgen` marshalling tax (rebuilding the whole DTO out of linear memory
+> every call) dominates, exactly as the "Why JS could win" section predicted.
 >
-> **Perf — MEASURED (ER0000.sl2), and the TS port wins big.** Side-by-side on the same
-> buffer: in node (tinybench, `vitest bench`) **TS ≈ 1.6 ms vs WASM ≈ 95 ms — ~60× faster**;
-> in real Chromium **TS ≈ 3 ms vs WASM ≈ 99 ms — ~33× faster**; retained heap ~0.2–0.4 MB
-> either way. The `serde-wasm-bindgen` marshalling tax (rebuilding the whole DTO out of linear
-> memory every call) dominates, exactly as the "Why JS could win" section predicted. So perf is
-> not just "not worse" — it's decisively better. Benches: `packages/save-parser/perf/*.bench.ts`
-> (timing) + `*.mem.test.ts` (heap) in the `save-parser-perf` project; the browser numbers come
-> from the `web-perf` project (`apps/web/.../er-save-parser.perf.browser.ts`).
+> **Deleted (Phase 1 done):** the `er-save-lib` git submodule, the
+> `elden-ring-save-parser` wasm-bindgen wrapper + its `pkg/`, the root `build:wasm-parser`
+> script, the `?parser=ts` backend flag (`save-parser-backend.ts`), and the live TS-vs-WASM
+> parity test. The web app parses TS-only via the worker (`er-save-parser.ts` →
+> `@.../save-parser-ts`); `apps/web/src/lib/wasm-wrapper.ts` was renamed `save-dto.ts` (types
+> only). **Comlink was also DROPPED** — the worker now uses a plain `postMessage` request/response
+> (a correlation-map helper in `atoms/save.ts`), verified end-to-end by the Playwright E2E
+> (`e2e/save-parse.spec.ts`); and the now-unused `vite-plugin-wasm` was removed from the web build.
+> The byte-exact guard is now the parser package's parity test
+> vs a **frozen** oracle (`packages/save-parser/test/parity.test.ts`) — the oracle was captured
+> from the verified WASM parser before deletion (its generator is gone with the WASM stack).
 >
-> **Still WASM-only / deferred:** the actual deletion of the `er-save-lib` submodule +
-> `elden-ring-save-parser` wrapper + `build:wasm-parser` + Comlink (Phase 1 below), and
-> DLC/PS-platform fixtures (Phase 2). The sections below are the original decision doc,
-> kept for rationale.
+> **Still deferred (Phase 2):** DLC/PS-platform fixtures. The sections below are the original
+> decision doc, kept for rationale.
 
 ## Why this is even on the table
 

@@ -41,7 +41,6 @@
       "assert": "^2.1.0",
       "class-variance-authority": "^0.7.1",
       "clsx": "^2.1.1",
-      "comlink": "^4.4.2",
       "cross-env": "^10.1.0",
       "date-fns": "^4.4.0",
       "effect": "4.0.0-beta.75",
@@ -69,7 +68,6 @@
       "type-fest": "^5.7.0",
       "typescript": "^6.0.3",
       "vite": "^8.0.16",
-      "vite-plugin-wasm": "^3.6.0",
       "vitest": "^4.1.8",
       "zustand": "^5.0.14"
     }
@@ -78,7 +76,6 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "build:wasm-parser": "cd packages/elden-ring-save-parser && wasm-pack build --target web",
     "typecheck": "tsgo --noEmit",
     "test": "turbo run test:run",
     "test:all": "vitest run --project extractor --project save-parser --project web",
