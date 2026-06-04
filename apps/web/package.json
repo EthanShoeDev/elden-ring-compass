@@ -64,7 +64,6 @@
     "vite": "catalog:",
     "vite-plugin-image-optimizer": "catalog:",
     "vite-plugin-wasm": "catalog:",
-    "vite-tsconfig-paths": "catalog:",
     "vitest": "catalog:"
   }
 }

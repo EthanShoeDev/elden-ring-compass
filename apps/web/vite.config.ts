@@ -2,7 +2,6 @@
 import { devtools } from '@tanstack/devtools-vite';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact from '@vitejs/plugin-react';
-import viteTsConfigPaths from 'vite-tsconfig-paths';
 import { cpSync, createReadStream, existsSync, rmSync, statSync } from 'node:fs';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
@@ -83,9 +82,6 @@ export default defineConfig({
   plugins: [
     devtools(),
     erDataTiles(),
-    viteTsConfigPaths({
-      projects: ['./tsconfig.json'],
-    }),
     // ViteImageOptimizer({
     //   cache: true,
     //   cacheLocation: './node_modules/.cache/vite-plugin-image-optimizer',
@@ -101,6 +97,7 @@ export default defineConfig({
     viteReact(),
   ],
   resolve: {
+    tsconfigPaths: true,
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
