@@ -1,12 +1,30 @@
 # Repo Reorganization — vendored-data vs extractor vs data vs save-parser
 
-> **Status (2026-06-04): PROPOSAL / not started.** Scopes a monorepo package
-> reorganization around a single clarifying axis: **"could we extract this ourselves from
-> the installed game, or did we rip it verbatim from someone else?"** Package _names_ below
-> are first-draft — see [Naming](#naming) for the inconsistency this should also fix.
-> Related: `dlc-support.md` (§7 dependency robustness — the principle this formalizes),
-> `typescript-save-parser-port.md` (creates the new save-parser package), and
-> `packages/er-extractor/src/vendor/PROVENANCE.md` (the seed of the vendored-data package).
+> **Status (2026-06-04): LARGELY DONE.** Shipped: ① `@elden-ring-compass/vendored-data`
+> extracted (all of `er-extractor/src/vendor/*`; PROVENANCE → its README; extractor
+> repointed). ② Dirs renamed — `er-extractor` → `extractor` (npm `@.../extractor`),
+> `elden-ring-data` → `data` (npm name unchanged). ③ `er-image-codec` moved into
+> `packages/extractor/native/image-codec` (build script + `DLL_URL` fixed; dropped as a
+> top-level member). ④ The TS save-parser port landed in `packages/save-parser`
+> (`typescript-save-parser-port.md`), wired behind a flag alongside WASM. ⑤ Extractor
+> `CLAUDE.md` guardrail added; `scripts/req-bin.ts` deleted.
+>
+> **Deferred:** deleting the WASM save stack (gated on the flag rollout); the per-stage
+> on-disk artifacts + `--only/--from/--to` CLI and folding `scripts/map-calibrate.ts`
+> into a stage (the "extractor hygiene" track — independent, do anytime); the curated
+> quest/flag vendored data (rides on quest-compass).
+>
+> **Key decision (user) — refines the original plan:** there is **no runtime piece of
+> `vendored-data`.** It is **build-time only**, consumed solely by the extractor, which
+> bakes whatever the runtime needs into `@elden-ring-compass/data`. `data` is the
+> **single runtime data source** (it already exports `eventFlagOffset`, the BST-derived
+> addressing). So the doc's earlier `/runtime` subpath idea is dropped; the BST
+> "de-duplication" resolves itself when the WASM submodule (the second BST copy) is
+> deleted — the TS parser emits only the raw bitfield and gets addressing from `data`.
+>
+> The original axis still holds: **"could we extract this ourselves from the installed
+> game, or did we rip it verbatim from someone else?"** Related: `dlc-support.md` (§7),
+> `typescript-save-parser-port.md`, and `packages/vendored-data/README.md`.
 
 ## The organizing principle
 

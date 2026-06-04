@@ -1,10 +1,27 @@
 # TypeScript Save-Parser Port — evaluating "drop Rust/WASM, port the Python parser"
 
-> **Status (2026-06-04): PROPOSAL / not started.** Spun out of the `er-save-manager`
-> source review (see `wasm-save-parser-rewrite.md` and `quest-compass.md`). This doc
-> evaluates a single question: **should we replace our Rust→WASM save parser
-> (`packages/er-save-lib` fork + `packages/elden-ring-save-parser` wrapper) with a
-> pure-TypeScript port?** It is a decision doc, not a commitment.
+> **Status (2026-06-04): PORTED + VERIFIED, both backends shipping behind a flag.**
+> The read-path port is done and lives in `packages/save-parser`
+> (`@elden-ring-compass/save-parser-ts`). It emits the identical lean DTO and is
+> verified **byte-for-byte** against the WASM parser on `ER0000.sl2` (all 5 active
+> slots, incl. the full ~1.7 MB event-flag bitfield) by:
+> - `packages/save-parser/test/parity.test.ts` — diffs the parser against a committed
+>   oracle (generated from the WASM build via `bun run gen-oracle`; flags pinned by
+>   length + SHA-256), and
+> - `apps/web/src/lib/wasm-save-parser.test.ts` — a live back-to-back TS-vs-WASM
+>   full-DTO equality run.
+>
+> **Decision taken (user): keep BOTH backends behind a flag; delete WASM later** once
+> the TS port is proven in the wild (NOT the doc's original "hard perf gate"). The web
+> worker exposes both `parseEldenRingData` (wasm) and `parseEldenRingDataTs`;
+> `apps/web/src/lib/save-parser-backend.ts` selects via `?parser=ts` / localStorage
+> (`er:parser-backend`), defaulting `'wasm'`. The perf bench
+> (`er-save-parser.perf.browser.ts`) now has a `ts (direct)` variant alongside wasm.
+>
+> **Still WASM-only / deferred:** the actual deletion of the `er-save-lib` submodule +
+> `elden-ring-save-parser` wrapper + `build:wasm-parser` + Comlink (Phase 1 below), and
+> DLC/PS-platform fixtures (Phase 2). The sections below are the original decision doc,
+> kept for rationale.
 
 ## Why this is even on the table
 
