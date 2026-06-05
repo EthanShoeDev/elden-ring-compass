@@ -1,7 +1,8 @@
+import babel from '@rolldown/plugin-babel';
 import { devtools } from '@tanstack/devtools-vite';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import tailwindcss from '@tailwindcss/vite';
-import viteReact from '@vitejs/plugin-react';
+import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { nitro } from 'nitro/vite';
 import path from 'path';
 // Pure Vite build/plugins config for the app (`vite dev`/`vite build`). The Vitest test
@@ -20,6 +21,14 @@ const appOnlyPlugins = process.env.VITEST
   ? []
   : [devtools(), tanstackStart({ prerender: { enabled: false } }), nitro()];
 
+// React Compiler (plugin-react v6 removed the inline babel option, so this runs via
+// @rolldown/plugin-babel). MUST come after viteReact() — the preset's rolldown filter only
+// applies it to the client environment and to files that look like components/hooks. Gated out of
+// VITEST for the same reason as appOnlyPlugins: tests run on the un-compiled source.
+const reactCompilerPlugins = process.env.VITEST
+  ? []
+  : [babel({ presets: [reactCompilerPreset()] })];
+
 export default defineConfig({
   server: {
     port: 3005,
@@ -28,7 +37,7 @@ export default defineConfig({
   // `viteReact()` MUST come after `tanstackStart()` — the TanStack Router plugin (inside
   // tanstackStart/appOnlyPlugins) has to run before the JSX transform. Under VITEST appOnlyPlugins
   // is empty, so react ends up last either way.
-  plugins: [erDataTiles(), tailwindcss(), ...appOnlyPlugins, viteReact()],
+  plugins: [erDataTiles(), tailwindcss(), ...appOnlyPlugins, viteReact(), ...reactCompilerPlugins],
   resolve: {
     tsconfigPaths: true,
     alias: {
