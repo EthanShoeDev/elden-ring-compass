@@ -23,6 +23,18 @@
 > now 11,361 rows). Remaining: **web migration** (rewire `map-db.ts`'s consumers onto the new
 > datasets, then delete it) + **#4 calibration generalization** (overworld local→unified tile
 > coords for rendering). Phase D polish still open.
+>
+> **Update (2026-06-05):** `lib/map-db.ts` is **DELETED** — all marker/pin positions are
+> install-derived (`lib/vm/map-pins.ts` over `MAP_MARKERS`/`PLACEMENTS`/`GRACES`/`BOSSES`),
+> so the last legacy source is gone. **#4 calibration is now substantially closed:** overworld
+> (M00) + DLC (M10) project exactly, and **legacy dungeons now project via
+> `WORLD_MAP_LEGACY_CONV`** (`WorldMapLegacyConvParam`, see `item-placement-coverage.md` Phase 3
+>
+> - `tiled-map-image-viewer-interactive.md` step 3). **The one calibration gap left is the
+>   underground masters (M01/M11):** `m12_*` underground entities currently route to the overworld
+>   surface; they need M01/M11 routing (same X/Z affine). The data layer itself is otherwise
+>   complete; what remains here is **Phase D polish** (lazy/region-split marker loading, loading
+>   states, perf pass).
 
 ## The committed stack
 

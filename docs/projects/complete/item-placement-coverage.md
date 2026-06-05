@@ -1,5 +1,29 @@
 # Item Placement Coverage — pin drops at their source
 
+> **Status (2026-06-05): Phase 3 (dungeon → overworld projection) DONE.**
+> `WorldMapLegacyConvParam` is now extracted (`packages/extractor/src/game/world-map-legacy-conv.ts`
+> → generated `WORLD_MAP_LEGACY_CONV`, **97 base points across 89 dungeons**) and applied
+> in `apps/web/src/lib/map-affine.ts`: a dungeon marker's LOCAL (x,z) is translated by its
+> dungeon's nearest base point (pure translation, no rotation — validated `DST_TILE=256`,
+> 100% of dungeon graces in-bounds) then projected through the exact overworld affine. No
+> `map-pins.ts` change needed — graces, bosses, and placements all route through the one
+> function. Result: **dungeon placements 0 → 7,469 pinned, dungeon bosses 0 → 97, dungeon
+> graces 0 → 194** (all in-bounds), ~doubling total pinned placements (~5.9k → ~13.3k).
+> Verified in-browser (graces correct on the overworld + DLC masters).
+>
+> **New remaining map-calibration work this surfaced (now the top map gap):**
+>
+> 1. **Underground masters (M01/M11) get zero pins.** Underground areas are `m12_*` blocks
+>    (Ainsel/Siofra/Nokron/Nokstella/Lake of Rot/Deeproot) whose conv rows have `dstArea=60`,
+>    so they currently project onto **M00 (overworld)** at the surface location above them
+>    instead of the M01 underground map. M01 shares M00's 10496² X/Z frame, so the fix is to
+>    **route underground blocks to M01/M11 with the same affine** — needs a signal for which
+>    blocks are underground (m12 → M01; the DLC underground block → M11). See `client-side-db.md`.
+> 2. **One DLC boss pin is off** (the rest are correct) — likely a multi-base-point dungeon
+>    where nearest-base selection picks the wrong point; identify the boss + dungeon and check.
+> 3. ~9 bosses / 12 graces / 485 placements sit in dungeon blocks with **no** conv row → still
+>    unpinned (expected; not every map block has a `WorldMapLegacyConvParam` entry).
+
 ## Problem / motivation
 
 The map pins every item the extractor can locate (`PLACEMENTS` → `lib/vm/map-pins.ts`),
@@ -144,10 +168,11 @@ defeat). The classes of missing coverage:
 - **er-save-manager doesn't help here:** its location data is curated per-map "safe spawn"
   coords + NPC text locations, not invasion/drop coords. It IS valuable for [[quest-compass]]
   (curated flag DBs). Pin sources here must stay install-derived ([[no-scraped-map-coords]]).
-- **Phase 3 — dungeon → overworld projection.** Apply `WorldMapLegacyConvParam` so dungeon
-  enemy/treasure/event placements project onto the overworld (and DLC) masters. (Also
-  unblocks dungeon graces/bosses for the map — same conv-param work.) **Biggest remaining
-  lever** (most items are dungeon-only).
+- **Phase 3 — dungeon → overworld projection. ✅ DONE (2026-06-05).** `WorldMapLegacyConvParam`
+  → `WORLD_MAP_LEGACY_CONV` (`game/world-map-legacy-conv.ts`) applied in `map-affine.ts`;
+  dungeon enemy/treasure/event placements + graces/bosses now project onto the overworld (and
+  DLC) masters (7,469 dungeon placements pinned). **Underground (M01/M11) routing is the
+  remaining piece** — see the status note at the top + `client-side-db.md`.
 - **Phase 4 (optional) — vendors.** `ShopLineupParam` → merchant NPC marker; pin as
   "purchasable from <NPC>".
 

@@ -1,5 +1,17 @@
 # Tiled, Interactive Map Viewer
 
+> **Status (2026-06-05): COMPLETE.** The Leaflet tiled-map migration is done end-to-end:
+> power-of-2 pyramid from the extractor, `CRS.Simple` + inlined rastercoords, all four masters
+> (M00 overworld, M01 underground, M10 DLC, M11 DLC underground) as base layers, install-derived
+> marker/pin positions (graces, field bosses, item placements) projected exactly, and the old
+> `react-zoom-pan-pinch` / `interactive-map.tsx` / 21 MB JPEG stack deleted. Overworld + DLC +
+> Lands Between **underground** all verified in-browser (incl. dungeon projection via
+> `WorldMapLegacyConvParam` with chained-conversion resolution — see migration step 3 +
+> `item-placement-coverage.md`). **Minor optional follow-ups (not blocking; tracked here):**
+> (a) one DLC boss pin is slightly off (nearest-base-point edge case); (b) DLC underground (M11)
+> has no confirmed legacy-conv source block; (c) step 7 elevation/overlay layers
+> (`EMIT_LAYERS='all'`) — a future enhancement.
+
 ## Original intent
 
 Currently the big map section on the website uses a big 4k static image and we render
@@ -209,20 +221,28 @@ run against the game archive (DLL built, sharp installed) — produces a large d
    occupancy grid-search finds the same offset (−33,−25) for `m61`→M10 (59/59 DLC graces
    in-bounds); the tile suffix's last digit is the size-tier, the first digit an elevation
    layer (ignored for XZ). Pins carry precomputed master pixels + their master id (`MapPin`);
-   `leaflet-map.tsx` `unproject`s and filters by the active map. **Follow-up:** legacy
-   \_dungeon* markers (~206 dungeon graces + ~106 dungeon bosses) need `WorldMapLegacyConvParam`
-   to convert dungeon-local → overworld coords; and the extractor should emit
-   `worldToPixelAffine` per map into the manifest (web uses the documented constants;
-   manifest field stays `null`).
+   `leaflet-map.tsx` `unproject`s and filters by the active map. **Dungeon projection — DONE
+   (2026-06-05):** `WorldMapLegacyConvParam`→`WORLD*MAP_LEGACY_CONV` (`game/world-map-legacy-conv.ts`),
+   applied in `map-affine.ts`(nearest base point per dungeon, pure translation). 194 dungeon
+   graces + 97 dungeon bosses + 7,469 dungeon placements now project, all in-bounds. **Two
+   follow-ups remain:** (a) **underground masters M01/M11** —`m12\*\*`(Ainsel/Siofra/Nokron/…)
+   and the DLC underground block currently project to M00/M10 (their conv`dstArea`is the
+   surface); they need routing to the underground master with the same X/Z affine (M01 shares
+   M00's frame) — the top remaining map gap; (b) one DLC boss pin is off (nearest-base edge
+   case). Still open too: extractor should emit`worldToPixelAffine`/the conv table into the
+   manifest (web currently imports `WORLD_MAP_LEGACY_CONV` + documented constants directly).
 4. ~~Port marker groups from `interactive-map.tsx`.~~ **DONE** — ALL marker positions are now
    install-derived (`lib/vm/map-pins.ts`): `events.ts` attaches the overworld pixel for graces +
    field bosses; inventory item pins come from extracted `PLACEMENTS` (overworld treasure/drops);
    `map-section.tsx` builds master-tagged `MapPin[]`. **The scraped `map-db.ts` is DELETED** — no
    wiki coords anywhere. Regions no longer pin (they're areas; region pins were a scraped-only artifact).
 5. ~~Add remaining maps (M01/M10/M11) as base layers.~~ **DONE** (all 4 in the manifest + switcher).
-6. Delete `react-zoom-pan-pinch`, `lod_0.jpeg`, `underground_lod_0.jpeg`, `BetterKeepScale`,
-   and `interactive-map.tsx` (kept for now as marker-wiring reference until step 4 lands).
-7. (Later) elevation/overlay layers from the suffix bitfield (flip extractor `EMIT_LAYERS='all'`).
+6. ~~Delete `react-zoom-pan-pinch`, `lod_0.jpeg`, `underground_lod_0.jpeg`, `BetterKeepScale`,
+   and `interactive-map.tsx`.~~ **DONE** — `interactive-map.tsx` + `BetterKeepScale` removed in
+   `b045fdb4`; the `lod_*.jpeg` assets went with the `assets/erdb/` teardown (`2cee32e3`);
+   `react-zoom-pan-pinch` is no longer in any manifest. Nothing imports the old map.
+7. (Later, optional) elevation/overlay layers from the suffix bitfield (flip extractor
+   `EMIT_LAYERS='all'`) — a future enhancement, not part of the core migration.
 
 ---
 
