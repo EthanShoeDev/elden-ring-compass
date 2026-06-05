@@ -17,9 +17,21 @@ import { erDataTiles } from './vite-plugins/er-data-tiles';
 // during dep-scan) and leave the process hanging. Vitest always runs ROOT plugin hooks even for
 // standalone projects, so excluding them here — not just in the perf project — is what keeps the
 // browser run clean. Tests get only react + tailwind + wasm + erDataTiles (map-tile middleware).
+// On Vercel CI, Nitro auto-detects the `VERCEL` env and switches to its `vercel` preset, emitting
+// the Build Output API to `.vercel/output` (NOT `.output`). In a monorepo Vercel only auto-detects
+// that dir at the REPO ROOT, but Nitro writes it relative to its cwd (apps/web) — so redirect the
+// output up two levels. Locally (no VERCEL) the default node-server preset + `.output` is untouched.
 const appOnlyPlugins = process.env.VITEST
   ? []
-  : [devtools(), tanstackStart({ prerender: { enabled: false } }), nitro()];
+  : [
+      devtools(),
+      tanstackStart({ prerender: { enabled: false } }),
+      nitro(
+        process.env.VERCEL
+          ? { output: { dir: path.resolve(__dirname, '../../.vercel/output') } }
+          : undefined,
+      ),
+    ];
 
 // React Compiler (plugin-react v6 removed the inline babel option, so this runs via
 // @rolldown/plugin-babel). MUST come after viteReact() — the preset's rolldown filter only
