@@ -6,7 +6,7 @@ cannot derive from the game install** (plan: `docs/projects/dlc-support.md` §7
 so the extractor is self-contained and reproducible. The organizing principle: _"could
 we extract this ourselves from the installed game, or did we rip it verbatim from
 someone else?"_ — if the latter, and external maintainers own its updates, it lives
-here (see `docs/projects/reorganize-repo.md`).
+here (see `docs/projects/complete/reorganize-repo.md`).
 
 **Build-time only.** The sole consumer is `@elden-ring-compass/extractor`, which
 joins these against the installed game and bakes whatever the runtime needs into

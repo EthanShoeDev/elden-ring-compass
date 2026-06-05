@@ -5,7 +5,8 @@
   "workspaces": {
     "packages": [
       "apps/*",
-      "packages/*"
+      "packages/*",
+      "packages/config/*"
     ],
     "catalog": {
       "@base-ui/react": "^1.5.0",
@@ -100,7 +101,7 @@
     "@effect/language-service": "catalog:",
     "@effect/platform-bun": "catalog:",
     "@effect/tsgo": "catalog:",
-    "@elden-ring-compass/config": "workspace:*",
+    "@elden-ring-compass/typescript-config": "workspace:*",
     "@elden-ring-compass/oxlint-plugins": "workspace:*",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",

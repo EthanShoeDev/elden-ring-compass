@@ -14,7 +14,7 @@ export default defineConfig({
     'react-perf',
     'jsx-a11y',
   ],
-  // Custom JS plugins built from packages/oxlint-plugins. They are referenced
+  // Custom JS plugins built from packages/config/oxlint-plugins. They are referenced
   // by their package export paths and resolved through the bun workspace.
   jsPlugins: [
     '@elden-ring-compass/oxlint-plugins/require-disable-description',
@@ -120,7 +120,7 @@ export default defineConfig({
       // touch the filesystem and use default exports.
       files: [
         'scripts/**',
-        'packages/oxlint-plugins/**',
+        'packages/config/oxlint-plugins/**',
         '**/*.config.{ts,js,mjs}',
         'oxlint.config.ts',
       ],

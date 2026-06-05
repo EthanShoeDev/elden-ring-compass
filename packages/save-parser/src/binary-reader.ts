@@ -1,86 +1,132 @@
 /**
- * Minimal little-endian cursor over an `ArrayBuffer`, purpose-built for the ER save
- * slot walk. Everything in the save is little-endian and byte-packed (no alignment
- * padding — it mirrors deku's sequential reads in the reference parser), so this only
- * needs sequential reads + skips and a couple of absolute reads for fixed-offset
- * structs (PlayerGameData). Reads are bounds-checked so a truncated/garbage save
- * throws rather than silently reading zeros.
+ * Little-endian cursor over an `ArrayBuffer`, purpose-built for the ER save slot walk.
+ * Everything in the save is little-endian and byte-packed (no alignment padding — it
+ * mirrors deku's sequential reads in the reference parser), so this only needs sequential
+ * reads + skips and a couple of absolute reads for fixed-offset structs (PlayerGameData).
+ *
+ * The reads are **synchronous** and throw a typed {@link SaveTruncatedError} on overrun.
+ * They are deliberately *not* per-read Effects: the slot walk does ~50–80k reads per save,
+ * and wrapping each in an `Effect` measured ~120× slower (≈194 ms vs ≈1.6 ms) — slower than
+ * the WASM parser the TS port replaced. Instead the reader is exposed as an Effect
+ * {@link https://effect.website Context.Service} (so `parse-save.ts` resolves it with
+ * `yield* BinaryReader`), and `parseSave` runs the synchronous walk inside a single
+ * `Effect.try`, turning any thrown {@link SaveTruncatedError} into a typed failure. That
+ * keeps the Effect-native surface (service + tagged errors + Effect entrypoint) at native
+ * speed. The per-buffer cursor state is captured in the closure built by
+ * {@link makeBinaryReader}.
  */
-export class BinaryReader {
-  readonly view: DataView;
-  readonly bytes: Uint8Array;
-  pos = 0;
+import { Context, Schema } from 'effect';
 
-  constructor(buffer: ArrayBuffer) {
-    this.view = new DataView(buffer);
-    this.bytes = new Uint8Array(buffer);
-  }
+/** Raised when a read or seek would run past the end of the save buffer. */
+export class SaveTruncatedError extends Schema.TaggedErrorClass<SaveTruncatedError>()(
+  'save-parser/SaveTruncatedError',
+  {
+    /** Cursor position the read started at. */
+    at: Schema.Number,
+    /** Number of bytes the read needed. */
+    need: Schema.Number,
+    /** Total length of the save buffer. */
+    length: Schema.Number,
+  },
+) {}
 
-  private ensure(n: number): number {
-    const at = this.pos;
-    if (at + n > this.bytes.length) {
-      throw new RangeError(
-        `BinaryReader: read of ${n} byte(s) at ${at} exceeds buffer length ${this.bytes.length}`,
-      );
-    }
-    this.pos = at + n;
-    return at;
-  }
+/** The resolved {@link BinaryReader} service value (its synchronous read surface). */
+export interface BinaryReaderApi {
+  /** Current cursor position (does not move). */
+  pos(): number;
+  /** Move the cursor to an absolute position (bounds-checked). */
+  seek(pos: number): void;
+  /** Advance the cursor by `n` bytes (bounds-checked). */
+  skip(n: number): void;
 
-  seek(pos: number): void {
-    if (pos < 0 || pos > this.bytes.length) {
-      throw new RangeError(`BinaryReader: seek to ${pos} out of bounds`);
-    }
-    this.pos = pos;
-  }
-
-  skip(n: number): void {
-    this.ensure(n);
-  }
-
-  u8(): number {
-    return this.view.getUint8(this.ensure(1));
-  }
-
-  u16(): number {
-    return this.view.getUint16(this.ensure(2), true);
-  }
-
-  u32(): number {
-    return this.view.getUint32(this.ensure(4), true);
-  }
-
-  i32(): number {
-    return this.view.getInt32(this.ensure(4), true);
-  }
-
-  f32(): number {
-    return this.view.getFloat32(this.ensure(4), true);
-  }
-
+  u8(): number;
+  u16(): number;
+  u32(): number;
+  i32(): number;
+  f32(): number;
   /** Reads a u64 and returns it as a decimal string (JS-safe; steam ids overflow Number). */
-  u64String(): string {
-    return this.view.getBigUint64(this.ensure(8), true).toString();
-  }
+  u64String(): string;
+  /** A 4-byte fixed array (e.g. `MapId`), copied so it detaches from the backing buffer. */
+  byteTuple4(): [number, number, number, number];
 
   /** Absolute u32 read (does not move the cursor) — for fixed-offset struct fields. */
-  u32At(absPos: number): number {
-    if (absPos + 4 > this.bytes.length) {
-      throw new RangeError(`BinaryReader: u32At(${absPos}) out of bounds`);
-    }
-    return this.view.getUint32(absPos, true);
-  }
-
-  /** A 4-byte fixed array (e.g. `MapId`), copied so it detaches from the backing buffer. */
-  byteTuple4(): [number, number, number, number] {
-    const at = this.ensure(4);
-    const b = this.bytes;
-    return [b[at]!, b[at + 1]!, b[at + 2]!, b[at + 3]!];
-  }
-
+  u32At(absPos: number): number;
+  /** Absolute single-byte read (does not move the cursor). */
+  byteAt(absPos: number): number;
+  /** Absolute zero-copy view of `len` bytes (does not move the cursor) — char name. */
+  subarrayAt(absPos: number, len: number): Uint8Array;
   /** A view (zero-copy) over the next `n` bytes — used for the large event-flag bitfield. */
-  bytesView(n: number): Uint8Array {
-    const at = this.ensure(n);
-    return this.bytes.subarray(at, at + n);
-  }
+  bytesView(n: number): Uint8Array;
 }
+
+/**
+ * Effect Context.Service tag for the cursor. Provide a concrete reader for a buffer with
+ * `Effect.provideService(BinaryReader, makeBinaryReader(buffer))`.
+ */
+export class BinaryReader extends Context.Service<
+  BinaryReader,
+  BinaryReaderApi
+>()('save-parser/BinaryReader') {}
+
+/** Builds a {@link BinaryReader} service value backed by a private, mutable cursor over `buffer`. */
+export const makeBinaryReader = (buffer: ArrayBuffer): BinaryReaderApi => {
+  const view = new DataView(buffer);
+  const bytes = new Uint8Array(buffer);
+  let pos = 0;
+
+  // Reserve `n` bytes at the cursor, advancing it; throw if that runs past the end.
+  // Returns the start offset of the reserved span. Used by every sequential read.
+  const take = (n: number): number => {
+    const at = pos;
+    if (at + n > bytes.length) {
+      throw new SaveTruncatedError({ at, need: n, length: bytes.length });
+    }
+    pos = at + n;
+    return at;
+  };
+
+  // Absolute bounds check that does NOT move the cursor.
+  const checkAbs = (absPos: number, n: number): number => {
+    if (absPos < 0 || absPos + n > bytes.length) {
+      throw new SaveTruncatedError({ at: absPos, need: n, length: bytes.length });
+    }
+    return absPos;
+  };
+
+  return {
+    pos: () => pos,
+
+    seek: (to) => {
+      if (to < 0 || to > bytes.length) {
+        throw new SaveTruncatedError({ at: to, need: 0, length: bytes.length });
+      }
+      pos = to;
+    },
+
+    skip: (n) => {
+      take(n);
+    },
+
+    u8: () => view.getUint8(take(1)),
+    u16: () => view.getUint16(take(2), true),
+    u32: () => view.getUint32(take(4), true),
+    i32: () => view.getInt32(take(4), true),
+    f32: () => view.getFloat32(take(4), true),
+    u64String: () => view.getBigUint64(take(8), true).toString(),
+    byteTuple4: () => {
+      const at = take(4);
+      return [bytes[at]!, bytes[at + 1]!, bytes[at + 2]!, bytes[at + 3]!];
+    },
+
+    u32At: (absPos) => view.getUint32(checkAbs(absPos, 4), true),
+    byteAt: (absPos) => bytes[checkAbs(absPos, 1)]!,
+    subarrayAt: (absPos, len) => {
+      checkAbs(absPos, len);
+      return bytes.subarray(absPos, absPos + len);
+    },
+    bytesView: (n) => {
+      const at = take(n);
+      return bytes.subarray(at, at + n);
+    },
+  };
+};

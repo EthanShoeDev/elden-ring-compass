@@ -4,29 +4,29 @@
 // a `ParseResponse` (the lean DTO, or an error string). The `onmessage` listener is attached
 // synchronously at module eval, so a request that arrives the instant the Worker is created is
 // never dropped.
+//
+// This file is typechecked under the WebWorker lib (see tsconfig.worker.json / tsconfig.typecheck.json),
+// so `self` is a `DedicatedWorkerGlobalScope` with the correct worker `onmessage`/`postMessage`
+// signatures — no global-typing cast needed.
 import { parseEldenRingData } from './er-save-parser';
-import type { WasmEldenRingSave } from './save-dto';
+import type {
+  ParseRequest,
+  ParseResponse,
+} from './er-save-parser.protocol';
 
-export type ParseRequest = { readonly id: number; readonly buffer: ArrayBuffer };
-export type ParseResponse =
-  | { readonly id: number; readonly ok: true; readonly save: WasmEldenRingSave }
-  | { readonly id: number; readonly ok: false; readonly error: string };
-
-// Minimal typed view of the worker global (avoids needing the "WebWorker" tsconfig lib).
-const ctx = self as unknown as {
-  onmessage: ((event: MessageEvent<ParseRequest>) => void) | null;
-  postMessage: (message: ParseResponse) => void;
-};
-
-ctx.onmessage = (event) => {
+self.onmessage = (event: MessageEvent<ParseRequest>) => {
   const { id, buffer } = event.data;
   try {
-    ctx.postMessage({ id, ok: true, save: parseEldenRingData(buffer) });
+    self.postMessage({
+      id,
+      ok: true,
+      save: parseEldenRingData(buffer),
+    } satisfies ParseResponse);
   } catch (err) {
-    ctx.postMessage({
+    self.postMessage({
       id,
       ok: false,
       error: err instanceof Error ? err.message : String(err),
-    });
+    } satisfies ParseResponse);
   }
 };

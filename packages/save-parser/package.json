@@ -16,8 +16,11 @@
     "test:perf": "NODE_OPTIONS=--expose-gc vitest run -c vitest.config.perf.ts",
     "bench": "vitest bench -c vitest.config.perf.ts"
   },
+  "dependencies": {
+    "effect": "catalog:"
+  },
   "devDependencies": {
-    "@elden-ring-compass/config": "workspace:*",
+    "@elden-ring-compass/typescript-config": "workspace:*",
     "@types/node": "catalog:",
     "vitest": "catalog:"
   },

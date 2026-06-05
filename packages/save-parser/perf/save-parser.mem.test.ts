@@ -11,6 +11,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+import { Effect } from 'effect';
 import { describe, expect, it } from 'vitest';
 
 import { parseSave } from '../src/index.ts';
@@ -30,10 +31,10 @@ describe('save parser memory (node)', () => {
   const note = maybeGc ? '' : '  (no --expose-gc; heap noisy)';
 
   it('TS parser — retained heap of one parsed save', () => {
-    parseSave(arrayBuffer); // warm up lazy allocations / JIT
+    Effect.runSync(parseSave(arrayBuffer)); // warm up lazy allocations / JIT
     maybeGc?.();
     const before = heapUsedMb();
-    const result = parseSave(arrayBuffer);
+    const result = Effect.runSync(parseSave(arrayBuffer));
     maybeGc?.();
     const retained = heapUsedMb() - before;
     // Reference `result` after the read so V8 can't collect it early.

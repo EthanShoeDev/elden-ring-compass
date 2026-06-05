@@ -32,14 +32,14 @@ it.effect('parse TS (direct): median time + retained heap within bounds', () =>
     // directly. See `docs/projects/typescript-save-parser-port.md` (Performance).
     const buffer = yield* loadSaveBuffer;
 
-    for (let i = 0; i < WARMUP; i++) parseSaveTs(buffer);
+    for (let i = 0; i < WARMUP; i++) yield* parseSaveTs(buffer);
 
     const heapBefore = yield* Effect.promise(forceGcHeapUsedBytes);
     const times: number[] = [];
     let save: WasmEldenRingSave | undefined;
     for (let i = 0; i < RUNS; i++) {
       const start = performance.now();
-      save = parseSaveTs(buffer) as unknown as WasmEldenRingSave;
+      save = yield* parseSaveTs(buffer);
       times.push(performance.now() - start);
     }
     const heapAfter = yield* Effect.promise(forceGcHeapUsedBytes);

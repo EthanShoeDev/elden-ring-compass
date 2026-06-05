@@ -1,0 +1,14 @@
+{
+  // Web Worker entry points run in a `DedicatedWorkerGlobalScope`, not the DOM, so `self` has
+  // worker-shaped `onmessage`/`postMessage`. That needs the `WebWorker` lib, which conflicts with
+  // the `DOM` lib the rest of the app compiles under — the two can't share one config. This
+  // dedicated config typechecks only the worker entry (excluded from the main tsconfig) with the
+  // WebWorker lib, so the worker can use `self` directly without a global-typing cast.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2024", "WebWorker", "WebWorker.Iterable"],
+    "types": []
+  },
+  "include": ["src/lib/er-save-parser.worker.ts"],
+  "exclude": ["node_modules", "dist", ".output", ".nitro"]
+}

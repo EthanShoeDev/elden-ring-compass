@@ -23,7 +23,7 @@
     "typecheck": "tsgo --noEmit"
   },
   "devDependencies": {
-    "@elden-ring-compass/config": "workspace:*",
+    "@elden-ring-compass/typescript-config": "workspace:*",
     "@types/eslint": "catalog:",
     "tsdown": "catalog:"
   },

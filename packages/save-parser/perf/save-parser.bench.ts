@@ -12,6 +12,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+import { Effect } from 'effect';
 import { bench, describe } from 'vitest';
 
 import { parseSave } from '../src/index.ts';
@@ -29,7 +30,7 @@ describe('parse ER0000.sl2', () => {
   bench(
     'ts',
     () => {
-      parseSave(arrayBuffer);
+      Effect.runSync(parseSave(arrayBuffer));
     },
     { throws: true },
   );

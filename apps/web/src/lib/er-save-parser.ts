@@ -1,4 +1,5 @@
 import { parseSave } from '@elden-ring-compass/save-parser-ts';
+import { Effect } from 'effect';
 
 import type { WasmEldenRingSave } from './save-dto';
 
@@ -38,7 +39,24 @@ export async function parseEldenRingUrl(url: string) {
 // app's `WasmEldenRingSave` (verified byte-for-byte vs the retired WASM parser); the cast
 // keeps the historical type name the view-models import.
 export function parseEldenRingData(
-  rawSaveData: Readonly<ArrayBuffer>,
+  rawSaveData: ArrayBuffer,
 ): WasmEldenRingSave {
-  return parseSave(rawSaveData as ArrayBuffer) as unknown as WasmEldenRingSave;
+  // `parseSave` is Effect-native; run it synchronously here so the worker's existing
+  // try/catch (error -> string) path is unchanged. Typed parse failures are converted to
+  // a readable `Error` before running, so `runSync` throws something the worker can format.
+  // No cast: `parseSave` returns `LeanSave`, which IS `WasmEldenRingSave` (see save-dto.ts).
+  return Effect.runSync(
+    parseSave(rawSaveData).pipe(
+      Effect.mapError((e) =>
+        e._tag === 'save-parser/SaveMagicMismatchError'
+          ? new Error(
+              'Not a PC Elden Ring save (expected "BND4" magic). PS/Switch saves are not supported.',
+            )
+          : new Error(
+              `Save data truncated: needed ${e.need} byte(s) at offset ${e.at} (buffer length ${e.length}).`,
+            ),
+      ),
+      Effect.orDie,
+    ),
+  );
 }

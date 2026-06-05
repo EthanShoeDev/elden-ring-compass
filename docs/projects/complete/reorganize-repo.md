@@ -8,7 +8,11 @@
 > top-level member). ④ The TS save-parser port landed in `packages/save-parser`
 > (`typescript-save-parser-port.md`) and the **Rust/WASM save stack was DELETED** (the
 > `er-save-lib` submodule + `elden-ring-save-parser` wrapper are gone; web parses TS-only). ⑤ Extractor
-> `CLAUDE.md` guardrail added; `scripts/req-bin.ts` deleted.
+> `CLAUDE.md` guardrail added; `scripts/req-bin.ts` deleted. ⑥ Tooling packages grouped under
+> `packages/config/` — `config` → `config/typescript-config` (npm renamed
+> `@.../config` → `@.../typescript-config`) and `oxlint-plugins` → `config/oxlint-plugins`
+> (npm unchanged); workspace glob gained `packages/config/*`. See the "Group the config/tooling
+> packages" section below.
 >
 > **Deferred:** the per-stage
 > on-disk artifacts + `--only/--from/--to` CLI and folding `scripts/map-calibrate.ts`
@@ -266,22 +270,34 @@ feature work respectively.
    calibration stage; `scripts/req-bin.ts` → delete; `spike/*` → promote to documented
    `package.json` scripts + PROVENANCE rows. Sweep for any others.
 
-## Future idea: group the config/tooling packages (not yet decided)
+## Group the config/tooling packages — DONE (2026-06-04)
 
-> Added 2026-06-04 (user) — a possible later cleanup, **NOT scoped or started**:
+> **Shipped.** Folded the build/lint **tooling** packages under a `packages/config/` umbrella:
 >
-> - Rename `packages/config` → `packages/config/typescript-config` (it's just the shared tsconfig
->   base — the name should say so).
-> - Move `packages/oxlint-plugins` → `packages/config/oxlint-plugins`.
-> - i.e. fold the build/lint **tooling** packages under a `packages/config/` umbrella.
-> - **Open:** do the remaining (domain) packages stay at the top level, or get grouped under a
->   `packages/core/` umbrella? _Undecided._ Leaning: only regroup the tooling/config packages and
->   leave the domain packages (`data`, `extractor`, `vendored-data`, `save-parser`) where they are
->   unless `packages/` gets crowded.
-> - **Gotcha:** the workspace glob is `packages/*`, which would NOT match `packages/config/*`.
->   Nesting tooling packages under `packages/config/` means updating the workspace globs (e.g. to
->   `packages/*` + `packages/config/*`) and every `@elden-ring-compass/config` consumer. Pure churn,
->   so only worth doing as its own commit when `packages/` actually feels cluttered.
+> - `packages/config` → `packages/config/typescript-config`, and the npm package **renamed**
+>   `@elden-ring-compass/config` → `@elden-ring-compass/typescript-config` (the name now says it's
+>   the shared tsconfig base, per the "directory == unscoped npm name" principle). All 6 tsconfig
+>   `extends` + the workspace deps were updated.
+> - `packages/oxlint-plugins` → `packages/config/oxlint-plugins` (npm name **unchanged** —
+>   `@elden-ring-compass/oxlint-plugins`; only the dir moved). Updated the two literal path refs in
+>   `oxlint.config.ts` (the override glob + comment).
+> - Workspace glob extended: `["apps/*", "packages/*", "packages/config/*"]`. (`packages/*` still
+>   matches the now-package-less `packages/config` umbrella dir; bun ignores it — no package.json.)
+> - Verified: `bun install` relinks both to `packages/config/...`; module resolution + the workspace
+>   symlinks point at the new paths; the stale `@elden-ring-compass/config` node_modules symlink was
+>   pruned. `typecheck` shows no new errors (pre-existing `scripts/catalog-check.ts` Effect-v4 breakage
+>   is untouched by this). NB: `oxlint`/`tsdown` builds fail in this env for **unrelated** reasons
+>   (oxlint `.ts` config needs Node ≥22.18.0 — env has 22.14.0; tsdown is missing `unrun`) — both fail
+>   identically at HEAD.
+>
+> **Decided (2026-06-04): domain packages stay FLAT.** No `packages/core/` umbrella. The four domain
+> packages (`data`, `extractor`, `vendored-data`, `save-parser`) remain at `packages/*`. Rationale:
+> the `config/` umbrella earns its place by separating *tooling* from *the product* — burying the
+> domain packages under `core/` would erase that contrast for no gain. "core" doesn't name a coherent
+> subset (the four are deliberately different kinds — external/build-tool/generated/runtime), it's not
+> crowded (only 4), turbo/tsconfig key off package *names* not paths (zero functional benefit), and
+> `packages/core/data` just adds a meaningless level. **Revisit only if** `packages/` grows to ~8+
+> domain packages and a real cluster emerges — group by that actual shared trait, not a placeholder.
 
 ## Open questions
 

@@ -1,12 +1,12 @@
-import { Cause, Data, Effect } from 'effect';
+import { Cause, Data, Effect, Schema } from 'effect';
 import { Atom } from 'effect/unstable/reactivity';
 import * as AsyncResult from 'effect/unstable/reactivity/AsyncResult';
 import { useAtomRefresh, useAtomValue } from '@effect/atom-react';
 import { reconstructSlot } from '@/lib/share/decode';
-import type {
-  ParseRequest,
+import {
   ParseResponse,
-} from '@/lib/er-save-parser.worker';
+  type ParseRequest,
+} from '@/lib/er-save-parser.protocol';
 import { isSharedSource, saveFileSourceAtom } from '@/stores/save-file-source-store';
 import type { WasmEldenRingSave } from '@/lib/save-dto';
 
@@ -33,8 +33,27 @@ const getWorker = (): Worker | null => {
       name: 'EldenRingSaveParser',
       type: 'module',
     });
-    worker.onmessage = (event: MessageEvent<ParseResponse>) => {
-      const res = event.data;
+    worker.onmessage = (event: MessageEvent<unknown>) => {
+      // postMessage erases types: validate the reply against the protocol schema before
+      // trusting it (runs once per save load — see er-save-parser.protocol.ts).
+      const decoded = Schema.decodeUnknownExit(ParseResponse)(event.data);
+      if (decoded._tag === 'Failure') {
+        // Malformed reply — best-effort reject the correlated request (if its id survived).
+        const raw = event.data;
+        const rawId =
+          typeof raw === 'object' && raw !== null && 'id' in raw
+            ? raw.id
+            : undefined;
+        if (typeof rawId === 'number') {
+          const p = pending.get(rawId);
+          if (p) {
+            pending.delete(rawId);
+            p.reject(new Error('Save parser returned a malformed response'));
+          }
+        }
+        return;
+      }
+      const res = decoded.value;
       const p = pending.get(res.id);
       if (!p) return;
       pending.delete(res.id);

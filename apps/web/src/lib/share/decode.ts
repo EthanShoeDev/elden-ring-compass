@@ -51,9 +51,11 @@ export function reconstructSlot(data: ShareableProgression): Partial<Slot> {
     inventory_index: i,
   }));
 
+  // Fields a shared link doesn't carry (coords, equipment) use zero-filled placeholders of
+  // the right arity — the DTO's fixed tuples (map_id is 4 bytes, etc.) make the shape explicit.
   return {
     steam_id: '',
-    map_id: [],
+    map_id: [0, 0, 0, 0],
     player_game_data: {
       character_name: data.n,
       vigor: data.s.v,
@@ -70,8 +72,42 @@ export function reconstructSlot(data: ShareableProgression): Partial<Slot> {
       gender: data.g,
       arche_type: data.at,
       match_making_wpn_lvl: data.wl,
+      // Not carried by a shared link — zero placeholders (the VMs reading a shared slot
+      // only consume the stats above).
+      hp: 0,
+      max_hp: 0,
+      base_max_hp: 0,
+      fp: 0,
+      max_fp: 0,
+      base_max_fp: 0,
+      stamina: 0,
+      max_stamina: 0,
+      base_max_stamina: 0,
+      buildup: {
+        poison: 0,
+        rot: 0,
+        bleed: 0,
+        death: 0,
+        frost: 0,
+        sleep: 0,
+        madness: 0,
+      },
+      voice_type: 0,
+      gift: 0,
+      additional_talisman_slot_count: 0,
+      summon_spirit_level: 0,
+      furl_calling_finger_on: false,
+      white_cipher_ring_on: false,
+      blue_cipher_ring_on: false,
+      great_rune_on: false,
+      max_crimson_flask_count: 0,
+      max_cerulean_flask_count: 0,
     },
-    player_coords: { player_coords: [], map_id: [] },
+    player_coords: {
+      player_coords: [0, 0, 0],
+      map_id: [0, 0, 0, 0],
+      angle: [0, 0, 0, 0],
+    },
     regions: {
       unlocked_regions_count: data.ur.length,
       unlocked_regions: data.ur,
@@ -79,15 +115,15 @@ export function reconstructSlot(data: ShareableProgression): Partial<Slot> {
     event_flags: { flags },
     ga_items: [],
     chr_asm2: {
-      left_hand_armaments: [],
-      right_hand_armaments: [],
-      arrows: [],
-      bolts: [],
+      left_hand_armaments: [0, 0, 0],
+      right_hand_armaments: [0, 0, 0],
+      arrows: [0, 0],
+      bolts: [0, 0],
       head: 0,
       chest: 0,
       arms: 0,
       legs: 0,
-      talismans: [],
+      talismans: [0, 0, 0, 0],
     },
     equip_inventory_data: {
       common_inventory_items_distinct_count: commonItems.length,

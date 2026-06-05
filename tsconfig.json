@@ -1,5 +1,5 @@
 {
-  "extends": "@elden-ring-compass/config/tsconfig.base.json",
+  "extends": "@elden-ring-compass/typescript-config/tsconfig.base.json",
   "compilerOptions": {
     "types": ["node", "bun-types"],
     "allowImportingTsExtensions": true,

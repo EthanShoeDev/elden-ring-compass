@@ -12,7 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "test:perf": "vitest run -c vitest.config.browser.ts --reporter=verbose",
     "test:e2e": "playwright test",
-    "typecheck": "tsgo --noEmit",
+    "typecheck": "tsgo -b tsconfig.typecheck.json",
     "clean": "rm -rf .turbo .output .nitro dist *.tsbuildinfo"
   },
   "dependencies": {
@@ -40,7 +40,7 @@
   "devDependencies": {
     "@effect/platform-node": "catalog:",
     "@effect/vitest": "catalog:",
-    "@elden-ring-compass/config": "workspace:*",
+    "@elden-ring-compass/typescript-config": "workspace:*",
     "@playwright/test": "catalog:",
     "@tailwindcss/typography": "catalog:",
     "@tailwindcss/vite": "catalog:",

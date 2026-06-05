@@ -4,7 +4,7 @@ This package is the **business logic for scraping data out of an installed copy 
 Elden Ring**. It reads the game install (+ the verbatim constants in
 `@elden-ring-compass/vendored-data`), joins them, and emits the clean, deterministic
 datasets the website consumes into `@elden-ring-compass/data`. Read
-`docs/projects/reorganize-repo.md` for the package boundaries.
+`docs/projects/complete/reorganize-repo.md` for the package boundaries.
 
 ## The rules (these override convenience)
 
@@ -53,7 +53,7 @@ the package's `ManagedRuntime`, not `Effect.runSync`.
 
 Stages still thread their output to the next in memory (`runPipeline`), so you can't
 re-run a single stage — which is *why* one-off scripts get written. The durable fix
-(tracked in `docs/projects/reorganize-repo.md` §"Make stages individually runnable"):
+(tracked in `docs/projects/complete/reorganize-repo.md` §"Make stages individually runnable"):
 per-stage on-disk artifacts under `outDir/.cache/<stage>.json` + `--only`/`--from`/
 `--to` CLI selection on `extract`, then fold `scripts/map-calibrate.ts` into a real
 calibration stage. Until that lands, resist the urge to write a scratch script — extend
