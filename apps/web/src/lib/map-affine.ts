@@ -43,8 +43,8 @@ export const MASTER_PX = 10496;
 const OFFSET_X = -7168;
 const OFFSET_Y = 16640;
 
-/** Which tile-pyramid master a pin belongs to. */
-export type MasterId = 'M00' | 'M10';
+/** Which tile-pyramid master a pin belongs to (surface M00/M10 or underground M01/M11). */
+export type MasterId = 'M00' | 'M01' | 'M10' | 'M11';
 
 /** A pin resolved to a specific master + master pixel. */
 export interface MasterPixel {

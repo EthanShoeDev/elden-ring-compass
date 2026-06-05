@@ -259,7 +259,7 @@ export const renderLegacyConvFile = (
     'LegacyConv',
     [
       'readonly srcMapId: string;',
-      "readonly master: 'M00' | 'M10';",
+      "readonly master: 'M00' | 'M01' | 'M10' | 'M11';",
       'readonly srcX: number;',
       'readonly srcZ: number;',
       'readonly addX: number;',

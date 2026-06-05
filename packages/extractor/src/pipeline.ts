@@ -66,9 +66,16 @@ export const runPipeline = Effect.gen(function* () {
     Effect.annotateLogs('stage', '7-legacy-conv'),
   );
   const convDungeons = new Set(legacyConv.map((c) => c.srcMapId)).size;
-  const m00 = legacyConv.filter((c) => c.master === 'M00').length;
+  const byMaster = legacyConv.reduce<Record<string, number>>((acc, c) => {
+    acc[c.master] = (acc[c.master] ?? 0) + 1;
+    return acc;
+  }, {});
+  const masterCounts = Object.entries(byMaster)
+    .toSorted(([a], [b]) => a.localeCompare(b))
+    .map(([m, n]) => `${m}:${n}`)
+    .join(' ');
   yield* Effect.logInfo(
-    `legacy-conv — ${legacyConv.length} base points across ${convDungeons} dungeons → overworld (M00:${m00} M10:${legacyConv.length - m00})`,
+    `legacy-conv — ${legacyConv.length} base points across ${convDungeons} dungeons (${masterCounts})`,
   ).pipe(Effect.annotateLogs('stage', '7-legacy-conv'));
   // sp-effect labels: invert item→SpEffect refs so a save's active sp_effects[]
   // can be named (consumables/spells/talismans/gear). Partial coverage by design.
