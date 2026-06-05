@@ -16,7 +16,13 @@
  * small tiles `_00` = 256u, medium `_01` = 512u, big `_02` = 1024u; each tile's
  * CENTER is local (0,0,0); +col = east (+X), +row = north (+Z). The From horizontal
  * plane is (x, z) — `y` is elevation and is ignored for placement.
+ *
+ * Legacy dungeons (`m10`/`m12`/…) live in their own local frame; we project them
+ * onto the overworld first via `WORLD_MAP_LEGACY_CONV` (extractor-derived from
+ * `WorldMapLegacyConvParam` — a pure translation, no rotation), then reuse the exact
+ * overworld affine. See `packages/extractor/src/game/world-map-legacy-conv.ts`.
  */
+import { type LegacyConv, WORLD_MAP_LEGACY_CONV } from '@elden-ring-compass/data';
 
 /** Native (z6) master edge in px: 41 tiles × 256. Pins live in this space; Leaflet unprojects at `maxNativeZoom`. */
 export const MASTER_PX = 10496;
@@ -47,20 +53,69 @@ export interface MasterPixel {
   py: number;
 }
 
+/** Absolute overworld world coords → master pixel (the exact 1px = 1 world-unit affine). */
+function worldToMasterPixel(master: MasterId, worldX: number, worldZ: number): MasterPixel {
+  return { master, px: worldX + OFFSET_X, py: OFFSET_Y - worldZ };
+}
+
+/** Legacy-dungeon base points grouped by their block id (`m10_00_00`). */
+const legacyConvByBlock: ReadonlyMap<string, readonly LegacyConv[]> = (() => {
+  const m = new Map<string, LegacyConv[]>();
+  for (const c of WORLD_MAP_LEGACY_CONV) {
+    const cur = m.get(c.srcMapId);
+    if (cur) cur.push(c);
+    else m.set(c.srcMapId, [c]);
+  }
+  return m;
+})();
+
+/** A dungeon mapId (`m10_00_00_00`) → its conv block key (`m10_00_00`), or `null`. */
+function dungeonBlock(mapId: string): string | null {
+  const m = /^(m\d\d_\d\d_\d\d)_/.exec(mapId);
+  return m?.[1] ?? null;
+}
+
 /**
- * Extracted overworld marker → its master + master pixel, or `null` if `mapId`
- * is not an overworld tile we can place. `x`,`z` are the marker's MSB-local
- * horizontal coords (`y`/elevation is ignored).
+ * Legacy-dungeon marker → master pixel, or `null` if the dungeon has no conv data.
+ * The dungeon's LOCAL (x, z) is translated by the NEAREST base point's offset (most
+ * dungeons have one; large multi-zone dungeons have several, approximating a warped
+ * mapping piecewise), then projected as an overworld point.
+ */
+function dungeonMarkerToMasterPixel(mapId: string, x: number, z: number): MasterPixel | null {
+  const block = dungeonBlock(mapId);
+  if (block === null) return null;
+  const points = legacyConvByBlock.get(block);
+  if (!points || points.length === 0) return null;
+  let best: LegacyConv | null = null;
+  let bestDist = Infinity;
+  for (const p of points) {
+    const dx = x - p.srcX;
+    const dz = z - p.srcZ;
+    const d = dx * dx + dz * dz;
+    if (d < bestDist) {
+      bestDist = d;
+      best = p;
+    }
+  }
+  if (best === null) return null;
+  return worldToMasterPixel(best.master, x + best.addX, z + best.addZ);
+}
+
+/**
+ * Extracted marker → its master + master pixel, or `null` if `mapId` can't be
+ * placed. `x`,`z` are the marker's MSB-local horizontal coords (`y`/elevation is
+ * ignored).
  *
- * Both overworld worlds use the SAME projection (verified — `scripts/map-calibrate.ts`
- * finds offset (−33,−25) for both): the Lands Between (`m60_*` → M00) and the DLC
- * Land of Shadow (`m61_*` → M10). The tile suffix is two digits `LT`: `T` (last)
- * is the size-tier (0 small / 1 medium / 2 big), `L` (first) is an elevation layer
- * that shares the horizontal grid (so it doesn't affect placement). Suffixes whose
- * size-tier > 2 (skybox/cutscene LODs, e.g. `_99`) are skipped.
+ * Overworld tiles (`m60_*` → M00 Lands Between, `m61_*` → M10 DLC Land of Shadow)
+ * project EXACTLY via the same affine (verified — `scripts/map-calibrate.ts` finds
+ * offset (−33,−25) for both). The tile suffix is two digits `LT`: `T` (last) is the
+ * size-tier (0 small / 1 medium / 2 big), `L` (first) is an elevation layer that
+ * shares the horizontal grid. Suffixes whose size-tier > 2 (skybox/cutscene LODs,
+ * e.g. `_99`) are skipped.
  *
- * NOT handled (returns `null`): legacy dungeons (`m10`/`m12`/…) — those need
- * `WorldMapLegacyConvParam` to convert dungeon-local coords to overworld first.
+ * Legacy dungeons (`m10`/`m12`/…) are routed through `WORLD_MAP_LEGACY_CONV` first
+ * (dungeon-local → overworld translation). Anything with no overworld tile and no
+ * conv entry returns `null`.
  */
 export function overworldMarkerToMasterPixel(
   mapId: string,
@@ -68,21 +123,23 @@ export function overworldMarkerToMasterPixel(
   z: number,
 ): MasterPixel | null {
   const m = /^m(60|61)_(\d+)_(\d+)_\d(\d)$/.exec(mapId);
-  if (!m) return null;
-  const tier = Number(m[4]); // last digit of the 2-digit suffix = size-tier
-  if (tier > 2) return null;
-  const size = 256 * 2 ** tier;
-  const worldX = Number(m[2]) * size + size / 2 + x;
-  const worldZ = Number(m[3]) * size + size / 2 + z;
-  return { master: m[1] === '60' ? 'M00' : 'M10', px: worldX + OFFSET_X, py: OFFSET_Y - worldZ };
+  if (m) {
+    const tier = Number(m[4]); // last digit of the 2-digit suffix = size-tier
+    if (tier > 2) return null;
+    const size = 256 * 2 ** tier;
+    const worldX = Number(m[2]) * size + size / 2 + x;
+    const worldZ = Number(m[3]) * size + size / 2 + z;
+    return worldToMasterPixel(m[1] === '60' ? 'M00' : 'M10', worldX, worldZ);
+  }
+  return dungeonMarkerToMasterPixel(mapId, x, z);
 }
 
 /**
  * The save's current player position (`player_coords`: local [x, y(elevation), z];
- * `map_id`: 4 raw bytes) → master pixel, or `null` if the player is not in an
- * overworld tile (e.g. inside a legacy dungeon — needs WorldMapLegacyConvParam).
- * The byte order of `map_id` is unknown, so both orders are tried; only the one
- * that forms a valid `m60`/`m61` overworld id projects (the other returns null).
+ * `map_id`: 4 raw bytes) → master pixel, or `null` if the position can't be placed.
+ * Works in overworld tiles and now also inside legacy dungeons (projected via
+ * `WORLD_MAP_LEGACY_CONV`). The byte order of `map_id` is unknown, so both orders are
+ * tried; only the one that forms a placeable id projects (the other returns null).
  */
 export function playerToMasterPixel(
   mapId: ReadonlyArray<number>,

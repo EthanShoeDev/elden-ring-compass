@@ -71,6 +71,14 @@ export default defineConfig({
     // We use the automatic JSX runtime (jsx: 'react-jsx'), so React does not
     // need to be imported into scope.
     'react/react-in-jsx-scope': 'off',
+    // Rules of React enforcement for the React Compiler. oxlint has no
+    // `react-compiler` plugin (it doesn't exist), and `rules-of-hooks` is OFF by
+    // default — it is not part of the `correctness` category. The compiler
+    // silently bails out of any component that breaks the Rules of Hooks, so we
+    // promote it to an error to catch those at lint time rather than losing the
+    // optimization at build time. (`react/exhaustive-deps`, the other rule the
+    // compiler relies on, is already on via the `correctness` category.)
+    'react/rules-of-hooks': 'error',
     // Type-aware assertions are used deliberately at JSON/ESLint-AST
     // boundaries (catalog-check, the oxlint plugins). `unknown-cast/forbidden`
     // already guards the dangerous `as unknown as` form with a required reason.

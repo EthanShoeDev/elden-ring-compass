@@ -10,6 +10,7 @@ import type { Region } from '../game/regions.ts';
 import type { ClassifiedMarker } from '../game/marker-classify.ts';
 import type { Placement } from '../game/placements.ts';
 import type { SpEffectLabel } from '../game/sp-effect-labels.ts';
+import type { LegacyConv } from '../game/world-map-legacy-conv.ts';
 import type {
   ArmorRecord,
   AshOfWarRecord,
@@ -45,6 +46,7 @@ export interface CodegenInput {
   readonly spiritAshes: readonly SpiritAshRecord[];
   readonly markers: readonly ClassifiedMarker[];
   readonly placements: readonly Placement[];
+  readonly legacyConv: readonly LegacyConv[];
   readonly spEffects: readonly SpEffectLabel[];
   // Name tables for the remaining categories without a decoded stat record
   // (weapon arts) — emitted as {id, name}.
@@ -240,6 +242,31 @@ export const renderPlacementsFile = (
     ],
     'PLACEMENTS',
     placements.map((p) => ({ ...p })),
+  );
+};
+
+/**
+ * Render `generated/world-map-legacy-conv.ts` — per-base-point dungeon→overworld
+ * projection offsets (`WorldMapLegacyConvParam`). Self-contained (sorts its inputs).
+ */
+export const renderLegacyConvFile = (
+  convInput: readonly LegacyConv[],
+): string => {
+  const rows = [...convInput].toSorted(
+    (a, b) => a.srcMapId.localeCompare(b.srcMapId) || a.srcX - b.srcX,
+  );
+  return renderDataset(
+    'LegacyConv',
+    [
+      'readonly srcMapId: string;',
+      "readonly master: 'M00' | 'M10';",
+      'readonly srcX: number;',
+      'readonly srcZ: number;',
+      'readonly addX: number;',
+      'readonly addZ: number;',
+    ],
+    'WORLD_MAP_LEGACY_CONV',
+    rows.map((c) => ({ ...c })),
   );
 };
 
@@ -529,6 +556,11 @@ export const codegen = (input: CodegenInput) =>
 
     yield* write('placements.ts', renderPlacementsFile(input.placements));
 
+    yield* write(
+      'world-map-legacy-conv.ts',
+      renderLegacyConvFile(input.legacyConv),
+    );
+
     yield* write('sp-effects.ts', renderSpEffectsFile(input.spEffects));
 
     yield* write(
@@ -586,6 +618,7 @@ export const codegen = (input: CodegenInput) =>
       'archetypes',
       'markers',
       'placements',
+      'world-map-legacy-conv',
       'sp-effects',
       'event-flags',
     ];
@@ -601,6 +634,7 @@ export const codegen = (input: CodegenInput) =>
         `${goods.length} goods, ${ashesOfWar.length} ashes of war, ${spells.length} spells, ` +
         `${spiritAshes.length} spirit ashes, ${mapFragments.length} map fragments, ` +
         `${input.markers.length} markers, ${input.placements.length} placements, ` +
+        `${input.legacyConv.length} legacy-conv base points, ` +
         `${input.spEffects.length} sp-effect labels (+ arts name table)`,
     );
   });

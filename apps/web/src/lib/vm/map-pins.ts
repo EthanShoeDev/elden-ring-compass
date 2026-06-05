@@ -2,10 +2,11 @@
 // module load. These are the SOLE source of map-marker positions — the scraped
 // `map-db.ts` wiki coords are no longer used for placement.
 //
-// Coverage is the overworld (Lands Between → M00, DLC Land of Shadow → M10), which
-// is what the in-game overworld maps show: field graces, field bosses, and overworld
-// item pickups (treasure + enemy drops). Anything in a legacy dungeon projects to
-// `null` (needs `WorldMapLegacyConvParam` — a follow-up) and is simply omitted.
+// Coverage is the overworld (Lands Between → M00, DLC Land of Shadow → M10): field
+// graces, field bosses, and overworld item pickups (treasure + enemy drops). Legacy
+// dungeons (`m10`/`m12`/…) are now projected too — `overworldMarkerToMasterPixel`
+// routes them through `WORLD_MAP_LEGACY_CONV` (dungeon-local → overworld). Anything
+// with no overworld tile and no conv entry still projects to `null` and is omitted.
 import { BOSSES, GRACES, MAP_MARKERS, PLACEMENTS } from '@elden-ring-compass/data';
 
 import { type MasterPixel, overworldMarkerToMasterPixel } from '../map-affine';

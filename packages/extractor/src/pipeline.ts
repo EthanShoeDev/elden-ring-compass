@@ -6,6 +6,7 @@ import { flags } from './stages/flags.ts';
 import { images } from './stages/images.ts';
 import { join } from './stages/join.ts';
 import { markers } from './stages/markers.ts';
+import { loadLegacyConv } from './game/world-map-legacy-conv.ts';
 import { loadPlacements } from './game/placements.ts';
 import { loadSpEffectLabels } from './game/sp-effect-labels.ts';
 import { params } from './stages/params.ts';
@@ -60,6 +61,15 @@ export const runPipeline = Effect.gen(function* () {
   yield* Effect.logInfo(
     `placements — ${placementRows.length} item drops (enemy:${enemyCount} map:${placementRows.length - enemyCount})`,
   ).pipe(Effect.annotateLogs('stage', '7-placements'));
+  // legacy-conv: WorldMapLegacyConvParam → per-dungeon overworld projection offset.
+  const legacyConv = yield* loadLegacyConv(paramFiles).pipe(
+    Effect.annotateLogs('stage', '7-legacy-conv'),
+  );
+  const convDungeons = new Set(legacyConv.map((c) => c.srcMapId)).size;
+  const m00 = legacyConv.filter((c) => c.master === 'M00').length;
+  yield* Effect.logInfo(
+    `legacy-conv — ${legacyConv.length} base points across ${convDungeons} dungeons → overworld (M00:${m00} M10:${legacyConv.length - m00})`,
+  ).pipe(Effect.annotateLogs('stage', '7-legacy-conv'));
   // sp-effect labels: invert item→SpEffect refs so a save's active sp_effects[]
   // can be named (consumables/spells/talismans/gear). Partial coverage by design.
   const spEffects = yield* loadSpEffectLabels(paramFiles, names).pipe(
@@ -86,6 +96,7 @@ export const runPipeline = Effect.gen(function* () {
     spiritAshes,
     markers: markerEntities,
     placements: placementRows,
+    legacyConv,
     spEffects,
     names,
   }).pipe(Effect.annotateLogs('stage', '9-codegen'));
