@@ -1,56 +1,110 @@
-import { useSelectedSlot } from '@/stores/slot-selection-store';
-import { Button } from './ui/button';
-import { inventoryDbView } from '@/lib/vm/inventory';
+import { ExternalLinkIcon, StarIcon, WrenchIcon } from 'lucide-react';
+import { useState } from 'react';
+
+import { GithubIcon } from '@/components/shell/github-icon';
+import { REPO_URL } from '@/components/shell/nav';
+import { equipmentDbView } from '@/lib/vm/equipement';
 import { eventsDbView } from '@/lib/vm/events';
+import { inventoryDbView } from '@/lib/vm/inventory';
 import { regionsDbView } from '@/lib/vm/regions';
 import { statsDbView } from '@/lib/vm/stats';
-import { equipmentDbView } from '@/lib/vm/equipement';
+import { useSelectedSlot } from '@/stores/slot-selection-store';
+
+import { Button } from './ui/button';
 import { Spinner } from './ui/spinner';
-import { useState } from 'react';
+
+const CREDITS = [
+  {
+    label: 'Elden Ring Progression Tracker',
+    href: 'https://github.com/elden-ring-progression-tracker/elden-ring-progression-tracker.github.io',
+  },
+  { label: 'ER Save Editor', href: 'https://github.com/ClayAmore/ER-Save-Editor' },
+  { label: 'ERDB', href: 'https://github.com/EldenRingDatabase/erdb' },
+];
 
 export function Footer() {
   return (
-    <footer className='flex flex-col items-center py-10'>
-      <h3 className='mb-2 text-lg font-bold'>Huge thanks to these projects:</h3>
-      <ul className='prose list-inside list-disc dark:prose-invert'>
-        <li>
-          <a
-            href='https://github.com/elden-ring-progression-tracker/elden-ring-progression-tracker.github.io'
-            target='_blank'
-            rel='noopener noreferrer'
+    <footer className='flex flex-col gap-5 border-t border-border px-4 pt-7 pb-9 md:px-7'>
+      <div className='flex flex-wrap items-start justify-between gap-5'>
+        <div className='flex max-w-md flex-col gap-2'>
+          <div className='flex items-center gap-2 text-[15px] font-bold'>
+            <GithubIcon className='size-4' />
+            Open source
+          </div>
+          <p className='text-[12.5px] leading-relaxed text-muted-foreground'>
+            Elden Ring Compass is a free, read-only save analyzer. It never writes to your save.
+            Found bad data or a missing item? Contributions are welcome — feel free to submit a PR
+            to help correct the data.
+          </p>
+        </div>
+
+        <div className='flex flex-wrap gap-2'>
+          <Button
+            variant='outline'
+            size='sm'
+            render={
+              <a href={REPO_URL} target='_blank' rel='noreferrer' aria-label='View on GitHub' />
+            }
           >
-            Elden Ring Progression Tracker
-          </a>
-        </li>
-        <li>
-          <a
-            href='https://github.com/ClayAmore/ER-Save-Editor'
-            target='_blank'
-            rel='noopener noreferrer'
+            <GithubIcon />
+            View on GitHub
+          </Button>
+          <Button
+            variant='outline'
+            size='sm'
+            render={
+              <a
+                href={`${REPO_URL}/stargazers`}
+                target='_blank'
+                rel='noreferrer'
+                aria-label='Star on GitHub'
+              />
+            }
           >
-            ER Save Editor
-          </a>
-        </li>
-        <li>
-          <a
-            href='https://github.com/EldenRingDatabase/erdb'
-            target='_blank'
-            rel='noopener noreferrer'
+            <StarIcon />
+            Star
+          </Button>
+          <Button
+            variant='outline'
+            size='sm'
+            render={
+              <a
+                href={`${REPO_URL}/issues/new`}
+                target='_blank'
+                rel='noreferrer'
+                aria-label='Submit a data fix'
+              />
+            }
           >
-            ERDB
-          </a>
-        </li>
-      </ul>
-      <div className='flex w-full flex-wrap justify-center gap-2 py-8 text-2xl'>
-        <a className='hover:underline' href='https://github.com/EthanShoeDev/elden-ring-compass'>
-          Github
-        </a>{' '}
-        -
-        <a className='hover:underline' href='https://www.eldenringcompass.com'>
-          Website
-        </a>
+            <WrenchIcon />
+            Submit a Data Fix
+          </Button>
+          <CopySaveAsJsonButton />
+        </div>
       </div>
-      <CopySaveAsJsonButton />
+
+      <div className='flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-muted-foreground'>
+        <span>Huge thanks to:</span>
+        {CREDITS.map((c, i) => (
+          <span key={c.href} className='flex items-center gap-3'>
+            {i > 0 && <span className='size-[3px] rounded-full bg-muted-foreground/50' />}
+            <a
+              href={c.href}
+              target='_blank'
+              rel='noreferrer'
+              className='inline-flex items-center gap-1 underline-offset-2 hover:text-foreground hover:underline'
+            >
+              {c.label}
+              <ExternalLinkIcon className='size-3 opacity-60' />
+            </a>
+          </span>
+        ))}
+      </div>
+
+      <p className='text-[11px] text-muted-foreground/70'>
+        Not affiliated with FromSoftware or Bandai Namco. Elden Ring is a trademark of its
+        respective owners.
+      </p>
     </footer>
   );
 }
@@ -118,7 +172,12 @@ function CopySaveAsJsonButton() {
   };
 
   return (
-    <Button disabled={!slot || isPending} onClick={() => void handleCopy()} className='flex gap-4'>
+    <Button
+      variant='outline'
+      size='sm'
+      disabled={!slot || isPending}
+      onClick={() => void handleCopy()}
+    >
       {isPending && <Spinner />}
       {recentSuccess && <span className='text-green-500'>✔</span>}
       {error ? error.message : 'Copy Save as JSON'}

@@ -1,8 +1,5 @@
 import { createRootRoute, HeadContent, Scripts, Outlet } from '@tanstack/react-router';
 import { RegistryProvider } from '@effect/atom-react';
-import { AppBar } from '@/components/app-bar';
-import { Footer } from '@/components/footer';
-import { SharedViewBanner } from '@/components/misc/shared-view-banner';
 import { Providers } from '@/components/providers/providers';
 import '../index.css';
 
@@ -34,12 +31,7 @@ function RootComponent() {
       <body>
         <RegistryProvider>
           <Providers>
-            <div className='flex h-screen flex-col'>
-              <AppBar />
-              <SharedViewBanner />
-              <Outlet />
-              <Footer />
-            </div>
+            <Outlet />
           </Providers>
         </RegistryProvider>
         <Scripts />

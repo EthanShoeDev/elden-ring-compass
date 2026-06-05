@@ -113,7 +113,7 @@ function usePlayerPin(): MapPin | null {
   }, [slot]);
 }
 
-export function MapSection() {
+export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
   const [mounted, setMounted] = useState(false);
   const [manifest, setManifest] = useState<MapManifest | null>(null);
   const [tileIndex, setTileIndex] = useState<TileIndex | undefined>(undefined);
@@ -169,10 +169,14 @@ export function MapSection() {
   };
 
   return (
-    <div className='flex flex-col gap-2 p-4 sm:px-8 md:px-24 lg:px-32'>
+    <div
+      className={
+        embedded ? 'flex flex-col gap-3' : 'flex flex-col gap-2 p-4 sm:px-8 md:px-24 lg:px-32'
+      }
+    >
       <div
         className='relative isolate w-full overflow-hidden rounded-lg border border-muted'
-        style={{ height: 720 }}
+        style={{ height: embedded ? 'min(72vh, 720px)' : 720 }}
       >
         {error ? (
           <MapFallback message={`Failed to load map: ${error}`} />

@@ -1,28 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { MapSection } from '@/components/sections/map-section';
-import { StoryBossSection } from '@/components/sections/story-boss-section';
-import { QuestSection } from '@/components/sections/quests-section';
-import { OverviewSection } from '@/components/sections/overview-section';
-import { InventoryDataTableCard } from '@/components/sections/inventory-data-table-card';
-import { EventsDataTable } from '@/components/sections/events-data-table';
-import { RegionsDataTable } from '@/components/sections/regions-data-table';
-import { WeaponsDataTable } from '@/components/sections/weapons-data-table';
+import { AppShell } from '@/components/shell/app-shell';
 
 export const Route = createFileRoute('/')({
   component: Index,
 });
 
 function Index() {
-  return (
-    <div className='flex flex-1 flex-col gap-4 bg-background p-2 md:p-4'>
-      <MapSection />
-      <StoryBossSection />
-      <QuestSection />
-      <OverviewSection />
-      <InventoryDataTableCard />
-      <EventsDataTable />
-      <RegionsDataTable />
-      <WeaponsDataTable />
-    </div>
-  );
+  return <AppShell />;
 }
