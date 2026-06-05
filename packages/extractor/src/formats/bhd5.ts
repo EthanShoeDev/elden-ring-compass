@@ -38,7 +38,7 @@ class Reader {
     return s;
   }
   u8(): number {
-    return this.buf[this.pos++]!;
+    return this.dv.getUint8(this.pos++);
   }
   i32(): number {
     const v = this.dv.getInt32(this.pos, true);

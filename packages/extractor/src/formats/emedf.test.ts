@@ -149,8 +149,8 @@ it.layer(NodeServices.layer)('loadEmedf (vendored EMEDF)', (it) => {
       const emedf = yield* loadEmedf;
       expect(emedf.byOpcode.size).toBeGreaterThan(300);
       const award = emedf.byName.get('award item lot');
-      expect(award).toBeDefined();
-      expect(opcodeKey(award!.bank, award!.id)).toBe('2003,4');
+      if (award === undefined) throw new Error('byName missing "award item lot"');
+      expect(opcodeKey(award.bank, award.id)).toBe('2003,4');
     }),
   );
 });

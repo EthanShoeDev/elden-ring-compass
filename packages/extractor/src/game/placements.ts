@@ -205,7 +205,8 @@ export const loadPlacements = (
     );
 
     for (const lotId of orphanLots) {
-      const items = mapLots.get(lotId)!;
+      const items = mapLots.get(lotId);
+      if (items === undefined) continue;
       const tile = decodeMapLotTile(lotId);
       let loc = exact.get(lotId);
       // Precision guard: when the lot id encodes its tile, the EMEVD-traced entity must

@@ -59,8 +59,8 @@ export const loadRegulationParams = (
     const params = new Map<string, Uint8Array>();
     for (const entry of entries) {
       const base = (entry.name ?? '').split(/[\\/]/).pop() ?? '';
-      const match = base.match(/^(.+)\.param$/i);
-      if (match) params.set(match[1]!, entry.bytes);
+      const name = base.match(/^(.+)\.param$/i)?.[1];
+      if (name !== undefined) params.set(name, entry.bytes);
     }
     return params;
   });

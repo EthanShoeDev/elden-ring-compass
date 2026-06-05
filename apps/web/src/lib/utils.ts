@@ -16,9 +16,12 @@ export function delayMs(ms: number) {
 /**
  * Narrows `T | null | undefined` to `T`, throwing when the value is missing.
  *
- * @deprecated Prefer Effect-TS: `Option.fromNullable(value)` then `Option.getOrThrowWith` /
- * pattern-match, or `Predicate.isNotNullable` for narrowing. For validated parsing use
- * `effect/Schema`. Avoid throwing helpers in new code.
+ * @deprecated Throwing helpers bypass Effect's error channel. Prefer Effect-TS:
+ * `Option.fromNullable(value)` then either `Option.match({ onNone: () => Effect.fail(new SomeError(...)),
+ * onSome: ... })` inside an Effect, or `Option.getOrElse(() => fallback)` when a default makes sense;
+ * `Predicate.isNotNullable` for plain narrowing; `effect/Schema` for validated parsing. Do NOT reach
+ * for `Option.getOrThrow`/`getOrThrowWith` — they are the same throw-at-runtime anti-pattern this
+ * helper is. No new usages.
  */
 export function assertDefined<T>(value: T | null | undefined, message?: string): T {
   if (value === null || value === undefined) {

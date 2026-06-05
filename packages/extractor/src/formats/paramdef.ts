@@ -75,19 +75,23 @@ export const parseParamdefXml = (
     const fields: ParamdefField[] = [];
     // Each field is "<Field Def=\"...\" ...>"; the Def attribute carries the layout.
     for (const m of xml.matchAll(/<Field\s+Def="([^"]+)"/g)) {
-      const def = m[1]!.trim();
+      const def = m[1]?.trim();
+      if (def === undefined) continue;
       const parsed = DEF_RE.exec(def);
       if (!parsed)
         return yield* new ParamdefError({ detail: `unparseable Def "${def}"` });
       const [, type, name, arr, bits] = parsed;
-      if (!DEF_TYPES.has(type!)) {
+      if (type === undefined || name === undefined) {
+        return yield* new ParamdefError({ detail: `unparseable Def "${def}"` });
+      }
+      if (!DEF_TYPES.has(type)) {
         return yield* new ParamdefError({
           detail: `unknown field type "${type}" in "${def}"`,
         });
       }
       fields.push({
         type: type as DefType,
-        name: name!,
+        name,
         arrayLength: arr === undefined ? 1 : Number(arr),
         bitSize: bits === undefined ? -1 : Number(bits),
       });

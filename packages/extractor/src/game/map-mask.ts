@@ -90,7 +90,8 @@ export const parseMapMasks = (
     for (const e of entries) {
       const m = MAP_RE.exec(baseName(e.name));
       if (!m) continue;
-      const map = m[1]!;
+      const map = m[1];
+      if (map === undefined) continue;
       const xml = new TextDecoder().decode(e.bytes);
       const tiles: TileMask[] = [];
       const allBits = new Set<number>();

@@ -58,11 +58,16 @@ export function decryptBhdHeader(
   }
   const blocks = encrypted.length / inBlock;
   const out = new Uint8Array(blocks * outBlock);
+  const dv = new DataView(
+    encrypted.buffer,
+    encrypted.byteOffset,
+    encrypted.byteLength,
+  );
   for (let i = 0; i < blocks; i++) {
     let c = 0n;
     const base = i * inBlock;
     for (let j = 0; j < inBlock; j++)
-      c = (c << 8n) | BigInt(encrypted[base + j]!);
+      c = (c << 8n) | BigInt(dv.getUint8(base + j));
     let m = modpow(c, e, n);
     for (let j = outBlock - 1; j >= 0; j--) {
       out[i * outBlock + j] = Number(m & 0xffn);

@@ -35,10 +35,15 @@ datasets the website consumes into `@elden-ring-compass/data`. Read
    extractor emits it into `@elden-ring-compass/data`, which is the **sole** runtime
    data source.
 
-6. **IO uses effect `FileSystem` / `Path`, not `Bun.file`.** JSON is decoded through a
-   real `Schema`, not `Unknown`. The two **intentional** exceptions are the hot loops
-   that must stay off the Effect runtime: the dvdbnd unpacker (`archive/dvdbnd.ts`) and
-   the images stage's ranged archive reads. `Bun.Glob` is fine.
+6. **IO uses effect `FileSystem` / `Path`, not `node:fs`/`node:path`.** JSON is decoded
+   through a real `Schema`, not `Unknown`. This is now uniform — the dvdbnd unpacker
+   (`archive/dvdbnd.ts`) and the images stage are Effect-native too (the old "hot loop
+   must stay off the Effect runtime" claim was wrong: Effect's per-`yield*` overhead is
+   nanoseconds, negligible against real syscalls). The **only** remaining `Bun.file`
+   exception is the *ranged* archive read — `Bun.file(bdt).slice(off, len).arrayBuffer()`
+   for the multi-GB BHD/BDT slabs — because effect `FileSystem` has no ranged-read API;
+   it stays wrapped in `Effect.promise`. (`Bun.write` / `Bun.file().text()` likewise stay,
+   wrapped in `Effect.promise` — not lint-flagged.) `Bun.Glob` is fine.
 
 7. **Native code is in-package.** The BCn→PNG codec is a Rust cdylib under
    `native/image-codec/`, built with `bun run build:image-codec` and loaded via

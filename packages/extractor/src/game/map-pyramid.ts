@@ -1,6 +1,4 @@
-import { rm } from 'node:fs/promises';
-
-import { Data, Effect } from 'effect';
+import { Data, Effect, FileSystem, PlatformError } from 'effect';
 import sharp from 'sharp';
 
 import type { ImageEncodeOptions } from './images.ts';
@@ -53,12 +51,14 @@ export interface TileName {
 export const parseTileName = (stem: string): TileName | null => {
   const m = TILE_RE.exec(stem);
   if (!m) return null;
+  const [, map, lod, col, row, layer] = m;
+  if (map === undefined || layer === undefined) return null;
   return {
-    map: m[1]!,
-    lod: Number(m[2]),
-    col: Number(m[3]),
-    row: Number(m[4]),
-    layer: m[5]!.toLowerCase(),
+    map,
+    lod: Number(lod),
+    col: Number(col),
+    row: Number(row),
+    layer: layer.toLowerCase(),
   };
 };
 
@@ -94,42 +94,51 @@ export const buildLayerPyramid = (
   tiles: ReadonlyArray<DecodedTile>,
   outBaseDir: string,
   opts: ImageEncodeOptions,
-): Effect.Effect<{ readonly tileCount: number }, MapPyramidError> =>
-  Effect.tryPromise({
-    try: async () => {
-      await rm(outBaseDir, { recursive: true, force: true });
-      const transparent = { r: 0, g: 0, b: 0, alpha: 0 };
-      const canvas = sharp({
-        create: {
-          width: MASTER_PX,
-          height: MASTER_PX,
-          channels: 4,
-          background: transparent,
-        },
-      }).composite(
-        tiles.map((t) => ({
-          // Wrap the Rust-returned bytes in a zero-copy Buffer (sharp's
-          // OverlayOptions.input is typed as Buffer; this shares the memory).
-          input: Buffer.from(t.png.buffer, t.png.byteOffset, t.png.byteLength),
-          left: t.col * TILE_PX,
-          // Flip the Y axis: the game's row index increases *northward* (erdb
-          // `sourcer.py` pastes at `high_y - y`), so render north-up by mapping
-          // row → (GRID-1 - row). Without this the whole map is upside-down.
-          top: (GRID - 1 - t.row) * TILE_PX,
-        })),
-      );
-      await encodeMaster(canvas, opts)
-        .tile({
-          size: TILE_PX,
-          layout: 'google',
-          background: transparent,
-          skipBlanks: 0, // drop fully-transparent tiles (sparse overlays/M11)
-        })
-        .toFile(outBaseDir);
-      // `google` layout writes a `blank.png` placeholder at the root; we don't use it.
-      await rm(`${outBaseDir}/blank.png`, { force: true });
-      return { tileCount: tiles.length };
-    },
-    catch: (cause) =>
-      new MapPyramidError({ detail: `pyramid build failed: ${String(cause)}` }),
+): Effect.Effect<
+  { readonly tileCount: number },
+  MapPyramidError | PlatformError.PlatformError,
+  FileSystem.FileSystem
+> =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    yield* fs.remove(outBaseDir, { recursive: true, force: true });
+    // The sharp/libvips compose+tile is genuinely Promise-based native work, so it
+    // stays in `tryPromise`; the surrounding file IO is effect `FileSystem`.
+    yield* Effect.tryPromise({
+      try: async () => {
+        const transparent = { r: 0, g: 0, b: 0, alpha: 0 };
+        const canvas = sharp({
+          create: {
+            width: MASTER_PX,
+            height: MASTER_PX,
+            channels: 4,
+            background: transparent,
+          },
+        }).composite(
+          tiles.map((t) => ({
+            // Wrap the Rust-returned bytes in a zero-copy Buffer (sharp's
+            // OverlayOptions.input is typed as Buffer; this shares the memory).
+            input: Buffer.from(t.png.buffer, t.png.byteOffset, t.png.byteLength),
+            left: t.col * TILE_PX,
+            // Flip the Y axis: the game's row index increases *northward* (erdb
+            // `sourcer.py` pastes at `high_y - y`), so render north-up by mapping
+            // row → (GRID-1 - row). Without this the whole map is upside-down.
+            top: (GRID - 1 - t.row) * TILE_PX,
+          })),
+        );
+        await encodeMaster(canvas, opts)
+          .tile({
+            size: TILE_PX,
+            layout: 'google',
+            background: transparent,
+            skipBlanks: 0, // drop fully-transparent tiles (sparse overlays/M11)
+          })
+          .toFile(outBaseDir);
+      },
+      catch: (cause) =>
+        new MapPyramidError({ detail: `pyramid build failed: ${String(cause)}` }),
+    });
+    // `google` layout writes a `blank.png` placeholder at the root; we don't use it.
+    yield* fs.remove(`${outBaseDir}/blank.png`, { force: true });
+    return { tileCount: tiles.length };
   });

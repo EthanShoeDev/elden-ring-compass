@@ -2,6 +2,15 @@
  * Small endian-aware binary reader for the From formats (BND4/FMG/…). Positions
  * are byte offsets; `stepIn`/`stepOut` save/restore the cursor for jumping to an
  * absolute offset and coming back (mirrors SoulsFormats `BinaryReaderEx`).
+ *
+ * NOTE: this is intentionally NOT the same reader as `packages/save-parser/src/binary-reader.ts`,
+ * and they are deliberately not shared. The policies differ: this one is build-time tooling that
+ * trusts well-formed game files — it does *no* bounds checking (silent OOB), supports configurable
+ * endianness + Shift-JIS/UTF-16 string codecs + the stepIn/stepOut stack, and is a plain mutable
+ * class for speed across ~90 hot-loop call sites. The save-parser reader is the opposite: LE-only,
+ * strict per-read bounds checks raising a typed `SaveTruncatedError`, wrapped as an Effect
+ * Context.Service (it parses untrusted user save data). The genuinely shared surface is only the
+ * ~10 one-line numeric reads, so merging would force one package's policy onto the other.
  */
 
 /** Reverse the 8 bits of a byte (SoulsFormats `EndianHelper.ReverseBits`). */
@@ -36,7 +45,7 @@ export class BinaryReader {
   }
 
   byteAt(offset: number): number {
-    return this.buf[offset]!;
+    return this.dv.getUint8(offset);
   }
 
   skip(n: number): void {
@@ -53,7 +62,7 @@ export class BinaryReader {
   }
 
   u8(): number {
-    return this.buf[this.pos++]!;
+    return this.dv.getUint8(this.pos++);
   }
 
   i8(): number {

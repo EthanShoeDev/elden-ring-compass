@@ -1,13 +1,13 @@
 // NOTE: the images stage uses `Bun.file(bdt).slice(offset, len)` for RANDOM-ACCESS
 // reads into multi-GB BHD/BDT archives (reading just the bytes for one texture),
-// which effect `FileSystem` would only do via a scoped `open` + `seek` per slice —
-// heavier for the heaviest stage. So this and dvdbnd.ts are the two intentional
-// `Bun.file` exceptions; everything else uses effect `FileSystem` for file IO.
-import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
-
+// which effect `FileSystem` has no ranged-read API for — loading the whole slab
+// would be the real regression. That ranged `Bun.file` read is the *only* exception;
+// all directory/file IO here goes through effect `FileSystem`.
 import {
   Data,
   Effect,
+  FileSystem,
+  PlatformError,
   Schema,
   SchemaGetter,
   SchemaTransformation,
@@ -66,7 +66,8 @@ type ImgErrors =
   | TpfError
   | ImageCodecError
   | MapPyramidError
-  | MapMaskError;
+  | MapMaskError
+  | PlatformError.PlatformError;
 
 export interface ImageEncodeOptions {
   readonly format: ImageFormat;
@@ -110,11 +111,13 @@ const fileExists = (path: string) =>
   Effect.promise(() => Bun.file(path).exists());
 
 const dirHasEntries = (dir: string) =>
-  Effect.promise(() =>
-    readdir(dir)
-      .then((e) => e.length > 0)
-      .catch(() => false),
-  );
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    const entries = yield* fs
+      .readDirectory(dir)
+      .pipe(Effect.orElseSucceed(() => [] as string[]));
+    return entries.length > 0;
+  });
 
 /** Human-readable map names for the manifest. */
 const MAP_NAMES: Record<string, string> = {
@@ -194,13 +197,14 @@ export const extractImages = (
   outDir: string,
   opts: ImageEncodeOptions,
   log: (msg: string) => Effect.Effect<void>,
-): Effect.Effect<ImageSummary, ImgErrors> =>
+): Effect.Effect<ImageSummary, ImgErrors, FileSystem.FileSystem> =>
   Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
     const ext = opts.format;
     const tileDir = `${outDir}/images/map-tiles`;
     const iconDir = `${outDir}/images/icons`;
-    yield* Effect.promise(() => mkdir(tileDir, { recursive: true }));
-    yield* Effect.promise(() => mkdir(iconDir, { recursive: true }));
+    yield* fs.makeDirectory(tileDir, { recursive: true });
+    yield* fs.makeDirectory(iconDir, { recursive: true });
 
     // --- Map tiles → per-map vanilla (all-fragments) pyramid + manifest ---
     // Each tile name ends in a 32-bit `variant` bitmask (collected fragments /
@@ -214,18 +218,18 @@ export const extractImages = (
     let tilesSkipped = 0;
     if (yield* fileExists(bhdPath)) {
       // One-time cleanup of the old flat `MENU_MapTile_*.{ext}` layout.
-      const rootEntries = yield* Effect.promise(() =>
-        readdir(tileDir).catch(() => [] as string[]),
-      );
+      const rootEntries = yield* fs
+        .readDirectory(tileDir)
+        .pipe(Effect.orElseSucceed(() => [] as string[]));
       const legacy = rootEntries.filter((f) =>
         /^MENU_MapTile_.*\.(webp|png|jpeg|avif)$/i.test(f),
       );
       if (legacy.length > 0) {
         yield* log(`removing ${legacy.length} legacy flat map-tile files`);
-        yield* Effect.promise(() =>
-          Promise.all(
-            legacy.map((f) => rm(`${tileDir}/${f}`, { force: true })),
-          ),
+        yield* Effect.forEach(
+          legacy,
+          (f) => fs.remove(`${tileDir}/${f}`, { force: true }),
+          { discard: true },
         );
       }
 
@@ -278,7 +282,8 @@ export const extractImages = (
 
       const manifestMaps: MapSummary[] = [];
       for (const map of [...byMap.keys()].sort()) {
-        const cells = byMap.get(map)!;
+        const cells = byMap.get(map);
+        if (cells === undefined) continue;
         const eventMask = EVENT_BITS[map] ?? 0;
         const outBaseDir = `${tileDir}/${map}/${BASE_LAYER_ID}`;
 
@@ -303,9 +308,10 @@ export const extractImages = (
             : [];
 
         // Drop any superseded fully-undiscovered `00000000` pyramid for this map.
-        yield* Effect.promise(() =>
-          rm(`${tileDir}/${map}/00000000`, { recursive: true, force: true }),
-        );
+        yield* fs.remove(`${tileDir}/${map}/00000000`, {
+          recursive: true,
+          force: true,
+        });
 
         const mkSummary = (tileCount: number): MapSummary => ({
           id: map,
@@ -335,7 +341,7 @@ export const extractImages = (
         for (const [key, vs] of cells) {
           let pick: (typeof vs)[number] | undefined;
           if (useMasks) {
-            const mask = cellMasks!.get(key);
+            const mask = cellMasks?.get(key);
             if (mask === undefined || (mask & eventMask) !== 0) continue;
             pick = vs.find((v) => v.variant === mask);
             if (!pick) continue; // no exact full-reveal variant on disk
@@ -355,8 +361,9 @@ export const extractImages = (
             ),
           );
           const textures = yield* tpfTextures(slice, oo2corePath);
-          if (textures.length === 0) continue;
-          const png = yield* ddsToPng(textures[0]!.dds);
+          const [firstTexture] = textures;
+          if (firstTexture === undefined) continue;
+          const png = yield* ddsToPng(firstTexture.dds);
           decoded.push({ col: pick.col, row: pick.row, png });
         }
         const { tileCount } = yield* buildLayerPyramid(
@@ -381,8 +388,9 @@ export const extractImages = (
         tileUrlTemplate: `{map}/${BASE_LAYER_ID}/{z}/{y}/{x}.${ext}`,
         maps: manifestMaps,
       };
-      yield* Effect.promise(() =>
-        writeFile(`${tileDir}/manifest.json`, `${encodeManifest(manifest)}\n`),
+      yield* fs.writeFileString(
+        `${tileDir}/manifest.json`,
+        `${encodeManifest(manifest)}\n`,
       );
       yield* log(
         `map tiles: ${tiles} L0 composited, ${tilesSkipped} cached; ` +
@@ -402,11 +410,8 @@ export const extractImages = (
         yield* Effect.promise(() => Bun.file(path).arrayBuffer()),
       );
       const textures = yield* tpfTextures(bytes, oo2corePath);
-      yield* Effect.promise(() =>
-        mkdir(`${iconDir}/${sheet}`, { recursive: true }),
-      );
-      for (let i = 0; i < textures.length; i++) {
-        const t = textures[i]!;
+      yield* fs.makeDirectory(`${iconDir}/${sheet}`, { recursive: true });
+      for (const [i, t] of textures.entries()) {
         const safe = (t.name || `tex_${i}`).replace(/[^\w.-]/g, '_');
         const outBase = `${iconDir}/${sheet}/${i}_${safe}`;
         if (yield* fileExists(`${outBase}.${ext}`)) continue;
@@ -429,7 +434,7 @@ export const extractImages = (
     const soloBdt = `${gameRoot}/menu/hi/00_solo.tpfbdt`;
     if ((yield* fileExists(soloBhd)) && (yield* fileExists(soloBdt))) {
       const itemIconDir = `${iconDir}/items`;
-      yield* Effect.promise(() => mkdir(itemIconDir, { recursive: true }));
+      yield* fs.makeDirectory(itemIconDir, { recursive: true });
       const headers = yield* parseBnd4Headers(
         new Uint8Array(
           yield* Effect.promise(() => Bun.file(soloBhd).arrayBuffer()),
@@ -438,8 +443,9 @@ export const extractImages = (
       for (const h of headers) {
         const base = (h.name ?? '').split(/[\\/]/).pop() ?? '';
         const m = base.match(/MENU_Knowledge_0*(\d+)/i);
-        if (!m) continue;
-        const iconId = parseInt(m[1]!, 10);
+        const idStr = m?.[1];
+        if (idStr === undefined) continue;
+        const iconId = parseInt(idStr, 10);
         const outBase = `${itemIconDir}/${iconId}`;
         if (yield* fileExists(`${outBase}.${ext}`)) {
           itemIconsSkipped++;
@@ -453,8 +459,9 @@ export const extractImages = (
           ),
         );
         const textures = yield* tpfTextures(slice, oo2corePath);
-        if (textures.length === 0) continue;
-        const png = yield* ddsToPng(textures[0]!.dds);
+        const [firstTexture] = textures;
+        if (firstTexture === undefined) continue;
+        const png = yield* ddsToPng(firstTexture.dds);
         yield* encodePng(png, outBase, opts);
         itemIcons++;
       }

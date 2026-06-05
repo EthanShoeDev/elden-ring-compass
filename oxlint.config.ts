@@ -75,13 +75,19 @@ export default defineConfig({
     // boundaries (catalog-check, the oxlint plugins). `unknown-cast/forbidden`
     // already guards the dangerous `as unknown as` form with a required reason.
     'typescript/no-unsafe-type-assertion': 'off',
-    // The non-null assertion (`!`) silently bypasses strict null checks; narrow
-    // with an `if` guard or `assertDefined(...)` (which throws) instead.
+    // The non-null assertion (`!`) silently bypasses strict null checks. Narrow
+    // with Effect instead: `Option.fromNullable(x)` + `Option.match`/`getOrElse`,
+    // `Predicate.isNotNullable`, or `effect/Schema` for validated parsing. (The
+    // old `assertDefined` throwing helper is deprecated — don't reach for it.)
     'typescript/no-non-null-assertion': 'error',
 
     // --- Rule deviations mirrored from the reference monorepos (fressh,
     // listening-astro). These fire pervasively and were judged not worth
     // enforcing there; we keep parity so the configs stay portable. ---
+    // Sequential `await` in a loop is frequently intentional here (ordered IO,
+    // backpressure in the archive unpackers) — not a perf bug. Disabled in
+    // listening-astro for the same reason.
+    'no-await-in-loop': 'off',
     // react-perf flags every inline handler/object/array prop. That is
     // premature optimization; rely on the React Compiler / profiling instead.
     'react-perf/jsx-no-new-function-as-prop': 'off',

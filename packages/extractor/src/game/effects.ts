@@ -418,10 +418,9 @@ const effectsFromRow = (
   addCondition?: string,
 ): ItemEffect[] => {
   const out: ItemEffect[] = [];
-  for (const field in fields) {
+  for (const [field, f] of Object.entries(fields)) {
     const raw = row.get(field);
     if (typeof raw !== 'number') continue;
-    const f = fields[field]!;
     if (raw === f.defaultValue) continue;
     const value = f.parser(raw, f.model);
     const conditions = [

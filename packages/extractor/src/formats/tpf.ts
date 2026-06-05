@@ -31,19 +31,19 @@ function readTpf(data: Uint8Array): TpfTexture[] {
   if (new TextDecoder('latin1').decode(data.subarray(0, 4)) !== 'TPF\0') {
     throw new Error('not a TPF (bad magic)');
   }
-  const platform = data[0xc]!;
+  const platform = dv.getUint8(0xc);
   if (platform !== 0)
     throw new Error(`only PC TPFs supported (platform=${platform})`);
   const fileCount = dv.getInt32(8, true);
-  const encoding = data[0xe]!;
+  const encoding = dv.getUint8(0xe);
 
   const textures: TpfTexture[] = [];
   let p = 0x10;
   for (let i = 0; i < fileCount; i++) {
     const fileOffset = dv.getUint32(p, true);
     const fileSize = dv.getInt32(p + 4, true);
-    const format = data[p + 8]!;
-    const flags1 = data[p + 0x0b]!;
+    const format = dv.getUint8(p + 8);
+    const flags1 = dv.getUint8(p + 0x0b);
     p += 12; // fileOffset(4) + fileSize(4) + format(1) + type(1) + mips(1) + flags1(1)
     const nameOffset = dv.getUint32(p, true);
     const hasFloatStruct = dv.getInt32(p + 4, true) === 1;

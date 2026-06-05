@@ -43,14 +43,14 @@ export const parseParam = (
       });
     }
     const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    const endByte = bytes[0x2c];
+    const endByte = dv.getUint8(0x2c);
     if (endByte !== 0x00 && endByte !== 0xff) {
       return yield* new ParamError({
-        detail: `bad endian flag 0x${endByte!.toString(16)} at 0x2C`,
+        detail: `bad endian flag 0x${endByte.toString(16)} at 0x2C`,
       });
     }
     const little = endByte === 0x00;
-    const format2d = bytes[0x2d]!;
+    const format2d = dv.getUint8(0x2d);
     const longOffsets = (format2d & FLAG_LONG_DATA_OFFSET) !== 0;
     const offsetParamType = (format2d & FLAG_OFFSET_PARAM_TYPE) !== 0;
     const dataVersion = dv.getInt16(0x08, little);
@@ -69,7 +69,7 @@ export const parseParam = (
       paramType = new TextDecoder('latin1').decode(bytes.subarray(0x0c, end));
     }
 
-    const rows: ParamRow[] = new Array(rowCount);
+    const rows: ParamRow[] = [];
     let p = 0x40;
     for (let i = 0; i < rowCount; i++) {
       const id = dv.getInt32(p, little);

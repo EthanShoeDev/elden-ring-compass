@@ -80,8 +80,15 @@ function resolveBars(
     for (const ins of ev.instructions) {
       if (isHealthbar(ins.bank, ins.id)) {
         const a = argInts(ins.argData);
-        if ((a[1] ?? 0) > 0 && (a[3] ?? 0) > 0) {
-          out.push({ character: a[1]!, nameId: a[3]!, initFlags: [] });
+        const character = a[1];
+        const nameId = a[3];
+        if (
+          character !== undefined &&
+          nameId !== undefined &&
+          character > 0 &&
+          nameId > 0
+        ) {
+          out.push({ character, nameId, initFlags: [] });
         }
       }
     }
@@ -105,8 +112,7 @@ function resolveBars(
 
       const paramBytes = ins.argData.subarray(8); // after slot + event_id
       const initFlags = argInts(ins.argData).slice(2); // the passed params, as int32s
-      for (let idx = 0; idx < target.instructions.length; idx++) {
-        const t = target.instructions[idx]!;
+      for (const [idx, t] of target.instructions.entries()) {
         if (!isHealthbar(t.bank, t.id)) continue;
         const buf = new Uint8Array(t.argData);
         for (const p of target.parameters) {

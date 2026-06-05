@@ -673,7 +673,10 @@ export const join = (
         upgradeMaterial,
         upgradeCosts: chain
           .slice(1)
-          .map((i) => num(goodsRows.get(i)!, 'reinforcePrice')),
+          .flatMap((i) => {
+            const row = goodsRows.get(i);
+            return row === undefined ? [] : [num(row, 'reinforcePrice')];
+          }),
       });
     }
 

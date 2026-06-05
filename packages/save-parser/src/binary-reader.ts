@@ -14,6 +14,14 @@
  * keeps the Effect-native surface (service + tagged errors + Effect entrypoint) at native
  * speed. The per-buffer cursor state is captured in the closure built by
  * {@link makeBinaryReader}.
+ *
+ * NOTE: the extractor has its own reader (`packages/extractor/src/formats/binary-reader.ts`) and
+ * they are deliberately kept separate. That one is build-time tooling over trusted game files: it
+ * does no bounds checking, supports configurable endianness + string codecs + a stepIn/stepOut
+ * stack, and is a plain mutable class for speed. This one is the opposite — LE-only, strict
+ * bounds-checked, typed-failure, Effect-service — because it parses untrusted user save data. The
+ * only real overlap is the ~10 trivial numeric reads; sharing would force one package's policy on
+ * the other.
  */
 import { Context, Schema } from 'effect';
 
@@ -115,11 +123,16 @@ export const makeBinaryReader = (buffer: ArrayBuffer): BinaryReaderApi => {
     u64String: () => view.getBigUint64(take(8), true).toString(),
     byteTuple4: () => {
       const at = take(4);
-      return [bytes[at]!, bytes[at + 1]!, bytes[at + 2]!, bytes[at + 3]!];
+      return [
+        view.getUint8(at),
+        view.getUint8(at + 1),
+        view.getUint8(at + 2),
+        view.getUint8(at + 3),
+      ];
     },
 
     u32At: (absPos) => view.getUint32(checkAbs(absPos, 4), true),
-    byteAt: (absPos) => bytes[checkAbs(absPos, 1)]!,
+    byteAt: (absPos) => view.getUint8(checkAbs(absPos, 1)),
     subarrayAt: (absPos, len) => {
       checkAbs(absPos, len);
       return bytes.subarray(absPos, absPos + len);

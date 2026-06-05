@@ -1,11 +1,12 @@
-// NOTE: this module deliberately stays plain-async (`node:fs/promises` + `Bun.file`/
-// `Bun.write`), NOT effect `FileSystem`. It's the dvdbnd unpacker hot loop — thousands
-// of per-file extracts — kept off the Effect runtime by design (see stages/unpack.ts:
-// "the hot loop stays plain async, not per-file Effects"). The rest of the extractor
-// uses effect `FileSystem` for file IO; this and the images stage (ranged archive reads)
-// are the two intentional exceptions.
-import { cp, mkdir, rename, rm, stat } from 'node:fs/promises';
-import { dirname } from 'node:path';
+// Effect-native dvdbnd unpacker. File IO goes through effect `FileSystem`/`Path`
+// services (directory setup, per-file existence checks, mkdir) — the per-`yield*`
+// overhead is nanoseconds against real syscalls, so being on the Effect runtime
+// costs nothing measurable for this IO-bound loop. The one thing that stays on
+// Bun is the *ranged* read of the multi-GB `.bdt` slab (`Bun.file(bdt).slice(...)`)
+// — effect `FileSystem` has no ranged-read API and loading the whole file would be
+// the real regression — wrapped in `Effect.promise`. `Bun.write` is likewise kept
+// (not a lint concern; `node:fs`/`node:path` are).
+import { Data, Effect, FileSystem, Path } from 'effect';
 
 import {
   ER_ARCHIVE_KEYS,
@@ -41,15 +42,12 @@ export interface UnpackOptions {
   readonly gameRoot: string;
   /** Restore backups + delete previously-unpacked dirs, then re-extract. */
   readonly clean: boolean;
-  /** Progress/summary sink. */
-  readonly log: (msg: string) => void;
 }
 
-const pathExists = (p: string) =>
-  stat(p).then(
-    () => true,
-    () => false,
-  );
+/** Raised when an encrypted archive has no known decryption key. */
+export class DvdbndError extends Data.TaggedError('DvdbndError')<{
+  readonly detail: string;
+}> {}
 
 // Cheap magic→extension guess for files whose hash isn't in the dictionary.
 // (UXM recurses through DCX/BND here; we only need the dictionary-known files,
@@ -72,9 +70,9 @@ function guessExtension(b: Uint8Array): string {
 }
 
 let dictionaryCache: Map<bigint, string> | null = null;
-async function loadDictionary(): Promise<Map<bigint, string>> {
+const loadDictionary = Effect.gen(function* () {
   if (dictionaryCache) return dictionaryCache;
-  const text = await Bun.file(erDictionaryUrl).text();
+  const text = yield* Effect.promise(() => Bun.file(erDictionaryUrl).text());
   const map = new Map<bigint, string>();
   for (const line of text.split(/[\r\n]+/)) {
     if (line.startsWith('#')) continue;
@@ -83,172 +81,184 @@ async function loadDictionary(): Promise<Map<bigint, string>> {
   }
   dictionaryCache = map;
   return map;
-}
+});
 
 /** `--clean`: restore backed-up dirs and remove previously-unpacked dirs. */
-async function cleanInstall(
-  gameRoot: string,
-  log: (m: string) => void,
-): Promise<void> {
-  for (const dir of ER_GAME_INFO.backupDirs) {
-    const backup = `${gameRoot}/_backup/${dir}`;
-    if (await pathExists(backup)) {
-      await rm(`${gameRoot}/${dir}`, { recursive: true, force: true });
-      await rename(backup, `${gameRoot}/${dir}`);
-      log(`  restored ${dir}/ from _backup/`);
+const cleanInstall = (gameRoot: string) =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    for (const dir of ER_GAME_INFO.backupDirs) {
+      const backup = `${gameRoot}/_backup/${dir}`;
+      if (yield* fs.exists(backup)) {
+        yield* fs.remove(`${gameRoot}/${dir}`, { recursive: true, force: true });
+        yield* fs.rename(backup, `${gameRoot}/${dir}`);
+        yield* Effect.logInfo(`  restored ${dir}/ from _backup/`);
+      }
     }
-  }
-  await rm(`${gameRoot}/_backup`, { recursive: true, force: true });
-  let removed = 0;
-  for (const dir of ER_GAME_INFO.deleteDirs) {
-    const target = `${gameRoot}/${dir}`;
-    if (await pathExists(target)) {
-      await rm(target, { recursive: true, force: true });
-      removed++;
+    yield* fs.remove(`${gameRoot}/_backup`, { recursive: true, force: true });
+    let removed = 0;
+    for (const dir of ER_GAME_INFO.deleteDirs) {
+      const target = `${gameRoot}/${dir}`;
+      if (yield* fs.exists(target)) {
+        yield* fs.remove(target, { recursive: true, force: true });
+        removed++;
+      }
     }
-  }
-  log(`  --clean: removed ${removed} previously-unpacked dir(s)`);
-}
+    yield* Effect.logInfo(`  --clean: removed ${removed} previously-unpacked dir(s)`);
+  });
 
 /** Copy `backupDirs` to `_backup/` once, before unpacking into them. */
-async function backupDirs(
-  gameRoot: string,
-  log: (m: string) => void,
-): Promise<void> {
-  for (const dir of ER_GAME_INFO.backupDirs) {
-    const src = `${gameRoot}/${dir}`;
-    const dst = `${gameRoot}/_backup/${dir}`;
-    if ((await pathExists(src)) && !(await pathExists(dst))) {
-      await cp(src, dst, { recursive: true });
-      log(`  backed up ${dir}/ → _backup/`);
+const backupDirs = (gameRoot: string) =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    for (const dir of ER_GAME_INFO.backupDirs) {
+      const src = `${gameRoot}/${dir}`;
+      const dst = `${gameRoot}/_backup/${dir}`;
+      if ((yield* fs.exists(src)) && !(yield* fs.exists(dst))) {
+        yield* fs.copy(src, dst);
+        yield* Effect.logInfo(`  backed up ${dir}/ → _backup/`);
+      }
     }
-  }
-}
+  });
 
-async function unpackArchive(
+const unpackArchive = (
   gameRoot: string,
   archive: string,
   dictionary: Map<bigint, string>,
   mkdirCache: Set<string>,
-  log: (m: string) => void,
-): Promise<ArchiveSummary> {
-  const bhdPath = `${gameRoot}/${archive}.bhd`;
-  const bdtPath = `${gameRoot}/${archive}.bdt`;
-  if (!((await pathExists(bhdPath)) && (await pathExists(bdtPath)))) {
-    log(`${archive}: not present (skipped)`);
+) =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    const path = yield* Path.Path;
+    const bhdPath = `${gameRoot}/${archive}.bhd`;
+    const bdtPath = `${gameRoot}/${archive}.bdt`;
+    if (!((yield* fs.exists(bhdPath)) && (yield* fs.exists(bdtPath)))) {
+      yield* Effect.logInfo(`${archive}: not present (skipped)`);
+      return {
+        archive,
+        present: false,
+        total: 0,
+        extracted: 0,
+        skipped: 0,
+        unknown: 0,
+      } satisfies ArchiveSummary;
+    }
+
+    const raw = new Uint8Array(
+      yield* Effect.promise(() => Bun.file(bhdPath).arrayBuffer()),
+    );
+    const isPlain = new TextDecoder().decode(raw.subarray(0, 4)) === 'BHD5';
+    let header: Uint8Array;
+    if (isPlain) {
+      header = raw;
+    } else {
+      const key = ER_ARCHIVE_KEYS[archive];
+      if (key === undefined)
+        return yield* new DvdbndError({ detail: `no archive key for "${archive}"` });
+      header = decryptBhdHeader(raw, key);
+    }
+    const entries = parseBhd5(header);
+
+    const isSd = SD_ARCHIVES.has(archive);
+    const [archiveBase = archive] = archive.split('/');
+    const bdt = Bun.file(bdtPath);
+
+    let extracted = 0;
+    let skipped = 0;
+    let unknown = 0;
+
+    for (const entry of entries) {
+      const known = dictionary.get(entry.hash);
+      let target: string;
+      if (known !== undefined) {
+        target = `${gameRoot}${isSd ? '/sd' : ''}${known}`;
+        if (yield* fs.exists(target)) {
+          skipped++;
+          continue;
+        }
+      } else {
+        // Unknown hash: defer naming until we've read + sniffed the bytes.
+        target = '';
+      }
+
+      let bytes = new Uint8Array(
+        yield* Effect.promise(() =>
+          bdt.slice(entry.offset, entry.offset + entry.paddedSize).arrayBuffer(),
+        ),
+      );
+      if (entry.aes) decryptAesRanges(bytes, entry.aes);
+      // sd files keep their padding in the slab; trim to the real size (UXM parity).
+      if (isSd && entry.unpaddedSize >= 0 && bytes.length > entry.unpaddedSize) {
+        bytes = bytes.subarray(0, entry.unpaddedSize);
+      }
+
+      if (known === undefined) {
+        const name = `${archiveBase}_${entry.hash.toString().padStart(10, '0')}`;
+        target = `${gameRoot}/_unknown/${name}${guessExtension(bytes)}`;
+        if (yield* fs.exists(target)) {
+          skipped++;
+          continue;
+        }
+        unknown++;
+      } else {
+        extracted++;
+      }
+
+      const dir = path.dirname(target);
+      if (!mkdirCache.has(dir)) {
+        yield* fs.makeDirectory(dir, { recursive: true });
+        mkdirCache.add(dir);
+      }
+      yield* Effect.promise(() => Bun.write(target, bytes));
+    }
+
+    const total = entries.length;
+    if (extracted === 0 && unknown === 0) {
+      yield* Effect.logInfo(
+        `${archive}: all ${total} files already present (use --clean to re-extract)`,
+      );
+    } else {
+      yield* Effect.logInfo(
+        `${archive}: extracted ${extracted}, skipped ${skipped} already-present` +
+          `${unknown ? `, ${unknown} unknown` : ''} (${total} total)`,
+      );
+    }
     return {
       archive,
-      present: false,
-      total: 0,
-      extracted: 0,
-      skipped: 0,
-      unknown: 0,
-    };
-  }
-
-  const raw = new Uint8Array(await Bun.file(bhdPath).arrayBuffer());
-  const isPlain = new TextDecoder().decode(raw.subarray(0, 4)) === 'BHD5';
-  const header = isPlain
-    ? raw
-    : decryptBhdHeader(raw, ER_ARCHIVE_KEYS[archive]!);
-  const entries = parseBhd5(header);
-
-  const isSd = SD_ARCHIVES.has(archive);
-  const archiveBase = archive.split('/')[0]!;
-  const bdt = Bun.file(bdtPath);
-
-  let extracted = 0;
-  let skipped = 0;
-  let unknown = 0;
-
-  for (const entry of entries) {
-    const known = dictionary.get(entry.hash);
-    let target: string;
-    if (known !== undefined) {
-      target = `${gameRoot}${isSd ? '/sd' : ''}${known}`;
-      if (await pathExists(target)) {
-        skipped++;
-        continue;
-      }
-    } else {
-      // Unknown hash: defer naming until we've read + sniffed the bytes.
-      target = '';
-    }
-
-    let bytes = new Uint8Array(
-      await bdt
-        .slice(entry.offset, entry.offset + entry.paddedSize)
-        .arrayBuffer(),
-    );
-    if (entry.aes) decryptAesRanges(bytes, entry.aes);
-    // sd files keep their padding in the slab; trim to the real size (UXM parity).
-    if (isSd && entry.unpaddedSize >= 0 && bytes.length > entry.unpaddedSize) {
-      bytes = bytes.subarray(0, entry.unpaddedSize);
-    }
-
-    if (known === undefined) {
-      const name = `${archiveBase}_${entry.hash.toString().padStart(10, '0')}`;
-      target = `${gameRoot}/_unknown/${name}${guessExtension(bytes)}`;
-      if (await pathExists(target)) {
-        skipped++;
-        continue;
-      }
-      unknown++;
-    } else {
-      extracted++;
-    }
-
-    const dir = dirname(target);
-    if (!mkdirCache.has(dir)) {
-      await mkdir(dir, { recursive: true });
-      mkdirCache.add(dir);
-    }
-    await Bun.write(target, bytes);
-  }
-
-  const total = entries.length;
-  if (extracted === 0 && unknown === 0) {
-    log(
-      `${archive}: all ${total} files already present (use --clean to re-extract)`,
-    );
-  } else {
-    log(
-      `${archive}: extracted ${extracted}, skipped ${skipped} already-present` +
-        `${unknown ? `, ${unknown} unknown` : ''} (${total} total)`,
-    );
-  }
-  return { archive, present: true, total, extracted, skipped, unknown };
-}
+      present: true,
+      total,
+      extracted,
+      skipped,
+      unknown,
+    } satisfies ArchiveSummary;
+  });
 
 /**
  * Unpack the Elden Ring dvdbnd archives into the game dir, mirroring UXM's
  * Selective Unpacker: per-file "skip if already extracted" idempotency, with
  * `--clean` performing UXM's Restore (un-backup + delete unpacked dirs) first.
  */
-export async function unpackInstall(
-  opts: UnpackOptions,
-): Promise<UnpackSummary> {
-  const { gameRoot, clean, log } = opts;
-  const dictionary = await loadDictionary();
+export const unpackInstall = (opts: UnpackOptions) =>
+  Effect.gen(function* () {
+    const { gameRoot, clean } = opts;
+    const dictionary = yield* loadDictionary;
 
-  if (clean) await cleanInstall(gameRoot, log);
-  await backupDirs(gameRoot, log);
+    if (clean) yield* cleanInstall(gameRoot);
+    yield* backupDirs(gameRoot);
 
-  const mkdirCache = new Set<string>();
-  const archives: ArchiveSummary[] = [];
-  for (const archive of ER_GAME_INFO.archives) {
-    archives.push(
-      await unpackArchive(gameRoot, archive, dictionary, mkdirCache, log),
-    );
-  }
+    const mkdirCache = new Set<string>();
+    const archives: ArchiveSummary[] = [];
+    for (const archive of ER_GAME_INFO.archives) {
+      archives.push(yield* unpackArchive(gameRoot, archive, dictionary, mkdirCache));
+    }
 
-  const sum = (k: keyof ArchiveSummary) =>
-    archives.reduce((n, a) => n + (a[k] as number), 0);
-  return {
-    cleaned: clean,
-    archives,
-    extracted: sum('extracted'),
-    skipped: sum('skipped'),
-    unknown: sum('unknown'),
-  };
-}
+    const sum = (k: keyof ArchiveSummary) =>
+      archives.reduce((n, a) => n + (a[k] as number), 0);
+    return {
+      cleaned: clean,
+      archives,
+      extracted: sum('extracted'),
+      skipped: sum('skipped'),
+      unknown: sum('unknown'),
+    } satisfies UnpackSummary;
+  });

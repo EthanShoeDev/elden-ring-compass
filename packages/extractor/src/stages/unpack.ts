@@ -19,19 +19,12 @@ export const unpack = Effect.gen(function* () {
   yield* Effect.logInfo(
     `dvdbnd → ${ctx.gameRoot}${ctx.clean ? ' (--clean)' : ''}`,
   );
-  // Bridge the unpacker's progress callback to Effect's logger via the
-  // surrounding context (the hot loop stays plain async, not per-file Effects).
-  // The captured context carries the `stage` log annotation set in pipeline.ts.
-  const context = yield* Effect.context<never>();
-  const summary = yield* Effect.tryPromise({
-    try: () =>
-      unpackInstall({
-        gameRoot: ctx.gameRoot,
-        clean: ctx.clean,
-        log: (msg) => Effect.runSyncWith(context)(Effect.logInfo(msg)),
-      }),
-    catch: (cause) => new UnpackError({ detail: String(cause) }),
-  });
+  // The unpacker is Effect-native: it logs via `Effect.logInfo` directly (the
+  // `stage` annotation set in pipeline.ts flows through the surrounding context).
+  const summary = yield* unpackInstall({
+    gameRoot: ctx.gameRoot,
+    clean: ctx.clean,
+  }).pipe(Effect.mapError((cause) => new UnpackError({ detail: String(cause) })));
   if (summary.extracted === 0 && summary.unknown === 0) {
     yield* Effect.logInfo(
       `nothing to do — ${summary.skipped} files already extracted` +
