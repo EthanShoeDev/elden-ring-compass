@@ -3,7 +3,7 @@
 
 export interface LegacyConv {
   readonly srcMapId: string;
-  readonly master: 'M00' | 'M10';
+  readonly master: 'M00' | 'M01' | 'M10' | 'M11';
   readonly srcX: number;
   readonly srcZ: number;
   readonly addX: number;
@@ -13,16 +13,24 @@ export interface LegacyConv {
 export const WORLD_MAP_LEGACY_CONV: readonly LegacyConv[] = [
   {"srcMapId":"m10_00_00","master":"M00","srcX":0,"srcZ":0,"addX":10499,"addZ":9830},
   {"srcMapId":"m11_00_00","master":"M00","srcX":-90,"srcZ":66,"addX":11665,"addZ":13319},
+  {"srcMapId":"m11_00_00","master":"M00","srcX":0,"srcZ":0,"addX":11665,"addZ":13319},
+  {"srcMapId":"m11_05_00","master":"M00","srcX":-184,"srcZ":-163,"addX":11665,"addZ":13319},
   {"srcMapId":"m11_05_00","master":"M00","srcX":-90,"srcZ":66,"addX":11665,"addZ":13319},
+  {"srcMapId":"m11_05_00","master":"M00","srcX":0,"srcZ":0,"addX":11665,"addZ":13319},
   {"srcMapId":"m11_10_00","master":"M00","srcX":-306,"srcZ":-298,"addX":10332,"addZ":9338},
-  {"srcMapId":"m12_01_00","master":"M00","srcX":401,"srcZ":-123,"addX":9544,"addZ":12103},
-  {"srcMapId":"m12_02_00","master":"M00","srcX":1550,"srcZ":1911,"addX":11010,"addZ":8445},
-  {"srcMapId":"m12_04_00","master":"M00","srcX":0,"srcZ":0,"addX":8832,"addZ":10624},
-  {"srcMapId":"m12_05_00","master":"M00","srcX":0,"srcZ":0,"addX":11184,"addZ":8606},
-  {"srcMapId":"m12_07_00","master":"M00","srcX":599,"srcZ":975,"addX":11008,"addZ":8448},
-  {"srcMapId":"m12_07_00","master":"M00","srcX":736,"srcZ":1164,"addX":11008,"addZ":8448},
+  {"srcMapId":"m12_01_00","master":"M01","srcX":-800,"srcZ":-1586,"addX":9544,"addZ":12103},
+  {"srcMapId":"m12_01_00","master":"M01","srcX":401,"srcZ":-123,"addX":9544,"addZ":12103},
+  {"srcMapId":"m12_01_00","master":"M01","srcX":1693,"srcZ":1246,"addX":9509,"addZ":12109},
+  {"srcMapId":"m12_02_00","master":"M01","srcX":929,"srcZ":1188,"addX":11008,"addZ":8448},
+  {"srcMapId":"m12_02_00","master":"M01","srcX":1550,"srcZ":1911,"addX":11010,"addZ":8445},
+  {"srcMapId":"m12_03_00","master":"M01","srcX":673,"srcZ":228,"addX":11999,"addZ":13724},
+  {"srcMapId":"m12_04_00","master":"M01","srcX":0,"srcZ":0,"addX":8832,"addZ":10624},
+  {"srcMapId":"m12_05_00","master":"M01","srcX":0,"srcZ":0,"addX":11184,"addZ":8606},
+  {"srcMapId":"m12_07_00","master":"M01","srcX":599,"srcZ":975,"addX":11008,"addZ":8448},
+  {"srcMapId":"m12_07_00","master":"M01","srcX":736,"srcZ":1164,"addX":11008,"addZ":8448},
   {"srcMapId":"m13_00_00","master":"M00","srcX":-2510,"srcZ":-668,"addX":15657,"addZ":11804},
   {"srcMapId":"m13_00_00","master":"M00","srcX":0,"srcZ":0,"addX":13952,"addZ":13696},
+  {"srcMapId":"m14_00_00","master":"M00","srcX":-256,"srcZ":-256,"addX":8976,"addZ":11842},
   {"srcMapId":"m14_00_00","master":"M00","srcX":0,"srcZ":0,"addX":8976,"addZ":11842},
   {"srcMapId":"m15_00_00","master":"M00","srcX":0,"srcZ":0,"addX":12782,"addZ":15271},
   {"srcMapId":"m15_00_00","master":"M00","srcX":0,"srcZ":0,"addX":12416,"addZ":14720},
@@ -96,6 +104,7 @@ export const WORLD_MAP_LEGACY_CONV: readonly LegacyConv[] = [
   {"srcMapId":"m34_15_00","master":"M00","srcX":5,"srcZ":28,"addX":13163,"addZ":11821},
   {"srcMapId":"m34_15_00","master":"M00","srcX":22,"srcZ":82,"addX":13162,"addZ":11822},
   {"srcMapId":"m34_16_00","master":"M00","srcX":0,"srcZ":0,"addX":10085,"addZ":11430},
+  {"srcMapId":"m35_00_00","master":"M00","srcX":-184,"srcZ":-163,"addX":11665,"addZ":13319},
   {"srcMapId":"m39_20_00","master":"M00","srcX":121,"srcZ":-1520,"addX":9649,"addZ":14345},
   {"srcMapId":"m40_00_00","master":"M10","srcX":0,"srcZ":0,"addX":12160,"addZ":11904},
   {"srcMapId":"m40_01_00","master":"M10","srcX":0,"srcZ":0,"addX":11392,"addZ":11904},
