@@ -1,5 +1,21 @@
 # Client-side data layer revamp
 
+> **COMPLETE — moved to `complete/` 2026-06-05.** The revamp shipped: effect-atom is the
+> reactive layer, React Query + Zustand are gone, and **every legacy data source is deleted**
+> (`elden-ring-raw-db/`, `erdb.ts`, the 1.7 GB `assets/erdb/`, and finally `map-db.ts`) — the
+> app reads 100% from `@elden-ring-compass/data` (install-derived). Phases A–C are done; the
+> parity audit ([[data-parity-audit]]) closed every coverage gap. **Phase D (polish) was
+> deliberately punted, not completed:** the in-memory data layer works correctly, but the big
+> datasets (`markers` 4.7 MB, `placements` 11k rows) are still bundled + projected at module-eval
+> rather than lazy-fetched as the "Data delivery" design intended. That optimization — split &
+> lazy-serve the big datasets, loading states, perf pass — is carved out to
+> [`future/improve-page-load-speed.md`](./future/improve-page-load-speed.md). The one remaining
+> _calibration_ gap (M01/M11 underground routing) is tracked with the map-projection work, and
+> M01 is now done; M11 (DLC underground) has no confirmed legacy-conv source block. Nothing here
+> blocks shipping.
+>
+> ---
+>
 > Status: **committed to the stack** (2026-06-02). Reversible if it doesn't pan out.
 > Goal: revamp how the web app stores, queries, and renders game data so we get
 > first-class search / sorting / querying, and cleanly wire up the new

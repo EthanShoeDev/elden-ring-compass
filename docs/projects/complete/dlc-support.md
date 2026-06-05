@@ -1,5 +1,37 @@
 # Data Backend Overhaul (DLC Support) — Master Plan & "Ultimate Extractor" Architecture
 
+> **COMPLETE — moved to `complete/` 2026-06-05.** The vision shipped: a single repeatable
+> extractor (`packages/extractor`) pointed at the install regenerates **everything** the site
+> needs — items/equipment, names, event flags (graces/bosses), regions, MSB map markers,
+> ItemLotParam placements, and images — emitted to `@elden-ring-compass/data`, which is now the
+> **sole runtime data source**. Every legacy source the plan set out to kill is deleted
+> (`elden-ring-raw-db/`, `erdb.ts`, the 1.7 GB `assets/erdb/`, and `map-db.ts` — see
+> [[web-data-layer-direction]] / `complete/client-side-db.md`). DLC content falls out of running
+> it against a SotE-patched install.
+>
+> **What landed vs. how the plan evolved:**
+>
+> - **Phases 1–2, 4–6 done** — unpack (UXM-parity dvdbnd), params (vendored Paramdex), FMG text
+>   (base+DLC), MSB markers, grace/boss flags, images, codegen, and the one-command run all work.
+> - **Phase 5 map calibration done** — overworld (M00) + DLC (M10) project exactly; legacy
+>   dungeons + Lands Between underground (M01) project via `WORLD_MAP_LEGACY_CONV`
+>   (`WorldMapLegacyConvParam`). The one open sliver is **M11 (DLC underground)** routing — no
+>   confirmed legacy-conv source block — tracked with the map work, not a backend gap.
+> - **Phase 3 superseded** — the plan "owned" the save parser by forking ER-Save-Lib to **WASM**;
+>   that was later **replaced by a pure-TS port** (~60× faster, no Rust/WASM toolchain) — see
+>   [[ts-save-parser-port]] / `complete/typescript-save-parser-port.md`. The WASM stack is deleted.
+> - **Phase 7 (shed deps) substantially reached** — MSB and **EMEVD** are ported to TS
+>   (cross-file award→flag→entity tracing for exact event-drop coords, see [[emevd-extractor-gap]]),
+>   so boss/flag derivation no longer needs WitchyBND or a CT overlay for the covered patterns.
+>
+> Net: the extractor is the single source of truth and the data backend is self-updating on a
+> patched install, exactly as scoped. Note the doc's old paths (`packages/er-extractor`,
+> `packages/elden-ring-save-parser`, `apps/web/src/lib/elden-ring-raw-db/*`) predate the monorepo
+> reorg ([[monorepo-reorg]]) — read them as `packages/extractor` / the TS save-parser /
+> `@elden-ring-compass/data`.
+>
+> ---
+>
 > **Scope**: This is bigger than DLC. It is a **complete overhaul of the site's data backend.** Today every data file (`apps/web/src/lib/elden-ring-raw-db/*.ts`, the Rust `db/*.rs`, `map-db.ts`, and `assets/erdb/`) is hand-/erdb-generated and frozen at game v1.10. We replace all of it with **one repeatable command you point at your Elden Ring install dir** that re-exports _everything_ the site needs — items, equipment, event flags (graces/bosses), regions, map markers, and map images — making the extractor the single source of truth. DLC (Shadow of the Erdtree) is the forcing function and first payoff; future patches become a one-command refresh.
 
 > **Status (2026-06-02)**: Research + tooling survey complete; reference repos cloned (incl. **SoulsFormatsNEXT** + **UXM-Selective-Unpack** on Windows). **Decided:** extractor = **Effect-TS on Bun** (§5); **runs on native Windows** so `bun:ffi` can load the game's Oodle DLL (§1). **Phase 0 scaffold done.** **Phase 1 in progress, two gates PASSED on the real install:** (a) **Oodle** — `bun:ffi` loads `oo2core_6_win64.dll` (v6, not v9) and does a Kraken roundtrip; impl in `src/external/oodle.ts`. (b) **dvdbnd unpack** — the game files are inside encrypted **BHD5/BDT** archives (no loose `msg/`/`menu/`/`map/`), so we built a full **UXM-parity unpacker** in TS (`src/archive/dvdbnd.ts` + `crypto/rsa.ts`, `formats/bhd5.ts`, vendored keys/dictionary): RSA-decrypt `.bhd` → parse BHD5 → hash-match → AES-128-ECB → `.bdt` slice. Verified by extracting real `item.msgbnd.dcx`. Idempotent (skip-if-exists), `--clean` re-extracts; full unpack run = 130,781 files. (c) **DCX** — `src/formats/dcx.ts` decompresses `DCX_KRAK`(Oodle)/`DCX_ZSTD`/`DCX_DFLT`(zlib); verified `item.msgbnd.dcx` → BND4 (note: DCX headers are **big-endian**, unlike BHD5). **Update:** Phase 1 is complete (FMG names, PARAM stats via vendored Paramdex, MSB markers, grace+boss flags, boss names, image extraction, codegen → `@elden-ring-compass/data`). **Phase 3 (own the save parser) is also done** — ER-Save-Lib compiled to WASM + integrated (`wasm-save-parser-rewrite.md`). **Next:** migrate `apps/web` to consume `@elden-ring-compass/data` (task #7) and the legacy-data teardown (`client-side-db.md`); MSB marker calibration + ItemLotParam placements remain for the map.

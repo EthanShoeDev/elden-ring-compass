@@ -37,6 +37,7 @@
     "**/pkg/**",
     "**/.output/**",
     "**/.nitro/**",
+    "**/*.gen.*",
     "**/.turbo/**",
     "packages/ER-Save-Editor/**",
     "CLAUDE.md",

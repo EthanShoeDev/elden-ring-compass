@@ -1,5 +1,15 @@
 # Map Tile Fragments & World-State Variants
 
+> **Status (2026-06-05): Phase 1 SHIPPED · Phase 2 NOT STARTED → filed under `future/`.**
+> **Phase 1** (the detailed, fully-revealed default map) is **done and live** — the `images`
+> extraction stage selects each cell's fully-revealed variant via the `71_maptile.mtmskbnd`
+> per-cell mask, the map renders north-up and colourful, and the marker affine is calibrated
+> (see [[map-tile-variants]] and `complete/tiled-map-image-viewer-interactive.md`). **Phase 2**
+> (save-driven "collected maps" toggle — composite `base + Σ overlays for the fragments the
+player owns`) is **unstarted**: it needs per-fragment delta-overlay pyramids, a ~31-entry
+> bit→"Map: <region>" item table, and world-event toggles. That's net-new feature work, so this
+> doc lives in `future/` until it's picked up — nothing in-progress remains.
+
 ## Problem
 
 The shipped web map was dark, flat, and detail-less — we were extracting the

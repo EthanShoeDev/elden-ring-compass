@@ -1,5 +1,27 @@
 # Perf & memory testing (apps/web)
 
+> **CLOSED — moved to `complete/` 2026-06-05.** The one remaining open item (the idle-heap
+> re-render regression guard, _What's left_ §1) is now **obsolete**, not deferred. Two later
+> refactors removed the class of bug it would have guarded:
+>
+> - **Per-slice state selectors on effect-atom** — the table-state atom is now read through
+>   per-table `Atom.family` slices that dedupe on `Object.is`, so the identity-churn loop that
+>   caused bug #2 (fresh `[]`/`{}` every render → `autoResetPageIndex` → setState loop) is
+>   structurally gone, not just patched. A re-render-loop guard would be testing a shape the code
+>   no longer has.
+> - **The pure-TS save-parser port** ([[ts-save-parser-port]]) deleted the WASM/Comlink-worker
+>   stack entirely, which was the source of bug #1 (the `expose` race) and the original "parsing
+>   locked up the browser" report. The worker-path E2E and the worker `init()` race it guarded no
+>   longer have a subject.
+>
+> The infra (Vitest browser-mode `perf` project, CDP heap, Playwright E2E) **stays** and is still
+> green — it's the harness any future perf test reuses (see [[perf-testing-setup]]). What's
+> retired is the single unwritten guard; the bugs it would have caught can't recur in the current
+> architecture. The deprioritized map-leak / memory-A/B / worker-parse items remain
+> nice-to-haves, unblocked, to pick up only if a concrete perf question reopens them.
+>
+> ---
+>
 > Status: **infra built; perf/unit/E2E green; THREE pre-existing bugs found & fixed** (2026-06-04):
 > the parse hang (a worker `expose` race), the freeze/sluggishness/OOM (a data-table re-render
 > loop), and tables over-rendering each other. All validated in a real browser via CDP.
