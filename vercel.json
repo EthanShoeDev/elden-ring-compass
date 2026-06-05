@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "./scripts/install-rust.sh && bun i",
-  "buildCommand": "source $HOME/.cargo/env && turbo run build",
+  "installCommand": "bun i",
+  "buildCommand": "turbo run build",
   "outputDirectory": "apps/web/.output"
 }
