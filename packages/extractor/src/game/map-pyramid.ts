@@ -118,7 +118,11 @@ export const buildLayerPyramid = (
           tiles.map((t) => ({
             // Wrap the Rust-returned bytes in a zero-copy Buffer (sharp's
             // OverlayOptions.input is typed as Buffer; this shares the memory).
-            input: Buffer.from(t.png.buffer, t.png.byteOffset, t.png.byteLength),
+            input: Buffer.from(
+              t.png.buffer,
+              t.png.byteOffset,
+              t.png.byteLength,
+            ),
             left: t.col * TILE_PX,
             // Flip the Y axis: the game's row index increases *northward* (erdb
             // `sourcer.py` pastes at `high_y - y`), so render north-up by mapping
@@ -136,7 +140,9 @@ export const buildLayerPyramid = (
           .toFile(outBaseDir);
       },
       catch: (cause) =>
-        new MapPyramidError({ detail: `pyramid build failed: ${String(cause)}` }),
+        new MapPyramidError({
+          detail: `pyramid build failed: ${String(cause)}`,
+        }),
     });
     // `google` layout writes a `blank.png` placeholder at the root; we don't use it.
     yield* fs.remove(`${outBaseDir}/blank.png`, { force: true });

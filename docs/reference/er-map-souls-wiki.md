@@ -1,4 +1,4 @@
-https://soulsmodding.com/doku.php?id=er-refmat:map-overview 
+https://soulsmodding.com/doku.php?id=er-refmat:map-overview
 
 Map Overview
 Authors: thefifthmatt

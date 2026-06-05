@@ -12,7 +12,7 @@ export const commonSelectColumnDef = <T,>(columnHelper: ColumnHelper<T>): Column
         checked={table.getIsAllPageRowsSelected()}
         indeterminate={table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()}
         onCheckedChange={(value) => {
-          table.toggleAllPageRowsSelected(!!value);
+          table.toggleAllPageRowsSelected(value);
         }}
         aria-label='Select all'
       />
@@ -23,7 +23,7 @@ export const commonSelectColumnDef = <T,>(columnHelper: ColumnHelper<T>): Column
           disabled={!row.getCanSelect()}
           checked={row.getIsSelected()}
           onCheckedChange={(value) => {
-            row.toggleSelected(!!value);
+            row.toggleSelected(value);
           }}
           aria-label='Select row'
           className='ml-2 translate-y-[2px]'

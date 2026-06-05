@@ -4,11 +4,19 @@
  * the version number of a dependency in the package.json file instead of using
  * the catalog: keyword.
  */
-import { Options } from '@effect/cli';
-import * as Command from '@effect/cli/Command';
-import { FileSystem, Path } from '@effect/platform';
-import { BunContext, BunRuntime } from '@effect/platform-bun';
-import { Array as A, Console, Data, Effect, Schema } from 'effect';
+import { BunRuntime, BunServices } from '@effect/platform-bun';
+import {
+  Array as A,
+  Console,
+  Data,
+  Effect,
+  FileSystem,
+  Path,
+  Schema,
+  SchemaGetter,
+  SchemaTransformation,
+} from 'effect';
+import { Command, Flag } from 'effect/unstable/cli';
 import type { SemVer } from 'semver';
 import { coerce, gt } from 'semver';
 import type { PackageJson as BasePackageJson } from 'type-fest';
@@ -43,20 +51,32 @@ class CatalogCheckError extends Data.TaggedError('CatalogCheckError')<{
   message: string;
 }> {}
 
-const JsonParse = Schema.parseJson(Schema.Unknown);
-const JsonStringify = Schema.parseJson(Schema.Unknown, { space: 2 });
+// Round-trips a package.json: decode parses the text to a value; encode
+// re-stringifies it with 2-space indent. (v4's Schema.fromJsonString is hard-wired
+// to compact output, so we build the transform explicitly to keep diffs readable.)
+const PackageJsonString = Schema.String.pipe(
+  Schema.decodeTo(
+    Schema.Unknown,
+    new SchemaTransformation.Transformation<unknown, string>(
+      SchemaGetter.parseJson(),
+      SchemaGetter.stringifyJson({ space: 2 }),
+    ),
+  ),
+);
 
 const readPackageJson = (path: string) =>
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const content = yield* fs.readFileString(path);
-    return (yield* Schema.decode(JsonParse)(content)) as PackageJson;
+    return (yield* Schema.decodeEffect(PackageJsonString)(
+      content,
+    )) as PackageJson;
   });
 
 const writePackageJson = (path: string, pkg: PackageJson) =>
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
-    const jsonString = yield* Schema.encode(JsonStringify)(pkg);
+    const jsonString = yield* Schema.encodeEffect(PackageJsonString)(pkg);
     yield* fs.writeFileString(path, jsonString);
   });
 
@@ -445,9 +465,9 @@ const main = (fix: boolean) =>
 const command = Command.make(
   COMMAND_NAME,
   {
-    fix: Options.boolean('fix').pipe(
-      Options.withDefault(false),
-      Options.withDescription(
+    fix: Flag.boolean('fix').pipe(
+      Flag.withDefault(false),
+      Flag.withDescription(
         'Automatically fix violations and add deps to catalog',
       ),
     ),
@@ -456,8 +476,7 @@ const command = Command.make(
 );
 
 const run = Command.run(command, {
-  name: COMMAND_NAME,
   version: '0.0.1',
 });
 
-run(process.argv).pipe(Effect.provide(BunContext.layer), BunRuntime.runMain);
+run.pipe(Effect.provide(BunServices.layer), BunRuntime.runMain);

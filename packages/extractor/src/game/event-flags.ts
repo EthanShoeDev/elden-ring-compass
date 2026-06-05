@@ -17,7 +17,9 @@ import { Effect, FileSystem, Path } from 'effect';
 export const loadEventFlagBst = Effect.gen(function* () {
   const fs = yield* FileSystem.FileSystem;
   const path = yield* Path.Path;
-  const text = yield* fs.readFileString(yield* path.fromFileUrl(eventFlagBstUrl));
+  const text = yield* fs.readFileString(
+    yield* path.fromFileUrl(eventFlagBstUrl),
+  );
   const out: Array<[number, number]> = [];
   for (const line of text.split('\n')) {
     const trimmed = line.trim();
@@ -29,5 +31,5 @@ export const loadEventFlagBst = Effect.gen(function* () {
       Number(trimmed.slice(comma + 1)),
     ]);
   }
-  return out.sort((a, b) => a[0] - b[0]);
+  return out.toSorted((a, b) => a[0] - b[0]);
 });

@@ -9,12 +9,9 @@
 // so `self` is a `DedicatedWorkerGlobalScope` with the correct worker `onmessage`/`postMessage`
 // signatures — no global-typing cast needed.
 import { parseEldenRingData } from './er-save-parser';
-import type {
-  ParseRequest,
-  ParseResponse,
-} from './er-save-parser.protocol';
+import type { ParseRequest, ParseResponse } from './er-save-parser.protocol';
 
-self.onmessage = (event: MessageEvent<ParseRequest>) => {
+self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
   const { id, buffer } = event.data;
   try {
     self.postMessage({
@@ -29,4 +26,4 @@ self.onmessage = (event: MessageEvent<ParseRequest>) => {
       error: err instanceof Error ? err.message : String(err),
     } satisfies ParseResponse);
   }
-};
+});

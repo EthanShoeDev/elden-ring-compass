@@ -2,12 +2,15 @@
   "name": "@elden-ring-compass/vendored-data",
   "version": "0.0.0",
   "private": true,
+  "files": [
+    "src",
+    "assets"
+  ],
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
     "./package.json": "./package.json"
   },
-  "files": ["src", "assets"],
   "scripts": {
     "clean": "rm -rf .turbo *.tsbuildinfo",
     "typecheck": "tsgo --noEmit"

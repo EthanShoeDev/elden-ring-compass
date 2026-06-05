@@ -23,6 +23,7 @@ let performanceEnabled = false;
  * signal for "is the app holding too much live data" (and the thing IndexedDB would reduce).
  */
 export async function forceGcHeapUsedBytes(): Promise<number> {
+  // oxlint-disable-next-line unknown-cast/forbidden -- Playwright's CDPSession isn't typed with the send() shape we use
   const session = cdp() as unknown as CdpSend;
   if (!performanceEnabled) {
     // `Performance.getMetrics` returns nothing until the domain is enabled (idempotent).

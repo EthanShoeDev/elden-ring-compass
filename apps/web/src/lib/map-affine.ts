@@ -90,8 +90,7 @@ export function playerToMasterPixel(
 ): MasterPixel | null {
   if (mapId.length < 4 || coords.length < 3) return null;
   const [a, b, c, d] = mapId as [number, number, number, number];
-  const x = coords[0]!;
-  const z = coords[2]!;
+  const [x, , z] = coords as readonly [number, number, number];
   const pad = (n: number) => n.toString().padStart(2, '0');
   return (
     overworldMarkerToMasterPixel(`m${pad(a)}_${pad(b)}_${pad(c)}_${pad(d)}`, x, z) ??

@@ -87,6 +87,9 @@ export const useDataTableState = (initProps: DataTableStateInitProps) => {
   // → a queued setState → re-render → new arrays → a continuous re-render loop (~60fps) that pegs
   // the main thread whenever a save is loaded. That loop — not the parse, map, or facets — is what
   // made the page sluggish/freeze/OOM.
+  // Intentionally keyed on the stable `tableId`, NOT the per-render-fresh `initProps`
+  // (the stable fallback is the whole point — see the comment above).
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- see above
   const fallback = useMemo(() => defaultTableState(initProps), [tableId]);
   const current = slice ?? fallback;
 

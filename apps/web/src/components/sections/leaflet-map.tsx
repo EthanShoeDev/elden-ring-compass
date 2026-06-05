@@ -101,14 +101,23 @@ function ExistenceTileLayer({
     // @types/leaflet, so re-assert it.
     const ExistenceTL = LeafletTileLayer.extend({
       _isValidTile(coords: { x: number; y: number; z: number }) {
+        // Our tile pyramids are SPARSE — the extractor's `skipBlanks` drops
+        // fully-transparent tiles and most maps don't span the whole grid — so by
+        // default Leaflet would request every tile within the layer bounds and get
+        // a flood of 404s for the ones that were never written. We override
+        // `_isValidTile` to additionally consult the on-disk manifest (`exists`),
+        // so Leaflet simply never requests a tile that isn't there.
         // `GridLayer._isValidTile` applies the `bounds`/`noWrap` envelope; we add existence.
-        const inEnvelope = (
-          GridLayer.prototype as unknown as {
-            _isValidTile(c: { x: number; y: number; z: number }): boolean;
-          }
-        )._isValidTile.call(this, coords);
+        // @types/leaflet doesn't expose GridLayer.prototype._isValidTile; reach
+        // the private envelope check through a typed view of the prototype.
+        // oxlint-disable-next-line unknown-cast/forbidden -- see comment above
+        const gridProto = GridLayer.prototype as unknown as {
+          _isValidTile(c: { x: number; y: number; z: number }): boolean;
+        };
+        const inEnvelope = gridProto._isValidTile.call(this, coords);
         return inEnvelope && exists(coords.z, coords.x, coords.y);
       },
+      // oxlint-disable-next-line unknown-cast/forbidden -- extend() loses TileLayer's (url, options) ctor signature in @types/leaflet (see comment above)
     }) as unknown as typeof LeafletTileLayer;
     const layer = new ExistenceTL(url, {
       tileSize,
@@ -179,7 +188,6 @@ function CalibrationReadout({ zoom }: { zoom: number }) {
       const p = e.target.project(e.latlng, zoom);
       const xy: [number, number] = [Math.round(p.x), Math.round(p.y)];
       setPt(xy);
-      // eslint-disable-next-line no-console
       console.log(`[map] clicked master pixel: x=${xy[0]} y=${xy[1]}`);
     },
   });
@@ -218,7 +226,11 @@ function MapBody({
     const sets = new Map<number, Set<number>>();
     for (const [zoom, pairs] of Object.entries(perZoom)) {
       const set = new Set<number>();
-      for (let i = 0; i + 1 < pairs.length; i += 2) set.add(tileKey(pairs[i]!, pairs[i + 1]!));
+      for (let i = 0; i + 1 < pairs.length; i += 2) {
+        const x = pairs[i];
+        const y = pairs[i + 1];
+        if (x !== undefined && y !== undefined) set.add(tileKey(x, y));
+      }
       sets.set(Number(zoom), set);
     }
     return (tz: number, tx: number, ty: number) => sets.get(tz)?.has(tileKey(tx, ty)) ?? false;

@@ -60,14 +60,16 @@ for (const line of markersSrc.split('\n')) {
     markers.push(JSON.parse(t.replace(/,$/, '')) as Marker);
 }
 const tierOf = (id: string) => {
-  const m = /^m60_\d+_\d+_(\d+)$/.exec(id);
-  if (!m) return -1;
-  const s = +m[1]!;
-  return s <= 2 ? s : -1;
+  const s = /^m60_\d+_\d+_(\d+)$/.exec(id)?.[1];
+  if (s === undefined) return -1;
+  const tier = +s;
+  return tier <= 2 ? tier : -1;
 };
-const colRow = (id: string) => {
-  const m = /^m60_(\d+)_(\d+)_\d+$/.exec(id)!;
-  return [+m[1]!, +m[2]!] as const;
+const colRow = (id: string): readonly [number, number] => {
+  const m = /^m60_(\d+)_(\d+)_\d+$/.exec(id);
+  if (!m || m[1] === undefined || m[2] === undefined)
+    throw new Error(`unexpected map id: ${id}`);
+  return [+m[1], +m[2]];
 };
 const worldOf = (mk: Marker) => {
   const tier = tierOf(mk.mapId);
@@ -86,7 +88,7 @@ const graces = markers
   .map((mk) => {
     const [X, Z] = worldOf(mk);
     return {
-      name: mk.displayName!,
+      name: mk.displayName ?? '',
       X,
       Z,
       col: Math.floor(X / 256),
@@ -141,8 +143,11 @@ const wiki = new Map<string, { x: number; y: number }>();
   const re =
     /category:\s*'Site of Grace',\s*name:\s*'((?:[^'\\]|\\.)*)',\s*x:\s*'([-0-9.]+)',\s*y:\s*'([-0-9.]+)'/g;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(dbSrc)))
-    wiki.set(m[1]!.replace(/\\'/g, "'"), { x: +m[2]!, y: +m[3]! });
+  while ((m = re.exec(dbSrc))) {
+    const [, name, x, y] = m;
+    if (name === undefined || x === undefined || y === undefined) continue;
+    wiki.set(name.replace(/\\'/g, "'"), { x: +x, y: +y });
+  }
 }
 const pairs = graces.flatMap((g) => {
   const w = wiki.get(g.name);
@@ -169,22 +174,24 @@ const fit = (xs: number[], ys: number[]) => {
     sxy = 0,
     syy = 0;
   for (let i = 0; i < n; i++) {
-    sxx += (xs[i]! - mx) ** 2;
-    sxy += (xs[i]! - mx) * (ys[i]! - my);
-    syy += (ys[i]! - my) ** 2;
+    const xi = xs[i] ?? 0;
+    const yi = ys[i] ?? 0;
+    sxx += (xi - mx) ** 2;
+    sxy += (xi - mx) * (yi - my);
+    syy += (yi - my) ** 2;
   }
   const slope = sxy / sxx,
     intercept = my - slope * mx,
     r2 = (sxy * sxy) / (sxx * syy);
   const res = xs
-    .map((x, i) => Math.abs(ys[i]! - (slope * x + intercept)))
-    .sort((a, b) => a - b);
+    .map((x, i) => Math.abs((ys[i] ?? 0) - (slope * x + intercept)))
+    .toSorted((a, b) => a - b);
   return {
     slope,
     intercept,
     r2,
     mean: res.reduce((a, b) => a + b, 0) / n,
-    max: res[n - 1]!,
+    max: res[n - 1] ?? 0,
   };
 };
 

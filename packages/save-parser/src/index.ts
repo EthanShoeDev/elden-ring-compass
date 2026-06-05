@@ -6,7 +6,11 @@
  */
 export { parseSave, SaveMagicMismatchError } from './parse-save.ts';
 export type { SaveParseError } from './parse-save.ts';
-export { BinaryReader, makeBinaryReader, SaveTruncatedError } from './binary-reader.ts';
+export {
+  BinaryReader,
+  makeBinaryReader,
+  SaveTruncatedError,
+} from './binary-reader.ts';
 export type { BinaryReaderApi } from './binary-reader.ts';
 // `types.ts` exports each DTO as an effect `Schema` value paired with its derived type under
 // the same name — re-export both (values + types) so consumers can validate as well as type.

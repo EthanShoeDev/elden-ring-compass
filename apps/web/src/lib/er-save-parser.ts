@@ -38,9 +38,7 @@ export async function parseEldenRingUrl(url: string) {
 // (`@elden-ring-compass/save-parser-ts`). Its `LeanSave` is structurally identical to the
 // app's `WasmEldenRingSave` (verified byte-for-byte vs the retired WASM parser); the cast
 // keeps the historical type name the view-models import.
-export function parseEldenRingData(
-  rawSaveData: ArrayBuffer,
-): WasmEldenRingSave {
+export function parseEldenRingData(rawSaveData: ArrayBuffer): WasmEldenRingSave {
   // `parseSave` is Effect-native; run it synchronously here so the worker's existing
   // try/catch (error -> string) path is unchanged. Typed parse failures are converted to
   // a readable `Error` before running, so `runSync` throws something the worker can format.

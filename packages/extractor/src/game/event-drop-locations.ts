@@ -102,7 +102,9 @@ export const loadEventDropLocations = (
         const out: string[] = [];
         for await (const p of glob.scan({ cwd: dir, absolute: true }))
           out.push(p);
-        return out.filter((p) => !p.endsWith('common_func.emevd.dcx')).sort();
+        return out
+          .filter((p) => !p.endsWith('common_func.emevd.dcx'))
+          .toSorted();
       },
       catch: (cause) =>
         new EventDropError({ detail: `scanning ${dir}: ${String(cause)}` }),
@@ -118,14 +120,14 @@ export const loadEventDropLocations = (
     const coPassed = new Map<number, Set<number>>(); // value → other values in the same Run* call
 
     for (const path of paths) {
-      const dcx = yield* fs
-        .readFile(path)
-        .pipe(
-          Effect.mapError(
-            (cause) =>
-              new EventDropError({ detail: `reading ${path}: ${cause}` }),
-          ),
-        );
+      const dcx = yield* fs.readFile(path).pipe(
+        Effect.mapError(
+          (cause) =>
+            new EventDropError({
+              detail: `reading ${path}: ${String(cause)}`,
+            }),
+        ),
+      );
       const emevd = yield* parseEmevd(yield* dcxDecompress(dcx, oo2corePath));
 
       for (const ev of emevd.events) {

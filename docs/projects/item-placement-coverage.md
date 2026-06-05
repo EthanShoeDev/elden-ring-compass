@@ -22,7 +22,7 @@ Two fully-static join paths, both verified:
   Bosses are enemy markers, so their unique drops flow through here.
 - **`source: 'map'`** — MSB **Treasure events** (`EVENT_PARAM_ST`) link a placed Part
   (→ coords) to an `ItemLotParam_map` row. Chests / items-on-the-ground. (EMEVD ruled out
-  as the *treasure* link — see [[map-treasure-source]].)
+  as the _treasure_ link — see [[map-treasure-source]].)
 
 Result: 11,361 placements, but only **296 / 3,333 weapon rows** have any placement, and
 ~633 distinct item ids overall. Overworld-projectable subset is smaller still.
@@ -38,7 +38,7 @@ defeat). The classes of missing coverage:
    `sleepCollectorItemLotId_map`. Some NPC drops live there. **Cheapest win.**
 2. **EMEVD-awarded lots (≈220 `ItemLotParam_map` rows).** Boss/invader/NPC-defeat drops and
    scripted grants (incl. Reduvia). The link `lot → trigger → world location` lives in the
-   **EMEVD** scripts (`event/*.emevd.dcx`): an *Award Item Lot* (2003[4]) instruction fires
+   **EMEVD** scripts (`event/*.emevd.dcx`): an _Award Item Lot_ (2003[4]) instruction fires
    on a flag/region/entity that has a location. Needs an EMEVD reader + a heuristic to map
    the awarding event back to a coordinate (spawn region, dying entity, or the map the
    `common`/`mXX` event file belongs to).
@@ -48,7 +48,7 @@ defeat). The classes of missing coverage:
    follow-up ([[tiled-map-viewer]]). Until then they can only show on per-dungeon maps the
    app doesn't render.
 4. **Vendor items (`ShopLineupParam`).** Bell-bearing / merchant stock has no single world
-   point — pin at the *vendor's* location (the merchant NPC marker), or mark "shop only".
+   point — pin at the _vendor's_ location (the merchant NPC marker), or mark "shop only".
 5. **NPC questline rewards / one-off event grants.** Same EMEVD path as (2); some have no
    meaningful map location (mailed rewards, etc.) and should stay unpinned.
 
@@ -71,30 +71,33 @@ defeat). The classes of missing coverage:
     the **invader / boss / NPC character (or trigger region) entity**, which IS a placed MSB
     marker with coordinates. So the trace is mechanical:
 
-        item_lot L  →  award-wrapper's flag F  →  the event that EnableFlag(F)  →
-        its character/region entity  →  MSB marker coords
+                 item_lot L  →  award-wrapper's flag F  →  the event that EnableFlag(F)  →
+                 its character/region entity  →  MSB marker coords
 
-    **Proven (Reduvia):** `CommonFunc_90005774(flag=1043379262, item_lot=1042370700)` →
-    `Event_1043373722` does `EnableFlag(1043379262)` on `CharacterDead(character)`, initialized
-    with `character=1043370740` (`c0000_9001` = Bloody Finger Nerijus) → marker px **(4084,6999)
-    = 13px** from the hand-clicked true location. (Correction to an earlier note: invaders DO
-    have static MSB coords — they're placed, dormant NPCs; the enemy-join only missed Reduvia
-    because its drop is EMEVD-awarded, not a `NpcParam` drop.)
+             **Proven (Reduvia):** `CommonFunc_90005774(flag=1043379262, item_lot=1042370700)` →
+             `Event_1043373722` does `EnableFlag(1043379262)` on `CharacterDead(character)`, initialized
+             with `character=1043370740` (`c0000_9001` = Bloody Finger Nerijus) → marker px **(4084,6999)
+             = 13px** from the hand-clicked true location. (Correction to an earlier note: invaders DO
+             have static MSB coords — they're placed, dormant NPCs; the enemy-join only missed Reduvia
+             because its drop is EMEVD-awarded, not a `NpcParam` drop.)
 
-    **The unlock was the award-wrapper signatures** (which arg of `90005774` is `item_lot` vs
-    `flag`) — supplied by **soulstruct's** decompiler (`docs/cloned-repos-as-docs/dlc-data-sources/
-    soulstruct/.../events/`, the `CommonFunc_*` defs + EMEDF). We don't need to parse its 478
+             **The unlock was the award-wrapper signatures** (which arg of `90005774` is `item_lot` vs
+             `flag`) — supplied by **soulstruct's** decompiler (`docs/cloned-repos-as-docs/dlc-data-sources/
+
+        soulstruct/.../events/`, the `CommonFunc\_\*`defs + EMEDF). We don't need to parse its 478
+
     `.evs.py`; we vendor the small wrapper-signature table and run the trace in our own
-    `formats/emevd.ts` reader (pattern: `game/boss-names.ts`).
+    `formats/emevd.ts`reader (pattern:`game/boss-names.ts`).
 
-    **Plan (path A):** new `game/event-drop-locations.ts`:
-      1. index award-wrappers → `{flagArg, lotArg}` (from the vendored soulstruct signatures);
-      2. parse per-map EMEVDs → for each `RunCommonEvent(wrapper, …)` extract `(L, F)`;
-      3. find the instruction that `EnableFlag(F)` and the entity its containing event was
-         initialized with (`CharacterDead`/`InsideRegion` arg) → an entity/region id;
-      4. resolve id → MSB marker/region coords (we already read both);
-      5. emit `source:'event'` placement at those coords. **Fallbacks:** EMEVD-file tile if no
-         clean entity (world-state flags), then lot-id tile. Replaces the current tile-centre pins.
+             **Plan (path A):** new `game/event-drop-locations.ts`:
+             1. index award-wrappers → `{flagArg, lotArg}` (from the vendored soulstruct signatures);
+             2. parse per-map EMEVDs → for each `RunCommonEvent(wrapper, …)` extract `(L, F)`;
+             3. find the instruction that `EnableFlag(F)` and the entity its containing event was
+                initialized with (`CharacterDead`/`InsideRegion` arg) → an entity/region id;
+             4. resolve id → MSB marker/region coords (we already read both);
+             5. emit `source:'event'` placement at those coords. **Fallbacks:** EMEVD-file tile if no
+                clean entity (world-state flags), then lot-id tile. Replaces the current tile-centre pins.
+
   - **Phase 2c — cross-file body-entity trace (the boss-death / common-award class). ◀ NEXT.**
     Phase 2b's trace only catches awards that (i) live in a per-map `m*.emevd` file, (ii) pass the
     encounter **character as a `RunEvent` init param** (templated invasions like Reduvia), and (iii)
@@ -114,17 +117,18 @@ defeat). The classes of missing coverage:
 
     **Generalization (implemented in `game/event-drop-locations.ts`):** scan **all** `*.emevd.dcx`
     except `common_func` (the template lib), and build **global** (cross-file) indices in one pass:
-      - `flagToEntities[F]` — for every event that `EnableFlag(F)`, the set of ids referenced **anywhere
-        in its instruction args** that resolve to a placed **character** MSB marker (body-embedded boss
-        constants). This is the new path that catches the boss-death class.
-      - keep `eventInitParams` (RunEvent init args) + `flagSetters` (precise path — templated invasions)
-        and `coPassed` (setup-call co-params), now global instead of per-file.
+    - `flagToEntities[F]` — for every event that `EnableFlag(F)`, the set of ids referenced **anywhere
+      in its instruction args** that resolve to a placed **character** MSB marker (body-embedded boss
+      constants). This is the new path that catches the boss-death class.
+    - keep `eventInitParams` (RunEvent init args) + `flagSetters` (precise path — templated invasions)
+      and `coPassed` (setup-call co-params), now global instead of per-file.
 
     Resolution per award `(lot, gate-flag F)`: try the precise init-param path, then the body-entity
     path, then co-passed; first placed character wins (`pickMarker` prefers `isCharacter`). Raw-int
     matching against the marker map is safe because real 10-digit entity ids never collide with flags
     (guard `id > 0` to exclude the ubiquitous `0`). This also picks up DLC `m61` short lots for free
     when their boss is a placed marker.
+
   - **DLC `m61` orphan lots (open).** Their lot ids use a different prefix than the `10…`
     m60 form — verify it and extend `decodeMapLotTile` so DLC event drops pin too (the Phase 2c
     body-entity trace already resolves the ones whose boss is a placed character).
@@ -132,7 +136,7 @@ defeat). The classes of missing coverage:
 ## Notes
 
 - **EMEVD is already parsed** (`formats/emevd.ts` + `formats/emedf.ts`, ~100% opcode coverage,
-  used by `game/boss-names.ts`) — Phase 2b is a new *join* over existing tooling, not a new
+  used by `game/boss-names.ts`) — Phase 2b is a new _join_ over existing tooling, not a new
   parser. (See [[emevd-extractor-gap]].)
 - **soulstruct** (vendored, MIT) supplies the award-wrapper `CommonFunc` signatures — the only
   missing piece. Its decompiled `.evs.py` also serves as the human-readable verification of the
@@ -157,14 +161,14 @@ defeat). The classes of missing coverage:
   `game/item-lots.ts`).
 - `NpcParam` — `itemLotId_enemy`, `itemLotId_map`, `sleepCollectorItemLotId_enemy/map`,
   `dropType`.
-- **EMEVD** (`event/common.emevd.dcx`, `event/mXX_*.emevd.dcx`) — *Award Item Lot* (2003,4)
-  + the firing condition's entity/region. No reader yet (would be a new `formats/emevd.ts`).
+- **EMEVD** (`event/common.emevd.dcx`, `event/mXX_*.emevd.dcx`) — _Award Item Lot_ (2003,4)
+  - the firing condition's entity/region. No reader yet (would be a new `formats/emevd.ts`).
 - `WorldMapLegacyConvParam` — dungeon-local → overworld (struct already in `er-save-lib`).
 - `ShopLineupParam` — vendor stock (optional Phase 4).
 
 ## Open questions / risks
 
-- EMEVD → coordinate is heuristic: many awards fire on a *flag*, not a region; resolving the
+- EMEVD → coordinate is heuristic: many awards fire on a _flag_, not a region; resolving the
   flag back to a place needs the flag→entity wiring (overlaps [[quest-compass]] /
   [[save-flag-diff-checkpoints]]). Some awards genuinely have no map location — leave unpinned.
 - Multi-location items (a weapon found in 3 places) already supported by `itemPins` returning
@@ -176,6 +180,6 @@ defeat). The classes of missing coverage:
 
 ## Related
 
-- [[map-treasure-source]] — why MSB Treasure events (not EMEVD) are the *treasure* link.
+- [[map-treasure-source]] — why MSB Treasure events (not EMEVD) are the _treasure_ link.
 - [[tiled-map-viewer]] — the conv-param dungeon projection is shared work.
 - `docs/projects/data-parity-audit.md` — overall parity vs the legacy wiki data.

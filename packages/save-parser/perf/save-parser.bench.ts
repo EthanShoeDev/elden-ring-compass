@@ -23,7 +23,7 @@ const fixture = readFileSync(here('../../../apps/web/public/ER0000.sl2'));
 const arrayBuffer = fixture.buffer.slice(
   fixture.byteOffset,
   fixture.byteOffset + fixture.byteLength,
-) as ArrayBuffer;
+);
 
 describe('parse ER0000.sl2', () => {
   // `throws: true` surfaces a failing bench instead of silently dropping it.

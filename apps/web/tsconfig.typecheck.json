@@ -5,8 +5,5 @@
   // build command. A `files: []` solution avoids the `composite`/emit requirements that a normal
   // project-to-project reference would impose. See tsconfig.worker.json for the why.
   "files": [],
-  "references": [
-    { "path": "./tsconfig.json" },
-    { "path": "./tsconfig.worker.json" }
-  ]
+  "references": [{ "path": "./tsconfig.json" }, { "path": "./tsconfig.worker.json" }]
 }

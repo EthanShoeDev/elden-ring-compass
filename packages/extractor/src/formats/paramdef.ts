@@ -118,7 +118,9 @@ export const loadParamdef = (
       Effect.flatMap((filePath) => fs.readFileString(filePath)),
       Effect.mapError(
         (cause) =>
-          new ParamdefError({ detail: `reading def ${paramType}: ${cause}` }),
+          new ParamdefError({
+            detail: `reading def ${paramType}: ${String(cause)}`,
+          }),
       ),
     );
     return yield* parseParamdefXml(xml);

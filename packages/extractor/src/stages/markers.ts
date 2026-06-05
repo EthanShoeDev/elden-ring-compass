@@ -87,7 +87,7 @@ export const markers = (
     const named = classified.filter((m) => m.displayName !== null).length;
     yield* Effect.logInfo(
       `markers — classified: ${[...byCategory.entries()]
-        .sort((a, b) => b[1] - a[1])
+        .toSorted((a, b) => b[1] - a[1])
         .map(([c, n]) => `${c}:${n}`)
         .join(' ')}; ${named} with English labels`,
     );

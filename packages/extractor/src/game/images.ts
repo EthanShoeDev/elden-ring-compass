@@ -281,7 +281,7 @@ export const extractImages = (
       }
 
       const manifestMaps: MapSummary[] = [];
-      for (const map of [...byMap.keys()].sort()) {
+      for (const map of [...byMap.keys()].toSorted()) {
         const cells = byMap.get(map);
         if (cells === undefined) continue;
         const eventMask = EVENT_BITS[map] ?? 0;
@@ -299,7 +299,7 @@ export const extractImages = (
                     if (v.variant & (1 << b)) all.add(1 << b);
               return [...all]
                 .filter((b) => (b & eventMask) === 0)
-                .sort((a, b) => a - b);
+                .toSorted((a, b) => a - b);
             })();
         const eventBits = maskInfo
           ? [...maskInfo.eventBits]

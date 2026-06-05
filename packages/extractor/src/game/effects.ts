@@ -553,5 +553,5 @@ export const aggregateEffects = (
     }
     for (const attribute of attrs) out.push({ ...example, attribute });
   }
-  return out.sort((a, b) => a.attribute.localeCompare(b.attribute));
+  return out.toSorted((a, b) => a.attribute.localeCompare(b.attribute));
 };

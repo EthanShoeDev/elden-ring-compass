@@ -237,7 +237,7 @@ const findOffsetIndices = (
   inc = 1,
 ): number[] => {
   const max =
-    [...maxima].sort((a, b) => b - a).find((m) => has(base + m * inc)) ?? 0;
+    [...maxima].toSorted((a, b) => b - a).find((m) => has(base + m * inc)) ?? 0;
   const out: number[] = [];
   for (let i = 0; i <= max; i++)
     if (has(base + i * inc)) out.push(base + i * inc);
@@ -671,12 +671,10 @@ export const join = (
         fpCost: num(g, 'consumeMP'),
         hpCost: hp < 0 ? 0 : hp,
         upgradeMaterial,
-        upgradeCosts: chain
-          .slice(1)
-          .flatMap((i) => {
-            const row = goodsRows.get(i);
-            return row === undefined ? [] : [num(row, 'reinforcePrice')];
-          }),
+        upgradeCosts: chain.slice(1).flatMap((i) => {
+          const row = goodsRows.get(i);
+          return row === undefined ? [] : [num(row, 'reinforcePrice')];
+        }),
       });
     }
 
@@ -691,7 +689,7 @@ export const join = (
       byCat.set(g.category, (byCat.get(g.category) ?? 0) + 1);
     yield* Effect.logInfo(
       `goods categories: ${[...byCat.entries()]
-        .sort((a, b) => b[1] - a[1])
+        .toSorted((a, b) => b[1] - a[1])
         .map(([c, n]) => `${c}=${n}`)
         .join(' ')}`,
     );

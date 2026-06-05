@@ -115,7 +115,9 @@ it.layer(NodeServices.layer)('TS save parser — lean DTO (ER0000.sl2)', (it) =>
     Effect.gen(function* () {
       const { baseSave } = yield* savePaths;
       const save = yield* parseFixture(baseSave);
-      const flags = occupiedSlots(save)[0]!.event_flags.flags;
+      const slot = occupiedSlots(save)[0];
+      if (slot === undefined) throw new Error('expected an occupied slot');
+      const flags = slot.event_flags.flags;
       // ~1.77 MB region minus trailing zeros; far larger than any accidental small buffer.
       expect(flags.length).toBeGreaterThan(100_000);
     }),
@@ -125,7 +127,9 @@ it.layer(NodeServices.layer)('TS save parser — lean DTO (ER0000.sl2)', (it) =>
     Effect.gen(function* () {
       const { baseSave } = yield* savePaths;
       const save = yield* parseFixture(baseSave);
-      const items = occupiedSlots(save)[0]!.ga_items;
+      const slot = occupiedSlots(save)[0];
+      if (slot === undefined) throw new Error('expected an occupied slot');
+      const items = slot.ga_items;
       expect(items.length).toBeGreaterThan(0);
       for (const gaItem of items) {
         expect(Number.isInteger(gaItem.gaitem_handle)).toBe(true);
@@ -139,7 +143,9 @@ it.layer(NodeServices.layer)('TS save parser — lean DTO (ER0000.sl2)', (it) =>
     Effect.gen(function* () {
       const { baseSave } = yield* savePaths;
       const save = yield* parseFixture(baseSave);
-      expect(occupiedSlots(save)[0]!.chr_asm2).toBeDefined();
+      const slot = occupiedSlots(save)[0];
+      if (slot === undefined) throw new Error('expected an occupied slot');
+      expect(slot.chr_asm2).toBeDefined();
     }),
   );
 
@@ -178,5 +184,4 @@ it.layer(NodeServices.layer)('TS save parser — lean DTO (ER0000.sl2)', (it) =>
         expect(unclassified).toEqual([]);
       }),
   );
-
 });

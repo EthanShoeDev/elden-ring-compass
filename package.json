@@ -59,6 +59,7 @@
       "react-dom": "19.2.7",
       "react-leaflet": "^5.0.0",
       "react-markdown": "^10.1.0",
+      "scheduler": "*",
       "semver": "^7.8.1",
       "sharp": "^0.34.5",
       "tailwind-merge": "^3.6.0",
@@ -101,8 +102,8 @@
     "@effect/language-service": "catalog:",
     "@effect/platform-bun": "catalog:",
     "@effect/tsgo": "catalog:",
-    "@elden-ring-compass/typescript-config": "workspace:*",
     "@elden-ring-compass/oxlint-plugins": "workspace:*",
+    "@elden-ring-compass/typescript-config": "workspace:*",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
     "@types/semver": "catalog:",
@@ -120,8 +121,8 @@
     "typescript": "catalog:",
     "wasm-pack": "^0.12.1"
   },
-  "packageManager": "bun@1.3.5",
   "engines": {
     "node": ">=22.18.0"
-  }
+  },
+  "packageManager": "bun@1.3.5"
 }

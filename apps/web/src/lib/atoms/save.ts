@@ -3,10 +3,7 @@ import { Atom } from 'effect/unstable/reactivity';
 import * as AsyncResult from 'effect/unstable/reactivity/AsyncResult';
 import { useAtomRefresh, useAtomValue } from '@effect/atom-react';
 import { reconstructSlot } from '@/lib/share/decode';
-import {
-  ParseResponse,
-  type ParseRequest,
-} from '@/lib/er-save-parser.protocol';
+import { ParseResponse, type ParseRequest } from '@/lib/er-save-parser.protocol';
 import { isSharedSource, saveFileSourceAtom } from '@/stores/save-file-source-store';
 import type { WasmEldenRingSave } from '@/lib/save-dto';
 
@@ -33,17 +30,14 @@ const getWorker = (): Worker | null => {
       name: 'EldenRingSaveParser',
       type: 'module',
     });
-    worker.onmessage = (event: MessageEvent<unknown>) => {
+    worker.addEventListener('message', (event: MessageEvent<unknown>) => {
       // postMessage erases types: validate the reply against the protocol schema before
       // trusting it (runs once per save load — see er-save-parser.protocol.ts).
       const decoded = Schema.decodeUnknownExit(ParseResponse)(event.data);
       if (decoded._tag === 'Failure') {
         // Malformed reply — best-effort reject the correlated request (if its id survived).
         const raw = event.data;
-        const rawId =
-          typeof raw === 'object' && raw !== null && 'id' in raw
-            ? raw.id
-            : undefined;
+        const rawId = typeof raw === 'object' && raw !== null && 'id' in raw ? raw.id : undefined;
         if (typeof rawId === 'number') {
           const p = pending.get(rawId);
           if (p) {
@@ -59,7 +53,7 @@ const getWorker = (): Worker | null => {
       pending.delete(res.id);
       if (res.ok) p.resolve(res.save);
       else p.reject(new Error(res.error));
-    };
+    });
   }
   return worker;
 };
@@ -105,8 +99,7 @@ export const saveAtom = Atom.make((get) =>
       } satisfies WasmEldenRingSave;
     }
 
-    if (!getWorker())
-      return yield* new SaveParseError({ message: 'Save parser unavailable' });
+    if (!getWorker()) return yield* new SaveParseError({ message: 'Save parser unavailable' });
 
     const buffer =
       'file' in src

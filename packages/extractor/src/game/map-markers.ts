@@ -62,7 +62,7 @@ export const loadMapMarkers = (
         const out: string[] = [];
         for await (const p of glob.scan({ cwd: dir, absolute: true }))
           out.push(p);
-        return out.sort();
+        return out.toSorted();
       },
       catch: (cause) =>
         new MapMarkersError({ detail: `scanning ${dir}: ${String(cause)}` }),
@@ -80,14 +80,14 @@ export const loadMapMarkers = (
         /\.msb\.dcx$/i,
         '',
       );
-      const dcx = yield* fs
-        .readFile(path)
-        .pipe(
-          Effect.mapError(
-            (cause) =>
-              new MapMarkersError({ detail: `reading ${path}: ${cause}` }),
-          ),
-        );
+      const dcx = yield* fs.readFile(path).pipe(
+        Effect.mapError(
+          (cause) =>
+            new MapMarkersError({
+              detail: `reading ${path}: ${String(cause)}`,
+            }),
+        ),
+      );
       const raw = yield* dcxDecompress(dcx, oo2corePath);
       const msb = yield* parseMsb(raw);
       for (const m of [...msb.parts, ...msb.regions]) {

@@ -22,7 +22,7 @@ const PARSE_DIRECT_MS = 3000;
 const PARSE_HEAP_MB = 300;
 
 const median = (xs: readonly number[]): number =>
-  [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)] ?? 0;
+  [...xs].toSorted((a, b) => a - b)[Math.floor(xs.length / 2)] ?? 0;
 
 const loadSaveBuffer = Effect.promise(() => fetch(SAVE_URL).then((r) => r.arrayBuffer()));
 

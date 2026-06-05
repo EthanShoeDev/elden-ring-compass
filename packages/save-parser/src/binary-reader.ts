@@ -96,7 +96,11 @@ export const makeBinaryReader = (buffer: ArrayBuffer): BinaryReaderApi => {
   // Absolute bounds check that does NOT move the cursor.
   const checkAbs = (absPos: number, n: number): number => {
     if (absPos < 0 || absPos + n > bytes.length) {
-      throw new SaveTruncatedError({ at: absPos, need: n, length: bytes.length });
+      throw new SaveTruncatedError({
+        at: absPos,
+        need: n,
+        length: bytes.length,
+      });
     }
     return absPos;
   };

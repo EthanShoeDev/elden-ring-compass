@@ -104,6 +104,10 @@ export default defineConfig({
     'react/no-array-index-key': 'off',
     // Small helper closures are fine where they are defined.
     'unicorn/consistent-function-scoping': 'off',
+    // Web Workers' postMessage takes a transfer list, not a targetOrigin. This
+    // unicorn rule targets cross-window `window.postMessage` and is a false
+    // positive for the save-parser worker (`self.postMessage`/`worker.postMessage`).
+    'unicorn/require-post-message-target-origin': 'off',
     // Spreading inside map() is idiomatic for the view-model builders.
     'oxc/no-map-spread': 'off',
     // Not every then() callback needs to return a value.
@@ -129,6 +133,24 @@ export default defineConfig({
         'packages/config/oxlint-plugins/**',
         '**/*.config.{ts,js,mjs}',
         'oxlint.config.ts',
+      ],
+      rules: {
+        'prefer-effect/no-node-path': 'off',
+        'prefer-effect/no-node-fs': 'off',
+        'no-console': 'off',
+      },
+    },
+    {
+      // Tests, benchmarks, and build-time tooling (vite plugins, per-package
+      // maintenance scripts) legitimately read files with `node:fs`/`node:path`
+      // — `prefer-effect` targets runtime/library code, not a fixture read in a
+      // test or a one-shot script.
+      files: [
+        '**/*.test.ts',
+        '**/*.bench.ts',
+        '**/perf/**',
+        '**/vite-plugins/**',
+        '**/scripts/**',
       ],
       rules: {
         'prefer-effect/no-node-path': 'off',

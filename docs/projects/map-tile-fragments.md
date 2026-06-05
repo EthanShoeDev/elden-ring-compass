@@ -36,12 +36,12 @@ stable bit→fragment mapping exists.
 
 Distinct bits per map (each region-sized bit = one map fragment):
 
-| map | tiles (exists) | bits | notes |
-|-----|----------------|------|-------|
-| M00 overworld   | 2218 | **21** | 20 fragment bits (55–429 tiles each) + **`0x4000` = 3 tiles = the Starfall meteor crater (event)** |
-| M01 underground | 694  | **5**  | 5 underground fragments; no events |
-| M10 DLC         | 798  | **5**  | DLC fragments |
-| M11 DLC underground | 0 | 0 | base-only (no revealable fragments) |
+| map                 | tiles (exists) | bits   | notes                                                                                              |
+| ------------------- | -------------- | ------ | -------------------------------------------------------------------------------------------------- |
+| M00 overworld       | 2218           | **21** | 20 fragment bits (55–429 tiles each) + **`0x4000` = 3 tiles = the Starfall meteor crater (event)** |
+| M01 underground     | 694            | **5**  | 5 underground fragments; no events                                                                 |
+| M10 DLC             | 798            | **5**  | DLC fragments                                                                                      |
+| M11 DLC underground | 0              | 0      | base-only (no revealable fragments)                                                                |
 
 Event bits (excluded from the default "vanilla" map): **M00 `0x4000`** (crater)
 is confirmed. Possible refinement: an Ashen-Capital-Outskirts state may exist as
@@ -61,7 +61,7 @@ In `game/images.ts` (stage `7-images`), replace the `BASE_LAYER` filter with the
    void) and cells whose mask carries an event bit (`0x4000` crater = out of
    bounds). NOT max-popcount — a popcount heuristic picks inconsistent reveal
    states per cell and produces a scrambled patchwork.
-3. **Flip Y** when compositing: the game's row index increases *northward*
+3. **Flip Y** when compositing: the game's row index increases _northward_
    (erdb pastes at `high_y - y`), so `top = (GRID-1 - row)·256`. Without this the
    whole map renders upside-down.
 4. Regenerate the power-of-2 pyramid (one `base` layer); emit `fragmentBits` /
@@ -69,7 +69,7 @@ In `game/images.ts` (stage `7-images`), replace the `BASE_LAYER` filter with the
 
 Verified: produces the correct north-up, colourful, fully-revealed Lands Between
 (snow Mountaintops top, red Caelid, blue Liurnia, green Limgrave). Note L0 is the
-*colourful* art; coarser LODs differ in style — see the LOD/colour note below.
+_colourful_ art; coarser LODs differ in style — see the LOD/colour note below.
 
 > **LOD/colour:** we build the pyramid from **L0** only (then downsample). L0 is
 > the colourful painted map. (Earlier confusion: a heavy downscale of an
@@ -84,11 +84,11 @@ Verified: produces the correct north-up, colourful, fully-revealed Lands Between
 
 ### Phase 2 — save-driven "collected maps" toggle (user-requested)
 
-Render the map as the game does, from the user's *currently collected* fragments.
+Render the map as the game does, from the user's _currently collected_ fragments.
 
 - Shipping every bit-combo tile (28k entries → hundreds of MB) is infeasible for a
-  static site. Instead extract, **per fragment bit**, the *delta region it
-  reveals* as a transparent overlay pyramid; the client composites
+  static site. Instead extract, **per fragment bit**, the _delta region it
+  reveals_ as a transparent overlay pyramid; the client composites
   `base (undiscovered) + Σ overlays for collected fragments`. ~31 overlay sets
   total (21 + 5 + 5), far less than 4,620 combos.
 - Need **bit → map-fragment item** so we can read possession from the save:

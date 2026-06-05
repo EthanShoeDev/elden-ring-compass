@@ -90,7 +90,10 @@ const cleanInstall = (gameRoot: string) =>
     for (const dir of ER_GAME_INFO.backupDirs) {
       const backup = `${gameRoot}/_backup/${dir}`;
       if (yield* fs.exists(backup)) {
-        yield* fs.remove(`${gameRoot}/${dir}`, { recursive: true, force: true });
+        yield* fs.remove(`${gameRoot}/${dir}`, {
+          recursive: true,
+          force: true,
+        });
         yield* fs.rename(backup, `${gameRoot}/${dir}`);
         yield* Effect.logInfo(`  restored ${dir}/ from _backup/`);
       }
@@ -104,7 +107,9 @@ const cleanInstall = (gameRoot: string) =>
         removed++;
       }
     }
-    yield* Effect.logInfo(`  --clean: removed ${removed} previously-unpacked dir(s)`);
+    yield* Effect.logInfo(
+      `  --clean: removed ${removed} previously-unpacked dir(s)`,
+    );
   });
 
 /** Copy `backupDirs` to `_backup/` once, before unpacking into them. */
@@ -154,7 +159,9 @@ const unpackArchive = (
     } else {
       const key = ER_ARCHIVE_KEYS[archive];
       if (key === undefined)
-        return yield* new DvdbndError({ detail: `no archive key for "${archive}"` });
+        return yield* new DvdbndError({
+          detail: `no archive key for "${archive}"`,
+        });
       header = decryptBhdHeader(raw, key);
     }
     const entries = parseBhd5(header);
@@ -183,12 +190,18 @@ const unpackArchive = (
 
       let bytes = new Uint8Array(
         yield* Effect.promise(() =>
-          bdt.slice(entry.offset, entry.offset + entry.paddedSize).arrayBuffer(),
+          bdt
+            .slice(entry.offset, entry.offset + entry.paddedSize)
+            .arrayBuffer(),
         ),
       );
       if (entry.aes) decryptAesRanges(bytes, entry.aes);
       // sd files keep their padding in the slab; trim to the real size (UXM parity).
-      if (isSd && entry.unpaddedSize >= 0 && bytes.length > entry.unpaddedSize) {
+      if (
+        isSd &&
+        entry.unpaddedSize >= 0 &&
+        bytes.length > entry.unpaddedSize
+      ) {
         bytes = bytes.subarray(0, entry.unpaddedSize);
       }
 
@@ -249,7 +262,9 @@ export const unpackInstall = (opts: UnpackOptions) =>
     const mkdirCache = new Set<string>();
     const archives: ArchiveSummary[] = [];
     for (const archive of ER_GAME_INFO.archives) {
-      archives.push(yield* unpackArchive(gameRoot, archive, dictionary, mkdirCache));
+      archives.push(
+        yield* unpackArchive(gameRoot, archive, dictionary, mkdirCache),
+      );
     }
 
     const sum = (k: keyof ArchiveSummary) =>

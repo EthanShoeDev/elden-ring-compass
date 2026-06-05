@@ -164,7 +164,7 @@ export const resolveBossNames = (
           absolute: true,
         }))
           out.push(p);
-        return out.sort();
+        return out.toSorted();
       },
       catch: (cause) =>
         new BossNamesError({

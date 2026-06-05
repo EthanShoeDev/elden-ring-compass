@@ -201,7 +201,7 @@ function readUserData10(r: BinaryReaderApi): {
   const activeProfiles: boolean[] = [];
   for (let i = 0; i < SLOT_COUNT; i++) activeProfiles.push(r.u8() !== 0);
   // ProfileSummary.profiles: [Profile; 10] — read seconds_played, skip the rest of each.
-  const secondsPlayed: number[] = new Array(SLOT_COUNT);
+  const secondsPlayed: number[] = [];
   for (let i = 0; i < SLOT_COUNT; i++) {
     const profileStart = r.pos();
     secondsPlayed[i] = r.u32At(profileStart + PROFILE_SECONDS_PLAYED_OFFSET);
@@ -309,7 +309,7 @@ function readSlot(r: BinaryReaderApi, secondsPlayed: number): LeanSlot {
   const equipInventory = readInventory(r, 0xa80, 0x180);
 
   // --- equipped_spells (0x74): 14 × {spell_id, unk} + active_index ---
-  const equippedSpells: number[] = new Array(14);
+  const equippedSpells: number[] = [];
   for (let n = 0; n < 14; n++) {
     equippedSpells[n] = r.u32();
     r.skip(4); // unk0x4
@@ -320,12 +320,12 @@ function readSlot(r: BinaryReaderApi, secondsPlayed: number): LeanSlot {
   const equipItemData = readEquipItemData(r);
 
   // --- equipped_gestures (0x18): 6 gesture ids ---
-  const equippedGestures: number[] = new Array(6);
+  const equippedGestures: number[] = [];
   for (let n = 0; n < 6; n++) equippedGestures[n] = r.u32();
 
   // acquired_projectiles: count:u32 + count × {id, unk}
   const projectileCount = r.u32();
-  const acquiredProjectiles: number[] = new Array(projectileCount);
+  const acquiredProjectiles: number[] = [];
   for (let n = 0; n < projectileCount; n++) {
     acquiredProjectiles[n] = r.u32();
     r.skip(4); // unk0x4
@@ -344,12 +344,12 @@ function readSlot(r: BinaryReaderApi, secondsPlayed: number): LeanSlot {
   const storageInventory = readInventory(r, 0x780, 0x80);
 
   // --- gestures (0x100): full 64-slot gesture table ---
-  const gestures: number[] = new Array(64);
+  const gestures: number[] = [];
   for (let n = 0; n < 64; n++) gestures[n] = r.u32();
 
   // --- unlocked_regions ---
   const regionCount = r.u32();
-  const regionIds: number[] = new Array(regionCount);
+  const regionIds: number[] = [];
   for (let n = 0; n < regionCount; n++) regionIds[n] = r.u32();
 
   // --- horse / RideGameData (0x28) ---
@@ -536,7 +536,8 @@ function readCharacterName(r: BinaryReaderApi, absPos: number): string {
   const raw = r.subarrayAt(absPos, CHARACTER_NAME_BYTES);
   // Cut at the first UTF-16 NUL (0x0000).
   let end = 0;
-  while (end + 1 < raw.length && !(raw[end] === 0 && raw[end + 1] === 0)) end += 2;
+  while (end + 1 < raw.length && !(raw[end] === 0 && raw[end + 1] === 0))
+    end += 2;
   return utf16le.decode(raw.subarray(0, end)).trimEnd();
 }
 

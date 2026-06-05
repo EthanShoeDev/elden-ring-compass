@@ -35,20 +35,21 @@
 
 Today everything data-ish lives under `packages/er-extractor/src/vendor/` next to the
 extraction logic, and the runtime save parser carries its _own_ duplicate copies of some of
-the same constants (PROVENANCE.md already laments this). The clean split is by **provenance
-+ who has to update it on a game patch**:
+the same constants (PROVENANCE.md already laments this). The clean split is by \*\*provenance
 
-| Kind | Where it comes from | Who updates it after a patch | Goes in |
-| --- | --- | --- | --- |
+- who has to update it on a game patch\*\*:
+
+| Kind                                                                                                                       | Where it comes from                                                                    | Who updates it after a patch          | Goes in         |
+| -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------- | --------------- |
 | **Vendored constants** — eventflag-BST table, AES/RSA keys, paramddefs, EMEDF, path dictionary, **curated quest/flag DBs** | Ripped verbatim from other repos/tools/wikis; **we cannot derive it from the install** | **External maintainers** (we re-copy) | `vendored-data` |
-| **Extraction logic** — DCX/BND4/FMG/PARAM/MSB/EMEVD parsers, joins, codegen | Our own code, reading the install | **Us** (it's our code) | `er-extractor` |
-| **Cleaned output** — the joined, deterministic datasets the site reads | Emitted by the extractor | Auto (re-run extractor) | `data` |
-| **Save parsing** — the user's `.sl2` → lean DTO, in-browser | Our own code (ported from the Py/Rust reference) | Us, on a save-format revision | `save-parser` |
+| **Extraction logic** — DCX/BND4/FMG/PARAM/MSB/EMEVD parsers, joins, codegen                                                | Our own code, reading the install                                                      | **Us** (it's our code)                | `er-extractor`  |
+| **Cleaned output** — the joined, deterministic datasets the site reads                                                     | Emitted by the extractor                                                               | Auto (re-run extractor)               | `data`          |
+| **Save parsing** — the user's `.sl2` → lean DTO, in-browser                                                                | Our own code (ported from the Py/Rust reference)                                       | Us, on a save-format revision         | `save-parser`   |
 
-> **The differentiator the user named:** vendored-data is *"stuff we cannot easily extract
+> **The differentiator the user named:** vendored-data is _"stuff we cannot easily extract
 > from the installed game ourselves, and if the game updates we're relying on other people to
-> update it for us externally."* er-extractor is *"the business logic of scraping data out of
-> the installed game files"* and should **not** hold big magic constants — those came from
+> update it for us externally."_ er-extractor is _"the business logic of scraping data out of
+> the installed game files"_ and should **not** hold big magic constants — those came from
 > somewhere else, so they belong in vendored-data; the extractor **depends on** vendored-data
 > to join them against install data into clean output.
 
@@ -108,7 +109,7 @@ apps/
 
 - **`vendored-data`** — a leaf package. Both the build-time extractor and the runtime
   (save-parser / web) depend on it → **kills the current BST duplication**; one copy of
-  `eventflag-bst.txt` serves the extractor's `eventFlagOffset()` codegen *and* runtime
+  `eventflag-bst.txt` serves the extractor's `eventFlagOffset()` codegen _and_ runtime
   arbitrary-flag lookup (quest compass).
 - **`er-extractor`** depends on `vendored-data` and joins it against the install to emit
   `data`. Holds **no** big magic constants of its own.
@@ -172,13 +173,13 @@ Current dirs mix `er-*` (er-extractor, er-image-codec, er-save-lib) and `elden-r
 ("maybe some of those names should be changed"). Proposed standardization — **directory ==
 unscoped npm name**, no redundant prefix (the scope already says "elden-ring"):
 
-| Now (dir) | npm name now | Proposed dir | Proposed npm |
-| --- | --- | --- | --- |
-| `elden-ring-data` | `@elden-ring-compass/data` | `data` | `@elden-ring-compass/data` (same) |
-| `er-extractor` | `@elden-ring-compass/er-extractor` | `extractor` | `@elden-ring-compass/extractor` |
-| `er-image-codec` | (rust) | `extractor/native/image-codec` | (rust, internal) |
-| `elden-ring-save-parser` + `er-save-lib` | `@elden-ring-compass/save-parser` | `save-parser` | `@elden-ring-compass/save-parser` (same) |
-| _(new)_ | — | `vendored-data` | `@elden-ring-compass/vendored-data` |
+| Now (dir)                                | npm name now                       | Proposed dir                   | Proposed npm                             |
+| ---------------------------------------- | ---------------------------------- | ------------------------------ | ---------------------------------------- |
+| `elden-ring-data`                        | `@elden-ring-compass/data`         | `data`                         | `@elden-ring-compass/data` (same)        |
+| `er-extractor`                           | `@elden-ring-compass/er-extractor` | `extractor`                    | `@elden-ring-compass/extractor`          |
+| `er-image-codec`                         | (rust)                             | `extractor/native/image-codec` | (rust, internal)                         |
+| `elden-ring-save-parser` + `er-save-lib` | `@elden-ring-compass/save-parser`  | `save-parser`                  | `@elden-ring-compass/save-parser` (same) |
+| _(new)_                                  | —                                  | `vendored-data`                | `@elden-ring-compass/vendored-data`      |
 
 Open: keep `er-extractor` or rename to `extractor`? Renaming touches imports/turbo but ends
 the prefix inconsistency. (The user floated `elden-ring-ts-save-parser` for the port; the
@@ -209,7 +210,7 @@ of this track — see migration step 7):
    the install, do it **inside a stage** (or extend one). Stages are the only place extraction
    logic lives.
 2. **Legitimate maintenance commands** (vendor refresh, one-shot key/dict regeneration) get a
-   named `package.json` script + a PROVENANCE entry — they are *not* ad-hoc.
+   named `package.json` script + a PROVENANCE entry — they are _not_ ad-hoc.
 3. **Iterating on one stage must not require a script.** The reason one-offs got written is
    that re-running the whole pipeline to debug `join` or `codegen` is slow. **Fix the root
    cause: make stages individually runnable** (next item).
@@ -218,7 +219,7 @@ of this track — see migration step 7):
 
 Today `runPipeline` is one linear `Effect.gen` that threads each stage's output to the next
 **in memory** (`paramFiles → join`, `graces → markers`, …), so you can't run or re-run a
-single stage — which is *why* people reach for scratch scripts. Fix:
+single stage — which is _why_ people reach for scratch scripts. Fix:
 
 - **Per-stage on-disk artifacts.** Each stage serializes its output (real `Schema`, per memory
   `effect-fs-not-bun-file`) to `outDir/.cache/<stage>.json`, and loads its upstream inputs from
@@ -229,7 +230,7 @@ single stage — which is *why* people reach for scratch scripts. Fix:
   range), default = full run. e.g. `bun src/bin.ts extract --only codegen` re-emits data files
   from cached upstream artifacts in seconds.
 - Stage names are already stable (`unpack, params, text, join, flags, markers, placements,
-  sp-effects, images, codegen` — see `pipeline.ts`); expose them as the `--only`/`--from`/`--to`
+sp-effects, images, codegen` — see `pipeline.ts`); expose them as the `--only`/`--from`/`--to`
   choices.
 
 This is the durable fix: with single-stage runs + inspectable artifacts, there's **no reason to
@@ -240,7 +241,7 @@ write a one-off script**, which is the whole point.
 1. **Extract `vendored-data` package.** Move `er-extractor/src/vendor/*` → new
    `packages/vendored-data/`, set up subpath exports (`/extract`, `/runtime`), repoint
    `er-extractor` imports. PROVENANCE.md becomes the package README. Verify `bun run extract`
-   + `typecheck` green. _(No behavior change — pure move.)_
+   - `typecheck` green. _(No behavior change — pure move.)_
 2. **De-duplicate the BST.** Point the save parser's flag addressing at
    `vendored-data/runtime` instead of its private copy (resolves the PROVENANCE.md duplication
    note). _(If still on wasm, this may wait for the TS port — wasm can't import a TS subpath
@@ -251,7 +252,7 @@ write a one-off script**, which is the whole point.
    → `data`. Update turbo/tsconfig/imports. Do this as its own commit so the diff is reviewable.
 5. **save-parser** — when the TS port (`typescript-save-parser-port.md`) is approved: create
    `packages/save-parser`, depend on `vendored-data/runtime`, repoint web, delete the submodule
-   + wasm wrapper.
+   - wasm wrapper.
 6. **Land quest/flag vendored data** — port `quest_flags_db.py` etc. into `vendored-data`
    (consumed by the quest-compass feature), each a PROVENANCE row.
 
@@ -292,10 +293,10 @@ feature work respectively.
 >
 > **Decided (2026-06-04): domain packages stay FLAT.** No `packages/core/` umbrella. The four domain
 > packages (`data`, `extractor`, `vendored-data`, `save-parser`) remain at `packages/*`. Rationale:
-> the `config/` umbrella earns its place by separating *tooling* from *the product* — burying the
+> the `config/` umbrella earns its place by separating _tooling_ from _the product_ — burying the
 > domain packages under `core/` would erase that contrast for no gain. "core" doesn't name a coherent
 > subset (the four are deliberately different kinds — external/build-tool/generated/runtime), it's not
-> crowded (only 4), turbo/tsconfig key off package *names* not paths (zero functional benefit), and
+> crowded (only 4), turbo/tsconfig key off package _names_ not paths (zero functional benefit), and
 > `packages/core/data` just adds a meaningless level. **Revisit only if** `packages/` grows to ~8+
 > domain packages and a real cluster emerges — group by that actual shared trait, not a placeholder.
 
@@ -312,5 +313,5 @@ feature work respectively.
 4. **Where do the curated flag DBs live** — `vendored-data` (raw) with the extractor joining
    them into `data`, or emitted straight into `data`? (Leaning: raw in vendored-data; extractor
    joins → keeps `data` install-shaped and the provenance honest.)
-</content>
-</invoke>
+   </content>
+   </invoke>

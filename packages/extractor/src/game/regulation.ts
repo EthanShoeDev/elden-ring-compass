@@ -29,14 +29,14 @@ export const loadRegulationParams = (
 > =>
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
-    const enc = yield* fs
-      .readFile(`${gameRoot}/regulation.bin`)
-      .pipe(
-        Effect.mapError(
-          (cause) =>
-            new RegulationError({ detail: `reading regulation.bin: ${cause}` }),
-        ),
-      );
+    const enc = yield* fs.readFile(`${gameRoot}/regulation.bin`).pipe(
+      Effect.mapError(
+        (cause) =>
+          new RegulationError({
+            detail: `reading regulation.bin: ${String(cause)}`,
+          }),
+      ),
+    );
     const decrypted = yield* Effect.try({
       try: () => {
         const decipher = createDecipheriv(

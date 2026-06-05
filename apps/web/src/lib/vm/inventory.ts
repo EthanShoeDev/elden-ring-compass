@@ -5,7 +5,7 @@ import {
   itemNameById,
   weaponNameById,
 } from '../game-data';
-import { EquipInventoryData, GaItem, Slot, StorageInventoryData } from '../save-dto';
+import { EquipInventoryData, GaItem, Slot } from '../save-dto';
 
 // For converting gaitem.item_id to item
 export const InventoryItemTypeToOffset = {
@@ -84,7 +84,7 @@ export function inventoryDbView(slot: Readonly<Slot>) {
   }
 
   const gaItemMap = new Map<number, GaItem>((slot.ga_items || []).map((i) => [i.gaitem_handle, i]));
-  const fill_storage_type = (inventory_data: EquipInventoryData | StorageInventoryData) => {
+  const fill_storage_type = (inventory_data: EquipInventoryData) => {
     return inventory_data.common_items
       .map((commonItem, idx) => {
         const itemType = itemTypeFromGaHandle(commonItem.ga_item_handle);

@@ -139,12 +139,16 @@ describe('TS save parser parity (ER0000.sl2)', () => {
 
   for (let i = 0; i < oracle.slots.length; i++) {
     it(`slot[${i}] original fields match the WASM oracle byte-for-byte`, () => {
-      const slot = normalize(parsed.slots[i]!);
+      const parsedSlot = parsed.slots[i];
+      if (parsedSlot === undefined) throw new Error(`missing parsed slot ${i}`);
+      const slot = normalize(parsedSlot);
       expect(deepPick(slot, oracle.slots[i])).toEqual(oracle.slots[i]);
     });
 
     it(`slot[${i}] new fields match the Python reference`, () => {
-      expect(projectNewFields(parsed.slots[i]!)).toEqual(reference.slots[i]);
+      const parsedSlot = parsed.slots[i];
+      if (parsedSlot === undefined) throw new Error(`missing parsed slot ${i}`);
+      expect(projectNewFields(parsedSlot)).toEqual(reference.slots[i]);
     });
   }
 });

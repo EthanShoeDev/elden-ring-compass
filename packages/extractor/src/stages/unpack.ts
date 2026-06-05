@@ -24,7 +24,9 @@ export const unpack = Effect.gen(function* () {
   const summary = yield* unpackInstall({
     gameRoot: ctx.gameRoot,
     clean: ctx.clean,
-  }).pipe(Effect.mapError((cause) => new UnpackError({ detail: String(cause) })));
+  }).pipe(
+    Effect.mapError((cause) => new UnpackError({ detail: String(cause) })),
+  );
   if (summary.extracted === 0 && summary.unknown === 0) {
     yield* Effect.logInfo(
       `nothing to do — ${summary.skipped} files already extracted` +

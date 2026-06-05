@@ -19,19 +19,19 @@
 The save parse already runs off the main thread (Comlink worker), so the freeze is downstream
 main-thread work (rendering huge structures, filtering big tables). That split the goal into two:
 
-- **Parse throughput / table-filter cost / memory** → mount a *subsection* in a **real browser** and
+- **Parse throughput / table-filter cost / memory** → mount a _subsection_ in a **real browser** and
   measure. This is where regressions live and where we want repeatable, non-flaky guards.
 - **Whole-app "does the worker path actually work"** → genuinely needs the real app driven end to
   end.
 
 **Chosen: Vitest browser mode (Playwright provider, Chromium)** for the subsection tests, because it
-gives a real engine (real V8, real WASM tiers, real DOM layout) while mounting a *component*, not the
+gives a real engine (real V8, real WASM tiers, real DOM layout) while mounting a _component_, not the
 whole app — no router/server/navigation, which is the flakiness surface the user wants to avoid. It
 reuses the existing Vitest + `@effect/vitest` stack. Playwright **component testing** was rejected
 (experimental, separate runner/config, Node↔browser serialization boundary). Full Playwright **E2E**
 is reserved for the one thing Vitest browser mode genuinely can't do (the worker path — see below).
 
-This matches the Vitest docs' own caveat: browser mode is *not* a drop-in E2E runner.
+This matches the Vitest docs' own caveat: browser mode is _not_ a drop-in E2E runner.
 
 ## How it's wired
 
@@ -46,7 +46,7 @@ valid Vite config for `vite dev`/`vite build`.
   - **`perf`** — real Chromium via `@vitest/browser-playwright`, `*.perf.browser.{ts,tsx}` only,
     `fileParallelism: false` (parallel tabs contend for CPU and ruin timing). `bun run test:perf`.
 - **App-server plugins excluded under test:** `tanstackStart`/`nitro`/`devtools` are only added when
-  `process.env.VITEST` is unset. Vitest runs *root* plugin hooks even for standalone projects, and
+  `process.env.VITEST` is unset. Vitest runs _root_ plugin hooks even for standalone projects, and
   those plugins break browser mode (`react: module is not defined` during dep-scan + a process that
   won't exit). Trimming them at the root is what makes the browser run clean. Tests get
   `react + tailwind + wasm + erDataTiles` (the last serves `/map-tiles/...` so the map test can load
@@ -68,15 +68,17 @@ valid Vite config for `vite dev`/`vite build`.
 
 ## Bugs found & fixed (all pre-existing, all validated)
 
-Building and *running* these guards surfaced four distinct pre-existing bugs. Commits: `d7358323`
+Building and _running_ these guards surfaced four distinct pre-existing bugs. Commits: `d7358323`
 (worker init/expose + infra), `d2763f3e` (the rest).
 
 ### 1. Save parse hung — WASM never init'd, worker never exposed, then an `expose` **race**
+
 The WASM-parser rewrite was never runtime-verified. Three layers, fixed in order:
+
 - The `--target web` WASM was **never `init()`-ed** → `__wbindgen_malloc` undefined → `parse_save` throws.
 - The Comlink worker **never called `expose()`** → the wrapped caller's message is never answered → hang.
 - **The subtle one (the race):** doing `init().then(() => Comlink.expose(...))` exposes the API only
-  *after* an async init. But `save.ts` calls `api.parseEldenRingData(...)` the instant it creates the
+  _after_ an async init. But `save.ts` calls `api.parseEldenRingData(...)` the instant it creates the
   Worker; a Comlink message that arrives **before** `expose()` attaches its listener is **dropped**, and
   the caller hangs forever. Intermittent — sometimes the init resolved first, sometimes not (which is
   why an early E2E run passed at 4.2s and later ones hung).
@@ -89,13 +91,14 @@ browser-/Vite-only constructs (`?url` wasm import). `save.ts` points the Worker 
 `@elden-ring-compass/save-parser` got an `exports` entry for `./elden_ring_save_parser_bg.wasm`.
 **Verified** by `e2e/save-parse.spec.ts` — now deterministic.
 
-### 2. The freeze / sluggish map / OOM — a continuous data-table re-render loop  ⟵ the big one
+### 2. The freeze / sluggish map / OOM — a continuous data-table re-render loop ⟵ the big one
+
 With a save loaded, the app re-rendered **continuously (~60 fps, ~50 MB/s) at idle**, saturating the
 main thread — that's why the map was sluggish, table interactions froze, and opening a facet crashed
 the tab (it pushed the already-pegged thread to OOM). Confirmed by CDP: idle heap grew monotonically
 → OOM; profile was all React render machinery + react-table; it stopped when the data tables were
 removed (not the map, not the parse). No "Maximum update depth" error because the offending setState
-was *deferred*, not render-phase.
+was _deferred_, not render-phase.
 
 **Cause:** `useDataTableState` returned `slice ?? defaultTableState(initProps)`. When a table had no
 persisted state, `defaultTableState` made **fresh `[]`/`{}` every render**, so react-table saw
@@ -105,12 +108,14 @@ queued setState → re-render → new arrays → loop.
 Idle heap went from +200 MB→OOM to **flat (+1 MB)**.
 
 ### 3. Faceted filters materialized hundreds of elements per render
+
 `DataTableFacetedFilter` built a `<CommandItem>` per unique value even while closed (JSX children are
 constructed regardless of whether Base UI mounts them). A high-cardinality column (`weight`,
 `Effects`) × ~15 facets × every render = the element explosion in the load profile.
 **Fix:** gate the option list behind `open` state — ~6× fewer elements created on load.
 
 ### 4. Tables over-rendered each other + parse ran twice
+
 - Every table read `useAtom(tableStateAtom)` (the whole map), so any table's change re-rendered all
   tables. **Fix:** per-table slices via `Atom.family(id => Atom.map(tableStateAtom, m => m[id]))`; the
   registry dedupes on `Object.is`, so siblings don't re-render (writes still go through the whole map).
@@ -122,17 +127,17 @@ the parser itself is fine once initialized.
 
 ## What exists
 
-| File | What |
-|---|---|
-| `vite.config.ts` | combined config, `unit`+`perf` projects, VITEST plugin trimming |
-| `vite-plugins/er-data-tiles.ts` | extracted tile-middleware plugin (shared by app + perf) |
-| `src/test/perf/cdp-memory.ts` | `forceGcHeapUsedBytes()` + `mb()` via CDP |
-| `src/test/perf/smoke.perf.browser.ts` | sanity: effect-vitest + cdp() work in browser mode |
-| `src/lib/er-save-parser.perf.browser.ts` | parse perf — direct (passing) + worker (`it.effect.skip`, see below) |
-| `src/lib/er-save-parser.worker.ts` | race-safe worker: synchronous `expose` + await-once wasm init (bug #1) |
+| File                                                    | What                                                                                                                                                             |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vite.config.ts`                                        | combined config, `unit`+`perf` projects, VITEST plugin trimming                                                                                                  |
+| `vite-plugins/er-data-tiles.ts`                         | extracted tile-middleware plugin (shared by app + perf)                                                                                                          |
+| `src/test/perf/cdp-memory.ts`                           | `forceGcHeapUsedBytes()` + `mb()` via CDP                                                                                                                        |
+| `src/test/perf/smoke.perf.browser.ts`                   | sanity: effect-vitest + cdp() work in browser mode                                                                                                               |
+| `src/lib/er-save-parser.perf.browser.ts`                | parse perf — direct (passing) + worker (`it.effect.skip`, see below)                                                                                             |
+| `src/lib/er-save-parser.worker.ts`                      | race-safe worker: synchronous `expose` + await-once wasm init (bug #1)                                                                                           |
 | `src/components/data-table/data-table.perf.browser.tsx` | mounts `DataTable` + armaments catalog; times mount + Name-filter + heap. ⚠️ uses simplified columns — does NOT yet guard the re-render loop (see _What's left_) |
-| `e2e/save-parse.spec.ts`, `playwright.config.ts` | E2E for the real worker parse path (now deterministic) |
-| `src/lib/runtime/{client,server}.ts` | client/server `ManagedRuntime` (logging) |
+| `e2e/save-parse.spec.ts`, `playwright.config.ts`        | E2E for the real worker parse path (now deterministic)                                                                                                           |
+| `src/lib/runtime/{client,server}.ts`                    | client/server `ManagedRuntime` (logging)                                                                                                                         |
 
 Run: `bun run test` (unit) · `bun run test:perf` (Chromium perf) · `bun run test:e2e` (Playwright).
 
@@ -141,14 +146,14 @@ Run: `bun run test` (unit) · `bun run test:perf` (Chromium perf) · `bun run te
 - **A regression guard for the re-render loop (highest value, NOT yet written).** This is the lesson
   of the whole episode: `data-table.perf.browser.tsx` exists but **would not have caught bug #2** —
   it hand-builds simplified columns (Name as `includesString`, two low-cardinality facets) and only
-  times mount+filter, so it dodged both the high-cardinality faceted explosion *and* the autoReset
+  times mount+filter, so it dodged both the high-cardinality faceted explosion _and_ the autoReset
   loop. A real guard must: mount the **actual** section/columns (`InventoryDataTableCard` /
   `defaultColumns`) with a parsed save, then assert **idle is quiet** — e.g. `forceGcHeapUsedBytes()`
   stays flat over a few seconds with no interaction, and/or a React commit-count cap (hook
   `__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberRoot`). Idle-heap-flat is the cheapest deterministic
   signal and is exactly what flipped 197 MB→OOM vs +1 MB before/after the fix.
 - **Map perf + leak test** (`leaflet-map.perf.browser.tsx`) — **deprioritized.** This session
-  *disproved* the "map is leaking" hypothesis: with the map removed, idle still churned identically,
+  _disproved_ the "map is leaking" hypothesis: with the map removed, idle still churned identically,
   and a viewport-resize test showed the churn was the table loop, not Leaflet. So a map leak test is
   now a nice-to-have guard (mount→unmount×N + `forceGcHeapUsedBytes`), not a hot lead. No longer
   blocked by tile-index work. The trimmed perf config already serves tiles.
@@ -162,6 +167,7 @@ Run: `bun run test` (unit) · `bun run test:perf` (Chromium perf) · `bun run te
   the `expose` race) is covered by the Playwright E2E instead. Unskip if Vitest's worker story improves.
 
 ### Gotcha for whoever runs these next
+
 The perf E2E uses a **dev server** (`reuseExistingServer`). A long-lived dev server accumulates
 stale HMR state for the **Web Worker** (workers don't HMR cleanly), which made the parse hang in
 some test runs after many edits. If `save-parse` hangs at "Loading…", kill the server on `:3005`

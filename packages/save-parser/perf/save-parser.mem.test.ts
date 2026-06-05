@@ -22,7 +22,7 @@ const fixture = readFileSync(here('../../../apps/web/public/ER0000.sl2'));
 const arrayBuffer = fixture.buffer.slice(
   fixture.byteOffset,
   fixture.byteOffset + fixture.byteLength,
-) as ArrayBuffer;
+);
 
 const maybeGc = (globalThis as { gc?: () => void }).gc;
 const heapUsedMb = () => process.memoryUsage().heapUsed / (1024 * 1024);

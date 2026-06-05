@@ -36,7 +36,7 @@ resolutions.
 
 The game LODs are **not a power-of-2 pyramid** (M00): native widths 10496 / 7936 / 2816 /
 1536 / 768 px — ratios 1.32× / 2.82× / 1.83× / 2×. Shipping these as-is (via a custom Leaflet
-CRS with an explicit `resolutions[]`) is *possible*, but it's **suboptimal for web**:
+CRS with an explicit `resolutions[]`) is _possible_, but it's **suboptimal for web**:
 
 - **Uneven zoom feel.** Between native levels Leaflet upscales the nearer tile; the 2.82×
   L1→L2 gap means the most-zoomed-out part of that range is visibly blurry.
@@ -46,24 +46,24 @@ CRS with an explicit `resolutions[]`) is *possible*, but it's **suboptimal for w
   projection, and a `LayersControl` that has to juggle 4 maps with different odd grids.
 
 A **clean power-of-2 pyramid generated from L0** wins on essentially every axis — smoother
-zoom (max 2× upscale between levels), standard `CRS.Simple`+`rastercoords`, *and it's smaller*
+zoom (max 2× upscale between levels), standard `CRS.Simple`+`rastercoords`, _and it's smaller_
 (it drops the redundant L1). Because every game tile is 256-aligned, each map's L0 is an exact
 multiple of 256 (M00 = 41×256 = 10496², M11 = 34×256 × 21×256), so the master stitches and
 re-tiles with **zero edge padding**.
 
 Optimal M00 pyramid (`tileSize: 256`, `maxNativeZoom = ceil(log2(10496/256)) = 6`):
 
-| zoom | px     | tiles | source                    |
-| ---- | ------ | ----- | ------------------------- |
-| 6    | 10496  | 41×41 | = L0 (reused, no resample)|
-| 5    | 5248   | 21×21 | downsample                |
-| 4    | 2624   | 11×11 | downsample                |
-| 3    | 1312   | 6×6   | downsample                |
-| 2    | 656    | 3×3   | downsample                |
-| 1    | 328    | 2×2   | downsample                |
-| 0    | 164    | 1×1   | downsample                |
+| zoom | px    | tiles | source                     |
+| ---- | ----- | ----- | -------------------------- |
+| 6    | 10496 | 41×41 | = L0 (reused, no resample) |
+| 5    | 5248  | 21×21 | downsample                 |
+| 4    | 2624  | 11×11 | downsample                 |
+| 3    | 1312  | 6×6   | downsample                 |
+| 2    | 656   | 3×3   | downsample                 |
+| 1    | 328   | 2×2   | downsample                 |
+| 0    | 164   | 1×1   | downsample                 |
 
-≈ 2,293 tiles vs 2,808 native — fewer *and* sharper. Initial view (~760px container) lands at
+≈ 2,293 tiles vs 2,808 native — fewer _and_ sharper. Initial view (~760px container) lands at
 z2–z3 = **9–36 tiny tiles**. (Allow `maxZoom: 8` while `maxNativeZoom: 6` so users can
 over-zoom for pin precision; Leaflet just upscales z6.)
 
@@ -78,7 +78,7 @@ the Zustand selection state, inside one client-only (SSR) boundary.**
 
 ### Why each choice
 
-- **Engine: Leaflet, not custom RZPP code.** Leaflet's `tileLayer` *is* the tile cull/cache/
+- **Engine: Leaflet, not custom RZPP code.** Leaflet's `tileLayer` _is_ the tile cull/cache/
   recycle loop — only visible tiles load. Initial paint goes from 18.6 MB → ~tens of KB.
   `react-leaflet` **v5** supports React 19 (peer dep), so version lag is no longer a blocker.
 - **Power-of-2 pyramid from L0 via `sharp` (DECIDED).** `Bun.Image` can't do this (it has
@@ -133,7 +133,7 @@ Per `(map, layer)`, for **L0 only** (the game's L1–L4 are discarded and regene
    base map / crater / DLC all align pixel-for-pixel. (composite, not `join` — it handles
    sparse layers and non-zero origins without placeholder tiles.)
 3. **Tile** — `…webp({quality, alphaQuality:100}).tile({ size:256, layout:'google',
-   background:{alpha:0}, skipBlanks:0 })` → emits `images/map-tiles/{map}/{layer}/{z}/{y}/{x}.webp`.
+background:{alpha:0}, skipBlanks:0 })` → emits `images/map-tiles/{map}/{layer}/{z}/{y}/{x}.webp`.
    **`layout:'google'` names leaves `{z}/{y}/{x}`** (subdir = row, file = col — verified
    empirically), so the Leaflet URL template is `…/{z}/{y}/{x}.webp`. `skipBlanks:0` drops
    transparent tiles, so sparse overlays (the crater, M11) cost almost nothing. The `blank.png`
@@ -200,17 +200,17 @@ run against the game archive (DLL built, sharp installed) — produces a large d
    save-parser is built (`bun run build:wasm-parser`, needs the Nix shell's cargo) — pre-existing,
    unrelated to the map.
 3. ~~Derive & unit-test the world→pixel affine against known anchors.~~ **DONE** —
-   `scripts/map-calibrate.ts` + `apps/web/src/lib/map-affine.ts`. The MENU_MapTile
+   `scripts/map-calibrate.ts` + `apps/web/src/lib/map-affine.ts`. The MENU*MapTile
    master grid IS the m60 small-tile grid (256 px == 256 world-units), so extracted
    overworld coords project EXACTLY: `masterPx = worldX − 8448`, `masterPy =
-   16896 − worldZ` (1 px = 1 world-unit), where `worldX = col*size + size/2 + localX`,
+16896 − worldZ` (1 px = 1 world-unit), where `worldX = col*size + size/2 + localX`,
    `size = 256*2^tier`. Proven by a 154/154 grace-on-existing-tile occupancy match +
    correct N/S/E/W extremes + isotropy. The **DLC (M10)** uses the SAME transform — the
    occupancy grid-search finds the same offset (−33,−25) for `m61`→M10 (59/59 DLC graces
    in-bounds); the tile suffix's last digit is the size-tier, the first digit an elevation
    layer (ignored for XZ). Pins carry precomputed master pixels + their master id (`MapPin`);
    `leaflet-map.tsx` `unproject`s and filters by the active map. **Follow-up:** legacy
-   *dungeon* markers (~206 dungeon graces + ~106 dungeon bosses) need `WorldMapLegacyConvParam`
+   \_dungeon* markers (~206 dungeon graces + ~106 dungeon bosses) need `WorldMapLegacyConvParam`
    to convert dungeon-local → overworld coords; and the extractor should emit
    `worldToPixelAffine` per map into the manifest (web uses the documented constants;
    manifest field stays `null`).
@@ -231,7 +231,7 @@ run against the game archive (DLL built, sharp installed) — produces a large d
 - **`leaflet-rastercoords/`** — the image-map-on-Leaflet technique. Read `rastercoords.js`
   (90 lines), `example/index.js` (full setup: `CRS.Simple`, `tileLayer('{z}/{x}/{y}')`,
   marker layers via `rc.unproject`), `example/createtiles.sh` (gdal2tiles invocation).
-- **`interactive-game-maps-template/`** — full open-source *game* map framework: `map.js`
+- **`interactive-game-maps-template/`** — full open-source _game_ map framework: `map.js`
   (tile + marker-group + sidebar wiring), `map_utils.js`. Closest match to our feature set.
 - **`react-leaflet/`** — React 19 bindings reference (if we go declarative for controls).
 
@@ -253,5 +253,5 @@ handling, weaker marker/overlay story — not chosen because this app is marker-
   Remaining: the same integer-offset derivation for the DLC master (M10, from `m61` tiles) — the
   occupancy grid-search in the calibration script generalizes directly (rerun against M10 tiles).
 - Elevation/overlay layers (the suffix bitfield): structure is ready (`{map}/{layer}/…` + the
-  `EMIT_LAYERS` flag); decide *which* overlays to ship and how the web app models each
+  `EMIT_LAYERS` flag); decide _which_ overlays to ship and how the web app models each
   (exclusive base-alternate vs additive overlay) when we wire the crater/floor toggles.

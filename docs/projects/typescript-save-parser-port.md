@@ -45,7 +45,7 @@ Two facts discovered during the review make a TS port look cheap where it previo
    **character slots** (`UserDataX` — everything our DTO reads: stats, inventory, event
    flags, equipment) are **plain uncompressed little-endian structs**.
 2. **There's now a full byte-layout spec on disk**: `er-save-manager/docs/technical/
-   save-file-structure.md` (parser-sourced offsets for every struct). A port is
+save-file-structure.md` (parser-sourced offsets for every struct). A port is
    transcription against a written spec + a working reference impl, not RE.
 
 ## Wait — isn't part of the save zstd-compressed? (the nuance)
@@ -107,7 +107,7 @@ packages/
 
 - **Emit the identical lean DTO** the web app already reads (`player_game_data.*`,
   `event_flags.flags`, `ga_items`, `chr_asm2`, `regions`, …). Then `apps/web/src/lib/
-  wasm-wrapper.ts` and every `vm/*` stays byte-for-byte the same — this is a backend swap,
+wasm-wrapper.ts` and every `vm/*` stays byte-for-byte the same — this is a backend swap,
   not a feature change.
 - **Read-only first.** We only parse. MD5 checksums are needed for _writing_ saves; a
   read-only parser can skip `hashlib` entirely. (If we ever add save-editing, MD5 is a
@@ -167,7 +167,7 @@ written spec + working reference + our existing test fixture.
   a major patch, we `git pull` the submodule. A TS port means **we** transcribe every
   future offset change by hand (this is the _one intrinsic non-self-updating dependency_ —
   `dlc-support.md` §7). The Python repo helps, but only if _it_ stays current.
-- **Perf — genuinely unknown, and possibly *backwards*.** The intuition is "WASM
+- **Perf — genuinely unknown, and possibly _backwards_.** The intuition is "WASM
   struct-walking over a 26 MB save is faster than JS." That may be wrong: the WASM path pays
   a **marshalling tax** JS doesn't — `serde-wasm-bindgen` rebuilds the entire lean DTO (incl.
   the ~1.7 MB-per-slot result) out of wasm linear memory into JS objects on every parse, then
@@ -234,7 +234,7 @@ real Chromium (real V8 + WASM tiers): median-of-5 (+warmup) parse time **and** r
 4. **Identical DTO is mandatory** for the comparison to mean anything — the `ts` variant must
    emit the same shape, so the per-call marshalling/clone cost is compared like-for-like.
 
-### Can it run in a Web Worker? Yes — and it's *easier* for the TS impl
+### Can it run in a Web Worker? Yes — and it's _easier_ for the TS impl
 
 Both impls can run in a worker; today's wasm one does (via Comlink). Two notes:
 
@@ -242,7 +242,7 @@ Both impls can run in a worker; today's wasm one does (via Comlink). Two notes:
   because **wasm `init()` stays pending inside a Vitest-browser module worker** (see the file's
   comment) — a TS parser has **no wasm init**, so that worker path becomes straightforwardly
   testable, and the same simplicity applies in production.
-- **Transferables, not copies.** Post the 26 MB save `ArrayBuffer` *into* the worker on the
+- **Transferables, not copies.** Post the 26 MB save `ArrayBuffer` _into_ the worker on the
   `postMessage` transfer list (zero-copy move). The result DTO is structured-cloned back (paid
   by both impls); where a field is a big buffer (the event-flag bitfield) it can ride back on
   the transfer list too. Combined with the [Comlink drop](#the-case-for-porting), the worker
@@ -300,8 +300,8 @@ and a verified parser beats an elegant one.
 ## Resources
 
 - `docs/cloned-repos-as-docs/er-save-manager/` — the Python reference parser (`src/
-  er_save_manager/parser/`) + the byte-layout spec (`docs/technical/save-file-structure.md`).
+er_save_manager/parser/`) + the byte-layout spec (`docs/technical/save-file-structure.md`).
 - Current WASM parser: `wasm-save-parser-rewrite.md`; perf: `testing.md` + memory
   `perf-testing-setup`; the intrinsic-dependency framing: `dlc-support.md` §7.
-</content>
-</invoke>
+  </content>
+  </invoke>

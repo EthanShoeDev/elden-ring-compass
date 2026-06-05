@@ -130,7 +130,7 @@ export const loadEmedf: Effect.Effect<
   return indexEmedf(raw);
 }).pipe(
   Effect.mapError(
-    (cause) => new EmedfError({ detail: `loading EMEDF: ${cause}` }),
+    (cause) => new EmedfError({ detail: `loading EMEDF: ${String(cause)}` }),
   ),
 );
 
