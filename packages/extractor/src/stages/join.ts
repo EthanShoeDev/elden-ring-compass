@@ -131,6 +131,66 @@ export interface GoodRecord extends CoreItemFields {
   readonly maxHeld: number;
 }
 
+// --- Attack-rating (AR) scaling model ---------------------------------------
+// The data needed to compute a weapon's Attack Rating at any stats/upgrade level,
+// faithfully ported from ThomasJClark's elden-ring-weapon-calculator encoding (the
+// community-canonical model). The runtime AR formula that consumes these lives in
+// `@elden-ring-compass/data` (`ar.ts`); here we only extract the params verbatim.
+//
+//  - per weapon (`WeaponScalingRecord`): unupgraded base attack per damage type,
+//    unupgraded scaling per attribute (correctX/100), and the ids linking the three
+//    shared tables below.
+//  - `ReinforceTypeRecord`: per-`+N` multipliers for base attack + scaling.
+//  - `AttackElementCorrectRecord`: which attributes correct which damage type.
+//  - `CalcCorrectGraphRecord`: the stat→growth saturation ("soft-cap") curves.
+
+export type DamageType = 'physical' | 'magic' | 'fire' | 'lightning' | 'holy';
+export type ScalingAttr = 'str' | 'dex' | 'int' | 'fai' | 'arc';
+
+export interface WeaponScalingRecord {
+  readonly id: number;
+  readonly reinforceTypeId: number;
+  readonly attackElementCorrectId: number;
+  // Attribute requirements (nonzero only) — duplicated here so the AR calc is
+  // self-contained; an unmet requirement applies the −40% ineffective penalty.
+  readonly requirements: Readonly<Partial<Record<ScalingAttr, number>>>;
+  // Unupgraded base attack power per damage type (nonzero entries only).
+  readonly baseAttack: Readonly<Partial<Record<DamageType, number>>>;
+  // Unupgraded scaling per attribute = correctX / 100 (nonzero entries only).
+  readonly scaling: Readonly<Partial<Record<ScalingAttr, number>>>;
+  // CalcCorrectGraph id per damage type; omitted where it's the default (0).
+  readonly calcCorrectIds: Readonly<Partial<Record<DamageType, number>>>;
+}
+
+export interface ReinforceLevel {
+  // Multipliers in DamageType order [physical, magic, fire, lightning, holy].
+  readonly attack: readonly number[];
+  // Multipliers in ScalingAttr order [str, dex, int, fai, arc].
+  readonly scaling: readonly number[];
+}
+export interface ReinforceTypeRecord {
+  readonly id: number; // reinforceTypeId; `levels[n]` is the weapon at +n
+  readonly levels: readonly ReinforceLevel[];
+}
+
+export interface AttackElementCorrectRecord {
+  readonly id: number;
+  // damageType → attribute → `true` (use weapon scaling) | number (override rate).
+  readonly correct: Readonly<
+    Partial<Record<DamageType, Readonly<Partial<Record<ScalingAttr, number | true>>>>>
+  >;
+}
+
+export interface CalcCorrectStage {
+  readonly maxVal: number; // stat value at this stage boundary
+  readonly maxGrowVal: number; // growth (0..~1.1) at the boundary (stageMaxGrowVal/100)
+  readonly adjPt: number; // segment exponent (adjPt_maxGrowVal)
+}
+export interface CalcCorrectGraphRecord {
+  readonly id: number;
+  readonly stages: readonly CalcCorrectStage[]; // 5 stages
+}
+
 export interface ItemTables {
   readonly weapons: WeaponRecord[];
   readonly armor: ArmorRecord[];
@@ -139,6 +199,11 @@ export interface ItemTables {
   readonly ashesOfWar: AshOfWarRecord[];
   readonly spells: SpellRecord[];
   readonly spiritAshes: SpiritAshRecord[];
+  // AR scaling model (above).
+  readonly weaponScaling: WeaponScalingRecord[];
+  readonly reinforceTypes: ReinforceTypeRecord[];
+  readonly attackElementCorrects: AttackElementCorrectRecord[];
+  readonly calcCorrectGraphs: CalcCorrectGraphRecord[];
 }
 
 // EquipParamGoods.goodsType → display category. Derived empirically by grouping
@@ -224,6 +289,45 @@ const GESTURE_SORT_GROUP = 250;
 // wepType values that are ammo (arrows/bolts) — they don't reinforce, so weapon
 // upgrade-material detection must skip them.
 const AMMO_WEP_TYPES = new Set([81, 83, 85, 86]);
+
+// AR scaling field maps (EquipParamWeapon / ReinforceParamWeapon /
+// AttackElementCorrectParam). DamageType → [base-attack field, correctType field];
+// note ER's `*Thunder`=Lightning and `*Dark`=Holy holdovers. The default
+// CalcCorrectGraph for damage is id 0 (status is id 6 — deferred).
+const DEFAULT_DAMAGE_CALC_CORRECT_GRAPH_ID = 0;
+const DAMAGE_FIELDS: readonly [DamageType, string, string][] = [
+  ['physical', 'attackBasePhysics', 'correctType_Physics'],
+  ['magic', 'attackBaseMagic', 'correctType_Magic'],
+  ['fire', 'attackBaseFire', 'correctType_Fire'],
+  ['lightning', 'attackBaseThunder', 'correctType_Thunder'],
+  ['holy', 'attackBaseDark', 'correctType_Dark'],
+];
+// ScalingAttr → [EquipParamWeapon correctX field, ReinforceParamWeapon rate field,
+// AttackElementCorrectParam name part]. ER stores dex as "Agility", int as "Magic",
+// arc as "Luck".
+const SCALING_FIELDS: readonly [ScalingAttr, string, string, string][] = [
+  ['str', 'correctStrength', 'correctStrengthRate', 'Strength'],
+  ['dex', 'correctAgility', 'correctAgilityRate', 'Dexterity'],
+  ['int', 'correctMagic', 'correctMagicRate', 'Magic'],
+  ['fai', 'correctFaith', 'correctFaithRate', 'Faith'],
+  ['arc', 'correctLuck', 'correctLuckRate', 'Luck'],
+];
+// AttackElementCorrectParam damage-type suffixes (`is<Attr>Correct_by<Suffix>`).
+const AEC_DT_SUFFIX: readonly [DamageType, string][] = [
+  ['physical', 'Physics'],
+  ['magic', 'Magic'],
+  ['fire', 'Fire'],
+  ['lightning', 'Thunder'],
+  ['holy', 'Dark'],
+];
+// ReinforceParamWeapon base-attack rate fields, in DamageType order.
+const REINFORCE_ATTACK_RATES: readonly string[] = [
+  'physicsAtkRate',
+  'magicAtkRate',
+  'fireAtkRate',
+  'thunderAtkRate',
+  'darkAtkRate',
+];
 
 /**
  * Consecutive ids from `base` (e.g. an upgrade chain), up to the largest maxima
@@ -503,6 +607,136 @@ export const join = (
       }),
     );
 
+    // --- AR scaling model -------------------------------------------------
+    // Per-weapon scaling refs + the shared reinforce/element-correct/calc-correct
+    // tables the AR formula needs. We emit only the table rows weapons reference.
+    const usedReinforce = new Set<number>();
+    const usedAec = new Set<number>();
+    const usedGraphs = new Set<number>([DEFAULT_DAMAGE_CALC_CORRECT_GRAPH_ID]);
+
+    const buildScaling = (
+      id: number,
+      _name: string,
+      f: Row,
+    ): WeaponScalingRecord | null => {
+      // Ammo and weapons without a reinforce chain (e.g. unarmed) have no AR model.
+      if (AMMO_WEP_TYPES.has(num(f, 'wepType'))) return null;
+      const reinforceTypeId = num(f, 'reinforceTypeId');
+      if (!reinforceRows.has(reinforceTypeId)) return null;
+
+      const baseAttack: Partial<Record<DamageType, number>> = {};
+      const calcCorrectIds: Partial<Record<DamageType, number>> = {};
+      for (const [dt, atkField, ctField] of DAMAGE_FIELDS) {
+        const base = num(f, atkField);
+        if (!base) continue;
+        baseAttack[dt] = base;
+        const graphId = num(f, ctField);
+        usedGraphs.add(graphId);
+        if (graphId !== DEFAULT_DAMAGE_CALC_CORRECT_GRAPH_ID)
+          calcCorrectIds[dt] = graphId;
+      }
+      // No damage = not an armament we can rate (e.g. some shields/torches).
+      if (Object.keys(baseAttack).length === 0) return null;
+
+      const scaling: Partial<Record<ScalingAttr, number>> = {};
+      for (const [attr, correctField] of SCALING_FIELDS) {
+        const v = num(f, correctField);
+        if (v) scaling[attr] = v / 100;
+      }
+
+      const requirements: Partial<Record<ScalingAttr, number>> = {};
+      const reqFields: readonly [ScalingAttr, string][] = [
+        ['str', 'properStrength'],
+        ['dex', 'properAgility'],
+        ['int', 'properMagic'],
+        ['fai', 'properFaith'],
+        ['arc', 'properLuck'],
+      ];
+      for (const [attr, field] of reqFields) {
+        const v = num(f, field);
+        if (v) requirements[attr] = v;
+      }
+
+      const attackElementCorrectId = num(f, 'attackElementCorrectId');
+      usedReinforce.add(reinforceTypeId);
+      usedAec.add(attackElementCorrectId);
+      return {
+        id,
+        reinforceTypeId,
+        attackElementCorrectId,
+        requirements,
+        baseAttack,
+        scaling,
+        calcCorrectIds,
+      };
+    };
+
+    const weaponScaling = (
+      yield* decodeCategory(
+        paramFiles,
+        'EquipParamWeapon',
+        names.WeaponName,
+        buildScaling,
+      )
+    ).filter((x): x is WeaponScalingRecord => x !== null);
+
+    // Reinforce types: rows reinforceTypeId+0 .. +N (consecutive) → per-level rates.
+    const reinforceTypes: ReinforceTypeRecord[] = [...usedReinforce]
+      .toSorted((a, b) => a - b)
+      .map((baseId) => {
+        const levels: ReinforceLevel[] = [];
+        for (let lvl = 0; reinforceRows.has(baseId + lvl); lvl++) {
+          const rr = reinforceRows.get(baseId + lvl);
+          if (!rr) break;
+          levels.push({
+            attack: REINFORCE_ATTACK_RATES.map((k) => num(rr, k)),
+            scaling: SCALING_FIELDS.map(([, , rateField]) => num(rr, rateField)),
+          });
+        }
+        return { id: baseId, levels };
+      });
+
+    // AttackElementCorrectParam: which attributes correct which damage type.
+    const aecRows = yield* decodeParamMap(
+      paramFiles,
+      'AttackElementCorrectParam',
+    );
+    const attackElementCorrects: AttackElementCorrectRecord[] = [...usedAec]
+      .toSorted((a, b) => a - b)
+      .map((id) => {
+        const row = aecRows.get(id);
+        const correct: {
+          -readonly [K in DamageType]?: Partial<Record<ScalingAttr, number | true>>;
+        } = {};
+        if (row) {
+          for (const [dt, suffix] of AEC_DT_SUFFIX) {
+            const entry: Partial<Record<ScalingAttr, number | true>> = {};
+            for (const [attr, , , namePart] of SCALING_FIELDS) {
+              if (num(row, `is${namePart}Correct_by${suffix}`) !== 1) continue;
+              const overwrite = num(row, `overwrite${namePart}CorrectRate_by${suffix}`);
+              entry[attr] = overwrite === -1 ? true : overwrite / 100;
+            }
+            if (Object.keys(entry).length > 0) correct[dt] = entry;
+          }
+        }
+        return { id, correct };
+      });
+
+    // CalcCorrectGraph: the stat→growth saturation curves (5 stages each).
+    const calcCorrectRows = yield* decodeParamMap(paramFiles, 'CalcCorrectGraph');
+    const calcCorrectGraphs: CalcCorrectGraphRecord[] = [...usedGraphs]
+      .toSorted((a, b) => a - b)
+      .flatMap((id) => {
+        const row = calcCorrectRows.get(id);
+        if (!row) return [];
+        const stages: CalcCorrectStage[] = [0, 1, 2, 3, 4].map((i) => ({
+          maxVal: num(row, `stageMaxVal${i}`),
+          maxGrowVal: num(row, `stageMaxGrowVal${i}`) / 100,
+          adjPt: num(row, `adjPt_maxGrowVal${i}`),
+        }));
+        return [{ id, stages }];
+      });
+
     // Negation % = (1 - cutRate) * 100, rounded to 1 dp (the game's display).
     const neg = (f: Row, key: string) =>
       Math.round((1 - num(f, key)) * 1000) / 10;
@@ -701,5 +935,9 @@ export const join = (
       ashesOfWar,
       spells,
       spiritAshes,
+      weaponScaling,
+      reinforceTypes,
+      attackElementCorrects,
+      calcCorrectGraphs,
     };
   });

@@ -15,6 +15,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     projects: [
+      'packages/data/vitest.config.ts',
       'packages/extractor/vitest.config.ts',
       'packages/save-parser/vitest.config.ts',
       'packages/save-parser/vitest.config.perf.ts',

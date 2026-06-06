@@ -6,6 +6,7 @@ import { flags } from './stages/flags.ts';
 import { images } from './stages/images.ts';
 import { join } from './stages/join.ts';
 import { markers } from './stages/markers.ts';
+import { loadGameVersion } from './game/game-version.ts';
 import { loadLegacyConv } from './game/world-map-legacy-conv.ts';
 import { loadPlacements } from './game/placements.ts';
 import { loadSpEffectLabels } from './game/sp-effect-labels.ts';
@@ -31,8 +32,19 @@ export const runPipeline = Effect.gen(function* () {
     Effect.annotateLogs('stage', '2-params'),
   );
   const names = yield* text.pipe(Effect.annotateLogs('stage', '3-text'));
-  const { weapons, armor, talismans, goods, ashesOfWar, spells, spiritAshes } =
-    yield* join(paramFiles, names).pipe(Effect.annotateLogs('stage', '4-join'));
+  const {
+    weapons,
+    armor,
+    talismans,
+    goods,
+    ashesOfWar,
+    spells,
+    spiritAshes,
+    weaponScaling,
+    reinforceTypes,
+    attackElementCorrects,
+    calcCorrectGraphs,
+  } = yield* join(paramFiles, names).pipe(Effect.annotateLogs('stage', '4-join'));
   const {
     graces,
     bosses,
@@ -86,6 +98,10 @@ export const runPipeline = Effect.gen(function* () {
     Effect.annotateLogs('stage', '8-sp-effects'),
   );
 
+  const gameVersion = yield* loadGameVersion(ctx.gameRoot).pipe(
+    Effect.annotateLogs('stage', '8-game-version'),
+  );
+
   yield* images.pipe(Effect.annotateLogs('stage', '8-images'));
   yield* codegen({
     graces,
@@ -101,11 +117,16 @@ export const runPipeline = Effect.gen(function* () {
     ashesOfWar,
     spells,
     spiritAshes,
+    weaponScaling,
+    reinforceTypes,
+    attackElementCorrects,
+    calcCorrectGraphs,
     markers: markerEntities,
     placements: placementRows,
     legacyConv,
     spEffects,
     names,
+    gameVersion,
   }).pipe(Effect.annotateLogs('stage', '9-codegen'));
 
   yield* Effect.logInfo('Done.');

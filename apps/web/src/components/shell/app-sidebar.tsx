@@ -1,3 +1,4 @@
+import { GAME_VERSION } from '@elden-ring-compass/data';
 import { ExternalLinkIcon, SwordIcon } from 'lucide-react';
 
 import { SaveFileSourceSelector } from '@/components/misc/save-file-source-selector';
@@ -8,6 +9,14 @@ import { cn } from '@/lib/utils';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 import { NAV, REPO_URL, type ViewId } from './nav';
+
+// Game data is extracted from a specific Elden Ring build (PE FileVersion of
+// eldenring.exe). Trim trailing ".0" segments for a tidy "1.16" / "1.16.1".
+function prettyVersion(version: string): string {
+  const parts = version.split('.');
+  while (parts.length > 2 && parts[parts.length - 1] === '0') parts.pop();
+  return parts.join('.');
+}
 
 export function AppSidebar({ view, onSelect }: { view: ViewId; onSelect: (view: ViewId) => void }) {
   const slot = useSelectedSlot();
@@ -69,6 +78,17 @@ export function AppSidebar({ view, onSelect }: { view: ViewId; onSelect: (view: 
           <span>Open source on GitHub</span>
           <ExternalLinkIcon className='ml-auto size-3 opacity-60' />
         </a>
+
+        <p
+          className='px-2.5 pt-1 text-[10.5px] text-muted-foreground/70'
+          title={
+            GAME_VERSION
+              ? `Game data extracted from eldenring.exe v${GAME_VERSION} (executable build version)`
+              : 'Game version could not be determined'
+          }
+        >
+          {GAME_VERSION ? `Game data · v${prettyVersion(GAME_VERSION)}` : 'Game data · version unknown'}
+        </p>
       </nav>
 
       {/* Footer: character / connection */}

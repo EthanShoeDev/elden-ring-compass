@@ -15,7 +15,12 @@ import { useMemo } from 'react';
 import { browserKvsRuntime } from '@/lib/atoms/kvs';
 import { InventoryTableType } from '../sections/inventory-data-table-card';
 
-export type TableId = 'events' | 'regions' | 'weapons' | InventoryTableType;
+export type TableId =
+  | 'events'
+  | 'regions'
+  | 'weapons'
+  | 'weapon-calculator'
+  | InventoryTableType;
 
 export type DataTableStateInitProps = {
   tableId: TableId;

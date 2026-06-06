@@ -28,7 +28,7 @@ export const NAV: readonly NavItem[] = [
   { id: 'map', label: 'Map', icon: MapIcon },
   { id: 'bosses', label: 'Bosses', icon: CrownIcon },
   { id: 'inventory', label: 'Inventory', icon: PackageIcon },
-  { id: 'build', label: 'Build', icon: SlidersHorizontalIcon, preview: true },
+  { id: 'build', label: 'Calculator', icon: SlidersHorizontalIcon },
   { id: 'quests', label: 'Quests', icon: ListChecksIcon, preview: true },
   { id: 'overview', label: 'Overview', icon: LayoutDashboardIcon },
 ];
@@ -47,8 +47,8 @@ export const SECTION_META: Record<ViewId, { title: string; sub: string }> = {
     sub: 'Every item class in the game, filterable.',
   },
   build: {
-    title: 'Build Planner',
-    sub: 'Soft-cap aware attribute planner, derived stats & rune cost.',
+    title: 'Weapon Calculator',
+    sub: 'Attack Rating for every weapon at your stats — find your best.',
   },
   quests: {
     title: 'Quest Compass',

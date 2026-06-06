@@ -14,11 +14,15 @@ import type { LegacyConv } from '../game/world-map-legacy-conv.ts';
 import type {
   ArmorRecord,
   AshOfWarRecord,
+  AttackElementCorrectRecord,
+  CalcCorrectGraphRecord,
   GoodRecord,
+  ReinforceTypeRecord,
   SpellRecord,
   SpiritAshRecord,
   TalismanRecord,
   WeaponRecord,
+  WeaponScalingRecord,
 } from './join.ts';
 
 /**
@@ -44,6 +48,10 @@ export interface CodegenInput {
   readonly ashesOfWar: readonly AshOfWarRecord[];
   readonly spells: readonly SpellRecord[];
   readonly spiritAshes: readonly SpiritAshRecord[];
+  readonly weaponScaling: readonly WeaponScalingRecord[];
+  readonly reinforceTypes: readonly ReinforceTypeRecord[];
+  readonly attackElementCorrects: readonly AttackElementCorrectRecord[];
+  readonly calcCorrectGraphs: readonly CalcCorrectGraphRecord[];
   readonly markers: readonly ClassifiedMarker[];
   readonly placements: readonly Placement[];
   readonly legacyConv: readonly LegacyConv[];
@@ -51,6 +59,9 @@ export interface CodegenInput {
   // Name tables for the remaining categories without a decoded stat record
   // (weapon arts) — emitted as {id, name}.
   readonly names: ItemText;
+  // Elden Ring version this dataset was extracted from (e.g. "1.16.0.0"), or
+  // null if it couldn't be read. Surfaced in the web UI.
+  readonly gameVersion: string | null;
 }
 
 interface NamedRecord {
@@ -537,6 +548,80 @@ export const codegen = (input: CodegenInput) =>
       ),
     );
 
+    // AR scaling model — per-weapon refs + the three shared lookup tables. The
+    // runtime AR formula that consumes these lives in `@elden-ring-compass/data`
+    // (`ar.ts`). Sorted by id for deterministic output.
+    const weaponScaling = [...input.weaponScaling].toSorted((a, b) => a.id - b.id);
+    yield* write(
+      'weapon-scaling.ts',
+      // JSON.parse form: 3k+ rows of nested objects trip TS2590 as an inline
+      // array literal (like PLACEMENTS). See `renderDatasetJson`.
+      renderDatasetJson(
+        'WeaponScaling',
+        [
+          'readonly id: number;',
+          'readonly reinforceTypeId: number;',
+          'readonly attackElementCorrectId: number;',
+          'readonly requirements: { readonly str?: number; readonly dex?: number; readonly int?: number; readonly fai?: number; readonly arc?: number };',
+          'readonly baseAttack: { readonly physical?: number; readonly magic?: number; readonly fire?: number; readonly lightning?: number; readonly holy?: number };',
+          'readonly scaling: { readonly str?: number; readonly dex?: number; readonly int?: number; readonly fai?: number; readonly arc?: number };',
+          'readonly calcCorrectIds: { readonly physical?: number; readonly magic?: number; readonly fire?: number; readonly lightning?: number; readonly holy?: number };',
+        ],
+        'WEAPON_SCALING',
+        weaponScaling.map((w) => ({ ...w })),
+      ),
+    );
+
+    const reinforceTypes = [...input.reinforceTypes].toSorted(
+      (a, b) => a.id - b.id,
+    );
+    yield* write(
+      'reinforce-types.ts',
+      // Many reinforce types × 26 levels of tuple arrays — JSON.parse form to stay
+      // under the TS2590 union-complexity ceiling.
+      renderDatasetJson(
+        'ReinforceType',
+        [
+          'readonly id: number;',
+          'readonly levels: readonly { readonly attack: readonly number[]; readonly scaling: readonly number[] }[];',
+        ],
+        'REINFORCE_TYPES',
+        reinforceTypes.map((r) => ({ ...r })),
+      ),
+    );
+
+    const attackElementCorrects = [...input.attackElementCorrects].toSorted(
+      (a, b) => a.id - b.id,
+    );
+    yield* write(
+      'attack-element-correct.ts',
+      renderDataset(
+        'AttackElementCorrect',
+        [
+          'readonly id: number;',
+          'readonly correct: { readonly [damageType: string]: { readonly [attr: string]: number | true } };',
+        ],
+        'ATTACK_ELEMENT_CORRECTS',
+        attackElementCorrects.map((a) => ({ ...a })),
+      ),
+    );
+
+    const calcCorrectGraphs = [...input.calcCorrectGraphs].toSorted(
+      (a, b) => a.id - b.id,
+    );
+    yield* write(
+      'calc-correct-graphs.ts',
+      renderDataset(
+        'CalcCorrectGraph',
+        [
+          'readonly id: number;',
+          'readonly stages: readonly { readonly maxVal: number; readonly maxGrowVal: number; readonly adjPt: number }[];',
+        ],
+        'CALC_CORRECT_GRAPHS',
+        calcCorrectGraphs.map((c) => ({ ...c })),
+      ),
+    );
+
     // Weapon arts have no decoded stat record yet; emit as {id, name} (base + DLC).
     const nameTables: readonly [
       string,
@@ -602,6 +687,17 @@ export const codegen = (input: CodegenInput) =>
 
     yield* write('event-flags.ts', renderEventFlags(yield* loadEventFlagBst));
 
+    // Dataset provenance — the game version it was extracted from. The version is
+    // digits-and-dots (or null), so it's safe to quote directly.
+    const versionLiteral =
+      input.gameVersion === null ? 'null' : `'${input.gameVersion}'`;
+    yield* write(
+      'game-meta.ts',
+      `${HEADER}/** Elden Ring version this dataset was extracted from (PE FileVersion of\n` +
+        ` * eldenring.exe), or null if it couldn't be read. */\n` +
+        `export const GAME_VERSION: string | null = ${versionLiteral};\n`,
+    );
+
     const modules = [
       'graces',
       'bosses',
@@ -612,6 +708,10 @@ export const codegen = (input: CodegenInput) =>
       'goods',
       'spells',
       'spirit-ashes',
+      'weapon-scaling',
+      'reinforce-types',
+      'attack-element-correct',
+      'calc-correct-graphs',
       'arts',
       'regions',
       'map-fragments',
@@ -621,6 +721,7 @@ export const codegen = (input: CodegenInput) =>
       'world-map-legacy-conv',
       'sp-effects',
       'event-flags',
+      'game-meta',
     ];
     const index =
       HEADER +
@@ -632,7 +733,9 @@ export const codegen = (input: CodegenInput) =>
       `codegen → @elden-ring-compass/data: ${graces.length} graces, ${bosses.length} bosses, ` +
         `${weapons.length} weapons, ${armor.length} armor, ${talismans.length} talismans, ` +
         `${goods.length} goods, ${ashesOfWar.length} ashes of war, ${spells.length} spells, ` +
-        `${spiritAshes.length} spirit ashes, ${mapFragments.length} map fragments, ` +
+        `${spiritAshes.length} spirit ashes, ${weaponScaling.length} weapon-scaling ` +
+        `(${reinforceTypes.length} reinforce / ${attackElementCorrects.length} elem-correct / ` +
+        `${calcCorrectGraphs.length} calc-correct), ${mapFragments.length} map fragments, ` +
         `${input.markers.length} markers, ${input.placements.length} placements, ` +
         `${input.legacyConv.length} legacy-conv base points, ` +
         `${input.spEffects.length} sp-effect labels (+ arts name table)`,
