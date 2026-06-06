@@ -1,14 +1,14 @@
 import { GAME_VERSION } from '@elden-ring-compass/data';
+import { Link } from '@tanstack/react-router';
 import { ExternalLinkIcon, SwordIcon } from 'lucide-react';
 
 import { SaveFileSourceSelector } from '@/components/misc/save-file-source-selector';
 import { GithubIcon } from '@/components/shell/github-icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { statsDbView } from '@/lib/vm/stats';
-import { cn } from '@/lib/utils';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
-import { NAV, REPO_URL, type ViewId } from './nav';
+import { NAV, REPO_URL } from './nav';
 
 // Game data is extracted from a specific Elden Ring build (PE FileVersion of
 // eldenring.exe). Trim trailing ".0" segments for a tidy "1.16" / "1.16.1".
@@ -18,7 +18,7 @@ function prettyVersion(version: string): string {
   return parts.join('.');
 }
 
-export function AppSidebar({ view, onSelect }: { view: ViewId; onSelect: (view: ViewId) => void }) {
+export function AppSidebar() {
   const slot = useSelectedSlot();
   const connected = !!slot;
   const stats = slot ? statsDbView(slot) : null;
@@ -43,19 +43,16 @@ export function AppSidebar({ view, onSelect }: { view: ViewId; onSelect: (view: 
         </div>
         {NAV.map((item) => {
           const Icon = item.icon;
-          const active = view === item.id;
           return (
-            <button
-              key={item.id}
-              type='button'
-              onClick={() => onSelect(item.id)}
-              data-active={active}
-              className={cn(
-                'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors',
-                active
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-              )}
+            <Link
+              key={item.to}
+              to={item.to}
+              activeOptions={{ exact: item.exact }}
+              className='flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors'
+              activeProps={{ className: 'bg-primary text-primary-foreground' }}
+              inactiveProps={{
+                className: 'text-muted-foreground hover:bg-muted hover:text-foreground',
+              }}
             >
               <Icon className='size-[18px]' />
               <span>{item.label}</span>
@@ -64,7 +61,7 @@ export function AppSidebar({ view, onSelect }: { view: ViewId; onSelect: (view: 
                   Preview
                 </span>
               )}
-            </button>
+            </Link>
           );
         })}
 

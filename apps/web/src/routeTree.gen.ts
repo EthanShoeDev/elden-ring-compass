@@ -10,42 +10,116 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShareRouteImport } from './routes/share'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppQuestsRouteImport } from './routes/_app/quests'
+import { Route as AppOverviewRouteImport } from './routes/_app/overview'
+import { Route as AppInventoryRouteImport } from './routes/_app/inventory'
+import { Route as AppBuildRouteImport } from './routes/_app/build'
+import { Route as AppBossesRouteImport } from './routes/_app/bosses'
 
 const ShareRoute = ShareRouteImport.update({
   id: '/share',
   path: '/share',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
+} as any)
+const AppQuestsRoute = AppQuestsRouteImport.update({
+  id: '/quests',
+  path: '/quests',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOverviewRoute = AppOverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInventoryRoute = AppInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBuildRoute = AppBuildRouteImport.update({
+  id: '/build',
+  path: '/build',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBossesRoute = AppBossesRouteImport.update({
+  id: '/bosses',
+  path: '/bosses',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AppIndexRoute
   '/share': typeof ShareRoute
+  '/bosses': typeof AppBossesRoute
+  '/build': typeof AppBuildRoute
+  '/inventory': typeof AppInventoryRoute
+  '/overview': typeof AppOverviewRoute
+  '/quests': typeof AppQuestsRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/share': typeof ShareRoute
+  '/bosses': typeof AppBossesRoute
+  '/build': typeof AppBuildRoute
+  '/inventory': typeof AppInventoryRoute
+  '/overview': typeof AppOverviewRoute
+  '/quests': typeof AppQuestsRoute
+  '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
   '/share': typeof ShareRoute
+  '/_app/bosses': typeof AppBossesRoute
+  '/_app/build': typeof AppBuildRoute
+  '/_app/inventory': typeof AppInventoryRoute
+  '/_app/overview': typeof AppOverviewRoute
+  '/_app/quests': typeof AppQuestsRoute
+  '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/share'
+  fullPaths:
+    | '/'
+    | '/share'
+    | '/bosses'
+    | '/build'
+    | '/inventory'
+    | '/overview'
+    | '/quests'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/share'
-  id: '__root__' | '/' | '/share'
+  to:
+    | '/share'
+    | '/bosses'
+    | '/build'
+    | '/inventory'
+    | '/overview'
+    | '/quests'
+    | '/'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/share'
+    | '/_app/bosses'
+    | '/_app/build'
+    | '/_app/inventory'
+    | '/_app/overview'
+    | '/_app/quests'
+    | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
   ShareRoute: typeof ShareRoute
 }
 
@@ -58,18 +132,80 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShareRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/quests': {
+      id: '/_app/quests'
+      path: '/quests'
+      fullPath: '/quests'
+      preLoaderRoute: typeof AppQuestsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/overview': {
+      id: '/_app/overview'
+      path: '/overview'
+      fullPath: '/overview'
+      preLoaderRoute: typeof AppOverviewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/inventory': {
+      id: '/_app/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof AppInventoryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/build': {
+      id: '/_app/build'
+      path: '/build'
+      fullPath: '/build'
+      preLoaderRoute: typeof AppBuildRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/bosses': {
+      id: '/_app/bosses'
+      path: '/bosses'
+      fullPath: '/bosses'
+      preLoaderRoute: typeof AppBossesRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
+interface AppRouteChildren {
+  AppBossesRoute: typeof AppBossesRoute
+  AppBuildRoute: typeof AppBuildRoute
+  AppInventoryRoute: typeof AppInventoryRoute
+  AppOverviewRoute: typeof AppOverviewRoute
+  AppQuestsRoute: typeof AppQuestsRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppBossesRoute: AppBossesRoute,
+  AppBuildRoute: AppBuildRoute,
+  AppInventoryRoute: AppInventoryRoute,
+  AppOverviewRoute: AppOverviewRoute,
+  AppQuestsRoute: AppQuestsRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
   ShareRoute: ShareRoute,
 }
 export const routeTree = rootRouteImport

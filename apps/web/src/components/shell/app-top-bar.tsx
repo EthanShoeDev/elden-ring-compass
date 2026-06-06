@@ -1,23 +1,21 @@
+import { Link, useLocation } from '@tanstack/react-router';
+
 import { DarkModeToggle } from '@/components/misc/dark-mode-toggle';
 import { SaveFileSourceSelector } from '@/components/misc/save-file-source-selector';
 import { ShareButton } from '@/components/misc/share-button';
-import { cn } from '@/lib/utils';
 
 import { DlcSwitch } from './dlc-switch';
-import { NAV, SECTION_META, type ViewId } from './nav';
+import { NAV, SECTION_META } from './nav';
 
 export function AppTopBar({
-  view,
-  onSelect,
   dlc,
   onToggleDlc,
 }: {
-  view: ViewId;
-  onSelect: (view: ViewId) => void;
   dlc: boolean;
   onToggleDlc: (on: boolean) => void;
 }) {
-  const meta = SECTION_META[view];
+  const pathname = useLocation({ select: (l) => l.pathname });
+  const meta = SECTION_META[pathname] ?? { title: 'Elden Ring Compass', sub: '' };
 
   return (
     <div className='sticky top-0 z-20 flex flex-col border-b border-border bg-background/85 backdrop-blur'>
@@ -40,22 +38,20 @@ export function AppTopBar({
       <div className='flex gap-1 overflow-x-auto px-2 pb-1 md:hidden'>
         {NAV.map((item) => {
           const Icon = item.icon;
-          const active = view === item.id;
           return (
-            <button
-              key={item.id}
-              type='button'
-              onClick={() => onSelect(item.id)}
-              className={cn(
-                'flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
-                active
-                  ? 'border-foreground text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground',
-              )}
+            <Link
+              key={item.to}
+              to={item.to}
+              activeOptions={{ exact: item.exact }}
+              className='flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors'
+              activeProps={{ className: 'border-foreground text-foreground' }}
+              inactiveProps={{
+                className: 'border-transparent text-muted-foreground hover:text-foreground',
+              }}
             >
               <Icon className='size-4' />
               <span>{item.label}</span>
-            </button>
+            </Link>
           );
         })}
       </div>

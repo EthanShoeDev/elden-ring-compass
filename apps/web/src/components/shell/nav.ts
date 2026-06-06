@@ -1,3 +1,4 @@
+import { type LinkProps } from '@tanstack/react-router';
 import {
   CrownIcon,
   LayoutDashboardIcon,
@@ -9,52 +10,54 @@ import {
 } from 'lucide-react';
 
 /**
- * The dashboard's primary navigation. Map leads — the app is fully explorable
- * without a save, and the world map is the hero landing view (see the
+ * The dashboard's primary navigation. Each entry is its own TanStack Router
+ * route under the `_app` layout. Map leads — the app is fully explorable
+ * without a save, and the world map is the hero landing view at `/` (see the
  * compass-app design kit: README "UI kits"). Build & Quests are scaffolded
  * previews of future features (docs/projects/future/*).
  */
-export type ViewId = 'map' | 'bosses' | 'inventory' | 'build' | 'quests' | 'overview';
-
 export type NavItem = {
-  id: ViewId;
+  /** Route path under the `_app` layout. Typed against the generated route tree. */
+  to: LinkProps['to'];
   label: string;
   icon: LucideIcon;
+  /** Match this route exactly (only the index/map route needs it). */
+  exact?: boolean;
   /** Scaffolded preview of an unimplemented feature. */
   preview?: boolean;
 };
 
 export const NAV: readonly NavItem[] = [
-  { id: 'map', label: 'Map', icon: MapIcon },
-  { id: 'bosses', label: 'Bosses', icon: CrownIcon },
-  { id: 'inventory', label: 'Inventory', icon: PackageIcon },
-  { id: 'build', label: 'Calculator', icon: SlidersHorizontalIcon },
-  { id: 'quests', label: 'Quests', icon: ListChecksIcon, preview: true },
-  { id: 'overview', label: 'Overview', icon: LayoutDashboardIcon },
+  { to: '/', label: 'Map', icon: MapIcon, exact: true },
+  { to: '/bosses', label: 'Bosses', icon: CrownIcon },
+  { to: '/inventory', label: 'Inventory', icon: PackageIcon },
+  { to: '/build', label: 'Calculator', icon: SlidersHorizontalIcon },
+  { to: '/quests', label: 'Quests', icon: ListChecksIcon, preview: true },
+  { to: '/overview', label: 'Overview', icon: LayoutDashboardIcon },
 ];
 
-export const SECTION_META: Record<ViewId, { title: string; sub: string }> = {
-  map: {
+export const SECTION_META: Record<string, { title: string; sub: string }> = {
+  '/': {
     title: 'Interactive Map',
     sub: 'Explore the Lands Between — graces, bosses, and everywhere you’ve been.',
   },
-  bosses: {
+  '/bosses': {
     title: 'Bosses',
     sub: 'Demigods, shardbearers, and the path to the Erdtree.',
   },
-  inventory: {
+  '/inventory': {
     title: 'Inventory',
     sub: 'Every item class in the game, filterable.',
   },
-  build: {
+  '/build': {
     title: 'Weapon Calculator',
     sub: 'Attack Rating for every weapon at your stats — find your best.',
   },
-  quests: {
+  '/quests': {
     title: 'Quest Compass',
     sub: 'Save-aware guidance on what to do next.',
   },
-  overview: {
+  '/overview': {
     title: 'Overview',
     sub: 'Your run at a glance.',
   },

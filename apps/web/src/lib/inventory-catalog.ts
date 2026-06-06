@@ -15,6 +15,7 @@ import {
 } from '@elden-ring-compass/data';
 
 import { useSelectedSlot } from '@/stores/slot-selection-store';
+import { enrichWeapon } from './weapon-affinity';
 import { inventoryDbView } from './vm/inventory';
 import { itemPins } from './vm/map-pins';
 
@@ -28,7 +29,9 @@ const goodsIn = (category: string) => GOODS.filter((g) => g.category === categor
  * `GOODS` categories are intentionally not also surfaced here (no duplication).
  */
 export const CATALOG = {
-  armaments: WEAPONS.filter((w) => !AMMO_CATEGORIES.has(w.category)),
+  // Enriched with derived affinity fields so the armaments table can collapse the
+  // ~13 affinity variants of each weapon to one base row (see weapon-affinity.ts).
+  armaments: WEAPONS.filter((w) => !AMMO_CATEGORIES.has(w.category)).map(enrichWeapon),
   ammo: WEAPONS.filter((w) => AMMO_CATEGORIES.has(w.category)),
   armor: ARMOR,
   talismans: TALISMANS,

@@ -11,8 +11,11 @@ import {
 import { DataTable } from '@/components/data-table/data-table';
 import { TooltipImg } from '@/components/misc/tooltip-img';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ComboboxSelect } from '@/components/ui/combobox-select';
+import { Label } from '@/components/ui/label';
 import { browserKvsRuntime } from '@/lib/atoms/kvs';
+import { showAffinityVariantsAtom } from '@/lib/atoms/weapons';
 import { useDataTableData } from '@/lib/data-table-data';
 import { CATALOG, useInventoryTables, type WithOwnership } from '@/lib/inventory-catalog';
 
@@ -33,10 +36,20 @@ export function InventoryDataTableCard() {
   const [tableName, setTableName] = useAtom(inventoryTableSelectionAtom);
   const table = (tableName in tables ? tableName : 'armaments') as InventoryTableType;
   const setTableType = (next: InventoryTableType) => setTableName(next);
+  const [showVariants, setShowVariants] = useAtom(showAffinityVariantsAtom);
   const allTables = useInventoryTables();
 
-  const items = useDataTableData(table);
-  const ownedCount = allTables[table].ownedCount;
+  const allItems = useDataTableData(table);
+
+  // Only armaments carry affinity variants; collapse them to one base row per weapon
+  // unless the user opts in. See docs/projects/future/coalesce-items-with-affinities.md.
+  const collapsible = table === 'armaments';
+  const items =
+    collapsible && !showVariants
+      ? allItems.filter((i) => (i as { affinityIndex?: number }).affinityIndex === 0)
+      : allItems;
+  const hiddenVariantCount = collapsible ? allItems.length - items.length : 0;
+  const ownedCount = items.filter((i) => i.quantity > 0).length;
 
   return (
     <Card className='w-full'>
@@ -78,9 +91,26 @@ export function InventoryDataTableCard() {
           {ownedCount} / {items.length}
           <br />
           {((ownedCount / items.length) * 100).toFixed(0)}% owned
+          {collapsible && !showVariants && hiddenVariantCount > 0 && (
+            <>
+              <br />
+              {hiddenVariantCount} affinity variants hidden
+            </>
+          )}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className='space-y-4'>
+        {collapsible && (
+          <Label className='flex items-center gap-2'>
+            <Checkbox
+              checked={showVariants}
+              onCheckedChange={(checked) => {
+                setShowVariants(checked);
+              }}
+            />
+            Show affinity variants
+          </Label>
+        )}
         <DataTable tableId={table} columns={tables[table].columns} data={items} />
       </CardContent>
     </Card>
@@ -150,6 +180,7 @@ const armamentColumns = (() => {
   return [
     ...defaultColumns(h),
     commonAccessorColumnDef(h, 'category', 'Category'),
+    commonAccessorColumnDef(h, 'affinity', 'Affinity'),
     commonAccessorColumnDef(h, 'allowAshOfWar', 'Allow AOW'),
     commonAccessorColumnDef(h, 'isBuffable', 'Buffable'),
     commonAccessorColumnDef(h, 'weaponUpgradeLevel', 'Upgrade Level'),
