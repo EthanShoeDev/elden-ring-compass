@@ -1,3 +1,49 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:2651e0c001e9e9f011155cc1281fd8dd56ea1c1691b8d5b6139ab15e932e2e2e
-size 1237
+<?xml version="1.0"?>
+<image xmlns="http://www.vips.ecs.soton.ac.uk//dzsave" date="2026-06-02T20:23:05.543837-04" version="8.17.3">
+  <properties>
+    <property>
+      <name>width</name>
+      <value type="gint">16384</value>
+    </property>
+    <property>
+      <name>height</name>
+      <value type="gint">16384</value>
+    </property>
+    <property>
+      <name>bands</name>
+      <value type="gint">4</value>
+    </property>
+    <property>
+      <name>xoffset</name>
+      <value type="gint">0</value>
+    </property>
+    <property>
+      <name>yoffset</name>
+      <value type="gint">0</value>
+    </property>
+    <property>
+      <name>xres</name>
+      <value type="gdouble">1</value>
+    </property>
+    <property>
+      <name>yres</name>
+      <value type="gdouble">1</value>
+    </property>
+    <property>
+      <name>vips-loader</name>
+      <value type="VipsRefString">pngload_buffer</value>
+    </property>
+    <property>
+      <name>bits-per-sample</name>
+      <value type="gint">8</value>
+    </property>
+    <property>
+      <name>vips-sequential</name>
+      <value type="gint">1</value>
+    </property>
+    <property>
+      <name>loop</name>
+      <value type="gint">1</value>
+    </property>
+  </properties>
+</image>
