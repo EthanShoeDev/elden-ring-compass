@@ -1,38 +1,110 @@
 import { ColumnDef, ColumnHelper, Row } from '@tanstack/react-table';
-import { CheckIcon, XIcon } from 'lucide-react';
-import { Checkbox } from '../ui/checkbox';
+import { CheckIcon, MapPinIcon, XIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { DataTableColumnHeader } from './data-table-column-header';
 
-export const commonSelectColumnDef = <T,>(columnHelper: ColumnHelper<T>): ColumnDef<T> =>
+/**
+ * The map-pin affordance that replaces the old select checkbox. A row's
+ * "selection" is what drops it as a pin on the interactive map, so the control
+ * reads as a pin: a hollow MapPin you can fill, an amber filled pin when pinned,
+ * and a muted dash for rows with no extracted overworld location (those can't be
+ * pinned — `row.getCanSelect()` is false). Mirrors the compass-app design kit's
+ * `PinToggle`.
+ */
+function PinToggle({
+  state,
+  onToggle,
+  title,
+}: {
+  state: 'on' | 'ind' | 'off';
+  onToggle: () => void;
+  title: string;
+}) {
+  return (
+    <button
+      type='button'
+      aria-label={title}
+      title={title}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle();
+      }}
+      className={cn(
+        'inline-flex size-[30px] items-center justify-center rounded-md border transition-colors',
+        state === 'on'
+          ? 'border-amber-500/60 bg-amber-500/15 text-amber-400'
+          : state === 'ind'
+            ? 'border-amber-500/40 text-amber-400/90 hover:bg-amber-500/10'
+            : 'border-input text-muted-foreground hover:border-amber-500/55 hover:bg-amber-500/10 hover:text-amber-400',
+      )}
+    >
+      <MapPinIcon className='size-[15px]' fill={state === 'on' ? 'currentColor' : 'none'} />
+    </button>
+  );
+}
+
+function PinUnavailable() {
+  return (
+    <span
+      className='inline-flex size-[30px] items-center justify-center'
+      title="No map data — can't be pinned"
+    >
+      <span className='block h-0.5 w-2.5 rounded-sm bg-muted-foreground/35' />
+    </span>
+  );
+}
+
+/**
+ * Pin column for the data tables. Pinning a row = placing it on the map, so the
+ * header pins/unpins every pinnable row on the page and each cell toggles a
+ * single row. (Formerly a select-all / row checkbox.)
+ */
+export const commonPinColumnDef = <T,>(columnHelper: ColumnHelper<T>): ColumnDef<T> =>
   columnHelper.display({
-    id: 'select',
-    size: 1,
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        indeterminate={table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => {
-          table.toggleAllPageRowsSelected(value);
-        }}
-        aria-label='Select all'
-      />
-    ),
-    cell: ({ row }) => {
+    id: 'pin',
+    size: 56,
+    header: ({ table }) => {
+      const all = table.getIsAllPageRowsSelected();
+      const some = table.getIsSomePageRowsSelected();
       return (
-        <Checkbox
-          disabled={!row.getCanSelect()}
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => {
-            row.toggleSelected(value);
-          }}
-          aria-label='Select row'
-          className='ml-2 translate-y-[2px]'
-        />
+        <div className='flex flex-col items-center gap-0.5'>
+          <PinToggle
+            state={all ? 'on' : some ? 'ind' : 'off'}
+            onToggle={() => {
+              table.toggleAllPageRowsSelected(!all);
+            }}
+            title={all ? 'Unpin this page' : 'Pin all on this page'}
+          />
+          <span className='text-[9px] font-bold tracking-wider text-muted-foreground uppercase'>
+            Pin
+          </span>
+        </div>
       );
     },
-    enableSorting: true,
+    cell: ({ row }) => {
+      if (!row.getCanSelect()) {
+        return (
+          <div className='flex justify-center'>
+            <PinUnavailable />
+          </div>
+        );
+      }
+      const on = row.getIsSelected();
+      return (
+        <div className='flex justify-center'>
+          <PinToggle
+            state={on ? 'on' : 'off'}
+            onToggle={() => {
+              row.toggleSelected(!on);
+            }}
+            title={on ? 'Remove pin' : 'Pin on map'}
+          />
+        </div>
+      );
+    },
+    enableSorting: false,
     enableHiding: false,
-    enableResizing: true,
+    enableResizing: false,
     enableColumnFilter: false,
   });
 

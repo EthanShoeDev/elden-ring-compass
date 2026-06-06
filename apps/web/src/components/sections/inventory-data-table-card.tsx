@@ -3,21 +3,39 @@ import { ColumnDef, ColumnHelper, createColumnHelper } from '@tanstack/react-tab
 import { Schema } from 'effect';
 import { Atom } from 'effect/unstable/reactivity';
 import { useAtom } from '@effect/atom-react';
+import {
+  ActivityIcon,
+  ChevronsUpDownIcon,
+  CrownIcon,
+  FileCheckIcon,
+  FlameIcon,
+  InfoIcon,
+  ListChecksIcon,
+  PackageIcon,
+  SkullIcon,
+  SparklesIcon,
+  SquarePenIcon,
+  StarIcon,
+  SwordsIcon,
+  type LucideIcon,
+} from 'lucide-react';
+import { useState } from 'react';
 
 import {
   commonAccessorColumnDef,
-  commonSelectColumnDef,
+  commonPinColumnDef,
 } from '@/components/data-table/common-column-defs';
 import { DataTable } from '@/components/data-table/data-table';
 import { TooltipImg } from '@/components/misc/tooltip-img';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ComboboxSelect } from '@/components/ui/combobox-select';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { browserKvsRuntime } from '@/lib/atoms/kvs';
 import { showAffinityVariantsAtom } from '@/lib/atoms/weapons';
 import { useDataTableData } from '@/lib/data-table-data';
 import { CATALOG, useInventoryTables, type WithOwnership } from '@/lib/inventory-catalog';
+import { cn } from '@/lib/utils';
 
 export type { InventoryTableType } from '@/lib/inventory-catalog';
 import type { InventoryTableType } from '@/lib/inventory-catalog';
@@ -31,6 +49,116 @@ const inventoryTableSelectionAtom = Atom.kvs({
   schema: Schema.String,
   defaultValue: () => 'armaments',
 });
+
+// Per-category icon (Lucide), mirroring the design kit's CAT_ICON.
+const CAT_ICON: Record<InventoryTableType, LucideIcon> = {
+  armaments: SwordsIcon,
+  ammo: SwordsIcon,
+  armor: PackageIcon,
+  talismans: StarIcon,
+  ashes: FlameIcon,
+  sorceries: SparklesIcon,
+  incantations: FlameIcon,
+  spirits: SkullIcon,
+  consumables: PackageIcon,
+  craftingMaterials: PackageIcon,
+  upgradeMaterials: PackageIcon,
+  crystalTears: ActivityIcon,
+  physick: ActivityIcon,
+  keyItems: FileCheckIcon,
+  remembrances: CrownIcon,
+  greatRunes: CrownIcon,
+  infoItems: InfoIcon,
+  craftingTools: SquarePenIcon,
+  gestures: ListChecksIcon,
+};
+
+// The 19 item classes, grouped into subcategories for the picker dropdown.
+const INV_GROUPS: ReadonlyArray<{ label: string; keys: ReadonlyArray<InventoryTableType> }> = [
+  { label: 'Equipment', keys: ['armaments', 'ammo', 'armor', 'talismans', 'ashes'] },
+  { label: 'Magic', keys: ['sorceries', 'incantations', 'spirits'] },
+  {
+    label: 'Goods',
+    keys: ['consumables', 'craftingMaterials', 'upgradeMaterials', 'crystalTears', 'physick'],
+  },
+  {
+    label: 'Progression',
+    keys: ['keyItems', 'remembrances', 'greatRunes', 'infoItems', 'craftingTools', 'gestures'],
+  },
+];
+
+/**
+ * Grouped category dropdown — the card title doubles as the picker. Mirrors the
+ * design kit's `CategoryPicker`: a chevron trigger opening a scrollable menu of
+ * the 19 item classes, grouped into subcategories, each with its icon and an
+ * owned/total readout.
+ */
+function CategoryPicker({
+  table,
+  onSelect,
+  allTables,
+}: {
+  table: InventoryTableType;
+  onSelect: (k: InventoryTableType) => void;
+  allTables: ReturnType<typeof useInventoryTables>;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        render={
+          <button
+            type='button'
+            aria-label='Select item category'
+            className='inline-flex items-center gap-2 text-2xl font-semibold tracking-tight outline-none'
+          />
+        }
+      >
+        {tables[table].label}
+        <ChevronsUpDownIcon className='size-5 opacity-50' />
+      </PopoverTrigger>
+      <PopoverContent align='start' className='w-80 p-1'>
+        <div className='flex max-h-[60vh] flex-col overflow-y-auto'>
+          {INV_GROUPS.map((group) => (
+            <div key={group.label} className='pb-1'>
+              <div className='px-2 py-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase'>
+                {group.label}
+              </div>
+              {group.keys.map((key) => {
+                const Icon = CAT_ICON[key];
+                const owned = allTables[key].ownedCount;
+                const total = allTables[key].items.length;
+                const active = key === table;
+                return (
+                  <button
+                    key={key}
+                    type='button'
+                    onClick={() => {
+                      onSelect(key);
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
+                      active
+                        ? 'bg-muted font-medium text-foreground'
+                        : 'text-foreground hover:bg-muted',
+                    )}
+                  >
+                    <Icon className='size-[15px] shrink-0 opacity-70' />
+                    <span className='flex-1 text-left'>{tables[key].label}</span>
+                    <span className='font-mono text-[11px] text-muted-foreground'>
+                      {owned}/{total} ({total > 0 ? Math.round((owned / total) * 100) : 0}%)
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export function InventoryDataTableCard() {
   const [tableName, setTableName] = useAtom(inventoryTableSelectionAtom);
@@ -54,39 +182,7 @@ export function InventoryDataTableCard() {
   return (
     <Card className='w-full'>
       <CardHeader>
-        <CardTitle>
-          <ComboboxSelect
-            placeholder='Filter by category'
-            valueState={[
-              table,
-              (val) => {
-                if (!val) return;
-                setTableType(val as InventoryTableType);
-              },
-            ]}
-            emptyLabel=''
-            items={Object.entries(tables).map(([tableId, info]) => {
-              const key = tableId as InventoryTableType;
-              const ownedCount = allTables[key].ownedCount;
-              const count = allTables[key].items.length;
-              return {
-                label: info.label,
-                value: key,
-                dropDownItem: (
-                  <>
-                    <span>{info.label}</span>
-                    <span className='ml-auto font-mono text-muted-foreground'>
-                      {ownedCount}/{count} (
-                      {((ownedCount / count) * 100).toFixed(0).padStart(2, ' ')}
-                      %)
-                    </span>
-                  </>
-                ),
-              };
-            })}
-            triggerButtonClassName='text-2xl font-semibold h-auto'
-          />
-        </CardTitle>
+        <CategoryPicker table={table} onSelect={setTableType} allTables={allTables} />
         <CardDescription>
           {ownedCount} / {items.length}
           <br />
@@ -150,7 +246,7 @@ function defaultColumns<T extends BaseRow>(columnHelperT: ColumnHelper<T>): Arra
   // oxlint-disable-next-line unknown-cast/forbidden -- TanStack ColumnHelper is invariant in its row type; we reuse one helper across the shared BaseRow shape
   const columnHelper = columnHelperT as unknown as ColumnHelper<BaseRow>;
   return [
-    commonSelectColumnDef(columnHelper),
+    commonPinColumnDef(columnHelper),
     commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
     columnHelper.display({
       id: 'icon',

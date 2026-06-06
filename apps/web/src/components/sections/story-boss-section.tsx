@@ -2,7 +2,7 @@ import { eventFlagOffset } from '@elden-ring-compass/data';
 import { itemIconUrl } from '@elden-ring-compass/data/images';
 import { CheckIcon, CrownIcon, SwordIcon } from 'lucide-react';
 
-import { SaveFileSourceSelector } from '@/components/misc/save-file-source-selector';
+import { ConnectSaveButton } from '@/components/misc/save-file-source-selector';
 import { cn } from '@/lib/utils';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
@@ -95,7 +95,7 @@ export function StoryBossSection() {
             <span className='text-muted-foreground'>· the road from Limgrave to the Erdtree</span>
           </span>
           <div className='ml-auto'>
-            <SaveFileSourceSelector />
+            <ConnectSaveButton variant='outline' size='sm' />
           </div>
         </div>
       )}

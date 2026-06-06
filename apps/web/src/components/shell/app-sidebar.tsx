@@ -1,8 +1,12 @@
 import { GAME_VERSION } from '@elden-ring-compass/data';
 import { Link } from '@tanstack/react-router';
-import { ExternalLinkIcon, SwordIcon } from 'lucide-react';
+import { ExternalLinkIcon, HandshakeIcon, SwordIcon } from 'lucide-react';
 
-import { SaveFileSourceSelector } from '@/components/misc/save-file-source-selector';
+import {
+  ConnectSaveButton,
+  DisconnectButton,
+  SlotSelector,
+} from '@/components/misc/save-file-source-selector';
 import { GithubIcon } from '@/components/shell/github-icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { statsDbView } from '@/lib/vm/stats';
@@ -65,11 +69,23 @@ export function AppSidebar() {
           );
         })}
 
+        <Link
+          to='/credits'
+          className='mt-auto flex items-center gap-2 rounded-md px-2.5 py-2 text-[12.5px] transition-colors'
+          activeProps={{ className: 'bg-muted text-foreground' }}
+          inactiveProps={{
+            className: 'text-muted-foreground hover:bg-muted hover:text-foreground',
+          }}
+        >
+          <HandshakeIcon className='size-4' />
+          <span>Acknowledgments</span>
+        </Link>
+
         <a
           href={REPO_URL}
           target='_blank'
           rel='noreferrer'
-          className='mt-auto flex items-center gap-2 rounded-md px-2.5 py-2 text-[12.5px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+          className='flex items-center gap-2 rounded-md px-2.5 py-2 text-[12.5px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
         >
           <GithubIcon className='size-4' />
           <span>Open source on GitHub</span>
@@ -77,14 +93,16 @@ export function AppSidebar() {
         </a>
 
         <p
-          className='px-2.5 pt-1 text-[10.5px] text-muted-foreground/70'
+          className='px-2.5 pt-1 text-center text-[10.5px] text-muted-foreground/70'
           title={
             GAME_VERSION
               ? `Game data extracted from eldenring.exe v${GAME_VERSION} (executable build version)`
               : 'Game version could not be determined'
           }
         >
-          {GAME_VERSION ? `Game data · v${prettyVersion(GAME_VERSION)}` : 'Game data · version unknown'}
+          {GAME_VERSION
+            ? `Game data · v${prettyVersion(GAME_VERSION)}`
+            : 'Game data · version unknown'}
         </p>
       </nav>
 
@@ -109,16 +127,20 @@ export function AppSidebar() {
         </div>
 
         {connected ? (
-          <div className='flex items-center gap-2 rounded-lg border border-green-500/40 bg-green-500/10 px-3 py-2 text-xs'>
-            <span className='relative flex size-2 shrink-0'>
-              <span className='absolute inline-flex size-full animate-ping rounded-full bg-green-500 opacity-60' />
-              <span className='relative inline-flex size-2 rounded-full bg-green-500' />
-            </span>
-            <span className='font-semibold'>Live</span>
-            <span className='text-muted-foreground'>· synced from your save</span>
+          <div className='flex flex-col gap-2'>
+            <SlotSelector />
+            <div className='flex items-center gap-2 rounded-lg border border-green-500/40 bg-green-500/10 px-3 py-1.5 text-xs'>
+              <span className='relative flex size-2 shrink-0'>
+                <span className='absolute inline-flex size-full animate-ping rounded-full bg-green-500 opacity-60' />
+                <span className='relative inline-flex size-2 rounded-full bg-green-500' />
+              </span>
+              <span className='font-semibold'>Live</span>
+              <span className='truncate text-muted-foreground'>· synced</span>
+              <DisconnectButton className='-mr-1 ml-auto size-6 text-muted-foreground hover:text-foreground' />
+            </div>
           </div>
         ) : (
-          <SaveFileSourceSelector />
+          <ConnectSaveButton className='w-full' />
         )}
       </div>
     </aside>

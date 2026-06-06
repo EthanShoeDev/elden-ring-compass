@@ -2,7 +2,7 @@ import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 
 import { useDataTableData } from '@/lib/data-table-data';
 import { eventsDbView } from '@/lib/vm/events';
-import { commonAccessorColumnDef, commonSelectColumnDef } from '../data-table/common-column-defs';
+import { commonAccessorColumnDef, commonPinColumnDef } from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
@@ -31,7 +31,7 @@ export function EventsDataTable() {
 
 const columnHelper = createColumnHelper<Event>();
 const columns: Array<ColumnDef<Event>> = [
-  commonSelectColumnDef(columnHelper),
+  commonPinColumnDef(columnHelper),
   commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
   commonAccessorColumnDef(columnHelper, 'name', 'Name', {
     filterFn: 'includesString',

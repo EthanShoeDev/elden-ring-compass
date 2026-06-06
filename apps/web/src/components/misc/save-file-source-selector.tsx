@@ -1,30 +1,56 @@
-import { Label } from '@/components/ui/label';
+import { itemIconUrl } from '@elden-ring-compass/data/images';
 import { useEldenRingSave } from '@/lib/atoms/save';
 import { fileToArrBuffer } from '@/lib/er-save-parser';
+import { cn } from '@/lib/utils';
 import { saveFileSourceAtom } from '@/stores/save-file-source-store';
 import { useSlotNameSelection } from '@/stores/slot-selection-store';
 import { useAtomSet, useAtomValue } from '@effect/atom-react';
 import { ClientOnly } from '@tanstack/react-router';
 import { formatDistance } from 'date-fns';
 import {
+  CheckIcon,
   EditIcon,
   FileCheckIcon,
   Link2OffIcon,
   LinkIcon,
   RefreshCcwIcon,
+  SwordIcon,
   UnplugIcon,
+  UploadCloudIcon,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CodeSnippet } from './code-snippet';
-import { CopyCodeSnippet } from './copy-button';
 import { Button } from '../ui/button';
 import { ComboboxSelect } from '../ui/combobox-select';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../ui/dialog';
 import { Input } from '../ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { Spinner } from '../ui/spinner';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 
-export function SaveFileSourceSelector() {
+// Path to the in-repo sample save, served from /public — lets people explore a
+// real, connected dashboard without owning the game.
+const SAMPLE_SAVE_URL = '/ER0000.sl2';
+const DEFAULT_LOCAL_URL = 'http://localhost:8080/ER0000.sl2';
+
+// Faint remembrance art behind the modal (Godfrey), echoing the design kit's
+// `modal-art`. Decorative only.
+const MODAL_ART = itemIconUrl(170);
+
+/**
+ * The Connect-a-save flow, as a centered modal (was an app-bar dropdown).
+ * Connecting is optional — the whole app is explorable without a save — so this
+ * lives behind a button and *personalizes* every section. Mirrors the
+ * compass-app design kit's `ConnectModal`: faint remembrance art, a sword mark,
+ * a File/URL toggle, a drag-and-drop zone, and read-only reassurances.
+ */
+function ConnectSaveContent() {
   const saveFileSource = useAtomValue(saveFileSourceAtom);
   const setSaveFileSource = useAtomSet(saveFileSourceAtom);
   const save = useEldenRingSave();
@@ -32,167 +58,274 @@ export function SaveFileSourceSelector() {
   const [type, setType] = useState<'file' | 'url'>(
     saveFileSource && 'url' in saveFileSource ? 'url' : 'file',
   );
-
-  // The save source is restored from localStorage, which is empty during SSR.
-  // Source-dependent UI is therefore client-only (<ClientOnly>) so the server
-  // and first client render agree — both show the "connect" state — avoiding a
-  // hydration mismatch.
-  const connectLabel = (
-    <>
-      <UnplugIcon />
-      Connect your save file
-    </>
+  const [drag, setDrag] = useState(false);
+  const [urlInput, setUrlInput] = useState(() =>
+    saveFileSource && 'url' in saveFileSource ? saveFileSource.url : DEFAULT_LOCAL_URL,
   );
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (file: File) => {
+    setSaveFileSource({
+      file: { buffer: await fileToArrBuffer(file), name: file.name },
+    });
+  };
 
   return (
-    <>
-      <SteamIdLabel />
-      <SlotSelector />
-      <ClientOnly>{saveFileSource && <RefreshButton />}</ClientOnly>
-      <Popover>
-        <PopoverTrigger render={<Button className='flex gap-2' />}>
-          <ClientOnly fallback={connectLabel}>
-            {!saveFileSource && connectLabel}
-            {saveFileSource && 'file' in saveFileSource && (
-              <>
-                <FileCheckIcon />
-                File Uploaded
-              </>
-            )}
-            {saveFileSource &&
-              'url' in saveFileSource &&
-              (save.isError ? (
-                <>
-                  <Link2OffIcon />
-                  Url Error
-                </>
-              ) : (
-                <>
-                  <LinkIcon />
-                  Url Connected
-                </>
-              ))}
-          </ClientOnly>
-        </PopoverTrigger>
-        <PopoverContent className='w-[600px] max-w-full'>
-          <div className='flex flex-col items-start gap-4'>
-            <Label>Select source</Label>
-            <ToggleGroup
-              className='rounded-md border'
-              value={[type]}
-              onValueChange={(v) => {
-                const next = v[v.length - 1];
-                if (next) setType(next as 'file' | 'url');
-              }}
-            >
-              <ToggleGroupItem
-                className='w-20 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground'
-                value='file'
-              >
-                File
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                className='w-20 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground'
-                value='url'
-              >
-                Url
-              </ToggleGroupItem>
-            </ToggleGroup>
-            {type === 'file' ? (
-              <>
-                <div className='w-full'>
-                  <a
-                    className='hover:underline'
-                    target='_blank'
-                    rel='noreferrer'
-                    href='https://store.steampowered.com/account/remotestorageapp/?appid=1245620'
-                  >
-                    Download save from Steam Cloud
-                  </a>
-                  <p>or upload the file located at:</p>
-                  <CopyCodeSnippet
-                    snippet={String.raw`%AppData%\EldenRing\YOUR_STEAM_ID\ER0000.sl2`}
-                  />
-                </div>
+    <div className='relative flex flex-col gap-5'>
+      <img
+        src={MODAL_ART}
+        alt=''
+        aria-hidden
+        className='pointer-events-none absolute -top-10 -right-10 size-48 object-contain opacity-[0.08] select-none'
+      />
 
-                {saveFileSource && 'file' in saveFileSource ? (
-                  <div className='flex items-center gap-2'>
-                    File: {saveFileSource.file.name}
-                    <Button
-                      variant='secondary'
-                      onClick={() => {
-                        setSaveFileSource(undefined);
-                      }}
-                    >
-                      <EditIcon />
-                    </Button>
-                  </div>
-                ) : (
-                  <Input
-                    type='file'
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setSaveFileSource({
-                          file: {
-                            buffer: await fileToArrBuffer(file),
-                            name: file.name,
-                          },
-                        });
-                      }
-                    }}
-                  />
+      <DialogHeader className='gap-2.5'>
+        <span className='flex size-11 items-center justify-center rounded-xl border border-border bg-muted text-foreground'>
+          <SwordIcon className='size-6' />
+        </span>
+        <DialogTitle className='text-[22px] leading-tight font-bold tracking-tight'>
+          Connect your save
+        </DialogTitle>
+        <DialogDescription className='leading-relaxed'>
+          Personalize the Compass — boss progression, owned items, character stats, and which graces
+          you’ve discovered. It’s read-only and stays on your device.
+        </DialogDescription>
+      </DialogHeader>
+
+      <ToggleGroup
+        className='self-start rounded-md border'
+        value={[type]}
+        onValueChange={(v) => {
+          const next = v[v.length - 1];
+          if (next) setType(next as 'file' | 'url');
+        }}
+      >
+        <ToggleGroupItem
+          className='gap-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground'
+          value='file'
+        >
+          <FileCheckIcon className='size-3.5' />
+          Upload File
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          className='gap-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground'
+          value='url'
+        >
+          <LinkIcon className='size-3.5' />
+          Local URL
+        </ToggleGroupItem>
+      </ToggleGroup>
+
+      {type === 'file' ? (
+        <div className='flex flex-col gap-2.5'>
+          {saveFileSource && 'file' in saveFileSource ? (
+            <div className='flex items-center justify-between gap-2 rounded-lg border border-green-500/40 bg-green-500/10 px-3.5 py-3'>
+              <span className='flex min-w-0 items-center gap-2 text-sm'>
+                <FileCheckIcon className='size-4 shrink-0 text-green-500' />
+                <span className='truncate'>{saveFileSource.file.name}</span>
+              </span>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => {
+                  setSaveFileSource(undefined);
+                }}
+              >
+                <EditIcon /> Change
+              </Button>
+            </div>
+          ) : (
+            <>
+              <button
+                type='button'
+                onClick={() => fileRef.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDrag(true);
+                }}
+                onDragLeave={() => {
+                  setDrag(false);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDrag(false);
+                  const f = e.dataTransfer.files?.[0];
+                  if (f) void handleFile(f);
+                }}
+                className={cn(
+                  'flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-8 text-center transition-colors',
+                  drag
+                    ? 'border-green-500/70 bg-green-500/5'
+                    : 'border-border hover:border-green-500/50 hover:bg-green-500/5',
                 )}
-              </>
-            ) : (
-              <>
-                <p>Run in powershell to host the save file on a local server:</p>
+              >
+                <span className='flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground'>
+                  <UploadCloudIcon className='size-[22px]' />
+                </span>
+                <span className='text-[15px] font-semibold'>
+                  Drop your save here, or click to browse
+                </span>
+                <span className='font-mono text-xs text-muted-foreground'>ER0000.sl2</span>
+              </button>
+              <input
+                ref={fileRef}
+                type='file'
+                aria-label='Upload Elden Ring save file'
+                className='hidden'
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void handleFile(f);
+                }}
+              />
+            </>
+          )}
+          <a
+            className='text-[12.5px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline'
+            target='_blank'
+            rel='noreferrer'
+            href='https://store.steampowered.com/account/remotestorageapp/?appid=1245620'
+          >
+            Download save from Steam Cloud
+          </a>
+          <p className='font-mono text-[11.5px] leading-relaxed text-muted-foreground'>
+            %AppData%\EldenRing\YOUR_STEAM_ID\ER0000.sl2
+          </p>
+        </div>
+      ) : (
+        <div className='flex flex-col gap-3'>
+          <Input
+            type='url'
+            className='font-mono'
+            placeholder={DEFAULT_LOCAL_URL}
+            value={urlInput}
+            onChange={(e) => {
+              setUrlInput(e.target.value);
+            }}
+          />
+          <Button
+            variant='default'
+            onClick={() => {
+              setSaveFileSource({ url: urlInput });
+            }}
+          >
+            <LinkIcon /> Connect &amp; start polling
+          </Button>
+          <details className='text-muted-foreground'>
+            <summary className='cursor-pointer text-[12.5px] underline-offset-2 hover:text-foreground'>
+              How do I host my save locally?
+            </summary>
+            <div className='mt-2 flex flex-col gap-2'>
+              <p className='text-[12.5px]'>
+                Run this in PowerShell, then enter the url it serves above:
+              </p>
+              <CodeSnippet>
+                {`cd (Join-Path "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" (Get-ChildItem "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" -Directory | Select-Object -First 1).Name) ; npx http-server -p 8080 --cors -c-1`}
+              </CodeSnippet>
+            </div>
+          </details>
+        </div>
+      )}
 
-                <CodeSnippet>
-                  {`
-cd (Join-Path "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" (Get-ChildItem "C:\\Users\\$env:USERNAME\\AppData\\Roaming\\EldenRing" -Directory | Select-Object -First 1).Name) ; npx http-server -p 8080 --cors -c-1
-`}
-                </CodeSnippet>
-                <p>Then paste the url below: </p>
+      <ConnectStatusLine />
 
-                <CopyCodeSnippet snippet='http://localhost:8080/ER0000.sl2' />
+      <div className='flex flex-wrap gap-x-4 gap-y-1.5 text-[12.5px] text-muted-foreground'>
+        <span className='flex items-center gap-1.5'>
+          <CheckIcon className='size-3.5 text-green-500' /> Read-only — never writes your save
+        </span>
+        <span className='flex items-center gap-1.5'>
+          <CheckIcon className='size-3.5 text-green-500' /> Parsed locally · can’t get you banned
+        </span>
+      </div>
 
-                <p>Test save: </p>
-                <CopyCodeSnippet snippet='/ER0000.sl2' />
-                <Input
-                  type='url'
-                  placeholder='http://localhost:8080/ER0000.sl2'
-                  value={saveFileSource && 'url' in saveFileSource ? saveFileSource.url : ''}
-                  onChange={(e) => {
-                    setSaveFileSource({ url: e.target.value });
-                  }}
-                />
-              </>
-            )}
-            {save.isLoading ? (
-              <div>Loading...</div>
-            ) : save.isError ? (
-              <div>Error: {save.error?.message}</div>
-            ) : save.isSuccess ? (
-              <div>Success!</div>
-            ) : null}
-          </div>
-        </PopoverContent>
-      </Popover>
-    </>
+      <div className='flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4'>
+        <DialogClose
+          render={<Button variant='ghost' size='sm' />}
+          onClick={() => {
+            setType('url');
+            setUrlInput(SAMPLE_SAVE_URL);
+            setSaveFileSource({ url: SAMPLE_SAVE_URL });
+          }}
+        >
+          Use a sample save →
+        </DialogClose>
+        <DialogClose render={<Button variant={save.data ? 'default' : 'ghost'} size='sm' />}>
+          {save.data ? 'Done' : 'Maybe later'}
+        </DialogClose>
+      </div>
+    </div>
   );
 }
 
-function SlotSelector() {
+function ConnectStatusLine() {
+  const save = useEldenRingSave();
+  return (
+    <ClientOnly>
+      {save.isLoading ? (
+        <div className='text-[13px] text-muted-foreground'>Loading…</div>
+      ) : save.isError ? (
+        <div className='flex items-center gap-1.5 text-[13px] text-destructive'>
+          <Link2OffIcon className='size-4' /> {save.error?.message ?? 'Failed to read save'}
+        </div>
+      ) : save.isSuccess ? (
+        <div className='flex items-center gap-1.5 text-[13px] text-green-500'>
+          <CheckIcon className='size-4' /> Save connected
+        </div>
+      ) : null}
+    </ClientOnly>
+  );
+}
+
+/** A button that opens the centered Connect-a-save modal. */
+export function ConnectSaveButton({
+  children,
+  ...buttonProps
+}: React.ComponentProps<typeof Button>) {
+  return (
+    <Dialog>
+      <DialogTrigger render={<Button {...buttonProps} />}>
+        {children ?? (
+          <>
+            <FileCheckIcon /> Connect a save
+          </>
+        )}
+      </DialogTrigger>
+      <DialogContent className='overflow-hidden sm:max-w-md'>
+        <ConnectSaveContent />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Disconnect the active save (clears the source). */
+export function DisconnectButton({ className, ...props }: React.ComponentProps<typeof Button>) {
+  const setSaveFileSource = useAtomSet(saveFileSourceAtom);
+  return (
+    <Button
+      variant='ghost'
+      size='icon-sm'
+      title='Disconnect save'
+      onClick={() => {
+        setSaveFileSource(undefined);
+      }}
+      className={className}
+      {...props}
+    >
+      <UnplugIcon />
+      <span className='sr-only'>Disconnect save</span>
+    </Button>
+  );
+}
+
+export function SlotSelector() {
   const { data } = useEldenRingSave();
   const slotState = useSlotNameSelection();
-  if (!data) return <></>;
+  if (!data) return null;
   return (
     <ComboboxSelect
       valueState={slotState}
       emptyLabel='No slot selected'
       placeholder='Select slot from save file'
-      triggerButtonClassName='w-[200px]'
+      triggerButtonClassName='w-full'
       popoverContentClassName='w-[200px]'
       items={data.slots
         .map((slot) => slot.player_game_data.character_name)
@@ -204,13 +337,8 @@ function SlotSelector() {
   );
 }
 
-function SteamIdLabel() {
-  const { data } = useEldenRingSave();
-  if (!data) return <></>;
-  return <Label>Steam ID: {data.global_steam_id}</Label>;
-}
-
-function RefreshButton() {
+/** "Re-read save" — a run-scoped control for the top bar when connected. */
+export function RefreshButton() {
   const saveFileSource = useAtomValue(saveFileSourceAtom);
   const save = useEldenRingSave();
   const [now, setNow] = useState<number>(() => Date.now());
@@ -224,32 +352,24 @@ function RefreshButton() {
     };
   }, [setNow]);
 
+  if (!saveFileSource) return null;
+
   return (
     <Button
-      variant='ghost'
+      variant='outline'
+      size='sm'
       disabled={save.isFetching || (!!saveFileSource && 'file' in saveFileSource)}
-      className='flex gap-2'
       onClick={() => {
         save.refresh();
       }}
+      title={
+        save.data && save.dataUpdatedAt
+          ? `Updated ${formatDistance(save.dataUpdatedAt, now, { addSuffix: true, includeSeconds: true })}`
+          : 'Re-read save'
+      }
     >
-      {save.isFetching ? (
-        <>
-          <Spinner />
-          Loading...
-        </>
-      ) : (
-        <>
-          <RefreshCcwIcon />
-          Updated{' '}
-          {save.data && save.dataUpdatedAt
-            ? formatDistance(save.dataUpdatedAt, now, {
-                addSuffix: true,
-                includeSeconds: true,
-              })
-            : 'never'}
-        </>
-      )}
+      <RefreshCcwIcon className={save.isFetching ? 'animate-spin' : undefined} />
+      Re-read save
     </Button>
   );
 }

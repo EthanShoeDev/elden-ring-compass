@@ -10,7 +10,7 @@
  * calibration toggle) and computes the selected markers from the shared data-table
  * selection (effect-atom).
  */
-import { InfoIcon } from 'lucide-react';
+import { InfoIcon, MapPinIcon, SkullIcon, Trash2Icon } from 'lucide-react';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 
 import { useDataTableData } from '@/lib/data-table-data';
@@ -20,7 +20,7 @@ import {
   useInventoryTables,
 } from '@/lib/inventory-catalog';
 import { playerToMasterPixel } from '@/lib/map-affine';
-import { itemPins } from '@/lib/vm/map-pins';
+import { bossPinByFlag, itemPins } from '@/lib/vm/map-pins';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 import { useRowSelectionControls, useTableStateMap } from '../data-table/data-table-store';
@@ -70,6 +70,20 @@ function useSelectedPins(): MapPin[] {
                   master: e.pixel.master,
                   px: e.pixel.px,
                   py: e.pixel.py,
+                },
+              ];
+            }
+            if (tableId === 'bosses') {
+              const pin = bossPinByFlag.get(Number(id));
+              if (!pin) return [];
+              return [
+                {
+                  name: pin.name,
+                  category: 'Boss',
+                  description: '',
+                  master: pin.master,
+                  px: pin.px,
+                  py: pin.py,
                 },
               ];
             }
@@ -222,22 +236,22 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
         </div>
       )}
 
-      {/* Marker selection (overworld). Mirrors the old map's buttons. */}
-      <div className='flex flex-wrap gap-2'>
-        <Button variant='secondary' onClick={() => selectEvents('grace', true)}>
-          Discovered Graces
+      {/* Marker presets + legend — kept below the map so they never cover it. */}
+      <div className='flex flex-wrap items-center gap-2'>
+        <Button variant='secondary' size='sm' onClick={() => selectEvents('grace', true)}>
+          <MapPinIcon className='text-amber-400' /> Discovered Graces
         </Button>
-        <Button variant='secondary' onClick={() => selectEvents('grace', false)}>
-          Undiscovered Graces
+        <Button variant='secondary' size='sm' onClick={() => selectEvents('grace', false)}>
+          <MapPinIcon /> Undiscovered Graces
         </Button>
-        <Button variant='secondary' onClick={() => selectEvents('boss', true)}>
-          Completed Bosses
+        <Button variant='secondary' size='sm' onClick={() => selectEvents('boss', true)}>
+          <SkullIcon /> Completed Bosses
         </Button>
-        <Button variant='secondary' onClick={() => selectEvents('boss', false)}>
-          Incomplete Bosses
+        <Button variant='secondary' size='sm' onClick={() => selectEvents('boss', false)}>
+          <SkullIcon /> Incomplete Bosses
         </Button>
-        <Button variant='ghost' onClick={clearPins}>
-          Clear Pins
+        <Button variant='ghost' size='sm' onClick={clearPins}>
+          <Trash2Icon /> Clear Pins
         </Button>
         <Tooltip>
           <TooltipTrigger>
@@ -248,6 +262,26 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
             <p>Markers show on the overworld (Lands Between) map.</p>
           </TooltipContent>
         </Tooltip>
+      </div>
+
+      {/* Legend — colored pins matching the map markers. */}
+      <div className='flex flex-wrap items-center gap-x-4 gap-y-1 text-[11.5px] text-muted-foreground'>
+        <span className='flex items-center gap-1'>
+          <MapPinIcon className='size-3.5' style={{ color: '#ecbd4a' }} fill='currentColor' /> Sites
+          of Grace
+        </span>
+        <span className='flex items-center gap-1'>
+          <MapPinIcon className='size-3.5' style={{ color: '#e24a4a' }} fill='currentColor' />{' '}
+          Bosses
+        </span>
+        <span className='flex items-center gap-1'>
+          <MapPinIcon className='size-3.5' style={{ color: '#3cbfdb' }} fill='currentColor' /> Item
+          pickups
+        </span>
+        <span className='flex items-center gap-1.5'>
+          <span className='size-2.5 rounded-full bg-amber-500 ring-2 ring-amber-500/40' /> You are
+          here
+        </span>
       </div>
     </div>
   );

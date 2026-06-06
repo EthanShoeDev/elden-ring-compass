@@ -17,6 +17,7 @@ import { InventoryTableType } from '../sections/inventory-data-table-card';
 
 export type TableId =
   | 'events'
+  | 'bosses'
   | 'regions'
   | 'weapons'
   | 'weapon-calculator'

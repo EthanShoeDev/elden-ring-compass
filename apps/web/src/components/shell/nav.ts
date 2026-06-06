@@ -1,10 +1,10 @@
 import { type LinkProps } from '@tanstack/react-router';
 import {
-  CrownIcon,
   LayoutDashboardIcon,
   ListChecksIcon,
   MapIcon,
   PackageIcon,
+  SkullIcon,
   SlidersHorizontalIcon,
   type LucideIcon,
 } from 'lucide-react';
@@ -29,7 +29,7 @@ export type NavItem = {
 
 export const NAV: readonly NavItem[] = [
   { to: '/', label: 'Map', icon: MapIcon, exact: true },
-  { to: '/bosses', label: 'Bosses', icon: CrownIcon },
+  { to: '/bosses', label: 'Bosses', icon: SkullIcon },
   { to: '/inventory', label: 'Inventory', icon: PackageIcon },
   { to: '/build', label: 'Calculator', icon: SlidersHorizontalIcon },
   { to: '/quests', label: 'Quests', icon: ListChecksIcon, preview: true },
@@ -60,6 +60,10 @@ export const SECTION_META: Record<string, { title: string; sub: string }> = {
   '/overview': {
     title: 'Overview',
     sub: 'Your run at a glance.',
+  },
+  '/credits': {
+    title: 'Acknowledgments',
+    sub: 'The open-source projects Compass is built on top of.',
   },
 };
 

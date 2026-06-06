@@ -8,7 +8,7 @@ import {
   weaponSearchAtom,
   type EnrichedWeapon,
 } from '@/lib/atoms/weapons';
-import { commonAccessorColumnDef, commonSelectColumnDef } from '../data-table/common-column-defs';
+import { commonAccessorColumnDef, commonPinColumnDef } from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Checkbox } from '../ui/checkbox';
@@ -62,7 +62,7 @@ export function WeaponsDataTable() {
 
 const columnHelper = createColumnHelper<EnrichedWeapon>();
 const columns: Array<ColumnDef<EnrichedWeapon>> = [
-  commonSelectColumnDef(columnHelper),
+  commonPinColumnDef(columnHelper),
   commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
   commonAccessorColumnDef(columnHelper, 'name', 'Name'),
   commonAccessorColumnDef(columnHelper, 'affinity', 'Affinity'),

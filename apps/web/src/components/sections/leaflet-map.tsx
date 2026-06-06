@@ -20,14 +20,10 @@ import {
   CRS,
   divIcon,
   GridLayer,
-  icon,
   type LatLngBounds,
   latLngBounds,
   TileLayer as LeafletTileLayer,
 } from 'leaflet';
-import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
-import iconUrl from 'leaflet/dist/images/marker-icon.png';
-import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 import { useEffect, useMemo, useState } from 'react';
 import { MapContainer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 
@@ -134,15 +130,46 @@ function ExistenceTileLayer({
   return null;
 }
 
-const markerIcon = icon({
-  iconUrl,
-  iconRetinaUrl,
-  shadowUrl,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+// Marker colour by pin category — graces gold, bosses red, item pickups cyan
+// (mirrors the design kit's PIN_COLOR). Pins are otherwise identical teardrops;
+// the colour is what distinguishes them at a glance. See the legend in
+// `map-section.tsx`.
+const PIN_COLOR = {
+  grace: '#ecbd4a',
+  boss: '#e24a4a',
+  item: '#3cbfdb',
+  default: '#a89a87',
+} as const;
+
+export function categoryColor(category: string): string {
+  const c = category.toLowerCase();
+  if (c.includes('grace')) return PIN_COLOR.grace;
+  if (c.includes('boss')) return PIN_COLOR.boss;
+  if (c.includes('treasure') || c.includes('drop')) return PIN_COLOR.item;
+  return PIN_COLOR.default;
+}
+
+// One divIcon per colour, cached and shared across markers.
+const pinIconCache = new Map<string, ReturnType<typeof divIcon>>();
+function pinIcon(category: string) {
+  const color = categoryColor(category);
+  const cached = pinIconCache.get(color);
+  if (cached) return cached;
+  const html =
+    `<svg width="24" height="24" viewBox="0 0 24 24" fill="${color}" stroke="#fff" ` +
+    `stroke-width="1.5" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))">` +
+    `<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>` +
+    `<circle cx="12" cy="10" r="2.6" fill="#fff" stroke="none"/></svg>`;
+  const ic = divIcon({
+    className: '',
+    html,
+    iconSize: [24, 24],
+    iconAnchor: [12, 22],
+    popupAnchor: [0, -20],
+  });
+  pinIconCache.set(color, ic);
+  return ic;
+}
 
 /** Distinct "you are here" marker — a pulsing amber dot, centered on its point. */
 const playerIcon = divIcon({
@@ -161,7 +188,11 @@ function MarkerLayer({ pins, zoom }: { pins: MapPin[]; zoom: number }) {
   return (
     <>
       {pins.map((pin, i) => (
-        <Marker key={i} position={map.unproject([pin.px, pin.py], zoom)} icon={markerIcon}>
+        <Marker
+          key={i}
+          position={map.unproject([pin.px, pin.py], zoom)}
+          icon={pinIcon(pin.category)}
+        >
           <Popup>
             <div className='select-text'>
               <strong>{pin.name}</strong>

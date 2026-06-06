@@ -1,10 +1,11 @@
-import { WeaponArCalculator } from '@/components/sections/weapon-ar-calculator';
+import { BuildPlannerSection } from '@/components/sections/build-planner';
 
 /**
- * Build / Calculator view. v1 is the save-aware Weapon AR Calculator
- * (docs/projects/min-maxing-calculators.md). The attribute planner + rune-cost
- * tools described there are still future work.
+ * Build / Calculator view: a soft-cap-aware attribute planner (sliders prefilled
+ * from the save) that drives estimated derived stats, a rune-cost readout, and
+ * the live Weapon AR ranking — one shared attribute model
+ * (docs/projects/min-maxing-calculators.md).
  */
 export function BuildView() {
-  return <WeaponArCalculator />;
+  return <BuildPlannerSection />;
 }

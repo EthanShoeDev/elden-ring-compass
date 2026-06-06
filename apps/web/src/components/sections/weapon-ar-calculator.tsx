@@ -1,6 +1,6 @@
 import { WEAPONS } from '@elden-ring-compass/data';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { baseIdOf, enrichWeapon } from '@/lib/atoms/weapons';
 import {
@@ -19,30 +19,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Checkbox } from '../ui/checkbox';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-
-// The five attributes that affect Attack Rating (vigor/mind/endurance don't).
-const AR_ATTRS = [
-  ['str', 'Str'],
-  ['dex', 'Dex'],
-  ['int', 'Int'],
-  ['fai', 'Fai'],
-  ['arc', 'Arc'],
-] as const;
-
-const DEFAULT_ATTRS: Attributes = { str: 15, dex: 15, int: 15, fai: 15, arc: 15 };
+import { Slider } from '../ui/slider';
 
 // Non-armament placeholders that have an AR row but aren't real weapons:
 // "DLC dummy" (id 1000, absurd all-element scaling) and "Unarmed" (110000).
 const EXCLUDED_WEAPON_IDS = new Set([1000, 110000]);
 
-type Slot = NonNullable<ReturnType<typeof useSelectedSlot>>;
-const attrsFromSlot = (slot: Slot): Attributes => ({
-  str: slot.player_game_data.strength,
-  dex: slot.player_game_data.dexterity,
-  int: slot.player_game_data.intelligence,
-  fai: slot.player_game_data.faith,
-  arc: slot.player_game_data.arcane,
-});
+const sliderNum = (v: number | readonly number[]): number =>
+  typeof v === 'number' ? v : (v[0] ?? 0);
 
 interface RatedWeapon {
   readonly id: number;
@@ -60,10 +44,10 @@ interface RatedWeapon {
 }
 
 /**
- * Weapon AR Calculator — the first save-aware min-maxing tool. Rates every
- * armament's Attack Rating at the player's real stats (auto-filled from the
- * connected save, editable for theorycrafting) and ranks them, so "what's the
- * best weapon for my build?" is answered by the top of the table.
+ * Weapon AR Calculator — the save-aware min-maxing table. Rates every armament's
+ * Attack Rating at the given attributes (driven by the Build Planner's sliders,
+ * which prefill from the connected save) and ranks them, so "what's the best
+ * weapon for my build?" is answered by the top of the table.
  *
  * Three modes:
  *  - default (collapsed): one row per base weapon, showing its **best affinity**
@@ -71,21 +55,14 @@ interface RatedWeapon {
  *  - "show every affinity": all ~3.2k infused variants.
  *  - "only weapons I own": rate the armaments actually in the save's inventory.
  */
-export function WeaponArCalculator() {
+export function WeaponArTable({ attrs }: { attrs: Attributes }) {
   const slot = useSelectedSlot();
 
-  const [attrs, setAttrs] = useState<Attributes>(slot ? attrsFromSlot(slot) : DEFAULT_ATTRS);
   const [upgrade, setUpgrade] = useState(MAX_UPGRADE_LEVEL);
   const [twoHanding, setTwoHanding] = useState(false);
   const [showVariants, setShowVariants] = useState(false);
   const [ownedOnly, setOwnedOnly] = useState(false);
   const [search, setSearch] = useState('');
-
-  // Re-sync the inputs whenever the active save changes (connect / switch slot).
-  // Manual edits persist until then (the effect only refires on `slot` identity).
-  useEffect(() => {
-    if (slot) setAttrs(attrsFromSlot(slot));
-  }, [slot]);
 
   // weapon id → highest owned upgrade level, from the save's inventory.
   const ownedById = useMemo(() => {
@@ -155,8 +132,6 @@ export function WeaponArCalculator() {
     return filtered.toSorted((a, b) => b.ar - a.ar);
   }, [attrs, upgrade, twoHanding, showVariants, ownedOnly, search, ownedById]);
 
-  const synced = !!slot && AR_ATTRS.every(([k]) => attrs[k] === attrsFromSlot(slot)[k]);
-
   // The Owned column is only meaningful with a save connected.
   const columns = useMemo<Array<ColumnDef<RatedWeapon>>>(() => {
     const cols = [
@@ -180,72 +155,21 @@ export function WeaponArCalculator() {
       <CardHeader>
         <CardTitle>Weapon AR Calculator</CardTitle>
         <CardDescription>
-          {rows.length} {ownedOnly ? 'owned armaments' : 'weapons'} ranked by Attack Rating at your
-          stats
-          {slot ? (
-            synced ? (
-              <> · synced from {slot.player_game_data.character_name || 'your save'}</>
-            ) : (
-              <> · edited (was {slot.player_game_data.character_name || 'your save'})</>
-            )
-          ) : (
-            <> · enter stats or load a save</>
-          )}
+          {rows.length} {ownedOnly ? 'owned armaments' : 'weapons'} ranked by Attack Rating at the
+          attributes above.
         </CardDescription>
       </CardHeader>
       <CardContent className='space-y-5'>
-        {/* Stat inputs */}
-        <div className='flex flex-wrap items-end gap-3'>
-          {AR_ATTRS.map(([key, label]) => (
-            <div key={key} className='flex flex-col gap-1'>
-              <Label className='text-[11px] text-muted-foreground' htmlFor={`ar-attr-${key}`}>
-                {label}
-              </Label>
-              <Input
-                id={`ar-attr-${key}`}
-                type='number'
-                min={1}
-                max={99}
-                className='w-16'
-                value={attrs[key]}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  setAttrs((prev) => ({
-                    ...prev,
-                    [key]: Number.isFinite(v) ? Math.max(1, Math.min(99, Math.round(v))) : 1,
-                  }));
-                }}
-              />
-            </div>
-          ))}
-          {slot && !synced && (
-            <button
-              type='button'
-              className='h-9 rounded-md border border-border px-3 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
-              onClick={() => {
-                setAttrs(attrsFromSlot(slot));
-              }}
-            >
-              Reset to save
-            </button>
-          )}
-        </div>
-
         {/* Controls */}
         <div className='flex flex-wrap items-end gap-4'>
-          <div className='flex flex-col gap-1'>
-            <Label className='text-[11px] text-muted-foreground' htmlFor='ar-upgrade'>
-              Upgrade +{upgrade}
-            </Label>
-            <Input
-              id='ar-upgrade'
-              type='range'
+          <div className='flex w-44 flex-col gap-1'>
+            <Label className='text-[11px] text-muted-foreground'>Upgrade +{upgrade}</Label>
+            <Slider
               min={0}
               max={MAX_UPGRADE_LEVEL}
-              className='w-40'
               value={upgrade}
-              onChange={(e) => {
-                setUpgrade(Number(e.target.value));
+              onValueChange={(v) => {
+                setUpgrade(sliderNum(v));
               }}
             />
           </div>

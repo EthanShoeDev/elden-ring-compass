@@ -44,6 +44,19 @@ export const bossFlagToPixel: ReadonlyMap<number, MasterPixel> = new Map(
   }),
 );
 
+/** A boss pin (its name + overworld position) keyed by its defeat-flag id. */
+export interface BossPin extends MasterPixel {
+  name: string;
+}
+
+/** Boss defeat-flag id → placed pin, for the all-bosses table's map selection. */
+export const bossPinByFlag: ReadonlyMap<number, BossPin> = new Map(
+  BOSSES.flatMap((b) => {
+    const p = overworldMarkerToMasterPixel(b.mapId, b.x, b.z);
+    return p ? [[b.defeatFlagId, { ...p, name: b.name ?? 'Unknown boss' }] as const] : [];
+  }),
+);
+
 // Item ids are NOT globally unique — each item TYPE (weapon/armor/goods/talisman/
 // ash-of-war) has its own id space, so e.g. weapon 1040000 (Reduvia) and armor
 // 1040000 are different items. Key pins by `${itemType}:${itemId}` to avoid

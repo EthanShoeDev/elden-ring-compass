@@ -1,4 +1,5 @@
-import { ExternalLinkIcon, StarIcon, WrenchIcon } from 'lucide-react';
+import { CircleDotIcon, StarIcon, SwordIcon } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 
 import { GithubIcon } from '@/components/shell/github-icon';
@@ -13,34 +14,24 @@ import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { Button } from './ui/button';
 import { Spinner } from './ui/spinner';
 
-const CREDITS = [
-  {
-    label: 'Elden Ring Progression Tracker',
-    href: 'https://github.com/elden-ring-progression-tracker/elden-ring-progression-tracker.github.io',
-  },
-  { label: 'ER Save Editor', href: 'https://github.com/ClayAmore/ER-Save-Editor' },
-  { label: 'ERDB', href: 'https://github.com/EldenRingDatabase/erdb' },
-];
-
 export function Footer() {
   return (
     <footer className='flex flex-col gap-5 border-t border-border px-4 pt-7 pb-9 md:px-7'>
       <div className='flex flex-wrap items-start justify-between gap-5'>
-        <div className='flex max-w-md flex-col gap-2'>
+        <div className='flex max-w-lg flex-col gap-2'>
           <div className='flex items-center gap-2 text-[15px] font-bold'>
-            <GithubIcon className='size-4' />
-            Open source
+            <SwordIcon className='size-4' />
+            Elden Ring Compass
           </div>
           <p className='text-[12.5px] leading-relaxed text-muted-foreground'>
-            Elden Ring Compass is a free, read-only save analyzer. It never writes to your save.
-            Found bad data or a missing item? Contributions are welcome — feel free to submit a PR
-            to help correct the data.
+            A free, open-source, read-only save analyzer for Elden Ring. It runs entirely in your
+            browser — your save never leaves your device. Built by the community; contributions and
+            data fixes are welcome.
           </p>
         </div>
 
         <div className='flex flex-wrap gap-2'>
           <Button
-            variant='outline'
             size='sm'
             render={
               <a href={REPO_URL} target='_blank' rel='noreferrer' aria-label='View on GitHub' />
@@ -72,39 +63,37 @@ export function Footer() {
                 href={`${REPO_URL}/issues/new`}
                 target='_blank'
                 rel='noreferrer'
-                aria-label='Submit a data fix'
+                aria-label='Open an issue'
               />
             }
           >
-            <WrenchIcon />
-            Submit a Data Fix
+            <CircleDotIcon />
+            Open an issue
           </Button>
           <CopySaveAsJsonButton />
         </div>
       </div>
 
-      <div className='flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-muted-foreground'>
-        <span>Huge thanks to:</span>
-        {CREDITS.map((c, i) => (
-          <span key={c.href} className='flex items-center gap-3'>
-            {i > 0 && <span className='size-[3px] rounded-full bg-muted-foreground/50' />}
-            <a
-              href={c.href}
-              target='_blank'
-              rel='noreferrer'
-              className='inline-flex items-center gap-1 underline-offset-2 hover:text-foreground hover:underline'
-            >
-              {c.label}
-              <ExternalLinkIcon className='size-3 opacity-60' />
-            </a>
-          </span>
-        ))}
+      <div className='flex flex-wrap gap-2 text-[11.5px] text-muted-foreground'>
+        <span className='flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1'>
+          <GithubIcon className='size-3.5' /> Open source
+        </span>
+        <span className='flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1'>
+          Read-only · your save never leaves your device
+        </span>
       </div>
 
-      <p className='text-[11px] text-muted-foreground/70'>
-        Not affiliated with FromSoftware or Bandai Namco. Elden Ring is a trademark of its
-        respective owners.
-      </p>
+      <div className='flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-muted-foreground'>
+        <span>Built on the work of the open-source Elden Ring community.</span>
+        <Link
+          to='/credits'
+          className='font-medium text-foreground underline underline-offset-2 hover:decoration-2'
+        >
+          See all credits &amp; acknowledgements
+        </Link>
+        <span className='size-[3px] rounded-full bg-muted-foreground/50' />
+        <span>Not affiliated with FromSoftware or Bandai Namco.</span>
+      </div>
     </footer>
   );
 }

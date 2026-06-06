@@ -6,7 +6,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { expect } from 'vitest';
 import { CATALOG } from '@/lib/inventory-catalog';
 import { forceGcHeapUsedBytes, mb } from '@/test/perf/cdp-memory';
-import { commonAccessorColumnDef, commonSelectColumnDef } from './common-column-defs';
+import { commonAccessorColumnDef, commonPinColumnDef } from './common-column-defs';
 import { DataTable } from './data-table';
 
 // Data-table perf in real Chromium, mounting the REAL `DataTable` with the full armaments catalog
@@ -21,7 +21,7 @@ type Armament = (typeof ARMAMENTS)[number];
 
 const helper = createColumnHelper<Armament>();
 const columns = [
-  commonSelectColumnDef(helper),
+  commonPinColumnDef(helper),
   // The toolbar "Search" box filters the `Name` column; use a string-contains filter (not the
   // faceted default) so it does real work over every row.
   commonAccessorColumnDef(helper, 'name', 'Name', { filterFn: 'includesString' }),
