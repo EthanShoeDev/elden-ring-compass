@@ -18,7 +18,9 @@ export const loadGameVersion = (
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const exePath = `${gameRoot}/eldenring.exe`;
-    const exists = yield* fs.exists(exePath).pipe(Effect.orElseSucceed(() => false));
+    const exists = yield* fs
+      .exists(exePath)
+      .pipe(Effect.orElseSucceed(() => false));
     if (!exists) {
       yield* Effect.logWarning(
         `game-version: ${exePath} not found; version will be unknown`,

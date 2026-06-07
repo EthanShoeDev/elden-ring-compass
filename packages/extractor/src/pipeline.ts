@@ -44,7 +44,9 @@ export const runPipeline = Effect.gen(function* () {
     reinforceTypes,
     attackElementCorrects,
     calcCorrectGraphs,
-  } = yield* join(paramFiles, names).pipe(Effect.annotateLogs('stage', '4-join'));
+  } = yield* join(paramFiles, names).pipe(
+    Effect.annotateLogs('stage', '4-join'),
+  );
   const {
     graces,
     bosses,

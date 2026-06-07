@@ -39,7 +39,7 @@ The user dislikes heavy overlays on the map, so prefer the under-map control
 strip over on-map banners.
 
 1. **Per-realm pin-count hint on the Map switcher.** Next to each map segment in
-   the switcher, show a small count badge of how many *currently selected* pins
+   the switcher, show a small count badge of how many _currently selected_ pins
    live on that map (e.g. `Underground (3)`). Zero-cost discovery: you can see
    your pins are "somewhere else" and one click switches.
 
@@ -47,7 +47,7 @@ strip over on-map banners.
    map when `selectedPins` contains pins not on `activeMapId`, with a button that
    switches to that realm. If pins span multiple other realms, list each.
 
-3. **Auto-switch on a *new* pin.** When a pin is newly added (table toggle) and it
+3. **Auto-switch on a _new_ pin.** When a pin is newly added (table toggle) and it
    has no representation on the active map but does on another, offer/auto-switch
    to that realm (debounced; respect an explicit user map choice). Mirrors the
    "Center on me" cross-realm jump. Risk: yanking the map out from under the user

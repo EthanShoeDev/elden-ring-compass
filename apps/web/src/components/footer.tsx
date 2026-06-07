@@ -33,6 +33,7 @@ export function Footer() {
           <Button
             variant='outline'
             size='sm'
+            nativeButton={false}
             render={
               <a
                 href={`${REPO_URL}/stargazers`}
@@ -53,6 +54,7 @@ export function Footer() {
           <Button
             variant='outline'
             size='sm'
+            nativeButton={false}
             render={
               <a
                 href={`${REPO_URL}/issues/new`}

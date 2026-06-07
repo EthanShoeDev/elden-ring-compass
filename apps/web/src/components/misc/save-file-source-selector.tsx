@@ -364,15 +364,12 @@ export function SlotSwitcher() {
                 {stats.arche_type} · Lvl {stats.stats.level}
               </span>
             </span>
-            {multiple && <ChevronsUpDownIcon className='ml-auto size-4 shrink-0 text-muted-foreground' />}
+            {multiple && (
+              <ChevronsUpDownIcon className='ml-auto size-4 shrink-0 text-muted-foreground' />
+            )}
           </DropdownMenuTrigger>
           {multiple && (
-            <DropdownMenuContent
-              align='start'
-              side='right'
-              sideOffset={4}
-              className='w-56'
-            >
+            <DropdownMenuContent align='start' side='right' sideOffset={4} className='w-56'>
               <DropdownMenuRadioGroup value={slotName ?? ''} onValueChange={setSlotName}>
                 {/* Label must live inside a group/radio-group — Base UI's
                     MenuGroupContext requirement. */}

@@ -146,7 +146,10 @@ export function createArCalculator(tables: ArTables): {
   ) => AttackRating;
 } {
   const graphById = new Map(
-    tables.calcCorrectGraphs.map((g) => [g.id, evaluateCalcCorrectGraph(g.stages)]),
+    tables.calcCorrectGraphs.map((g) => [
+      g.id,
+      evaluateCalcCorrectGraph(g.stages),
+    ]),
   );
   const aecById = new Map(tables.attackElementCorrects.map((a) => [a.id, a]));
   const reinforceById = new Map(tables.reinforceTypes.map((r) => [r.id, r]));
@@ -203,7 +206,8 @@ export function createArCalculator(tables: ArTables): {
             const attributeCorrect = corr[a];
             if (!attributeCorrect) continue;
             const baseScaling = weapon.scaling[a] ?? 0;
-            const scalingUpgraded = baseScaling * (level.scaling[SCALE_IDX[a]] ?? 0);
+            const scalingUpgraded =
+              baseScaling * (level.scaling[SCALE_IDX[a]] ?? 0);
             const scaling =
               attributeCorrect === true
                 ? scalingUpgraded

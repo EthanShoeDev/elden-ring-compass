@@ -161,7 +161,11 @@ describe('AR calculator', () => {
 
   it('applies the −40% penalty when a requirement is unmet', () => {
     // str 4 < the Dagger's str requirement of 5 → physical (str/dex scaled) is penalized.
-    const ar = compute(dagger, attrs({ str: 4, dex: 9, int: 1, fai: 1, arc: 1 }), 0);
+    const ar = compute(
+      dagger,
+      attrs({ str: 4, dex: 9, int: 1, fai: 1, arc: 1 }),
+      0,
+    );
     expect(ar.total).toBeCloseTo(44.4, 1); // 74 base × (1 − 0.4)
     expect(ar.ineffective).toBe(true);
   });

@@ -177,7 +177,9 @@ export interface AttackElementCorrectRecord {
   readonly id: number;
   // damageType → attribute → `true` (use weapon scaling) | number (override rate).
   readonly correct: Readonly<
-    Partial<Record<DamageType, Readonly<Partial<Record<ScalingAttr, number | true>>>>>
+    Partial<
+      Record<DamageType, Readonly<Partial<Record<ScalingAttr, number | true>>>>
+    >
   >;
 }
 
@@ -671,14 +673,12 @@ export const join = (
       };
     };
 
-    const weaponScaling = (
-      yield* decodeCategory(
-        paramFiles,
-        'EquipParamWeapon',
-        names.WeaponName,
-        buildScaling,
-      )
-    ).filter((x): x is WeaponScalingRecord => x !== null);
+    const weaponScaling = (yield* decodeCategory(
+      paramFiles,
+      'EquipParamWeapon',
+      names.WeaponName,
+      buildScaling,
+    )).filter((x): x is WeaponScalingRecord => x !== null);
 
     // Reinforce types: rows reinforceTypeId+0 .. +N (consecutive) → per-level rates.
     const reinforceTypes: ReinforceTypeRecord[] = [...usedReinforce]
@@ -690,7 +690,9 @@ export const join = (
           if (!rr) break;
           levels.push({
             attack: REINFORCE_ATTACK_RATES.map((k) => num(rr, k)),
-            scaling: SCALING_FIELDS.map(([, , rateField]) => num(rr, rateField)),
+            scaling: SCALING_FIELDS.map(([, , rateField]) =>
+              num(rr, rateField),
+            ),
           });
         }
         return { id: baseId, levels };
@@ -706,14 +708,19 @@ export const join = (
       .map((id) => {
         const row = aecRows.get(id);
         const correct: {
-          -readonly [K in DamageType]?: Partial<Record<ScalingAttr, number | true>>;
+          -readonly [K in DamageType]?: Partial<
+            Record<ScalingAttr, number | true>
+          >;
         } = {};
         if (row) {
           for (const [dt, suffix] of AEC_DT_SUFFIX) {
             const entry: Partial<Record<ScalingAttr, number | true>> = {};
             for (const [attr, , , namePart] of SCALING_FIELDS) {
               if (num(row, `is${namePart}Correct_by${suffix}`) !== 1) continue;
-              const overwrite = num(row, `overwrite${namePart}CorrectRate_by${suffix}`);
+              const overwrite = num(
+                row,
+                `overwrite${namePart}CorrectRate_by${suffix}`,
+              );
               entry[attr] = overwrite === -1 ? true : overwrite / 100;
             }
             if (Object.keys(entry).length > 0) correct[dt] = entry;
@@ -723,7 +730,10 @@ export const join = (
       });
 
     // CalcCorrectGraph: the stat→growth saturation curves (5 stages each).
-    const calcCorrectRows = yield* decodeParamMap(paramFiles, 'CalcCorrectGraph');
+    const calcCorrectRows = yield* decodeParamMap(
+      paramFiles,
+      'CalcCorrectGraph',
+    );
     const calcCorrectGraphs: CalcCorrectGraphRecord[] = [...usedGraphs]
       .toSorted((a, b) => a - b)
       .flatMap((id) => {

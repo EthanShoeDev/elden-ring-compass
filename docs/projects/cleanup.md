@@ -17,22 +17,16 @@ Same for bosses but with red. (graces: found=bright gold / undiscovered=muted; b
 
 [DONE 2026-06-06] The footer is pretty tall, I think we should try to shorten it. Not sure if we need the view on github button in both the side bar and on the footer. (shortened; removed the footer's View-on-GitHub button since the sidebar has one)
 
-
 We should look at the premade shadcn sidebar blocks, they have two things we miht want to take.
 [DONE 2026-06-06] On the shadcn sidebar, I know there is a premade like organiztion switcher, we could probably reuse most of that for the slot selector. (built `SlotSwitcher` from the cloned sidebar-07 team-switcher pattern at docs/cloned-repos-as-docs/ui — the OTHER thing to take, the collapsible sidebar, is still TODO; see the "make the side bar collapsable" item)
 
 [DEFERRED 2026-06-06] I do not see a filter or column in the armaments table for if the item is owned or not? Thought that was once there. (the inventory Armaments table's "Quantity" column IS the ownership indicator — `quantity > 0` = owned, and weapons append ` +N` upgrade level; `main` only had Quantity too, no separate Owned column. An explicit boolean "Owned" column would also auto-add an Owned True/False faceted filter — one line in `defaultColumns` (inventory-data-table-card.tsx) — but deferring per request. NOTE: the standalone "Weapons" browser is save-independent and intentionally has no ownership.)
 
-
 [DONE 2026-06-06] On the events data table, we have event types for maps, wetblades, cookbooks. I know we probably made this different because that show up different in the save file, but to the user those are just items. So we should probably put them with the other itemm tables like armaments and armor... etc (maps/whetblades/cookbooks were already `category: "Key Item"` in GOODS, so they already lived in the inventory tables — the events table was duplicating them. Removed `map`/`cookbook`/`whetblade` from `vm/events.ts` (now grace+boss only, card renamed "World Progress"). While here, also reorganized the inventory tables to mirror Elden Ring's own inventory tabs (the 19 dataset-native categories → 13 in-game tabs): merged Sorceries+Incantations → "Spells"; folded Consumables/Physick/Crystal Tears/Crafting Tools/Cookbooks → "Tools"; folded Remembrances/Great Runes into "Key Items"; renamed Upgrade Materials → "Bolstering Materials" and Armaments → "Weapons & Shields". Spirit Ashes keeps its own tab (game files it under Tools as "Summons", but its enriched HP/FP/summon columns warrant a dedicated table). Added a Category column to the merged Spells/Tools/Key Items tables so sub-types stay distinguishable. CAVEAT / needs a manual eyeball when the app is next run: the **Tools** tab is now large — it unions Consumables + Crystal Tears + Wondrous Physick + Crafting Tools + Cookbooks into one list. The new Category column + its facet filter should keep it navigable, but if it feels unwieldy in practice that argues for the granular-grouping alternative instead (keep the 19 dataset-native tables but just regroup/relabel the category-picker groups to mirror the in-game tabs — no table merging, nothing folded away).)
-
 
 Not sure if I would like this but I think it might be cook to split up the different tables in the inventory route into different routes. We can looks to see if shadcn has a sample side bar with nested routes.
 
-
 I hate that all the data tables are paginated with only like 10 items rendering at once, we should probably implement tanstack virtual to do virtualized scrolling. I know that tanstack table or vitual has usage examples of combining tanstack table and virtual, (we should clone them to docs/cloned-repos-as-docs/ and look at the examples there). The data tables should just take up max height they can probably
-
-
 
 [DONE 2026-06-06] All the stuff that once was in the app bar has moved to the sidebar except the darkmode toggle. Maybe we should just move it to the side bar too. (moved to the sidebar brand header; still surfaced in the mobile top bar where the sidebar is hidden)
 
@@ -43,7 +37,6 @@ On the bosses screen, I do not know if we are being accurate on which bosses we 
 In the bosses data table, we have a column called map, which has entries like m10_00_00_00. That means nothing to the user. We should probably show the map name instead. Maybe we should have a column for the number of runs they will drop or the item or something like that (not firm on those)
 
 [DONE 2026-06-06] We have an opensource pill thing in the footer and also a view on github button, we do not need both. (removed the "Open source" pill and the View-on-GitHub button)
-
 
 I know that we have the "Copy Save as JSON" button because at one point in time a user asked for it but I do not know if thats the best place for it. We can probably think of something better.
 
@@ -73,8 +66,7 @@ I would like to have like a sharing feature so that one user could share their s
 
 It would be pretty cool if we could make our extractor extract like the 3d models of weapons and armor and we could like use threejs to render the characters current equipped gear.
 
-I think the whole calculator page needs to be reworked, the user should be pick an option for like "I want to play a strength build, dex build, arcane build.. etc" and we should be able to tell them what is the best item in the inventory that matches their play style, which one does the most damage based on their stats, where they should place exp point the next time they level up, what weapons would be good to move to once hitting a certain level, etc... I think we need to explore the wiki a lot more and read about different build and possible like weapon tier lists to really make this good. Maybe we want calculators for different things. I could also see like a calculator that recommends when to respec your character if you are very badly specced, or want to change your build.  
-
+I think the whole calculator page needs to be reworked, the user should be pick an option for like "I want to play a strength build, dex build, arcane build.. etc" and we should be able to tell them what is the best item in the inventory that matches their play style, which one does the most damage based on their stats, where they should place exp point the next time they level up, what weapons would be good to move to once hitting a certain level, etc... I think we need to explore the wiki a lot more and read about different build and possible like weapon tier lists to really make this good. Maybe we want calculators for different things. I could also see like a calculator that recommends when to respec your character if you are very badly specced, or want to change your build.
 
 I think it would be cool if there was a section on the map route or maybe even a new route that like showed the player what weapons and items are near their save location at any given time. Like if the player has the http server serving their save they could keep this website open in a browser tab and everytime they save they could glance over and make sure they are not missing any items. before moving onto the next area.
 
@@ -83,6 +75,5 @@ In the version of the website currently on prod all table filters, sorts, and ev
 We should make the website mobile friendly, definetly a new project doc should be made in docs/projects/future/mobile-friendly.md for this for manual verification.
 
 I think maybe the overview screen should have data tables just for like collected inventory of all different item types. This might need to be a whole seperate project doc that we plan out how to show this in the ui but like sometimes a user might want to look at a data table of everything in game collected and not collected (with a filter for owned and not owned). and sometimes they might want to look at a data table of just the items they have collected.
-
 
 On the map ui, somethings like the runes dropped have a tooltip on hover, but it also has a diffferent popup on click. Some map pins have a popup without a hover tooltip. I think we should standardize this. Also even on a dark theme the popup background is white, which does not look good.

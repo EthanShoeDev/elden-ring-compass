@@ -27,9 +27,7 @@ export const weaponScalingById = new Map<number, WeaponScaling>(
   WEAPON_SCALING.map((w) => [w.id, w]),
 );
 
-const reinforceLevelCountById = new Map(
-  REINFORCE_TYPES.map((r) => [r.id, r.levels.length]),
-);
+const reinforceLevelCountById = new Map(REINFORCE_TYPES.map((r) => [r.id, r.levels.length]));
 
 /**
  * Max upgrade level (+N) for a weapon = its reinforce chain length − 1

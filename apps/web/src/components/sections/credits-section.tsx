@@ -246,8 +246,8 @@ export function CreditsSection() {
             Elden Ring Compass is free and open-source, and it only exists because of the people who
             reverse-engineered the save format, catalogued the game’s data and built the tools that
             unpack it. We’ve since built our own extractor on top of their work to add Shadow of the
-            Erdtree support — every project below is independent and community-run, so please go star
-            them.
+            Erdtree support — every project below is independent and community-run, so please go
+            star them.
           </p>
         </div>
       </div>

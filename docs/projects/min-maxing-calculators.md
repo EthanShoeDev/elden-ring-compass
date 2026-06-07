@@ -10,7 +10,7 @@
 > Verified end-to-end (golden tests + live render). Helper: `apps/web/src/lib/ar.ts`.
 >
 > Still **future**: the "go get this" map routing (idea B), respec/rune planner (D), armor optimizer
-> (E), status-proc (F), and surfacing the player's *owned upgrade level* per weapon. Known data gap:
+> (E), status-proc (F), and surfacing the player's _owned upgrade level_ per weapon. Known data gap:
 > new DLC weapon classes (Backhand Blades, Beast Claws, Great Katana, Milady, Perfume Bottles, …) fall
 > into category `"Other"` because their `wepType` isn't in the extractor's `WEAPON_CATEGORY` map — they
 > still rate correctly, but the inventory/category label is wrong; worth mapping in the extractor.

@@ -60,10 +60,7 @@ export function AppSidebar() {
             <h1 className='truncate text-sm font-bold tracking-tight'>Elden Ring Compass</h1>
             <p className='text-[11px] text-muted-foreground'>Save Parser</p>
           </div>
-          <DarkModeToggle
-            size='icon-sm'
-            className='ml-auto group-data-[collapsible=icon]:hidden'
-          />
+          <DarkModeToggle size='icon-sm' className='ml-auto group-data-[collapsible=icon]:hidden' />
         </div>
       </SidebarHeader>
 
@@ -116,7 +113,14 @@ export function AppSidebar() {
               <SidebarMenuButton
                 size='sm'
                 tooltip='Open source on GitHub'
-                render={<a href={REPO_URL} target='_blank' rel='noreferrer' />}
+                render={
+                  <a
+                    href={REPO_URL}
+                    target='_blank'
+                    rel='noreferrer'
+                    aria-label='Open source on GitHub'
+                  />
+                }
               >
                 <GithubIcon />
                 <span>Open source on GitHub</span>

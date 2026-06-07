@@ -551,7 +551,9 @@ export const codegen = (input: CodegenInput) =>
     // AR scaling model — per-weapon refs + the three shared lookup tables. The
     // runtime AR formula that consumes these lives in `@elden-ring-compass/data`
     // (`ar.ts`). Sorted by id for deterministic output.
-    const weaponScaling = [...input.weaponScaling].toSorted((a, b) => a.id - b.id);
+    const weaponScaling = [...input.weaponScaling].toSorted(
+      (a, b) => a.id - b.id,
+    );
     yield* write(
       'weapon-scaling.ts',
       // JSON.parse form: 3k+ rows of nested objects trip TS2590 as an inline
