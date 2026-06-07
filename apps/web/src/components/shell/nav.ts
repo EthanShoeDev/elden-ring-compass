@@ -1,5 +1,6 @@
 import { type LinkProps } from '@tanstack/react-router';
 import {
+  FlameIcon,
   LayoutDashboardIcon,
   ListChecksIcon,
   MapIcon,
@@ -9,6 +10,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
+import { INVENTORY_TABLES } from '@/lib/inventory-tables';
+
 /**
  * The dashboard's primary navigation. Each entry is its own TanStack Router
  * route under the `_app` layout. Map leads — the app is fully explorable
@@ -16,6 +19,16 @@ import {
  * compass-app design kit: README "UI kits"). Build & Quests are scaffolded
  * previews of future features (docs/projects/future/*).
  */
+/** A nested nav entry — rendered as a `SidebarMenuSub` link under its parent. */
+export type NavChild = {
+  to: LinkProps['to'];
+  /** Route params, for dynamic child routes (e.g. `/inventory/$category`). */
+  params?: Record<string, string>;
+  label: string;
+  /** Resolved pathname, used for active-state matching. */
+  matchPath: string;
+};
+
 export type NavItem = {
   /** Route path under the `_app` layout. Typed against the generated route tree. */
   to: LinkProps['to'];
@@ -25,12 +38,26 @@ export type NavItem = {
   exact?: boolean;
   /** Scaffolded preview of an unimplemented feature. */
   preview?: boolean;
+  /** When present, this item renders as a collapsible group of sub-routes. */
+  children?: readonly NavChild[];
 };
 
 export const NAV: readonly NavItem[] = [
   { to: '/', label: 'Map', icon: MapIcon, exact: true },
   { to: '/bosses', label: 'Bosses', icon: SkullIcon },
-  { to: '/inventory', label: 'Inventory', icon: PackageIcon },
+  {
+    to: '/inventory',
+    label: 'Inventory',
+    icon: PackageIcon,
+    // One sub-route per in-game inventory tab (see @/lib/inventory-tables).
+    children: INVENTORY_TABLES.map((t) => ({
+      to: '/inventory/$category',
+      params: { category: t.slug },
+      matchPath: `/inventory/${t.slug}`,
+      label: t.label,
+    })),
+  },
+  { to: '/graces', label: 'Sites of Grace', icon: FlameIcon },
   { to: '/build', label: 'Calculator', icon: SlidersHorizontalIcon },
   { to: '/quests', label: 'Quests', icon: ListChecksIcon, preview: true },
   { to: '/overview', label: 'Overview', icon: LayoutDashboardIcon },
@@ -48,6 +75,10 @@ export const SECTION_META: Record<string, { title: string; sub: string }> = {
   '/inventory': {
     title: 'Inventory',
     sub: 'Every item class in the game, filterable.',
+  },
+  '/graces': {
+    title: 'Sites of Grace',
+    sub: 'Every grace in the Lands Between — and which you’ve discovered.',
   },
   '/build': {
     title: 'Weapon Calculator',

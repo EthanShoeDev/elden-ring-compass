@@ -1,3 +1,4 @@
+import { GOODS } from '@elden-ring-compass/data';
 import { itemIconUrl } from '@elden-ring-compass/data/images';
 import { Link } from '@tanstack/react-router';
 import {
@@ -10,15 +11,14 @@ import {
 } from 'lucide-react';
 
 import { goodsByName } from '@/lib/game-data';
-import { useInventoryTables } from '@/lib/inventory-catalog';
 import { assertDefined, cn } from '@/lib/utils';
 import { eventsDbView } from '@/lib/vm/events';
 import { inventoryDbView } from '@/lib/vm/inventory';
-import { statsDbView } from '@/lib/vm/stats';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { ActiveEffectsCard } from './active-effects-card';
+import { CompletionBreakdown, CompletionHero } from './completion-overview';
 import { EquipmentCard } from './equipment-card';
-import { SlotOverview } from './slot-overview';
+import { RegionsDataTable } from './regions-data-table';
 import { ConnectSaveButton } from '../misc/save-file-source-selector';
 import { TooltipImg } from '../misc/tooltip-img';
 import { Button } from '../ui/button';
@@ -97,18 +97,8 @@ function OverviewEmpty() {
 
 export function OverviewSection() {
   const slot = useSelectedSlot();
-  const allTables = useInventoryTables();
 
   if (!slot) return <OverviewEmpty />;
-
-  const stats = statsDbView(slot);
-  const bossEvents = eventsDbView(slot).filter((e) => e.type === 'boss');
-  const graceEvents = eventsDbView(slot).filter((e) => e.type === 'grace');
-  const bossesKilled = bossEvents.filter((e) => e.on).length;
-  const gracesLit = graceEvents.filter((e) => e.on).length;
-  const tables = Object.values(allTables);
-  const itemsOwned = tables.reduce((s, t) => s + t.ownedCount, 0);
-  const itemsTotal = tables.reduce((s, t) => s + t.items.length, 0);
 
   const inventoryQuantityById = new Map(
     slot ? inventoryDbView(slot).items.map((item) => [item.item_id, item.quantity]) : [],
@@ -240,56 +230,33 @@ export function OverviewSection() {
 
   return (
     <>
-      <div className='grid grid-cols-2 gap-4 lg:grid-cols-4'>
-        <Tile
-          icon={SkullIcon}
-          label='Bosses Defeated'
-          value={`${bossesKilled} / ${bossEvents.length}`}
-          sub={`${bossEvents.length ? Math.round((bossesKilled / bossEvents.length) * 100) : 0}% · ${gracesLit}/${graceEvents.length} graces lit`}
-        />
-        <Tile
-          icon={SwordIcon}
-          label='Rune Level'
-          value={stats.stats.level}
-          sub={`${stats.arche_type} · Weapon Lvl ${stats.match_making_weapon_level}`}
-        />
-        <Tile
-          icon={PackageIcon}
-          label='Items Collected'
-          value={`${itemsOwned} / ${itemsTotal}`}
-          sub={`across ${tables.length} inventory types`}
-        />
-        <Tile
-          icon={CoinsIcon}
-          label='Runes Held'
-          value={stats.stats.souls}
-          sub={`Memory ${stats.stats.soulsmemory.toLocaleString()}`}
-        />
-      </div>
+      <CompletionHero />
+      <CompletionBreakdown />
 
       <div className='grid gap-5 lg:grid-cols-2'>
-        <SlotOverview />
         <EquipmentCard />
+        <ActiveEffectsCard />
       </div>
 
-      <div className='grid gap-5 lg:grid-cols-2'>
-        <ActiveEffectsCard />
-        <Card>
-          <CardHeader>
-            <CardTitle>Flasks</CardTitle>
-            <CardDescription>Flask charges, seeds &amp; sacred tears</CardDescription>
-          </CardHeader>
-          <CardContent className='flex flex-col gap-1'>
-            <FlaskItem item={usersFlask} max={14} />
-            <Separator />
-            <FlaskItem item={ceruleanFlask} max={14} />
-            <Separator />
-            <FlaskItem item={goodsByName.get('Golden Seed')} max={30} />
-            <Separator />
-            <FlaskItem item={goodsByName.get('Sacred Tear')} max={12} />
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Flasks</CardTitle>
+          <CardDescription>
+            Flask charges, seeds, sacred tears &amp; physick crystal tears
+          </CardDescription>
+        </CardHeader>
+        <CardContent className='flex flex-col gap-1'>
+          <FlaskItem item={usersFlask} max={14} />
+          <Separator />
+          <FlaskItem item={ceruleanFlask} max={14} />
+          <Separator />
+          <FlaskItem item={goodsByName.get('Golden Seed')} max={30} />
+          <Separator />
+          <FlaskItem item={goodsByName.get('Sacred Tear')} max={12} />
+          <Separator />
+          <WondrousPhysick />
+        </CardContent>
+      </Card>
 
       <Card className='overflow-hidden'>
         <CardHeader>
@@ -426,7 +393,64 @@ export function OverviewSection() {
           </ScrollArea>
         </CardContent>
       </Card>
+
+      {/* World discovery — regions are a completion stat, surfaced here rather
+          than in their own nav slot (they have no map markers to browse to). */}
+      <RegionsDataTable />
     </>
+  );
+}
+
+/**
+ * Wondrous Physick crystal-tear collection — every tear rendered as an icon (owned highlighted,
+ * missing dimmed + grayscale), with a name + collected-status tooltip. The two tears you mix into
+ * the physick come from this set, so it sits with the flasks.
+ */
+function WondrousPhysick() {
+  const slot = useSelectedSlot();
+  const quantityById = new Map(
+    slot ? inventoryDbView(slot).items.map((item) => [item.item_id, item.quantity]) : [],
+  );
+  const tears = GOODS.filter((g) => g.category === 'Crystal Tear' && !g.name.startsWith('[ERROR]'));
+  const ownedCount = tears.filter((t) => (quantityById.get(t.id) ?? 0) > 0).length;
+  const physick = goodsByName.get('Flask of Wondrous Physick');
+
+  return (
+    <div className='flex flex-col gap-2 pt-1'>
+      <div className='flex items-center justify-between gap-2'>
+        <div className='flex items-center gap-2'>
+          {physick && <img src={itemIconUrl(physick.icon) ?? ''} alt='' className='size-8' />}
+          <span className='text-sm font-medium'>Flask of Wondrous Physick</span>
+        </div>
+        <span className='text-sm text-muted-foreground tabular-nums'>
+          {ownedCount} / {tears.length}
+        </span>
+      </div>
+      <div className='flex flex-wrap gap-1.5'>
+        {tears.map((tear) => {
+          const owned = (quantityById.get(tear.id) ?? 0) > 0;
+          return (
+            <Tooltip key={tear.id}>
+              <TooltipTrigger
+                className={cn(
+                  'rounded-md p-0.5 transition-opacity',
+                  owned ? 'border border-green-300/50' : 'opacity-30 grayscale',
+                )}
+              >
+                <img src={itemIconUrl(tear.icon) ?? ''} alt={tear.name} className='size-8' />
+              </TooltipTrigger>
+              <TooltipContent className='flex max-w-60 flex-col items-center gap-1'>
+                <img loading='lazy' src={itemIconUrl(tear.icon) ?? ''} alt='' className='size-28' />
+                <p className='text-center'>{tear.name}</p>
+                <p className='text-xs text-muted-foreground'>
+                  {owned ? 'Collected' : 'Not collected'}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

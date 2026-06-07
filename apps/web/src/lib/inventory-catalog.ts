@@ -105,7 +105,10 @@ export type InventoryRow = WithOwnership<{
   rarity: string;
 }>;
 
-export type InventoryTableResult = { items: InventoryRow[]; ownedCount: number };
+export type InventoryTableResult = {
+  items: InventoryRow[];
+  ownedCount: number;
+};
 
 /**
  * Per-category catalog joined with save ownership. Mirrors the old `useAllErdb` contract:
@@ -129,20 +132,30 @@ export function useInventoryTables(): Record<InventoryTableType, InventoryTableR
     }
 
     const join = (
-      rows: ReadonlyArray<{ id: number; name: string; icon: number; rarity: string }>,
+      rows: ReadonlyArray<{
+        id: number;
+        name: string;
+        icon: number;
+        rarity: string;
+      }>,
       placementType: string,
     ): InventoryTableResult => {
-      const items: InventoryRow[] = rows.map((row) => {
-        const o = owned.get(row.id);
-        const weaponUpgradeLevel = o?.upgradeLevel ?? 0;
-        return {
-          ...row,
-          quantity: o?.quantity ?? 0,
-          weaponUpgradeLevel,
-          name: weaponUpgradeLevel > 0 ? `${row.name} +${weaponUpgradeLevel.toString()}` : row.name,
-          hasCoords: itemPins(placementType, row.id).length > 0,
-        };
-      });
+      const items: InventoryRow[] = rows
+        // Drop the datasets' `[ERROR]Type N` placeholder rows (48 in WEAPONS, 54 in ARMOR,
+        // 1 in TALISMANS) — unused item slots that would otherwise render as junk table rows.
+        .filter((row) => !row.name.startsWith('[ERROR]'))
+        .map((row) => {
+          const o = owned.get(row.id);
+          const weaponUpgradeLevel = o?.upgradeLevel ?? 0;
+          return {
+            ...row,
+            quantity: o?.quantity ?? 0,
+            weaponUpgradeLevel,
+            name:
+              weaponUpgradeLevel > 0 ? `${row.name} +${weaponUpgradeLevel.toString()}` : row.name,
+            hasCoords: itemPins(placementType, row.id).length > 0,
+          };
+        });
       return { items, ownedCount: items.filter((i) => i.quantity > 0).length };
     };
 

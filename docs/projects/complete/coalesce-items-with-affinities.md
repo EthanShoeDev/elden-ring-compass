@@ -190,7 +190,7 @@ exists (faceted filters, the atom-driven filter pattern). No extractor work, no 
 
 ## 5. Relationship to the AR calculator
 
-This is the **display-side** counterpart to [`min-maxing-calculators.md`](./min-maxing-calculators.md)'s
+This is the **display-side** counterpart to [`calculator.md`](../calculator.md)'s
 **§A2 "best affinity for that weapon"** recommender. Today every affinity row shows identical
 `attackPhysical`/reqs because the per-affinity attack & scaling numbers aren't extracted yet — so the
 duplication is not just noisy, it's currently _uninformative_. Once the AR-formula work lands those

@@ -1,21 +1,15 @@
-import { createFileRoute } from '@tanstack/react-router';
-
-import { EventsDataTable } from '@/components/sections/events-data-table';
-import { InventoryDataTableCard } from '@/components/sections/inventory-data-table-card';
-import { RegionsDataTable } from '@/components/sections/regions-data-table';
-import { WeaponsDataTable } from '@/components/sections/weapons-data-table';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_app/inventory')({
-  component: InventoryPage,
+  component: InventoryLayout,
 });
 
-function InventoryPage() {
-  return (
-    <>
-      <InventoryDataTableCard />
-      <EventsDataTable />
-      <RegionsDataTable />
-      <WeaponsDataTable />
-    </>
-  );
+/**
+ * Inventory is now a section with its own nested routes (Items / Events /
+ * Regions / Weapons) surfaced as a collapsible group in the sidebar. This
+ * parent just renders the active child via <Outlet />; `/inventory` itself
+ * redirects to `/inventory/items` (see ./inventory/index.tsx).
+ */
+function InventoryLayout() {
+  return <Outlet />;
 }

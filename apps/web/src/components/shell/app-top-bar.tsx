@@ -8,9 +8,21 @@ import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 import { SECTION_META } from './nav';
 
+// Exact match first; otherwise fall back to the longest section prefix so
+// dynamic children (e.g. /inventory/weapons-shields) inherit their parent's
+// title. '/' is excluded as a prefix since it matches everything.
+function resolveSectionMeta(pathname: string): { title: string; sub: string } {
+  const exact = SECTION_META[pathname];
+  if (exact) return exact;
+  const prefix = Object.keys(SECTION_META)
+    .filter((k) => k !== '/' && pathname.startsWith(k))
+    .toSorted((a, b) => b.length - a.length)[0];
+  return (prefix ? SECTION_META[prefix] : undefined) ?? { title: 'Elden Ring Compass', sub: '' };
+}
+
 export function AppTopBar() {
   const pathname = useLocation({ select: (l) => l.pathname });
-  const meta = SECTION_META[pathname] ?? { title: 'Elden Ring Compass', sub: '' };
+  const meta = resolveSectionMeta(pathname);
   const connected = !!useSelectedSlot();
 
   return (

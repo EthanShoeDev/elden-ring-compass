@@ -6,39 +6,44 @@ import { commonAccessorColumnDef, commonPinColumnDef } from '../data-table/commo
 import { DataTable } from '../data-table/data-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
-type Event = ReturnType<typeof eventsDbView>[0];
+type Grace = ReturnType<typeof eventsDbView>[0];
 
-export function EventsDataTable() {
-  const items = useDataTableData('events');
-  const ownedCount = items.filter((item) => item.on).length;
+export function GracesDataTable() {
+  // `eventsDbView` carries graces + bosses (it feeds the map pins). Bosses have a
+  // dedicated, richer route (/bosses), so this table is graces-only.
+  const items = useDataTableData('events').filter((e) => e.type === 'grace');
+  const litCount = items.filter((item) => item.on).length;
 
   return (
     <Card className='w-full'>
       <CardHeader>
-        <CardTitle>World Progress</CardTitle>
+        <CardTitle>Sites of Grace</CardTitle>
         <CardDescription>
-          Sites of Grace discovered &amp; bosses defeated
+          Graces discovered across the Lands Between
           <br />
-          {ownedCount} / {items.length}
+          {litCount} / {items.length}
           <br />
-          {((ownedCount / items.length) * 100).toFixed(0)}% complete
+          {((litCount / items.length) * 100).toFixed(0)}% lit
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {/* tableId stays 'events' so column state + map pin-selection sync are shared. */}
         <DataTable tableId='events' className='' columns={columns} data={items} />
       </CardContent>
     </Card>
   );
 }
 
-const columnHelper = createColumnHelper<Event>();
-const columns: Array<ColumnDef<Event>> = [
+const columnHelper = createColumnHelper<Grace>();
+const columns: Array<ColumnDef<Grace>> = [
   commonPinColumnDef(columnHelper),
   commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
   commonAccessorColumnDef(columnHelper, 'name', 'Name', {
     filterFn: 'includesString',
   }),
-  commonAccessorColumnDef(columnHelper, 'on', 'Complete'),
-  commonAccessorColumnDef(columnHelper, 'type', 'Type'),
+  commonAccessorColumnDef(columnHelper, 'subtitle', 'Region', {
+    filterFn: 'includesString',
+  }),
+  commonAccessorColumnDef(columnHelper, 'on', 'Discovered'),
   commonAccessorColumnDef(columnHelper, (row) => !!row.pixel, 'Has Coordinates'),
 ];

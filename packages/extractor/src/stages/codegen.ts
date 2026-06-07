@@ -345,6 +345,7 @@ export const codegen = (input: CodegenInput) =>
           'readonly x: number;',
           'readonly y: number;',
           'readonly z: number;',
+          'readonly runes: number;',
         ],
         'BOSSES',
         bosses.map((b) => ({
@@ -354,6 +355,7 @@ export const codegen = (input: CodegenInput) =>
           x: b.x,
           y: b.y,
           z: b.z,
+          runes: b.runes,
         })),
       ),
     );

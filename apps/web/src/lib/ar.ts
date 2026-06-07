@@ -11,10 +11,11 @@ import {
 import {
   type Attributes,
   createArCalculator,
+  type ScalingAttr,
   type WeaponScaling,
 } from '@elden-ring-compass/data/ar';
 
-export type { Attributes, WeaponScaling };
+export type { Attributes, ScalingAttr, WeaponScaling };
 
 export const arCalculator = createArCalculator({
   reinforceTypes: REINFORCE_TYPES,

@@ -35,6 +35,7 @@ export interface BossArea {
   readonly x: number;
   readonly y: number;
   readonly z: number;
+  readonly runes: number; // rune bounty for the kill (GameAreaParam.bonusSoul_single)
 }
 
 const mapIdOf = (areaNo: number, blockNo: number, mapNo: number): string => {
@@ -95,6 +96,7 @@ export const loadBosses = (
         x: Number(f.get('bossPosX')),
         y: Number(f.get('bossPosY')),
         z: Number(f.get('bossPosZ')),
+        runes: Number(f.get('bonusSoul_single')),
       });
     }
     return bosses;

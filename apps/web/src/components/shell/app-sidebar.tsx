@@ -1,7 +1,14 @@
 import { GAME_VERSION } from '@elden-ring-compass/data';
 import { useAtomValue } from '@effect/atom-react';
 import { Link, useLocation } from '@tanstack/react-router';
-import { FileCheckIcon, FlaskConicalIcon, HandshakeIcon, SwordIcon } from 'lucide-react';
+import {
+  ChevronRightIcon,
+  FileCheckIcon,
+  FlaskConicalIcon,
+  HandshakeIcon,
+  SwordIcon,
+  type LucideIcon,
+} from 'lucide-react';
 
 import { DarkModeToggle } from '@/components/misc/dark-mode-toggle';
 import {
@@ -12,6 +19,11 @@ import {
 import { GithubIcon } from '@/components/shell/github-icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -21,6 +33,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
@@ -36,6 +51,19 @@ function prettyVersion(version: string): string {
   const parts = version.split('.');
   while (parts.length > 2 && parts[parts.length - 1] === '0') parts.pop();
   return parts.join('.');
+}
+
+// TanStack's <Link> stamps `data-transitioning` on its anchor while the target
+// route's loader runs (after hydration). Our nav links render *through* <Link>,
+// so that attribute lands on the menu-button element itself — tag it with the
+// `group/navlink` class and the leading icon swaps to a spinner mid-navigation.
+function NavIcon({ icon: Icon }: { icon: LucideIcon }) {
+  return (
+    <>
+      <Icon className='group-data-transitioning/navlink:hidden' />
+      <Spinner className='hidden size-4 group-data-transitioning/navlink:block' />
+    </>
+  );
 }
 
 export function AppSidebar() {
@@ -71,17 +99,67 @@ export function AppSidebar() {
           <SidebarMenu>
             {NAV.map((item) => {
               const Icon = item.icon;
-              const isActive = item.exact
+              const sectionActive = item.exact
                 ? pathname === item.to
                 : pathname.startsWith(item.to as string);
+
+              // Collapsible group of sub-routes (e.g. Inventory → Items/Events/…).
+              if (item.children) {
+                return (
+                  <Collapsible
+                    key={item.to}
+                    defaultOpen={sectionActive}
+                    className='group/collapsible'
+                    render={<SidebarMenuItem />}
+                  >
+                    <CollapsibleTrigger
+                      render={<SidebarMenuButton isActive={sectionActive} tooltip={item.label} />}
+                    >
+                      <Icon />
+                      <span>{item.label}</span>
+                      <ChevronRightIcon className='ml-auto transition-transform duration-200 group-data-open/collapsible:rotate-90 group-data-[collapsible=icon]:hidden' />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {item.children.map((child) => (
+                          <SidebarMenuSubItem key={child.matchPath}>
+                            <SidebarMenuSubButton
+                              isActive={pathname === child.matchPath}
+                              // `to` is the broad LinkProps union here, so TanStack can't
+                              // narrow `params` to the matching route — cast past it.
+                              render={
+                                <Link
+                                  to={child.to}
+                                  params={child.params as never}
+                                  className='group/navlink'
+                                />
+                              }
+                            >
+                              <span>{child.label}</span>
+                              <Spinner className='ml-auto hidden size-3.5 group-data-transitioning/navlink:block' />
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              }
+
               return (
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton
-                    isActive={isActive}
+                    isActive={sectionActive}
                     tooltip={item.label}
-                    render={<Link to={item.to} activeOptions={{ exact: item.exact }} />}
+                    render={
+                      <Link
+                        to={item.to}
+                        activeOptions={{ exact: item.exact }}
+                        className='group/navlink'
+                      />
+                    }
                   >
-                    <Icon />
+                    <NavIcon icon={Icon} />
                     <span>{item.label}</span>
                     {item.preview && (
                       <span className='ml-auto text-[10px] font-semibold tracking-wide text-muted-foreground/80 uppercase group-data-[collapsible=icon]:hidden'>
@@ -103,9 +181,9 @@ export function AppSidebar() {
                 size='sm'
                 isActive={pathname === '/credits'}
                 tooltip='Acknowledgments'
-                render={<Link to='/credits' />}
+                render={<Link to='/credits' className='group/navlink' />}
               >
-                <HandshakeIcon />
+                <NavIcon icon={HandshakeIcon} />
                 <span>Acknowledgments</span>
               </SidebarMenuButton>
             </SidebarMenuItem>

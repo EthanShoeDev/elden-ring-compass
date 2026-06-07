@@ -15,9 +15,12 @@ import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppQuestsRouteImport } from './routes/_app/quests'
 import { Route as AppOverviewRouteImport } from './routes/_app/overview'
 import { Route as AppInventoryRouteImport } from './routes/_app/inventory'
+import { Route as AppGracesRouteImport } from './routes/_app/graces'
 import { Route as AppCreditsRouteImport } from './routes/_app/credits'
 import { Route as AppBuildRouteImport } from './routes/_app/build'
 import { Route as AppBossesRouteImport } from './routes/_app/bosses'
+import { Route as AppInventoryIndexRouteImport } from './routes/_app/inventory/index'
+import { Route as AppInventoryCategoryRouteImport } from './routes/_app/inventory/$category'
 
 const ShareRoute = ShareRouteImport.update({
   id: '/share',
@@ -48,6 +51,11 @@ const AppInventoryRoute = AppInventoryRouteImport.update({
   path: '/inventory',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGracesRoute = AppGracesRouteImport.update({
+  id: '/graces',
+  path: '/graces',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCreditsRoute = AppCreditsRouteImport.update({
   id: '/credits',
   path: '/credits',
@@ -63,6 +71,16 @@ const AppBossesRoute = AppBossesRouteImport.update({
   path: '/bosses',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppInventoryRoute,
+} as any)
+const AppInventoryCategoryRoute = AppInventoryCategoryRouteImport.update({
+  id: '/$category',
+  path: '/$category',
+  getParentRoute: () => AppInventoryRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -70,19 +88,24 @@ export interface FileRoutesByFullPath {
   '/bosses': typeof AppBossesRoute
   '/build': typeof AppBuildRoute
   '/credits': typeof AppCreditsRoute
-  '/inventory': typeof AppInventoryRoute
+  '/graces': typeof AppGracesRoute
+  '/inventory': typeof AppInventoryRouteWithChildren
   '/overview': typeof AppOverviewRoute
   '/quests': typeof AppQuestsRoute
+  '/inventory/$category': typeof AppInventoryCategoryRoute
+  '/inventory/': typeof AppInventoryIndexRoute
 }
 export interface FileRoutesByTo {
   '/share': typeof ShareRoute
   '/bosses': typeof AppBossesRoute
   '/build': typeof AppBuildRoute
   '/credits': typeof AppCreditsRoute
-  '/inventory': typeof AppInventoryRoute
+  '/graces': typeof AppGracesRoute
   '/overview': typeof AppOverviewRoute
   '/quests': typeof AppQuestsRoute
   '/': typeof AppIndexRoute
+  '/inventory/$category': typeof AppInventoryCategoryRoute
+  '/inventory': typeof AppInventoryIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -91,10 +114,13 @@ export interface FileRoutesById {
   '/_app/bosses': typeof AppBossesRoute
   '/_app/build': typeof AppBuildRoute
   '/_app/credits': typeof AppCreditsRoute
-  '/_app/inventory': typeof AppInventoryRoute
+  '/_app/graces': typeof AppGracesRoute
+  '/_app/inventory': typeof AppInventoryRouteWithChildren
   '/_app/overview': typeof AppOverviewRoute
   '/_app/quests': typeof AppQuestsRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/inventory/$category': typeof AppInventoryCategoryRoute
+  '/_app/inventory/': typeof AppInventoryIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -104,19 +130,24 @@ export interface FileRouteTypes {
     | '/bosses'
     | '/build'
     | '/credits'
+    | '/graces'
     | '/inventory'
     | '/overview'
     | '/quests'
+    | '/inventory/$category'
+    | '/inventory/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/share'
     | '/bosses'
     | '/build'
     | '/credits'
-    | '/inventory'
+    | '/graces'
     | '/overview'
     | '/quests'
     | '/'
+    | '/inventory/$category'
+    | '/inventory'
   id:
     | '__root__'
     | '/_app'
@@ -124,10 +155,13 @@ export interface FileRouteTypes {
     | '/_app/bosses'
     | '/_app/build'
     | '/_app/credits'
+    | '/_app/graces'
     | '/_app/inventory'
     | '/_app/overview'
     | '/_app/quests'
     | '/_app/'
+    | '/_app/inventory/$category'
+    | '/_app/inventory/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -179,6 +213,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInventoryRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/graces': {
+      id: '/_app/graces'
+      path: '/graces'
+      fullPath: '/graces'
+      preLoaderRoute: typeof AppGracesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/credits': {
       id: '/_app/credits'
       path: '/credits'
@@ -200,14 +241,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBossesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/inventory/': {
+      id: '/_app/inventory/'
+      path: '/'
+      fullPath: '/inventory/'
+      preLoaderRoute: typeof AppInventoryIndexRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/_app/inventory/$category': {
+      id: '/_app/inventory/$category'
+      path: '/$category'
+      fullPath: '/inventory/$category'
+      preLoaderRoute: typeof AppInventoryCategoryRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
   }
 }
+
+interface AppInventoryRouteChildren {
+  AppInventoryCategoryRoute: typeof AppInventoryCategoryRoute
+  AppInventoryIndexRoute: typeof AppInventoryIndexRoute
+}
+
+const AppInventoryRouteChildren: AppInventoryRouteChildren = {
+  AppInventoryCategoryRoute: AppInventoryCategoryRoute,
+  AppInventoryIndexRoute: AppInventoryIndexRoute,
+}
+
+const AppInventoryRouteWithChildren = AppInventoryRoute._addFileChildren(
+  AppInventoryRouteChildren,
+)
 
 interface AppRouteChildren {
   AppBossesRoute: typeof AppBossesRoute
   AppBuildRoute: typeof AppBuildRoute
   AppCreditsRoute: typeof AppCreditsRoute
-  AppInventoryRoute: typeof AppInventoryRoute
+  AppGracesRoute: typeof AppGracesRoute
+  AppInventoryRoute: typeof AppInventoryRouteWithChildren
   AppOverviewRoute: typeof AppOverviewRoute
   AppQuestsRoute: typeof AppQuestsRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -217,7 +287,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppBossesRoute: AppBossesRoute,
   AppBuildRoute: AppBuildRoute,
   AppCreditsRoute: AppCreditsRoute,
-  AppInventoryRoute: AppInventoryRoute,
+  AppGracesRoute: AppGracesRoute,
+  AppInventoryRoute: AppInventoryRouteWithChildren,
   AppOverviewRoute: AppOverviewRoute,
   AppQuestsRoute: AppQuestsRoute,
   AppIndexRoute: AppIndexRoute,

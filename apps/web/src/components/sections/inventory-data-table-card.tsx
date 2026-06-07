@@ -1,7 +1,6 @@
 import { itemIconUrl } from '@elden-ring-compass/data/images';
+import { useNavigate } from '@tanstack/react-router';
 import { ColumnDef, ColumnHelper, createColumnHelper } from '@tanstack/react-table';
-import { Schema } from 'effect';
-import { Atom } from 'effect/unstable/reactivity';
 import { useAtom } from '@effect/atom-react';
 import {
   ChevronsUpDownIcon,
@@ -30,24 +29,14 @@ import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { browserKvsRuntime } from '@/lib/atoms/kvs';
 import { showAffinityVariantsAtom } from '@/lib/atoms/weapons';
 import { useDataTableData } from '@/lib/data-table-data';
 import { CATALOG, useInventoryTables, type WithOwnership } from '@/lib/inventory-catalog';
+import { TABLE_LABEL, TYPE_TO_SLUG } from '@/lib/inventory-tables';
 import { cn } from '@/lib/utils';
 
 export type { InventoryTableType } from '@/lib/inventory-catalog';
 import type { InventoryTableType } from '@/lib/inventory-catalog';
-
-// Persisted current inventory table category (typesafe kvs; replaced the Zustand
-// `persist` store). Stored as a plain string and narrowed to `InventoryTableType`
-// at the use site — the valid keys are defined by `tables` below.
-const inventoryTableSelectionAtom = Atom.kvs({
-  runtime: browserKvsRuntime,
-  key: 'inventory-table-selection',
-  schema: Schema.String,
-  defaultValue: () => 'armaments',
-});
 
 // Per-category icon (Lucide).
 const CAT_ICON: Record<InventoryTableType, LucideIcon> = {
@@ -67,8 +56,14 @@ const CAT_ICON: Record<InventoryTableType, LucideIcon> = {
 };
 
 // The item classes, mirroring Elden Ring's own inventory tabs, lightly grouped for the picker.
-const INV_GROUPS: ReadonlyArray<{ label: string; keys: ReadonlyArray<InventoryTableType> }> = [
-  { label: 'Equipment', keys: ['armaments', 'ammo', 'armor', 'talismans', 'ashes'] },
+const INV_GROUPS: ReadonlyArray<{
+  label: string;
+  keys: ReadonlyArray<InventoryTableType>;
+}> = [
+  {
+    label: 'Equipment',
+    keys: ['armaments', 'ammo', 'armor', 'talismans', 'ashes'],
+  },
   { label: 'Magic', keys: ['spells', 'spirits'] },
   {
     label: 'Items',
@@ -103,7 +98,7 @@ function CategoryPicker({
           />
         }
       >
-        {tables[table].label}
+        {TABLE_LABEL[table]}
         <ChevronsUpDownIcon className='size-5 opacity-50' />
       </PopoverTrigger>
       <PopoverContent align='start' className='w-80 p-1'>
@@ -134,7 +129,7 @@ function CategoryPicker({
                     )}
                   >
                     <Icon className='size-[15px] shrink-0 opacity-70' />
-                    <span className='flex-1 text-left'>{tables[key].label}</span>
+                    <span className='flex-1 text-left'>{TABLE_LABEL[key]}</span>
                     <span className='font-mono text-[11px] text-muted-foreground'>
                       {owned}/{total} ({total > 0 ? Math.round((owned / total) * 100) : 0}%)
                     </span>
@@ -149,10 +144,15 @@ function CategoryPicker({
   );
 }
 
-export function InventoryDataTableCard() {
-  const [tableName, setTableName] = useAtom(inventoryTableSelectionAtom);
-  const table = (tableName in tables ? tableName : 'armaments') as InventoryTableType;
-  const setTableType = (next: InventoryTableType) => setTableName(next);
+export function InventoryDataTableCard({ table }: { table: InventoryTableType }) {
+  // Category selection is the URL now (route param) — the picker navigates between
+  // the per-category routes rather than writing a persisted atom.
+  const navigate = useNavigate();
+  const setTableType = (next: InventoryTableType) =>
+    void navigate({
+      to: '/inventory/$category',
+      params: { category: TYPE_TO_SLUG[next] },
+    });
   const [showVariants, setShowVariants] = useAtom(showAffinityVariantsAtom);
   const allTables = useInventoryTables();
 
@@ -167,6 +167,14 @@ export function InventoryDataTableCard() {
       : allItems;
   const hiddenVariantCount = collapsible ? allItems.length - items.length : 0;
   const ownedCount = items.filter((i) => i.quantity > 0).length;
+
+  // Ownership filter — "what I've collected" vs "what's left" vs the whole catalogue.
+  // Pairs with the affinity-variant toggle (variants = "every variant in the game").
+  const [ownerFilter, setOwnerFilter] = useState<'all' | 'owned' | 'missing'>('all');
+  const filteredItems =
+    ownerFilter === 'all'
+      ? items
+      : items.filter((i) => (ownerFilter === 'owned' ? i.quantity > 0 : i.quantity === 0));
 
   return (
     <Card className='w-full'>
@@ -185,18 +193,39 @@ export function InventoryDataTableCard() {
         </CardDescription>
       </CardHeader>
       <CardContent className='space-y-4'>
-        {collapsible && (
-          <Label className='flex items-center gap-2'>
-            <Checkbox
-              checked={showVariants}
-              onCheckedChange={(checked) => {
-                setShowVariants(checked);
-              }}
-            />
-            Show affinity variants
-          </Label>
-        )}
-        <DataTable tableId={table} columns={tables[table].columns} data={items} />
+        <div className='flex flex-wrap items-center justify-between gap-3'>
+          <div className='inline-flex rounded-lg border border-border p-0.5'>
+            {(['all', 'owned', 'missing'] as const).map((key) => (
+              <button
+                key={key}
+                type='button'
+                onClick={() => {
+                  setOwnerFilter(key);
+                }}
+                className={cn(
+                  'rounded-md px-3 py-1 text-sm capitalize transition-colors',
+                  ownerFilter === key
+                    ? 'bg-muted font-medium text-foreground'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                {key}
+              </button>
+            ))}
+          </div>
+          {collapsible && (
+            <Label className='flex items-center gap-2'>
+              <Checkbox
+                checked={showVariants}
+                onCheckedChange={(checked) => {
+                  setShowVariants(checked);
+                }}
+              />
+              Show affinity variants
+            </Label>
+          )}
+        </div>
+        <DataTable tableId={table} columns={tables[table]} data={filteredItems} />
       </CardContent>
     </Card>
   );
@@ -204,7 +233,12 @@ export function InventoryDataTableCard() {
 
 // Row element types per category, joined with save ownership.
 type Row<K extends InventoryTableType> = WithOwnership<(typeof CATALOG)[K][number]>;
-type BaseRow = WithOwnership<{ id: number; name: string; icon: number; rarity: string }>;
+type BaseRow = WithOwnership<{
+  id: number;
+  name: string;
+  icon: number;
+  rarity: string;
+}>;
 
 type Effect = {
   attribute: string;
@@ -252,7 +286,9 @@ function defaultColumns<T extends BaseRow>(columnHelperT: ColumnHelper<T>): Arra
       ),
       enableHiding: true,
     }),
-    commonAccessorColumnDef(columnHelper, 'name', 'Name', { filterFn: 'includesString' }),
+    commonAccessorColumnDef(columnHelper, 'name', 'Name', {
+      filterFn: 'includesString',
+    }),
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
     commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
     commonAccessorColumnDef(columnHelper, (row) => row.hasCoords, 'Has Coordinates'),
@@ -339,7 +375,9 @@ const spiritColumns = (() => {
     commonAccessorColumnDef(h, 'hpCost', 'HP Cost'),
     commonAccessorColumnDef(h, 'fpCost', 'FP Cost'),
     commonAccessorColumnDef(h, 'upgradeMaterial', 'Upgrade Material'),
-    commonAccessorColumnDef(h, 'summonName', 'Summon Name', { filterFn: 'includesString' }),
+    commonAccessorColumnDef(h, 'summonName', 'Summon Name', {
+      filterFn: 'includesString',
+    }),
   ];
 })();
 
@@ -359,18 +397,20 @@ const mixedGoodsColumns = (() => {
   ];
 })();
 
-const tables: Record<InventoryTableType, { columns: Array<ColumnDef<any>>; label: string }> = {
-  armaments: { label: 'Weapons & Shields', columns: armamentColumns },
-  ammo: { label: 'Ammunition', columns: ammoColumns },
-  armor: { label: 'Armor', columns: armorColumns },
-  talismans: { label: 'Talismans', columns: talismanColumns },
-  ashes: { label: 'Ashes of War', columns: ashesColumns },
-  spells: { label: 'Spells', columns: spellColumns },
-  spirits: { label: 'Spirit Ashes', columns: spiritColumns },
-  tools: { label: 'Tools', columns: mixedGoodsColumns },
-  craftingMaterials: { label: 'Crafting Materials', columns: goodsColumns },
-  upgradeMaterials: { label: 'Bolstering Materials', columns: goodsColumns },
-  keyItems: { label: 'Key Items', columns: mixedGoodsColumns },
-  infoItems: { label: 'Info Items', columns: goodsColumns },
-  gestures: { label: 'Gestures', columns: goodsColumns },
+// Columns per category. Labels/slugs/order live in `@/lib/inventory-tables`
+// (shared with the sidebar nav + the route); this map only owns the columns.
+const tables: Record<InventoryTableType, Array<ColumnDef<any>>> = {
+  armaments: armamentColumns,
+  ammo: ammoColumns,
+  armor: armorColumns,
+  talismans: talismanColumns,
+  ashes: ashesColumns,
+  spells: spellColumns,
+  spirits: spiritColumns,
+  tools: mixedGoodsColumns,
+  craftingMaterials: goodsColumns,
+  upgradeMaterials: goodsColumns,
+  keyItems: mixedGoodsColumns,
+  infoItems: goodsColumns,
+  gestures: goodsColumns,
 };
