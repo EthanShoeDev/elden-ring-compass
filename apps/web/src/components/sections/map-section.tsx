@@ -10,10 +10,11 @@
  * calibration toggle) and computes the selected markers from the shared data-table
  * selection (effect-atom).
  */
-import { InfoIcon, MapPinIcon, SkullIcon, Trash2Icon } from 'lucide-react';
+import { LocateFixedIcon, MapPinIcon, PackageIcon, SkullIcon, Trash2Icon } from 'lucide-react';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 
 import { useDataTableData } from '@/lib/data-table-data';
+import { cn } from '@/lib/utils';
 import {
   type InventoryTableType,
   TABLE_PLACEMENT_TYPE,
@@ -25,7 +26,8 @@ import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 import { useRowSelectionControls, useTableStateMap } from '../data-table/data-table-store';
 import { Button } from '../ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { Switch } from '../ui/switch';
+import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 import type { MapManifest, MapPin, TileIndex } from './leaflet-map';
 
 const LeafletMap = lazy(() => import('./leaflet-map'));
@@ -38,6 +40,33 @@ const LeafletMap = lazy(() => import('./leaflet-map'));
  * don't surface them on the main map.
  */
 const HIDDEN_MAP_IDS = new Set(['M11']);
+
+/** The three toggleable content layers a pin can belong to. */
+type LayerKey = 'graces' | 'bosses' | 'items';
+function pinLayer(category: string): LayerKey {
+  const c = category.toLowerCase();
+  if (c.includes('grace')) return 'graces';
+  if (c.includes('boss')) return 'bosses';
+  return 'items';
+}
+
+const LAYER_META = [
+  { key: 'graces', label: 'Graces', icon: MapPinIcon, color: '#ecbd4a' },
+  { key: 'bosses', label: 'Bosses', icon: SkullIcon, color: '#e24a4a' },
+  { key: 'items', label: 'Items', icon: PackageIcon, color: '#3cbfdb' },
+] as const;
+
+/** A labeled cluster of controls under the map (e.g. "Map", "Layers"). */
+function ControlGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className='flex items-center gap-2'>
+      <span className='shrink-0 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase'>
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}
 
 function MapFallback({ message }: { message: string }) {
   return (
@@ -67,6 +96,8 @@ function useSelectedPins(): MapPin[] {
                   name: e.name,
                   category: e.type === 'grace' ? 'Site of Grace' : 'Boss',
                   description: e.subtitle ?? '',
+                  // grace found / boss defeated → brighter shade on the map.
+                  discovered: e.on,
                   master: e.pixel.master,
                   px: e.pixel.px,
                   py: e.pixel.py,
@@ -98,6 +129,8 @@ function useSelectedPins(): MapPin[] {
               name: row.name,
               category: p.source === 'map' ? 'Treasure' : p.approx ? 'Drop · approx. area' : 'Drop',
               description: p.chance < 1 ? `${(p.chance * 100).toFixed(0)}% drop` : '',
+              // owned (quantity > 0) → brighter "collected" shade.
+              discovered: row.quantity > 0,
               master: p.master,
               px: p.px,
               py: p.py,
@@ -127,16 +160,60 @@ function usePlayerPin(): MapPin | null {
   }, [slot]);
 }
 
+/**
+ * "Lost runes" bloodstain pin from the active save's last-death record
+ * (`blood_stain`). The save stores the death `coords` + `map_id` and a `runes`
+ * count:
+ *   - `runes > 0`  → an ACTIVE bloodstain: that many runes are on the ground.
+ *   - `runes <= 0` → no runes pending (`-1` is the game's "cleared" sentinel,
+ *     `0` an empty stain). When the retained coords still project to the map we
+ *     show a faded "recovered" marker so the last-death spot is still visible;
+ *     `leaflet-map.tsx` picks the active vs. recovered icon from `runes`.
+ * Returns `null` only when the death location can't be placed (interior with no
+ * conv data) — same limitation as the player pin.
+ */
+function useBloodstainPin(): MapPin | null {
+  const slot = useSelectedSlot();
+  return useMemo(() => {
+    if (!slot) return null;
+    const { coords, map_id, runes } = slot.blood_stain;
+    const px = playerToMasterPixel(map_id, coords);
+    if (!px) return null; // interior we can't place on the world map
+    return {
+      name: runes > 0 ? 'Lost runes' : 'Last death',
+      category: '',
+      description: '',
+      master: px.master,
+      px: px.px,
+      py: px.py,
+      runes,
+    };
+  }, [slot]);
+}
+
 export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
   const [mounted, setMounted] = useState(false);
   const [manifest, setManifest] = useState<MapManifest | null>(null);
   const [tileIndex, setTileIndex] = useState<TileIndex | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [activeMapId, setActiveMapId] = useState('M00');
-  const [calibrate, setCalibrate] = useState(false);
+  // Layer visibility — hide (but don't clear) graces/bosses/items on the map.
+  const [layers, setLayers] = useState<Record<LayerKey, boolean>>({
+    graces: true,
+    bosses: true,
+    items: true,
+  });
+  // Bumped to ask the map to recenter on the player ("center on me").
+  const [recenterToken, setRecenterToken] = useState(0);
 
   const pins = useSelectedPins();
   const playerPin = usePlayerPin();
+  const bloodstainPin = useBloodstainPin();
+  const slotConnected = !!useSelectedSlot();
+  const visiblePins = useMemo(
+    () => pins.filter((p) => layers[pinLayer(p.category)]),
+    [pins, layers],
+  );
   const eventsItems = useDataTableData('events');
   const { setRowSelection, clearAllRowSelection: clearPins } = useRowSelectionControls();
 
@@ -199,10 +276,11 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
             <LeafletMap
               manifest={manifest}
               activeMapId={activeMapId}
-              pins={pins}
+              pins={visiblePins}
               playerPin={playerPin}
-              calibrate={calibrate}
+              bloodstainPin={bloodstainPin}
               tileIndex={tileIndex}
+              recenterToken={recenterToken}
             />
           </Suspense>
         ) : (
@@ -210,77 +288,134 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
         )}
       </div>
 
-      {/* Map switcher */}
+      {/* Controls under the map — labeled groups so each cluster reads as what
+          it is: a segmented map switcher, toggleable layers, and quick-select
+          presets. Kept below the map so they never cover it. */}
       {manifest && (
-        <div className='flex flex-wrap gap-2'>
-          {manifest.maps
-            .filter((m) => !HIDDEN_MAP_IDS.has(m.id))
-            .map((m) => (
-              <Button
-                key={m.id}
-                variant={m.id === activeMapId ? 'default' : 'secondary'}
-                size='sm'
-                onClick={() => setActiveMapId(m.id)}
+        <div className='flex flex-col gap-3 pt-1'>
+          {/* Map switcher (segmented control) + view actions */}
+          <div className='flex flex-wrap items-center gap-x-5 gap-y-2'>
+            <ControlGroup label='Map'>
+              <ToggleGroup
+                spacing={0}
+                className='rounded-lg border border-border bg-muted/50 p-0.5'
+                value={[activeMapId]}
+                onValueChange={(v) => {
+                  // ToggleGroup is multi-select by default; take the last toggled
+                  // value to get single-select (and ignore deselect-to-empty).
+                  const next = v[v.length - 1];
+                  if (next) setActiveMapId(next);
+                }}
               >
-                {m.name}
-              </Button>
-            ))}
-          <Button
-            variant={calibrate ? 'default' : 'outline'}
-            size='sm'
-            onClick={() => setCalibrate((c) => !c)}
-            title='Toggle click-to-read pixel readout (affine calibration)'
-          >
-            Calibrate
-          </Button>
+                {manifest.maps
+                  .filter((m) => !HIDDEN_MAP_IDS.has(m.id))
+                  .map((m) => (
+                    <ToggleGroupItem
+                      key={m.id}
+                      value={m.id}
+                      size='sm'
+                      className='rounded-md px-3 text-muted-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm'
+                    >
+                      {m.name}
+                    </ToggleGroupItem>
+                  ))}
+              </ToggleGroup>
+            </ControlGroup>
+
+            <Button
+              variant='outline'
+              size='sm'
+              disabled={!playerPin}
+              onClick={() => {
+                if (!playerPin) return;
+                if (playerPin.master !== activeMapId) setActiveMapId(playerPin.master);
+                setRecenterToken((t) => t + 1);
+              }}
+              title={
+                !slotConnected
+                  ? 'Connect a save to center on your character'
+                  : playerPin
+                    ? 'Center the map on your character'
+                    : 'Your character is in an interior (dungeon/cave) we can’t place on the world map yet'
+              }
+            >
+              <LocateFixedIcon /> Center on me
+            </Button>
+          </div>
+
+          {/* Layer visibility — hide (but keep) graces / bosses / items. Switches
+              read unambiguously as on/off toggles. */}
+          <ControlGroup label='Layers'>
+            <div className='flex flex-wrap items-center gap-x-4 gap-y-1.5'>
+              {LAYER_META.map(({ key, label, icon: Icon, color }) => (
+                <label
+                  key={key}
+                  className='flex cursor-pointer items-center gap-2 text-sm select-none'
+                >
+                  <Switch
+                    checked={layers[key]}
+                    onCheckedChange={(checked) => {
+                      setLayers((l) => ({ ...l, [key]: checked }));
+                    }}
+                  />
+                  <Icon style={{ color }} className={cn('size-4', !layers[key] && 'opacity-40')} />
+                  {label}
+                </label>
+              ))}
+            </div>
+          </ControlGroup>
+
+          {/* Quick-select presets — these select sets of pins (actions, not toggles). */}
+          <div className='flex flex-wrap items-center gap-x-4 gap-y-2'>
+            <ControlGroup label='Quick select'>
+              <div className='flex flex-wrap gap-2'>
+                <Button variant='outline' size='sm' onClick={() => selectEvents('grace', true)}>
+                  <MapPinIcon className='text-amber-400' /> Discovered Graces
+                </Button>
+                <Button variant='outline' size='sm' onClick={() => selectEvents('grace', false)}>
+                  <MapPinIcon /> Undiscovered Graces
+                </Button>
+                <Button variant='outline' size='sm' onClick={() => selectEvents('boss', true)}>
+                  <SkullIcon /> Completed Bosses
+                </Button>
+                <Button variant='outline' size='sm' onClick={() => selectEvents('boss', false)}>
+                  <SkullIcon /> Incomplete Bosses
+                </Button>
+              </div>
+            </ControlGroup>
+            <Button variant='ghost' size='sm' className='text-muted-foreground' onClick={clearPins}>
+              <Trash2Icon /> Clear Pins
+            </Button>
+          </div>
         </div>
       )}
 
-      {/* Marker presets + legend — kept below the map so they never cover it. */}
-      <div className='flex flex-wrap items-center gap-2'>
-        <Button variant='secondary' size='sm' onClick={() => selectEvents('grace', true)}>
-          <MapPinIcon className='text-amber-400' /> Discovered Graces
-        </Button>
-        <Button variant='secondary' size='sm' onClick={() => selectEvents('grace', false)}>
-          <MapPinIcon /> Undiscovered Graces
-        </Button>
-        <Button variant='secondary' size='sm' onClick={() => selectEvents('boss', true)}>
-          <SkullIcon /> Completed Bosses
-        </Button>
-        <Button variant='secondary' size='sm' onClick={() => selectEvents('boss', false)}>
-          <SkullIcon /> Incomplete Bosses
-        </Button>
-        <Button variant='ghost' size='sm' onClick={clearPins}>
-          <Trash2Icon /> Clear Pins
-        </Button>
-        <Tooltip>
-          <TooltipTrigger>
-            <InfoIcon />
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Not all bosses or graces have map data.</p>
-            <p>Markers show on the overworld (Lands Between) map.</p>
-          </TooltipContent>
-        </Tooltip>
-      </div>
-
-      {/* Legend — colored pins matching the map markers. */}
+      {/* Legend — colored pins matching the map markers. Graces/bosses use a
+          brighter "discovered" shade and a muted "undiscovered" one. */}
       <div className='flex flex-wrap items-center gap-x-4 gap-y-1 text-[11.5px] text-muted-foreground'>
         <span className='flex items-center gap-1'>
-          <MapPinIcon className='size-3.5' style={{ color: '#ecbd4a' }} fill='currentColor' /> Sites
-          of Grace
+          <MapPinIcon className='size-3.5' style={{ color: '#ecbd4a' }} fill='currentColor' />
+          <MapPinIcon className='size-3.5' style={{ color: '#8c7a3e' }} fill='currentColor' />{' '}
+          Graces (found / undiscovered)
         </span>
         <span className='flex items-center gap-1'>
-          <MapPinIcon className='size-3.5' style={{ color: '#e24a4a' }} fill='currentColor' />{' '}
-          Bosses
+          <MapPinIcon className='size-3.5' style={{ color: '#e24a4a' }} fill='currentColor' />
+          <MapPinIcon className='size-3.5' style={{ color: '#8a4040' }} fill='currentColor' />{' '}
+          Bosses (defeated / remaining)
         </span>
         <span className='flex items-center gap-1'>
-          <MapPinIcon className='size-3.5' style={{ color: '#3cbfdb' }} fill='currentColor' /> Item
-          pickups
+          <MapPinIcon className='size-3.5' style={{ color: '#3cbfdb' }} fill='currentColor' />
+          <MapPinIcon className='size-3.5' style={{ color: '#356e7a' }} fill='currentColor' /> Items
+          (collected / not collected)
         </span>
         <span className='flex items-center gap-1.5'>
           <span className='size-2.5 rounded-full bg-amber-500 ring-2 ring-amber-500/40' /> You are
           here
+        </span>
+        <span className='flex items-center gap-1.5'>
+          <span className='size-2.5 rotate-45 bg-yellow-400 shadow-[0_0_5px_1px_rgba(250,204,21,.7)]' />
+          <span className='size-2.5 rotate-45 border border-yellow-400/70' /> Lost runes (active /
+          recovered)
         </span>
       </div>
     </div>

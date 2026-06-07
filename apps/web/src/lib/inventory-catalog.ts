@@ -21,12 +21,17 @@ import { itemPins } from './vm/map-pins';
 
 const AMMO_CATEGORIES = new Set(['Arrow', 'Bolt', 'Greatarrow', 'Greatbolt']);
 const goodsIn = (category: string) => GOODS.filter((g) => g.category === category);
+// Cookbooks are tagged `Key Item` in the dataset, but the game shows them under the
+// Tools tab — so we split them out of Key Items and into Tools (see CATALOG below).
+const isCookbook = (g: { name: string }) => g.name.includes('Cookbook');
 
 /**
- * The inventory tables, each backed by an install-derived dataset. Equipment categories use
- * the rich datasets; the rest are `GOODS` partitioned by its `category` field. Sorceries,
- * incantations, and spirit ashes use the enriched `SPELLS`/`SPIRIT_ASHES` datasets, so those
- * `GOODS` categories are intentionally not also surfaced here (no duplication).
+ * The inventory tables, mirroring Elden Ring's own inventory tabs. Equipment categories use the
+ * rich datasets; the rest are `GOODS` grouped to match the in-game tabs. The dataset's finer
+ * `GOODS.category` split is folded up here: `tools` and `keyItems` each union several categories
+ * (every member is a `Good`, so the shapes stay homogeneous). Spirit ashes keep their own tab —
+ * the game files them under Tools as "Summons", but their enriched columns (HP/FP cost, summon
+ * name) warrant a dedicated table. `spells` unions Sorceries + Incantations (the game's Spells tab).
  */
 export const CATALOG = {
   // Enriched with derived affinity fields so the armaments table can collapse the
@@ -36,20 +41,29 @@ export const CATALOG = {
   armor: ARMOR,
   talismans: TALISMANS,
   ashes: ASHES_OF_WAR,
-  sorceries: SPELLS.filter((s) => s.category === 'Sorcery'),
-  incantations: SPELLS.filter((s) => s.category === 'Incantation'),
+  spells: SPELLS,
   spirits: SPIRIT_ASHES,
-  consumables: goodsIn('Consumable'),
+  // Tools tab: flasks/golden runes/multiplayer items/throwing pots (Consumables), the Wondrous
+  // Physick + Crystal Tears, crafting tools, and Cookbooks.
+  tools: [
+    ...goodsIn('Consumable'),
+    ...goodsIn('Wondrous Physick'),
+    ...goodsIn('Crystal Tear'),
+    ...goodsIn('Crafting Tool'),
+    ...goodsIn('Key Item').filter(isCookbook),
+  ],
   craftingMaterials: goodsIn('Crafting Material'),
+  // Bolstering Materials tab in-game (Smithing Stones + Glovewort).
   upgradeMaterials: goodsIn('Upgrade Material'),
-  keyItems: goodsIn('Key Item'),
+  // Key Items tab: quest objectives incl. Maps & Whetblades, plus Remembrances and Great Runes.
+  // Cookbooks are excluded here — they live under Tools, matching the game.
+  keyItems: [
+    ...goodsIn('Key Item').filter((g) => !isCookbook(g)),
+    ...goodsIn('Remembrance'),
+    ...goodsIn('Great Rune'),
+  ],
   infoItems: goodsIn('Info Item'),
-  crystalTears: goodsIn('Crystal Tear'),
-  remembrances: goodsIn('Remembrance'),
-  greatRunes: goodsIn('Great Rune'),
-  craftingTools: goodsIn('Crafting Tool'),
   gestures: goodsIn('Gesture'),
-  physick: goodsIn('Wondrous Physick'),
 } as const;
 
 export type InventoryTableType = keyof typeof CATALOG;
@@ -64,20 +78,14 @@ export const TABLE_PLACEMENT_TYPE: Record<InventoryTableType, string> = {
   armor: 'armor',
   talismans: 'talisman',
   ashes: 'ash-of-war',
-  sorceries: 'goods',
-  incantations: 'goods',
+  spells: 'goods',
   spirits: 'goods',
-  consumables: 'goods',
+  tools: 'goods',
   craftingMaterials: 'goods',
   upgradeMaterials: 'goods',
   keyItems: 'goods',
   infoItems: 'goods',
-  crystalTears: 'goods',
-  remembrances: 'goods',
-  greatRunes: 'goods',
-  craftingTools: 'goods',
   gestures: 'goods',
-  physick: 'goods',
 };
 
 /** A catalog row joined with the active save's ownership. */

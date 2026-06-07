@@ -60,6 +60,10 @@ export const saveFileSourceAtom = Atom.writable<
   },
 );
 
+// The in-repo sample save served from /public — lets people explore a fully
+// connected dashboard without owning the game.
+export const SAMPLE_SAVE_URL = '/ER0000.sl2';
+
 // Type guards
 export const isFileSource = (src?: SaveFileSource): src is FileUploadSource =>
   !!src && 'file' in src;
@@ -68,3 +72,7 @@ export const isUrlSource = (src?: SaveFileSource): src is UrlSource => !!src && 
 
 export const isSharedSource = (src?: SaveFileSource): src is SharedDataSource =>
   !!src && 'sharedData' in src;
+
+/** Whether the active source is the bundled sample save (not the user's own). */
+export const isSampleSource = (src?: SaveFileSource): src is UrlSource =>
+  isUrlSource(src) && src.url === SAMPLE_SAVE_URL;

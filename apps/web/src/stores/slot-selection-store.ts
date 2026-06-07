@@ -1,9 +1,11 @@
 import { Schema } from 'effect';
 import { Atom } from 'effect/unstable/reactivity';
-import { useAtom } from '@effect/atom-react';
+import * as AsyncResult from 'effect/unstable/reactivity/AsyncResult';
+import { useAtom, useAtomValue } from '@effect/atom-react';
 import { useEffect } from 'react';
-import { useEldenRingSave } from '@/lib/atoms/save';
+import { saveAtom, useEldenRingSave } from '@/lib/atoms/save';
 import { browserKvsRuntime } from '@/lib/atoms/kvs';
+import { saveFileSourceAtom } from '@/stores/save-file-source-store';
 
 // In-session selected slot name (effect-atom; replaced the Zustand store).
 const selectedSlotNameAtom = Atom.make<string | undefined>(undefined);
@@ -51,3 +53,22 @@ export const useSelectedSlot = () => {
   if (!data) return;
   return data.slots.find((slot) => slotName === slot.player_game_data.character_name);
 };
+
+/**
+ * Whether a save is currently being loaded — a source is set, the parse hasn't
+ * failed, and no slot is selected yet. Bridges the gap between the Connect dialog
+ * closing (e.g. "Use a sample save") and the parsed slot resolving, including the
+ * brief window after a successful parse but before the slot-selection effect
+ * above runs (so there's no flash of the Connect button). Derived atom — the
+ * loading state lives in the effect-atom graph, not ad-hoc in components.
+ */
+export const saveLoadingAtom = Atom.make((get) => {
+  const source = get(saveFileSourceAtom);
+  if (!source) return false;
+  const result = get(saveAtom);
+  if (AsyncResult.isFailure(result)) return false;
+  if (!AsyncResult.isSuccess(result)) return true;
+  return get(selectedSlotNameAtom) === undefined;
+});
+
+export const useSaveLoading = () => useAtomValue(saveLoadingAtom);

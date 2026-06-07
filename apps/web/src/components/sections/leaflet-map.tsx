@@ -24,8 +24,8 @@ import {
   latLngBounds,
   TileLayer as LeafletTileLayer,
 } from 'leaflet';
-import { useEffect, useMemo, useState } from 'react';
-import { MapContainer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { MapContainer, Marker, Popup, Tooltip, useMap, useMapEvents } from 'react-leaflet';
 
 /** A map pin already resolved to a specific master (`M00`/`M10`) + master pixel. */
 export interface MapPin {
@@ -35,6 +35,18 @@ export interface MapPin {
   master: string;
   px: number;
   py: number;
+  /**
+   * For graces/bosses: whether this point is "discovered" (grace found / boss
+   * defeated). Drives a brighter vs. muted shade of the category colour. Absent
+   * for item pickups and the player marker, which have no such state.
+   */
+  discovered?: boolean;
+  /**
+   * Bloodstain only: runes currently recoverable on the ground at this spot.
+   * Drives the hover tooltip + popup ("N runes on the ground"). Absent for all
+   * other pins.
+   */
+  runes?: number;
 }
 
 export interface MapLayer {
@@ -132,27 +144,33 @@ function ExistenceTileLayer({
 
 // Marker colour by pin category — graces gold, bosses red, item pickups cyan
 // (mirrors the design kit's PIN_COLOR). Pins are otherwise identical teardrops;
-// the colour is what distinguishes them at a glance. See the legend in
-// `map-section.tsx`.
+// the colour is what distinguishes them at a glance. Each category gets a brighter
+// "discovered" shade and a muted one so you can tell, at a glance, found-vs-
+// undiscovered graces, defeated-vs-remaining bosses, and collected-vs-uncollected
+// items apart. See the legend in `map-section.tsx`.
 const PIN_COLOR = {
-  grace: '#ecbd4a',
-  boss: '#e24a4a',
-  item: '#3cbfdb',
+  graceOn: '#ecbd4a',
+  graceOff: '#8c7a3e',
+  bossOn: '#e24a4a',
+  bossOff: '#8a4040',
+  itemOn: '#3cbfdb',
+  itemOff: '#356e7a',
   default: '#a89a87',
 } as const;
 
-export function categoryColor(category: string): string {
+export function categoryColor(category: string, discovered?: boolean): string {
   const c = category.toLowerCase();
-  if (c.includes('grace')) return PIN_COLOR.grace;
-  if (c.includes('boss')) return PIN_COLOR.boss;
-  if (c.includes('treasure') || c.includes('drop')) return PIN_COLOR.item;
+  if (c.includes('grace')) return discovered === false ? PIN_COLOR.graceOff : PIN_COLOR.graceOn;
+  if (c.includes('boss')) return discovered === false ? PIN_COLOR.bossOff : PIN_COLOR.bossOn;
+  if (c.includes('treasure') || c.includes('drop'))
+    return discovered === false ? PIN_COLOR.itemOff : PIN_COLOR.itemOn;
   return PIN_COLOR.default;
 }
 
 // One divIcon per colour, cached and shared across markers.
 const pinIconCache = new Map<string, ReturnType<typeof divIcon>>();
-function pinIcon(category: string) {
-  const color = categoryColor(category);
+function pinIcon(category: string, discovered?: boolean) {
+  const color = categoryColor(category, discovered);
   const cached = pinIconCache.get(color);
   if (cached) return cached;
   const html =
@@ -182,6 +200,37 @@ const playerIcon = divIcon({
   popupAnchor: [0, -10],
 });
 
+/**
+ * "Lost runes" bloodstain marker — a glowing gold diamond, deliberately a
+ * different shape/colour from the amber player dot so the two never read as the
+ * same thing. Shown where the player last died with runes still on the ground.
+ */
+const bloodstainIcon = divIcon({
+  className: '',
+  html:
+    '<div style="width:14px;height:14px;transform:rotate(45deg);background:#facc15;' +
+    'border:2px solid #fff;box-shadow:0 0 8px 3px rgba(250,204,21,.85),0 1px 2px rgba(0,0,0,.55)"></div>',
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
+  popupAnchor: [0, -8],
+});
+
+/**
+ * "Last death (runes already recovered)" marker — a faded, hollow gold diamond,
+ * no glow. Same shape as {@link bloodstainIcon} so it reads as the same kind of
+ * thing, but clearly inactive: it's the retained last-death spot from a save
+ * whose bloodstain has been cleared (`runes <= 0`). See `useBloodstainPin`.
+ */
+const bloodstainRecoveredIcon = divIcon({
+  className: '',
+  html:
+    '<div style="width:13px;height:13px;transform:rotate(45deg);background:transparent;' +
+    'border:2px solid rgba(250,204,21,.7);box-shadow:0 1px 2px rgba(0,0,0,.5);opacity:.85"></div>',
+  iconSize: [13, 13],
+  iconAnchor: [6.5, 6.5],
+  popupAnchor: [0, -8],
+});
+
 /** Pins — already in master-pixel space; unproject at native zoom → latlng. */
 function MarkerLayer({ pins, zoom }: { pins: MapPin[]; zoom: number }) {
   const map = useMap();
@@ -191,7 +240,7 @@ function MarkerLayer({ pins, zoom }: { pins: MapPin[]; zoom: number }) {
         <Marker
           key={i}
           position={map.unproject([pin.px, pin.py], zoom)}
-          icon={pinIcon(pin.category)}
+          icon={pinIcon(pin.category, pin.discovered)}
         >
           <Popup>
             <div className='select-text'>
@@ -203,6 +252,9 @@ function MarkerLayer({ pins, zoom }: { pins: MapPin[]; zoom: number }) {
                   dangerouslySetInnerHTML={{ __html: pin.description }}
                 />
               )}
+              <p className='font-mono opacity-70'>
+                x {Math.round(pin.px)}, y {Math.round(pin.py)}
+              </p>
             </div>
           </Popup>
         </Marker>
@@ -211,21 +263,26 @@ function MarkerLayer({ pins, zoom }: { pins: MapPin[]; zoom: number }) {
   );
 }
 
-/** Click-to-read master-pixel readout, for verifying / recalibrating the projection. */
-function CalibrationReadout({ zoom }: { zoom: number }) {
-  const [pt, setPt] = useState<[number, number] | null>(null);
+/**
+ * Always-on status readout (bottom-right) — current zoom + the master-pixel the
+ * map is centered on. Mirrors the readout the old prod map had; handy for getting
+ * a feel for the projection and for reporting coordinates.
+ */
+function MapStatusReadout({ zoom }: { zoom: number }) {
+  const map = useMap();
+  const read = () => {
+    const p = map.project(map.getCenter(), zoom);
+    return { z: map.getZoom().toFixed(1), x: Math.round(p.x), y: Math.round(p.y) };
+  };
+  const [info, setInfo] = useState(read);
   useMapEvents({
-    click(e) {
-      const p = e.target.project(e.latlng, zoom);
-      const xy: [number, number] = [Math.round(p.x), Math.round(p.y)];
-      setPt(xy);
-      console.log(`[map] clicked master pixel: x=${xy[0]} y=${xy[1]}`);
-    },
+    move: () => setInfo(read()),
+    zoom: () => setInfo(read()),
   });
   return (
-    <div className='leaflet-bottom leaflet-left'>
-      <div className='leaflet-control rounded bg-black/70 px-2 py-1 font-mono text-xs text-white'>
-        px: {pt ? `${pt[0]}, ${pt[1]}` : '— click to read —'}
+    <div className='leaflet-bottom leaflet-right'>
+      <div className='leaflet-control rounded bg-black/70 px-2 py-1 font-mono text-[11px] text-white/90'>
+        z {info.z} · {info.x}, {info.y}
       </div>
     </div>
   );
@@ -236,15 +293,19 @@ function MapBody({
   activeMapId,
   pins,
   playerPin,
-  calibrate,
+  bloodstainPin,
   tileIndex,
+  recenterToken,
 }: {
   manifest: MapManifest;
   activeMapId: string;
   pins: MapPin[];
   playerPin?: MapPin | null;
-  calibrate: boolean;
+  /** Last-death bloodstain ("lost runes"). `runes > 0` = active; `<= 0` = recovered. */
+  bloodstainPin?: MapPin | null;
   tileIndex?: TileIndex;
+  /** Bumped by the "Center on me" button — recenters on the player at close zoom. */
+  recenterToken?: number;
 }) {
   const map = useMap();
   const z = manifest.maxNativeZoom;
@@ -277,11 +338,34 @@ function MapBody({
   const [didInit, setDidInit] = useState(false);
   useEffect(() => {
     map.setMaxBounds(bounds);
+    // Clamp zoom-out to "the whole map just fits" — you can pull back until the
+    // entire map is visible, but no further (no zooming out into the black void).
+    // Recompute on resize: when this first runs the container may be unsized, so
+    // getBoundsZoom would return 0 (cap effectively gone) until the next resize.
+    const applyMinZoom = () => {
+      map.setMinZoom(map.getBoundsZoom(bounds));
+    };
+    applyMinZoom();
+    map.on('resize', applyMinZoom);
     if (!didInit) {
       map.fitBounds(bounds);
       setDidInit(true);
     }
+    return () => {
+      map.off('resize', applyMinZoom);
+    };
   }, [map, bounds, didInit]);
+
+  // "Center on me" — fly to the player at a close, readable zoom. Guarded by a
+  // ref so a save-poll that re-renders this component doesn't re-trigger a jump;
+  // only an actual button press (a new token) recenters.
+  const lastRecenter = useRef(0);
+  useEffect(() => {
+    if (!recenterToken || recenterToken === lastRecenter.current) return;
+    lastRecenter.current = recenterToken;
+    if (!playerPin || playerPin.master !== activeMapId) return;
+    map.setView(map.unproject([playerPin.px, playerPin.py], z), z);
+  });
 
   return (
     <>
@@ -300,11 +384,48 @@ function MapBody({
             <div className='select-text'>
               <strong>{playerPin.name}</strong>
               {playerPin.description && <p>{playerPin.description}</p>}
+              <p className='font-mono opacity-70'>
+                x {Math.round(playerPin.px)}, y {Math.round(playerPin.py)}
+              </p>
             </div>
           </Popup>
         </Marker>
       )}
-      {calibrate && <CalibrationReadout zoom={z} />}
+      {bloodstainPin &&
+        bloodstainPin.master === activeMapId &&
+        (() => {
+          // runes > 0 → active "lost runes"; otherwise the spot is retained but
+          // the runes have already been recovered (or were never dropped).
+          const active = (bloodstainPin.runes ?? 0) > 0;
+          const runeText =
+            bloodstainPin.runes !== undefined && bloodstainPin.runes > 0
+              ? `${bloodstainPin.runes.toLocaleString()} runes`
+              : null;
+          return (
+            <Marker
+              position={map.unproject([bloodstainPin.px, bloodstainPin.py], z)}
+              icon={active ? bloodstainIcon : bloodstainRecoveredIcon}
+            >
+              <Tooltip direction='top' offset={[0, -6]}>
+                {active ? `${runeText} on the ground` : 'Last death · runes recovered'}
+              </Tooltip>
+              <Popup>
+                <div className='select-text'>
+                  <strong>{active ? 'Lost runes' : 'Last death'}</strong>
+                  <p>
+                    {active
+                      ? `${runeText} waiting to be recovered`
+                      : 'Runes here have already been recovered'}
+                  </p>
+                  <p className='font-mono opacity-70'>
+                    x {Math.round(bloodstainPin.px)}, y {Math.round(bloodstainPin.py)}
+                  </p>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })()}
+      <MapStatusReadout zoom={z} />
     </>
   );
 }
@@ -314,21 +435,26 @@ export default function LeafletMap({
   activeMapId,
   pins,
   playerPin,
-  calibrate = false,
+  bloodstainPin,
   tileIndex,
+  recenterToken,
 }: {
   manifest: MapManifest;
   activeMapId: string;
   pins: MapPin[];
   playerPin?: MapPin | null;
-  calibrate?: boolean;
+  bloodstainPin?: MapPin | null;
   tileIndex?: TileIndex;
+  recenterToken?: number;
 }) {
   return (
     <MapContainer
       crs={CRS.Simple}
       minZoom={0}
       maxZoom={manifest.maxNativeZoom + 2}
+      // Finer zoom granularity — snap/step in 0.25 increments (default is 1.0).
+      zoomSnap={0.25}
+      zoomDelta={0.25}
       center={[0, 0]}
       zoom={2}
       attributionControl={false}
@@ -339,8 +465,9 @@ export default function LeafletMap({
         activeMapId={activeMapId}
         pins={pins}
         playerPin={playerPin}
-        calibrate={calibrate}
+        bloodstainPin={bloodstainPin}
         tileIndex={tileIndex}
+        recenterToken={recenterToken}
       />
     </MapContainer>
   );

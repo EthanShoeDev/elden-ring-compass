@@ -4,19 +4,18 @@ import { Schema } from 'effect';
 import { Atom } from 'effect/unstable/reactivity';
 import { useAtom } from '@effect/atom-react';
 import {
-  ActivityIcon,
   ChevronsUpDownIcon,
-  CrownIcon,
   FileCheckIcon,
   FlameIcon,
+  HammerIcon,
   InfoIcon,
   ListChecksIcon,
   PackageIcon,
   SkullIcon,
   SparklesIcon,
-  SquarePenIcon,
   StarIcon,
   SwordsIcon,
+  WrenchIcon,
   type LucideIcon,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -50,40 +49,30 @@ const inventoryTableSelectionAtom = Atom.kvs({
   defaultValue: () => 'armaments',
 });
 
-// Per-category icon (Lucide), mirroring the design kit's CAT_ICON.
+// Per-category icon (Lucide).
 const CAT_ICON: Record<InventoryTableType, LucideIcon> = {
   armaments: SwordsIcon,
   ammo: SwordsIcon,
   armor: PackageIcon,
   talismans: StarIcon,
   ashes: FlameIcon,
-  sorceries: SparklesIcon,
-  incantations: FlameIcon,
+  spells: SparklesIcon,
   spirits: SkullIcon,
-  consumables: PackageIcon,
+  tools: WrenchIcon,
   craftingMaterials: PackageIcon,
-  upgradeMaterials: PackageIcon,
-  crystalTears: ActivityIcon,
-  physick: ActivityIcon,
+  upgradeMaterials: HammerIcon,
   keyItems: FileCheckIcon,
-  remembrances: CrownIcon,
-  greatRunes: CrownIcon,
   infoItems: InfoIcon,
-  craftingTools: SquarePenIcon,
   gestures: ListChecksIcon,
 };
 
-// The 19 item classes, grouped into subcategories for the picker dropdown.
+// The item classes, mirroring Elden Ring's own inventory tabs, lightly grouped for the picker.
 const INV_GROUPS: ReadonlyArray<{ label: string; keys: ReadonlyArray<InventoryTableType> }> = [
   { label: 'Equipment', keys: ['armaments', 'ammo', 'armor', 'talismans', 'ashes'] },
-  { label: 'Magic', keys: ['sorceries', 'incantations', 'spirits'] },
+  { label: 'Magic', keys: ['spells', 'spirits'] },
   {
-    label: 'Goods',
-    keys: ['consumables', 'craftingMaterials', 'upgradeMaterials', 'crystalTears', 'physick'],
-  },
-  {
-    label: 'Progression',
-    keys: ['keyItems', 'remembrances', 'greatRunes', 'infoItems', 'craftingTools', 'gestures'],
+    label: 'Items',
+    keys: ['tools', 'craftingMaterials', 'upgradeMaterials', 'keyItems', 'infoItems', 'gestures'],
   },
 ];
 
@@ -331,9 +320,11 @@ const ashesColumns = (() => {
 })();
 
 const spellColumns = (() => {
-  const h = createColumnHelper<Row<'sorceries'>>();
+  const h = createColumnHelper<Row<'spells'>>();
   return [
     ...defaultColumns(h),
+    // Sorcery vs Incantation — the Spells tab unions both, so surface which is which.
+    commonAccessorColumnDef(h, 'category', 'Category'),
     commonAccessorColumnDef(h, 'fpCost', 'FP Cost'),
     commonAccessorColumnDef(h, 'spCost', 'Stamina Cost'),
     commonAccessorColumnDef(h, 'slotsUsed', 'Slots'),
@@ -357,24 +348,29 @@ const goodsColumns = (() => {
   return [...defaultColumns(h), commonAccessorColumnDef(h, 'maxHeld', 'Max Held')];
 })();
 
+// Tools / Key Items each union several dataset categories — add a Category column so the
+// sub-types (Cookbook, Crystal Tear, Remembrance, Great Rune, …) stay distinguishable.
+const mixedGoodsColumns = (() => {
+  const h = createColumnHelper<BaseRow & { category: string; maxHeld: number }>();
+  return [
+    ...defaultColumns(h),
+    commonAccessorColumnDef(h, 'category', 'Category'),
+    commonAccessorColumnDef(h, 'maxHeld', 'Max Held'),
+  ];
+})();
+
 const tables: Record<InventoryTableType, { columns: Array<ColumnDef<any>>; label: string }> = {
-  armaments: { label: 'Armaments', columns: armamentColumns },
-  ammo: { label: 'Ammo', columns: ammoColumns },
+  armaments: { label: 'Weapons & Shields', columns: armamentColumns },
+  ammo: { label: 'Ammunition', columns: ammoColumns },
   armor: { label: 'Armor', columns: armorColumns },
   talismans: { label: 'Talismans', columns: talismanColumns },
   ashes: { label: 'Ashes of War', columns: ashesColumns },
-  sorceries: { label: 'Sorceries', columns: spellColumns },
-  incantations: { label: 'Incantations', columns: spellColumns },
+  spells: { label: 'Spells', columns: spellColumns },
   spirits: { label: 'Spirit Ashes', columns: spiritColumns },
-  consumables: { label: 'Consumables', columns: goodsColumns },
+  tools: { label: 'Tools', columns: mixedGoodsColumns },
   craftingMaterials: { label: 'Crafting Materials', columns: goodsColumns },
-  upgradeMaterials: { label: 'Upgrade Materials', columns: goodsColumns },
-  keyItems: { label: 'Key Items', columns: goodsColumns },
+  upgradeMaterials: { label: 'Bolstering Materials', columns: goodsColumns },
+  keyItems: { label: 'Key Items', columns: mixedGoodsColumns },
   infoItems: { label: 'Info Items', columns: goodsColumns },
-  crystalTears: { label: 'Crystal Tears', columns: goodsColumns },
-  remembrances: { label: 'Remembrances', columns: goodsColumns },
-  greatRunes: { label: 'Great Runes', columns: goodsColumns },
-  craftingTools: { label: 'Crafting Tools', columns: goodsColumns },
   gestures: { label: 'Gestures', columns: goodsColumns },
-  physick: { label: 'Physick', columns: goodsColumns },
 };

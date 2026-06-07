@@ -17,6 +17,8 @@ export function SlotOverview({ className }: { className?: string }) {
         coords: { player_coords: {} },
         gender: 'Unknown',
         match_making_weapon_level: 0,
+        deaths: 0,
+        seconds_played: 0,
         stats: {
           arcane: 0,
           dexterity: 0,
@@ -38,6 +40,15 @@ export function SlotOverview({ className }: { className?: string }) {
   const capitalizeFirstLetter = (string: string) => {
     if (!string) return '';
     return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
+  // In-game playtime (seconds_played) → "Xh Ym" — the save has no real-world
+  // creation/start date, so playtime is the meaningful "how long this run is" stat.
+  const formatPlaytime = (seconds: number) => {
+    const totalMinutes = Math.floor(seconds / 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours.toString()}h ${minutes.toString()}m`;
   };
 
   return (
@@ -109,6 +120,14 @@ export function SlotOverview({ className }: { className?: string }) {
           <div className='grid gap-1'>
             <div className='text-xs font-medium text-muted-foreground'>Souls Memory</div>
             <div className='text-lg font-medium'>{statsVm.stats.soulsmemory.toLocaleString()}</div>
+          </div>
+          <div className='grid gap-1'>
+            <div className='text-xs font-medium text-muted-foreground'>Deaths</div>
+            <div className='text-lg font-medium'>{statsVm.deaths.toLocaleString()}</div>
+          </div>
+          <div className='grid gap-1'>
+            <div className='text-xs font-medium text-muted-foreground'>Playtime</div>
+            <div className='text-lg font-medium'>{formatPlaytime(statsVm.seconds_played)}</div>
           </div>
         </div>
         <div></div>

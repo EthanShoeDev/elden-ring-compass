@@ -365,7 +365,7 @@ function readSlot(r: BinaryReaderApi, secondsPlayed: number): LeanSlot {
   const bloodCoords: [number, number, number] = [r.f32(), r.f32(), r.f32()];
   r.skip(16); // angle (FloatVector4)
   r.skip(20); // unk0x1c..unk0x2c (5 × u32)
-  r.skip(4); // unk0x30 (i32)
+  r.skip(4); // unk0x30 (i32) — mirrors `runes` as -1 when no bloodstain is set
   const bloodRunes = r.i32();
   const bloodMapId = r.byteTuple4();
   r.skip(8); // unk0x3c + unk0x38

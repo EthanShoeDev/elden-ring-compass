@@ -7,6 +7,8 @@ export function statsDbView(slot: Readonly<Slot>) {
     gender: slot.player_game_data.gender == 0x0 ? 'female' : 'male',
     match_making_weapon_level: slot.player_game_data.match_making_wpn_lvl,
     arche_type: archetypeNameById.get(slot.player_game_data.arche_type) ?? 'Unknown',
+    deaths: slot.deaths,
+    seconds_played: slot.seconds_played,
     stats: {
       vigor: slot.player_game_data.vigor,
       mind: slot.player_game_data.mind,

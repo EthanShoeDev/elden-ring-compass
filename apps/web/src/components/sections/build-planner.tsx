@@ -154,8 +154,12 @@ export function BuildPlannerSection() {
   const setAttr = (key: Attr8Key, value: number) => {
     setAttrs((prev) => ({ ...prev, [key]: value }));
   };
+  // The baseline this view resets to (your save, or Vagabond defaults). Reset is
+  // only meaningful once you've dragged something away from it.
+  const baseline = useMemo(() => (slot ? attrs8FromSlot(slot) : VAGABOND), [slot]);
+  const dirty = ATTR_META.some((m) => attrs[m.key] !== baseline[m.key]);
   const reset = () => {
-    setAttrs(slot ? attrs8FromSlot(slot) : VAGABOND);
+    setAttrs(baseline);
   };
 
   // Rune level = sum of the 8 attributes − 79 (Wretch starts at level 1 with all
@@ -192,7 +196,14 @@ export function BuildPlannerSection() {
               : 'drag attributes to see derived stats, soft caps & rune cost'}
           </span>
         </span>
-        <Button variant='outline' size='sm' className='ml-auto' onClick={reset}>
+        <Button
+          variant='outline'
+          size='sm'
+          className='ml-auto'
+          disabled={!dirty}
+          onClick={reset}
+          title={dirty ? `Reset to ${slot ? 'your save' : 'Vagabond'}` : undefined}
+        >
           <RefreshCcwIcon /> Reset
         </Button>
       </div>

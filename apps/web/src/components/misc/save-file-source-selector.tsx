@@ -2,13 +2,15 @@ import { itemIconUrl } from '@elden-ring-compass/data/images';
 import { useEldenRingSave } from '@/lib/atoms/save';
 import { fileToArrBuffer } from '@/lib/er-save-parser';
 import { cn } from '@/lib/utils';
-import { saveFileSourceAtom } from '@/stores/save-file-source-store';
-import { useSlotNameSelection } from '@/stores/slot-selection-store';
+import { statsDbView } from '@/lib/vm/stats';
+import { SAMPLE_SAVE_URL, saveFileSourceAtom } from '@/stores/save-file-source-store';
+import { useSelectedSlot, useSlotNameSelection } from '@/stores/slot-selection-store';
 import { useAtomSet, useAtomValue } from '@effect/atom-react';
 import { ClientOnly } from '@tanstack/react-router';
 import { formatDistance } from 'date-fns';
 import {
   CheckIcon,
+  ChevronsUpDownIcon,
   EditIcon,
   FileCheckIcon,
   Link2OffIcon,
@@ -23,6 +25,14 @@ import { CodeSnippet } from './code-snippet';
 import { Button } from '../ui/button';
 import { ComboboxSelect } from '../ui/combobox-select';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import {
   Dialog,
   DialogClose,
   DialogContent,
@@ -32,11 +42,9 @@ import {
   DialogTrigger,
 } from '../ui/dialog';
 import { Input } from '../ui/input';
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '../ui/sidebar';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 
-// Path to the in-repo sample save, served from /public — lets people explore a
-// real, connected dashboard without owning the game.
-const SAMPLE_SAVE_URL = '/ER0000.sl2';
 const DEFAULT_LOCAL_URL = 'http://localhost:8080/ER0000.sl2';
 
 // Faint remembrance art behind the modal (Godfrey), echoing the design kit's
@@ -313,6 +321,85 @@ export function DisconnectButton({ className, ...props }: React.ComponentProps<t
       <UnplugIcon />
       <span className='sr-only'>Disconnect save</span>
     </Button>
+  );
+}
+
+/**
+ * The active character as a combined identity + slot switcher — an avatar, the
+ * character name and its archetype/level that *is* the dropdown to switch save
+ * slots (mirrors the shadcn sidebar team-switcher). Replaces the old separate
+ * "avatar block + SlotSelector combobox", which showed the character name twice.
+ * If the save has a single slot, the trigger renders as a static identity card.
+ */
+export function SlotSwitcher() {
+  const { data } = useEldenRingSave();
+  const slot = useSelectedSlot();
+  const [slotName, setSlotName] = useSlotNameSelection();
+  if (!data || !slot) return null;
+
+  const stats = statsDbView(slot);
+  const name = slot.player_game_data.character_name || 'Tarnished';
+  const multiple = data.slots.length > 1;
+
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            disabled={!multiple}
+            render={
+              <SidebarMenuButton
+                size='lg'
+                aria-label='Switch save slot'
+                className='data-open:bg-sidebar-accent data-open:text-sidebar-accent-foreground data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground data-disabled:opacity-100'
+              />
+            }
+          >
+            <span className='flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground'>
+              <SwordIcon className='size-4' />
+            </span>
+            <span className='grid min-w-0 flex-1 text-left leading-tight'>
+              <span className='truncate text-[13px] font-semibold'>{name}</span>
+              <span className='truncate text-[11px] text-muted-foreground'>
+                {stats.arche_type} · Lvl {stats.stats.level}
+              </span>
+            </span>
+            {multiple && <ChevronsUpDownIcon className='ml-auto size-4 shrink-0 text-muted-foreground' />}
+          </DropdownMenuTrigger>
+          {multiple && (
+            <DropdownMenuContent
+              align='start'
+              side='right'
+              sideOffset={4}
+              className='w-56'
+            >
+              <DropdownMenuRadioGroup value={slotName ?? ''} onValueChange={setSlotName}>
+                {/* Label must live inside a group/radio-group — Base UI's
+                    MenuGroupContext requirement. */}
+                <DropdownMenuLabel className='text-xs text-muted-foreground'>
+                  Save slots
+                </DropdownMenuLabel>
+                {data.slots.map((s) => (
+                  <DropdownMenuRadioItem
+                    key={s.player_game_data.character_name}
+                    value={s.player_game_data.character_name}
+                  >
+                    <span className='flex min-w-0 flex-1 items-center justify-between gap-2'>
+                      <span className='truncate'>
+                        {s.player_game_data.character_name || 'Tarnished'}
+                      </span>
+                      <span className='shrink-0 text-xs text-muted-foreground'>
+                        Lvl {s.player_game_data.level}
+                      </span>
+                    </span>
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          )}
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 }
 

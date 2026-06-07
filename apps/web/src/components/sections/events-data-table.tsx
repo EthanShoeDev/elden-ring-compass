@@ -15,11 +15,13 @@ export function EventsDataTable() {
   return (
     <Card className='w-full'>
       <CardHeader>
-        <CardTitle>Events</CardTitle>
+        <CardTitle>World Progress</CardTitle>
         <CardDescription>
+          Sites of Grace discovered &amp; bosses defeated
+          <br />
           {ownedCount} / {items.length}
           <br />
-          {((ownedCount / items.length) * 100).toFixed(0)}% owned
+          {((ownedCount / items.length) * 100).toFixed(0)}% complete
         </CardDescription>
       </CardHeader>
       <CardContent>
