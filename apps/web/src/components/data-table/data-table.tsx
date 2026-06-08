@@ -12,6 +12,7 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { type CSSProperties, useState } from 'react';
 
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { DataTableStateInitProps, useDataTableState } from './data-table-store';
 import { DataTableToolbar } from './data-table-toolbar';
@@ -95,14 +96,16 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
   const totalWidth = table.getTotalSize();
   const selectedCount = table.getFilteredSelectedRowModel().rows.length;
 
-  // The scroll container is the virtualizer's scroll element (the virtualizer
-  // lives in <DataTableBody> so scrolling only re-renders the rows — not this
-  // component's toolbar + faceted filters, which iterate every row). It's tracked
-  // as state (callback ref) rather than a useRef: because <DataTableBody> is a
-  // *descendant* of this div, its mount layout-effect runs before this div's ref
-  // attaches — a plain ref would still read null there and the virtualizer would
-  // never measure (empty body). Setting state on mount re-renders the body with
-  // the real element so the virtualizer attaches its observers.
+  // The scroll container is the virtualizer's scroll element — the Base UI
+  // ScrollArea's Viewport (the element that actually scrolls), not its Root. The
+  // virtualizer lives in <DataTableBody> so scrolling only re-renders the rows —
+  // not this component's toolbar + faceted filters, which iterate every row. It's
+  // tracked as state (callback ref) rather than a useRef: because <DataTableBody>
+  // is a *descendant* of the viewport, its mount layout-effect runs before the
+  // viewport's ref attaches — a plain ref would still read null there and the
+  // virtualizer would never measure (empty body). Setting state on mount
+  // re-renders the body with the real element so the virtualizer attaches its
+  // observers.
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
 
   return (
@@ -110,10 +113,14 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
       <div className='shrink-0'>
         <DataTableToolbar table={table} />
       </div>
-      <div
-        ref={setScrollEl}
-        className={cn('relative overflow-auto rounded-md border', fill && 'min-h-0 flex-1')}
-        style={fill ? undefined : { maxHeight: maxBodyHeight }}
+      <ScrollArea
+        viewportRef={setScrollEl}
+        className={cn('rounded-md border', fill && 'min-h-0 flex-1')}
+        // In cap mode the Root has no fixed height, so the maxHeight goes on the
+        // Viewport (height:100% of an indefinite parent resolves to content
+        // height, capped here). In fill mode the Root is flex-1 and the Viewport
+        // fills it via `size-full`, so no cap is needed.
+        viewportStyle={fill ? undefined : { maxHeight: maxBodyHeight }}
       >
         {/* CSS grid layout (not auto table layout) so column widths come straight
             from `getSize()` and stay stable as rows virtualize in/out. The `Name`
@@ -152,7 +159,8 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
           </thead>
           <DataTableBody table={table} scrollEl={scrollEl} />
         </table>
-      </div>
+        <ScrollBar orientation='horizontal' />
+      </ScrollArea>
       <div className='shrink-0 px-2 text-sm text-muted-foreground'>
         {selectedCount > 0 && <>{selectedCount} pinned · </>}
         {rowCount.toLocaleString()} {rowCount === 1 ? 'row' : 'rows'}

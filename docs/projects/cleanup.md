@@ -93,3 +93,7 @@ I do not like the solid filled in map pin icon when a map pin is selected. It lo
 We have the "All, Owned, Missing" segmented controls but I think this sort of conflicts/duplicates the "Quantity" column in some data tables.
 
 The data table filter facets have the aggregate counts in the popup. I like this but it looks weird for filter columns that are numbers. Like its hard to tell which is the aggregate count and which is the individual item count. Also I think normally the facet filter options should be sorted by aggregate count, except for number columns. The best example of this is the upgrade level column in the weapons data table.
+
+It would be cool to have a button on the map route to 'show all undiscovered items at current zoom level'
+
+I think all the map chrome still needs another rework. I think we might want to try putting the layers and legend and clear pins and all that stuff as loating on top of the map? Maybe? Not sure Its worth a try. The current ui of a bunch of elements sandwhiched underneath the map does not look great. See main branch of the repo for how it used to look before all the major upgrades.

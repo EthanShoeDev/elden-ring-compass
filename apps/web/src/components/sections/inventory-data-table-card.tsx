@@ -25,7 +25,6 @@ import {
 } from '@/components/data-table/common-column-defs';
 import { DataTable } from '@/components/data-table/data-table';
 import { TooltipImg } from '@/components/misc/tooltip-img';
-import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -176,24 +175,23 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
       ? items
       : items.filter((i) => (ownerFilter === 'owned' ? i.quantity > 0 : i.quantity === 0));
 
+  // Full-bleed: the table *is* the route now (no Card chrome, no page padding —
+  // see the `/inventory/$category` route's `fullBleed` staticData). A slim header
+  // bar carries the category picker + ownership readout + filters; the
+  // virtualized DataTable fills the rest of the frame.
   return (
-    <Card className='flex min-h-0 w-full flex-1 flex-col'>
-      <CardHeader className='shrink-0'>
-        <CategoryPicker table={table} onSelect={setTableType} allTables={allTables} />
-        <CardDescription>
-          {ownedCount} / {items.length}
-          <br />
-          {((ownedCount / items.length) * 100).toFixed(0)}% owned
-          {collapsible && !showVariants && hiddenVariantCount > 0 && (
-            <>
-              <br />
-              {hiddenVariantCount} affinity variants hidden
-            </>
-          )}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className='flex min-h-0 flex-1 flex-col gap-4'>
-        <div className='flex shrink-0 flex-wrap items-center justify-between gap-3'>
+    <div className='flex min-h-0 w-full flex-1 flex-col'>
+      <div className='flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b px-4 py-3'>
+        <div className='flex flex-wrap items-baseline gap-x-3 gap-y-1'>
+          <CategoryPicker table={table} onSelect={setTableType} allTables={allTables} />
+          <span className='text-sm text-muted-foreground'>
+            {ownedCount} / {items.length} ({((ownedCount / items.length) * 100).toFixed(0)}% owned)
+            {collapsible && !showVariants && hiddenVariantCount > 0 && (
+              <> · {hiddenVariantCount} affinity variants hidden</>
+            )}
+          </span>
+        </div>
+        <div className='flex flex-wrap items-center gap-3'>
           <div className='inline-flex rounded-lg border border-border p-0.5'>
             {(['all', 'owned', 'missing'] as const).map((key) => (
               <button
@@ -225,9 +223,11 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
             </Label>
           )}
         </div>
+      </div>
+      <div className='flex min-h-0 flex-1 flex-col p-2'>
         <DataTable tableId={table} columns={tables[table]} data={filteredItems} fill />
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

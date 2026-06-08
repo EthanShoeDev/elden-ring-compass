@@ -11,6 +11,7 @@ import {
 import { Schema } from 'effect';
 import { Atom } from 'effect/unstable/reactivity';
 import { useAtomSet, useAtomValue } from '@effect/atom-react';
+import { useHydrated } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import { browserKvsRuntime } from '@/lib/atoms/kvs';
 import { InventoryTableType } from '../sections/inventory-data-table-card';
@@ -85,6 +86,13 @@ const tableStateSliceFamily = Atom.family((tableId: TableId) =>
 /** Per-table state + bound TanStack `onChange` setters (consumed by `DataTable`). */
 export const useDataTableState = (initProps: DataTableStateInitProps) => {
   const { tableId } = initProps;
+  // The persisted slice lives in localStorage (client-only), so it's absent
+  // during SSR and present on the first client render — reading it pre-hydration
+  // would diverge the trees (e.g. a faceted-filter shows a separator + count
+  // badge only on the client). Gate on hydration: SSR and the first client render
+  // both use defaults, then the persisted filters/sorting/sizing restore
+  // post-mount. See `useHydrated`.
+  const hydrated = useHydrated();
   const slice = useAtomValue(tableStateSliceFamily(tableId));
   const setTableState = useAtomSet(tableStateAtom);
   // Stable fallback for a table with no persisted state yet. Memoizing is load-bearing: an
@@ -97,7 +105,7 @@ export const useDataTableState = (initProps: DataTableStateInitProps) => {
   // (the stable fallback is the whole point — see the comment above).
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- see above
   const fallback = useMemo(() => defaultTableState(initProps), [tableId]);
-  const current = slice ?? fallback;
+  const current = (hydrated ? slice : undefined) ?? fallback;
 
   const makeSetter =
     <K extends keyof DataTableState>(key: K): OnChangeFn<DataTableState[K]> =>

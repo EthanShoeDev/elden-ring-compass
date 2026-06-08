@@ -10,6 +10,9 @@ export const Route = createFileRoute('/_app/inventory/$category')({
       throw redirect({ to: '/inventory/$category', params: { category: DEFAULT_INVENTORY_SLUG } });
     }
   },
+  // The category table is the whole route — render it edge-to-edge (no shell
+  // page padding); the table provides its own slim header bar + gutter.
+  staticData: { fullBleed: true },
   component: InventoryCategoryPage,
 });
 

@@ -9,6 +9,7 @@ import {
   SwordIcon,
   type LucideIcon,
 } from 'lucide-react';
+import { useState } from 'react';
 
 import { DarkModeToggle } from '@/components/misc/dark-mode-toggle';
 import {
@@ -33,6 +34,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
@@ -64,12 +66,23 @@ function NavIcon({ icon: Icon }: { icon: LucideIcon }) {
 
 export function AppSidebar() {
   const pathname = useLocation({ select: (l) => l.pathname });
+  // When the desktop rail is collapsed to icons, a collapsible group's sub-menu
+  // is hidden — so its trigger would only toggle an invisible panel. In that
+  // state make the icon navigate to the section instead (see the children branch).
+  const { state, isMobile } = useSidebar();
+  const railCollapsed = state === 'collapsed' && !isMobile;
+  // Collapsible nav groups (only Inventory today) are *controlled* so they can
+  // default to "open when this section is active" while still letting the user
+  // toggle them — an uncontrolled `defaultOpen` that changes on navigation trips
+  // Base UI's "changing the default open state" warning. Until the user toggles a
+  // group (keyed by route), it falls back to whether that section is active.
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   // These derive from client-only persisted atoms (localStorage-backed kvs), so
   // their values differ between the server render (always "no source") and the
   // first client render (a restored url → "loading"). Gate them on hydration:
-  // until hydrated we report the server's guest state, then swap to the real
-  // values post-mount — otherwise the footer text mismatches and React discards
-  // the SSR tree. See @tanstack/react-router `useHydrated`.
+  // until hydrated we can't read the persisted save, so the footer shows the
+  // loading state below — and because that's what both the SSR HTML and the
+  // first client render emit, there's no mismatch. See `useHydrated`.
   const hydrated = useHydrated();
   // NB: call every atom hook unconditionally (no short-circuiting on `hydrated`)
   // or the hook count differs between the pre- and post-hydration render. Gate
@@ -83,7 +96,11 @@ export function AppSidebar() {
   const sourceIsSample = isSampleSource(useAtomValue(saveFileSourceAtom));
 
   const connected = hydrated && !!selectedSlot;
-  const loadingSave = hydrated && saveLoading;
+  // Treat the pre-hydration window as "loading" so the SSR HTML prebakes a
+  // spinner instead of the guest "No save loaded" UI — a returning user with a
+  // restored save then transitions spinner → connected (rather than flashing the
+  // guest state first), and a true guest sees a brief spinner → "No save loaded".
+  const loadingSave = !hydrated || saveLoading;
   const isSample = hydrated && sourceIsSample;
 
   return (
@@ -118,12 +135,26 @@ export function AppSidebar() {
                 return (
                   <Collapsible
                     key={item.to}
-                    defaultOpen={sectionActive}
+                    open={openGroups[item.to as string] ?? sectionActive}
+                    onOpenChange={(open) => {
+                      setOpenGroups((g) => ({ ...g, [item.to as string]: open }));
+                    }}
                     className='group/collapsible'
                     render={<SidebarMenuItem />}
                   >
                     <CollapsibleTrigger
-                      render={<SidebarMenuButton isActive={sectionActive} tooltip={item.label} />}
+                      render={
+                        <SidebarMenuButton
+                          isActive={sectionActive}
+                          tooltip={item.label}
+                          // Collapsed rail: navigate to the section (the parent
+                          // route redirects to its default sub-route) since the
+                          // sub-menu can't expand. Expanded: plain toggle.
+                          {...(railCollapsed && {
+                            render: <Link to={item.to} className='group/navlink' />,
+                          })}
+                        />
+                      }
                     >
                       <Icon />
                       <span>{item.label}</span>

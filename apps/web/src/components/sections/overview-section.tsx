@@ -80,7 +80,7 @@ function OverviewEmpty() {
         </p>
         <div className='flex flex-wrap justify-center gap-2'>
           <ConnectSaveButton />
-          <Button variant='outline' render={<Link to='/' />}>
+          <Button variant='outline' render={<Link to='/' />} nativeButton={false}>
             <MapIcon /> Explore the map
           </Button>
         </div>
