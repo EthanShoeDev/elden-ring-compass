@@ -1,4 +1,4 @@
-import { itemIconUrl } from '@elden-ring-compass/data/images';
+import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 
@@ -209,7 +209,11 @@ const iconColumn = columnHelper.display({
   size: 56,
   enableResizing: false,
   cell: (cell) => (
-    <TooltipImg imgSrc={itemIconUrl(cell.row.original.icon) ?? ''} alt={cell.row.original.name} />
+    <TooltipImg
+      imgSrc={itemIconUrl(cell.row.original.icon) ?? ''}
+      thumbSrc={itemIconThumbUrl(cell.row.original.icon)}
+      alt={cell.row.original.name}
+    />
   ),
   enableHiding: true,
 }) as ColumnDef<RatedWeapon>;

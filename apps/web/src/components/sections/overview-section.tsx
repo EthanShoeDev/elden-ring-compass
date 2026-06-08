@@ -1,5 +1,5 @@
 import { GOODS } from '@elden-ring-compass/data';
-import { itemIconUrl } from '@elden-ring-compass/data/images';
+import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
 import { Link } from '@tanstack/react-router';
 import {
   CoinsIcon,
@@ -470,7 +470,7 @@ function FlaskItem({
   const imgSrc = itemIconUrl(item.icon) ?? '';
   return (
     <div className='flex items-center justify-between gap-10 rounded-lg transition-colors hover:bg-muted/50'>
-      <TooltipImg imgSrc={imgSrc} />
+      <TooltipImg imgSrc={imgSrc} thumbSrc={itemIconThumbUrl(item.icon)} />
       <div className='flex flex-col items-end p-2'>
         <p>{item.name}</p>
         <p className='text-sm text-muted-foreground'>

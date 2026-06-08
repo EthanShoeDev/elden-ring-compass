@@ -64,6 +64,7 @@
     "jsdom": "catalog:",
     "nitro": "catalog:",
     "playwright": "catalog:",
+    "react-scan": "catalog:",
     "tailwindcss": "catalog:",
     "tw-animate-css": "catalog:",
     "vite": "catalog:",

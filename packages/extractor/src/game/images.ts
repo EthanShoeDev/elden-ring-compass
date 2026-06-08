@@ -94,6 +94,32 @@ const encodePng = (
     return pipe.write(out);
   });
 
+// Item icons are full-res (100–160KB); the web app shows them at ~40px in data
+// tables, so we also emit an 80px thumbnail (`items-thumb/`) it uses for table
+// cells, keeping the full image for the hover tooltip. See `gen-icon-thumbs.ts`,
+// which backfills these from already-extracted icons.
+const ITEM_THUMB_PX = 80;
+const encodeThumb = (
+  png: Uint8Array,
+  outBase: string,
+  opts: ImageEncodeOptions,
+) =>
+  Effect.promise(() => {
+    const img = new Bun.Image(png).resize(ITEM_THUMB_PX, ITEM_THUMB_PX, {
+      fit: 'inside',
+    });
+    const out = `${outBase}.${opts.format}`;
+    const pipe =
+      opts.format === 'png'
+        ? img.png()
+        : opts.format === 'jpeg'
+          ? img.jpeg({ quality: opts.quality })
+          : opts.format === 'avif'
+            ? img.avif({ quality: opts.quality })
+            : img.webp({ quality: opts.quality });
+    return pipe.write(out);
+  });
+
 const ICON_TPFS = [
   'menu/hi/01_common.tpf.dcx',
   'menu/hi/02_title.tpf.dcx',
@@ -434,7 +460,9 @@ export const extractImages = (
     const soloBdt = `${gameRoot}/menu/hi/00_solo.tpfbdt`;
     if ((yield* fileExists(soloBhd)) && (yield* fileExists(soloBdt))) {
       const itemIconDir = `${iconDir}/items`;
+      const itemThumbDir = `${iconDir}/items-thumb`;
       yield* fs.makeDirectory(itemIconDir, { recursive: true });
+      yield* fs.makeDirectory(itemThumbDir, { recursive: true });
       const headers = yield* parseBnd4Headers(
         new Uint8Array(
           yield* Effect.promise(() => Bun.file(soloBhd).arrayBuffer()),
@@ -447,7 +475,13 @@ export const extractImages = (
         if (idStr === undefined) continue;
         const iconId = parseInt(idStr, 10);
         const outBase = `${itemIconDir}/${iconId}`;
-        if (yield* fileExists(`${outBase}.${ext}`)) {
+        const thumbBase = `${itemThumbDir}/${iconId}`;
+        const haveFull = yield* fileExists(`${outBase}.${ext}`);
+        const haveThumb = yield* fileExists(`${thumbBase}.${ext}`);
+        // Both present → skip the (expensive) slice+decode entirely. Otherwise
+        // decode once and write whichever output(s) are missing, so reruns
+        // backfill thumbnails for icons extracted before this stage emitted them.
+        if (haveFull && haveThumb) {
           itemIconsSkipped++;
           continue;
         }
@@ -462,8 +496,11 @@ export const extractImages = (
         const [firstTexture] = textures;
         if (firstTexture === undefined) continue;
         const png = yield* ddsToPng(firstTexture.dds);
-        yield* encodePng(png, outBase, opts);
-        itemIcons++;
+        if (!haveFull) {
+          yield* encodePng(png, outBase, opts);
+          itemIcons++;
+        }
+        if (!haveThumb) yield* encodeThumb(png, thumbBase, opts);
       }
       yield* log(
         `item icons: ${itemIcons} written (+${itemIconsSkipped} cached)`,

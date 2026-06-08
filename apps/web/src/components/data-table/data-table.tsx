@@ -6,10 +6,11 @@ import {
   getFacetedUniqueValues,
   getFilteredRowModel,
   getSortedRowModel,
+  Table,
   useReactTable,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { type CSSProperties, useRef } from 'react';
+import { type CSSProperties, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 import { DataTableStateInitProps, useDataTableState } from './data-table-store';
@@ -90,22 +91,19 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
-  const { rows } = table.getRowModel();
+  const rowCount = table.getRowModel().rows.length;
   const totalWidth = table.getTotalSize();
   const selectedCount = table.getFilteredSelectedRowModel().rows.length;
 
-  // The scroll container is the virtualizer's scroll element. `getScrollElement`
-  // is null on the server and during the hydration render (the ref attaches
-  // after), so both render zero virtual items — no hydration mismatch; the rows
-  // appear right after mount when the measuring effect runs.
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const rowVirtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => scrollRef.current,
-    estimateSize: () => ROW_HEIGHT,
-    overscan: 12,
-  });
-  const virtualRows = rowVirtualizer.getVirtualItems();
+  // The scroll container is the virtualizer's scroll element (the virtualizer
+  // lives in <DataTableBody> so scrolling only re-renders the rows — not this
+  // component's toolbar + faceted filters, which iterate every row). It's tracked
+  // as state (callback ref) rather than a useRef: because <DataTableBody> is a
+  // *descendant* of this div, its mount layout-effect runs before this div's ref
+  // attaches — a plain ref would still read null there and the virtualizer would
+  // never measure (empty body). Setting state on mount re-renders the body with
+  // the real element so the virtualizer attaches its observers.
+  const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
 
   return (
     <div className={cn(fill ? 'flex min-h-0 flex-1 flex-col gap-4' : 'space-y-4', className)}>
@@ -113,7 +111,7 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
         <DataTableToolbar table={table} />
       </div>
       <div
-        ref={scrollRef}
+        ref={setScrollEl}
         className={cn('relative overflow-auto rounded-md border', fill && 'min-h-0 flex-1')}
         style={fill ? undefined : { maxHeight: maxBodyHeight }}
       >
@@ -152,49 +150,82 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
               </tr>
             ))}
           </thead>
-          {/* The body reserves the full scroll height; visible rows are absolutely
-              translated to their virtual position. */}
-          <tbody
-            className='relative grid'
-            style={{ height: rows.length ? rowVirtualizer.getTotalSize() : undefined }}
-          >
-            {rows.length ? (
-              virtualRows.map((virtualRow) => {
-                const row = rows[virtualRow.index];
-                if (!row) return null;
-                return (
-                  <tr
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                    className='absolute flex w-full border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted'
-                    style={{ height: ROW_HEIGHT, transform: `translateY(${virtualRow.start}px)` }}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <td
-                        key={cell.id}
-                        className='flex items-center overflow-hidden p-2 align-middle whitespace-nowrap has-[img]:p-0'
-                        style={cellStyle(cell.column.id, cell.column.getSize())}
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })
-            ) : (
-              <tr className='flex'>
-                <td className='flex h-24 w-full items-center justify-center text-center'>
-                  No results.
-                </td>
-              </tr>
-            )}
-          </tbody>
+          <DataTableBody table={table} scrollEl={scrollEl} />
         </table>
       </div>
       <div className='shrink-0 px-2 text-sm text-muted-foreground'>
         {selectedCount > 0 && <>{selectedCount} pinned · </>}
-        {rows.length.toLocaleString()} {rows.length === 1 ? 'row' : 'rows'}
+        {rowCount.toLocaleString()} {rowCount === 1 ? 'row' : 'rows'}
       </div>
     </div>
+  );
+}
+
+/**
+ * The virtualized `<tbody>`. Kept as its own component so the row virtualizer's
+ * scroll-driven re-renders stay scoped here — re-rendering the parent on every
+ * scroll frame would re-run the toolbar's faceted-filter aggregation over all
+ * rows. The body reserves the full scroll height and absolutely-positions each
+ * visible row at its virtual offset.
+ */
+function DataTableBody<TData>({
+  table,
+  scrollEl,
+}: {
+  table: Table<TData>;
+  scrollEl: HTMLDivElement | null;
+}) {
+  'use no memo';
+  const { rows } = table.getRowModel();
+
+  // `scrollEl` is null on the server, during hydration, and on the first client
+  // render (the parent's callback ref sets it on mount) — all render zero virtual
+  // items, so there's no hydration mismatch. The state update flips it to the
+  // real element, which re-renders this body and lets the virtualizer measure.
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => scrollEl,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 12,
+  });
+
+  if (!rows.length) {
+    return (
+      <tbody className='grid'>
+        <tr className='flex'>
+          <td className='flex h-24 w-full items-center justify-center text-center'>No results.</td>
+        </tr>
+      </tbody>
+    );
+  }
+
+  return (
+    <tbody className='relative grid' style={{ height: rowVirtualizer.getTotalSize() }}>
+      {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+        const row = rows[virtualRow.index];
+        if (!row) return null;
+        return (
+          <tr
+            key={row.id}
+            data-state={row.getIsSelected() && 'selected'}
+            // `contain: layout paint` isolates each row's layout/paint so a forced
+            // reflow (e.g. the tooltip's floating-ui reading a cell rect on hover)
+            // doesn't recompute the whole virtualized grid.
+            className='absolute flex w-full border-b transition-colors [contain:layout_paint] hover:bg-muted/50 data-[state=selected]:bg-muted'
+            style={{ height: ROW_HEIGHT, transform: `translateY(${virtualRow.start}px)` }}
+          >
+            {row.getVisibleCells().map((cell) => (
+              <td
+                key={cell.id}
+                className='flex items-center overflow-hidden p-2 align-middle whitespace-nowrap has-[img]:p-0'
+                style={cellStyle(cell.column.id, cell.column.getSize())}
+              >
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </td>
+            ))}
+          </tr>
+        );
+      })}
+    </tbody>
   );
 }

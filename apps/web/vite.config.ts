@@ -46,6 +46,15 @@ export default defineConfig({
     port: 3005,
     strictPort: true,
   },
+  build: {
+    // Item icons + their 80px thumbnails are resolved via `import.meta.glob(…, '?url')`
+    // in `@elden-ring-compass/data/images`. The thumbnails are <4KB, so Vite's default
+    // 4KB inline limit would base64-inline ~2.7k of them into the JS bundle (a ~9MB
+    // `images` chunk). Force every icon asset to emit as a real, HTTP-cacheable,
+    // lazily-fetched file instead. `undefined` = Vite's default for all other assets.
+    assetsInlineLimit: (filePath: string) =>
+      filePath.includes('/icons/items') ? false : undefined,
+  },
   // `viteReact()` MUST come after `tanstackStart()` — the TanStack Router plugin (inside
   // tanstackStart/appOnlyPlugins) has to run before the JSX transform. Under VITEST appOnlyPlugins
   // is empty, so react ends up last either way.

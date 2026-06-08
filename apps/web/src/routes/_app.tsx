@@ -31,7 +31,7 @@ function AppLayout() {
         <AppTopBar />
         <SharedViewBanner />
         <div className='flex min-h-0 flex-1 flex-col overflow-y-auto'>
-          <div className='flex flex-1 flex-col gap-5 p-4 md:p-7'>
+          <div className='flex min-h-0 flex-1 flex-col gap-5 p-4 md:p-7'>
             <Outlet />
           </div>
           <Footer />

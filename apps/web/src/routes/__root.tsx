@@ -3,6 +3,16 @@ import { RegistryProvider } from '@effect/atom-react';
 import { Providers } from '@/components/providers/providers';
 import '../index.css';
 
+// Dev-only React Scan render profiler — highlights components as they re-render
+// (used to chase the data-table / tooltip hover-render cost). Dynamically imported
+// and gated on `import.meta.env.DEV`, so both the call and the dependency are
+// stripped from production builds; the `window` guard keeps it off the SSR pass.
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  void import('react-scan').then(({ scan }) => {
+    scan({ enabled: true });
+  });
+}
+
 const SITE_TITLE = 'Elden Ring Compass';
 const SITE_DESCRIPTION =
   'A free, open-source, read-only Elden Ring save analyzer — explore the world map, bosses, ' +

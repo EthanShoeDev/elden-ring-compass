@@ -1,6 +1,6 @@
 import { GAME_VERSION } from '@elden-ring-compass/data';
 import { useAtomValue } from '@effect/atom-react';
-import { Link, useLocation } from '@tanstack/react-router';
+import { Link, useHydrated, useLocation } from '@tanstack/react-router';
 import {
   ChevronRightIcon,
   FileCheckIcon,
@@ -64,13 +64,27 @@ function NavIcon({ icon: Icon }: { icon: LucideIcon }) {
 
 export function AppSidebar() {
   const pathname = useLocation({ select: (l) => l.pathname });
-  const connected = !!useSelectedSlot();
+  // These derive from client-only persisted atoms (localStorage-backed kvs), so
+  // their values differ between the server render (always "no source") and the
+  // first client render (a restored url → "loading"). Gate them on hydration:
+  // until hydrated we report the server's guest state, then swap to the real
+  // values post-mount — otherwise the footer text mismatches and React discards
+  // the SSR tree. See @tanstack/react-router `useHydrated`.
+  const hydrated = useHydrated();
+  // NB: call every atom hook unconditionally (no short-circuiting on `hydrated`)
+  // or the hook count differs between the pre- and post-hydration render. Gate
+  // only the resulting values below.
+  const selectedSlot = useSelectedSlot();
   // Derived in the effect-atom graph (see slot-selection-store). Covers the gap
   // between the Connect dialog closing (e.g. "Use a sample save") and the parsed
   // slot resolving, so the sidebar shows "Loading save…" not the Connect button.
-  const loadingSave = useSaveLoading();
+  const saveLoading = useSaveLoading();
   // Distinguish the bundled demo save from the user's own connected save.
-  const isSample = isSampleSource(useAtomValue(saveFileSourceAtom));
+  const sourceIsSample = isSampleSource(useAtomValue(saveFileSourceAtom));
+
+  const connected = hydrated && !!selectedSlot;
+  const loadingSave = hydrated && saveLoading;
+  const isSample = hydrated && sourceIsSample;
 
   return (
     <Sidebar collapsible='icon'>

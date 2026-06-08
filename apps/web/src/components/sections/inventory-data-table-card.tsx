@@ -1,4 +1,4 @@
-import { itemIconUrl } from '@elden-ring-compass/data/images';
+import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
 import { useNavigate } from '@tanstack/react-router';
 import { ColumnDef, ColumnHelper, createColumnHelper } from '@tanstack/react-table';
 import { useAtom } from '@effect/atom-react';
@@ -282,6 +282,7 @@ function defaultColumns<T extends BaseRow>(columnHelperT: ColumnHelper<T>): Arra
         <div>
           <TooltipImg
             imgSrc={itemIconUrl(cell.row.original.icon) ?? ''}
+            thumbSrc={itemIconThumbUrl(cell.row.original.icon)}
             alt={cell.row.original.name}
           />
         </div>
