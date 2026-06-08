@@ -27,13 +27,13 @@
 The confusion in the original ask ("sometimes a table of everything in game, sometimes
 just what I collected") dissolves once we split it across the two surfaces we already have:
 
-| | **Overview** (this overhaul) | **Inventory `/inventory/$category`** (exists) |
-|---|---|---|
-| Audience question | "How complete is _my_ run?" | "Tell me about _this item / all items_" |
-| Scope | The player. Curated, meaningful collectibles only. | The whole game catalogue, every variant. |
-| Denominator | Curated 100% sets (see below) | Raw dataset rows |
-| Shareable | Yes — it's the headline artifact | No — it's a reference tool |
-| Owned vs not | Always "owned out of obtainable" | **User toggles** Owned / Missing / All |
+|                   | **Overview** (this overhaul)                       | **Inventory `/inventory/$category`** (exists) |
+| ----------------- | -------------------------------------------------- | --------------------------------------------- |
+| Audience question | "How complete is _my_ run?"                        | "Tell me about _this item / all items_"       |
+| Scope             | The player. Curated, meaningful collectibles only. | The whole game catalogue, every variant.      |
+| Denominator       | Curated 100% sets (see below)                      | Raw dataset rows                              |
+| Shareable         | Yes — it's the headline artifact                   | No — it's a reference tool                    |
+| Owned vs not      | Always "owned out of obtainable"                   | **User toggles** Owned / Missing / All        |
 
 So: **Overview = the trophy card. Inventory = the encyclopedia.** Both show ownership,
 but one curates for a satisfying %, the other shows everything.
@@ -64,6 +64,7 @@ but one curates for a satisfying %, the other shows everything.
 ```
 
 Two independent problems:
+
 1. **Variant inflation** — 3265 weapon rows for ~481 weapons; same pattern in armor/talismans/spells.
 2. **Non-collectible noise** — info items, crafting materials, smithing-stone stacks, ammo, most
    consumables. Nobody "100%s" their arrow count. Counting them means 100% is mathematically
@@ -77,7 +78,9 @@ A new module defines **completion buckets** — each a named set with an exact t
 "how many does this save own" reducer. Two tiers by how we get the total:
 
 ### Tier 1 — derivable exactly today (no curation)
+
 Pull from the VMs that already exist:
+
 - **Bosses defeated** — `eventsDbView(slot).filter(type==='boss')` (already on overview).
 - **Sites of Grace lit** — `eventsDbView … type==='grace'` (already on overview).
 - **Map fragments** — `MAP_FRAGMENTS` dataset / `world-progress` VM.
@@ -89,14 +92,14 @@ The right rule is **per-category, and it hinges on one question: can you _transf
 into another in-game, or is each variant a separate pickup?** (Clarified by the user 2026-06-07.)
 Only "transformable" variants collapse — the others are genuinely distinct things to collect.
 
-| Category | Variants in data | Transformable? | Completion total | Notes |
-|---|---|---|---|---|
-| **Weapons** | affinity variants (Bleed Dagger ← Dagger) | **Yes** — Ash of War / whetstone | **481** (collapse `affinityIndex===0`) | +N upgrades aren't separate rows (applied at runtime) |
-| **Armor** | 91 `(Altered)` variants | **Yes** — Boc the tailor | **~623** (collapse `(Altered)`) | _the user was unsure; altering IS a transform, so treat like affinities_ |
-| **Talismans** | 38 `+1/+2` rows | **No** — found in different world locations | **154** (keep all) | +1/+2 are separate pickups, NOT an upgrade you perform |
-| **Spells** | none | n/a | **213** (keep all) | Sorceries + Incantations, incl. DLC |
-| **Spirit Ashes** | none | n/a | **84** (keep all) | glovewort +N isn't separate rows |
-| **Ashes of War** | none | n/a | **116** | |
+| Category         | Variants in data                          | Transformable?                              | Completion total                       | Notes                                                                    |
+| ---------------- | ----------------------------------------- | ------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------ |
+| **Weapons**      | affinity variants (Bleed Dagger ← Dagger) | **Yes** — Ash of War / whetstone            | **481** (collapse `affinityIndex===0`) | +N upgrades aren't separate rows (applied at runtime)                    |
+| **Armor**        | 91 `(Altered)` variants                   | **Yes** — Boc the tailor                    | **~623** (collapse `(Altered)`)        | _the user was unsure; altering IS a transform, so treat like affinities_ |
+| **Talismans**    | 38 `+1/+2` rows                           | **No** — found in different world locations | **154** (keep all)                     | +1/+2 are separate pickups, NOT an upgrade you perform                   |
+| **Spells**       | none                                      | n/a                                         | **213** (keep all)                     | Sorceries + Incantations, incl. DLC                                      |
+| **Spirit Ashes** | none                                      | n/a                                         | **84** (keep all)                      | glovewort +N isn't separate rows                                         |
+| **Ashes of War** | none                                      | n/a                                         | **116**                                |                                                                          |
 
 So: **collapse weapons (affinity) and armor (Altered); keep everything else as distinct.** owned =
 distinct collectible with `quantity > 0`. For weapons/armor the affinity/altered toggle (Inventory)
@@ -117,10 +120,12 @@ crafting materials, upgrade materials, ammo, ordinary consumables. (Could surfac
 "not counted" footnote so it doesn't look like we forgot them.)
 
 ### Milestone / achievement sets (the shareable flair)
+
 Elden Ring's own Steam achievements map perfectly onto small, satisfying sets. The dataset's
 `rarity: "Legendary"` tag is a _starting_ signal but is **loose** (55 "Legendary" weapons because
 it counts affinity variants + DLC, vs the game's 9-weapon achievement). So these need a curated
 id list (or variant-collapse), not a raw rarity filter:
+
 - **Legendary Armaments** (9), **Legendary Talismans** (8), **Legendary Ashes of War** (9),
   **Legendary Sorceries & Incantations** (7), **Legendary Spirit Ashes**.
 - **All Bell Bearings**, **All Cookbooks**, **All Whetblades**, **All Great Runes**.
@@ -172,6 +177,7 @@ stats are demoted to a supporting strip. B is the lower-risk incremental version
   the Upgrade-Materials matrix can stay as an expandable section or move to Inventory.
 
 ### Option B — incremental (lower risk)
+
 Keep today's structure; just (1) fix the "Items Collected" tile to use the curated denominator and
 add a per-category breakdown card below the tiles, (2) swap the empty avatar for the completion
 ring, (3) leave equipment/effects/flasks where they are. Less of an "overhaul," ships faster.
@@ -200,6 +206,7 @@ Independent of the overview. On every `/inventory/$category` table, add a segmen
 
 The page is designed to be screenshotted as-is (clean card, no chrome). Beyond that, ties into the
 existing future idea of **encoding the extracted save in the URL** (`cleanup.md` "sharing feature"):
+
 - v1: a **Share ▾** button that copies a screenshot-friendly link / triggers the browser's share.
 - v2: encode a _completion summary_ (just the counts, ~a few hundred bytes, `lz-string` already a
   dep) in the query param so a shared link rehydrates the card without the full save. Much smaller
@@ -222,6 +229,7 @@ existing future idea of **encoding the extracted save in the URL** (`cleanup.md`
    manual part; everything else is mechanical.
 
 ## Open questions (answer as we build, not blockers)
+
 - Exact tier-2 denominators (base armor/talisman/spell counts) — need the variant-collapse rules
   per category. Weapons are solved; the rest mirror that approach.
 - Does "overall %" weight categories equally, or weight by size? (Equal-weight per category reads
@@ -229,4 +237,7 @@ existing future idea of **encoding the extracted save in the URL** (`cleanup.md`
 - DLC: count Shadow of the Erdtree collectibles in the same buckets, or a separate "DLC" toggle?
 - Keep the Upgrade-Materials matrix on Overview, or move it to the Inventory `Bolstering Materials`
   table where it arguably belongs?
+
+```
+
 ```

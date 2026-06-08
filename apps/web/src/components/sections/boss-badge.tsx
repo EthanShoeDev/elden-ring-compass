@@ -14,13 +14,19 @@ import { cn } from '@/lib/utils';
 /** Icon + colour treatment per badge kind. */
 const BADGE_STYLE: Record<BossBadge, { icon: LucideIcon; className: string }> = {
   demigod: { icon: CrownIcon, className: 'border-amber-500/30 bg-amber-500/15 text-amber-300' },
-  shardbearer: { icon: GemIcon, className: 'border-violet-400/30 bg-violet-500/15 text-violet-300' },
+  shardbearer: {
+    icon: GemIcon,
+    className: 'border-violet-400/30 bg-violet-500/15 text-violet-300',
+  },
   legend: { icon: ScrollTextIcon, className: 'border-sky-400/30 bg-sky-500/15 text-sky-300' },
   'great-enemy': {
     icon: SwordsIcon,
     className: 'border-rose-400/25 bg-rose-500/10 text-rose-300',
   },
-  field: { icon: MapPinIcon, className: 'border-emerald-400/25 bg-emerald-500/10 text-emerald-300' },
+  field: {
+    icon: MapPinIcon,
+    className: 'border-emerald-400/25 bg-emerald-500/10 text-emerald-300',
+  },
   dungeon: {
     icon: ShieldHalfIcon,
     className: 'border-stone-400/25 bg-stone-500/10 text-stone-300',

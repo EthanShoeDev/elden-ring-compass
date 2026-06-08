@@ -5,7 +5,10 @@ import { ConnectSaveButton } from '@/components/misc/save-file-source-selector';
 import { type BossBadge, type GalleryBoss, BOSS_GALLERY, bossReward } from '@/lib/boss-meta';
 import { cn } from '@/lib/utils';
 import { bossPinByFlag } from '@/lib/vm/map-pins';
-import { useRowSelectionControls, useTableStateMap } from '@/components/data-table/data-table-store';
+import {
+  useRowSelectionControls,
+  useTableStateMap,
+} from '@/components/data-table/data-table-store';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 import { BossBadgePill, BossBadges } from './boss-badge';
@@ -280,7 +283,12 @@ function BossCell({
         <p className='text-sm font-semibold'>{boss.name}</p>
         <BossBadges badges={boss.badges} />
         {connected && (
-          <span className={cn('text-xs font-semibold', killed ? 'text-green-400' : 'text-muted-foreground')}>
+          <span
+            className={cn(
+              'text-xs font-semibold',
+              killed ? 'text-green-400' : 'text-muted-foreground',
+            )}
+          >
             {killed ? 'Defeated' : 'Not yet defeated'}
           </span>
         )}

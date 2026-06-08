@@ -18,11 +18,7 @@ import {
 } from '@/components/misc/save-file-source-selector';
 import { GithubIcon } from '@/components/shell/github-icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Sidebar,
   SidebarContent,

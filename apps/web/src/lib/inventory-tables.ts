@@ -14,8 +14,15 @@ export type InventoryTableMeta = {
  * of `InventoryTableType` keeps this module free of the heavy data deps that
  * `inventory-catalog` pulls in, so the shell can import it cheaply.
  */
+/** First table = the default landed on at bare `/inventory` (see below). */
+const FIRST_INVENTORY_TABLE: InventoryTableMeta = {
+  key: 'armaments',
+  slug: 'weapons-shields',
+  label: 'Weapons & Shields',
+};
+
 export const INVENTORY_TABLES: readonly InventoryTableMeta[] = [
-  { key: 'armaments', slug: 'weapons-shields', label: 'Weapons & Shields' },
+  FIRST_INVENTORY_TABLE,
   { key: 'ammo', slug: 'ammunition', label: 'Ammunition' },
   { key: 'armor', slug: 'armor', label: 'Armor' },
   { key: 'talismans', slug: 'talismans', label: 'Talismans' },
@@ -31,7 +38,7 @@ export const INVENTORY_TABLES: readonly InventoryTableMeta[] = [
 ];
 
 /** The default category landed on at bare `/inventory`. */
-export const DEFAULT_INVENTORY_SLUG = INVENTORY_TABLES[0]!.slug;
+export const DEFAULT_INVENTORY_SLUG = FIRST_INVENTORY_TABLE.slug;
 
 export const TABLE_LABEL = Object.fromEntries(
   INVENTORY_TABLES.map((t) => [t.key, t.label]),

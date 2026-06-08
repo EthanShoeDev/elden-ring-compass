@@ -126,7 +126,8 @@ export function BossesDataTable() {
           {connected
             ? `${defeatedCount} / ${rows.length} - (${Math.round((defeatedCount / rows.length) * 100)}% defeated)`
             : `${rows.length} bosses in the game`}
-          {' · '}filter by name, map, category or reward, then tap the pin to drop a boss on the map.
+          {' · '}filter by name, map, category or reward, then tap the pin to drop a boss on the
+          map.
         </CardDescription>
       </CardHeader>
       <CardContent>

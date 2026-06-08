@@ -15,7 +15,9 @@ export const Route = createFileRoute('/_app/inventory/$category')({
 
 function InventoryCategoryPage() {
   const { category } = Route.useParams();
-  // Guaranteed valid by beforeLoad.
-  const tableType = SLUG_TO_TYPE[category]!;
+  // Guaranteed valid by beforeLoad (unknown slugs redirect), so this guard is
+  // unreachable — it just narrows away the `| undefined` without a `!`.
+  const tableType = SLUG_TO_TYPE[category];
+  if (!tableType) return null;
   return <InventoryDataTableCard table={tableType} />;
 }

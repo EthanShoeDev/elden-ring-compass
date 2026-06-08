@@ -153,17 +153,17 @@ set, a target spread, and an "exemplar weapons" list used for filtering + sanity
 (we still _compute_ the ranking from our own AR formula — the exemplar list is for filtering/labelling,
 not for faking numbers).
 
-| Archetype           | Primary stats     | Plays like                                                        | Exemplar S-tier armaments (for filtering/labelling)                                |
-| ------------------- | ----------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| **Strength**        | STR (Vig/End)     | Big poise-breaking hits; two-handing scales STR ×1.5.            | Giant-Crusher, Greatsword, Ancient Meteoric Ore GS, Grafted Blade GS               |
-| **Dexterity**       | DEX (Vig/End)     | Fast, precise, high attack speed.                                 | Nagakiba, Hand of Malenia, Bolt of Gransax, Bloodhound's Fang                      |
-| **Quality**         | STR + DEX (even)  | Lower peak than a pure build, but wields almost everything.       | Most STR/DEX-scaling weapons at a "Quality" affinity                               |
-| **Sorcery / Int**   | INT (+ Mind)      | Ranged sorceries; kill before they reach you. Staff-driven.      | Carian Regal Scepter (staff), Dark Moon GS, Moonveil, Meteorite Staff             |
-| **Faith**           | FAI (+ Mind)      | Incantations + Faith-scaling melee; versatile ranged + melee.     | Blasphemous Blade, Erdtree/Golden Order seals, Golden Order weapons                |
-| **Arcane / Bleed**  | ARC (+ DEX)       | Status procs (Bleed/Poison/Rot); Arcane scales status buildup.   | Rivers of Blood, Mohgwyn's Sacred Spear, Bloodfiend's Arm, Eleonora's Poleblade    |
-| **Int-Faith**       | INT + FAI         | Hybrid caster; Death/elemental crossover weapons.                | Sword of Night and Flame, Dark Moon GS, Golden Order incantations                  |
-| **Str-Faith**       | STR + FAI         | Heavy Faith bruiser; Blasphemous Blade is the poster child.       | Blasphemous Blade, Coded Sword, Golden Order GS                                     |
-| **Bleed (Dex/Arc)** | DEX + ARC         | Bleed-focused subset of Arcane, the deadliest meta build.        | Rivers of Blood, Uchigatana (Blood affinity), Hand of Malenia                      |
+| Archetype           | Primary stats    | Plays like                                                     | Exemplar S-tier armaments (for filtering/labelling)                             |
+| ------------------- | ---------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **Strength**        | STR (Vig/End)    | Big poise-breaking hits; two-handing scales STR ×1.5.          | Giant-Crusher, Greatsword, Ancient Meteoric Ore GS, Grafted Blade GS            |
+| **Dexterity**       | DEX (Vig/End)    | Fast, precise, high attack speed.                              | Nagakiba, Hand of Malenia, Bolt of Gransax, Bloodhound's Fang                   |
+| **Quality**         | STR + DEX (even) | Lower peak than a pure build, but wields almost everything.    | Most STR/DEX-scaling weapons at a "Quality" affinity                            |
+| **Sorcery / Int**   | INT (+ Mind)     | Ranged sorceries; kill before they reach you. Staff-driven.    | Carian Regal Scepter (staff), Dark Moon GS, Moonveil, Meteorite Staff           |
+| **Faith**           | FAI (+ Mind)     | Incantations + Faith-scaling melee; versatile ranged + melee.  | Blasphemous Blade, Erdtree/Golden Order seals, Golden Order weapons             |
+| **Arcane / Bleed**  | ARC (+ DEX)      | Status procs (Bleed/Poison/Rot); Arcane scales status buildup. | Rivers of Blood, Mohgwyn's Sacred Spear, Bloodfiend's Arm, Eleonora's Poleblade |
+| **Int-Faith**       | INT + FAI        | Hybrid caster; Death/elemental crossover weapons.              | Sword of Night and Flame, Dark Moon GS, Golden Order incantations               |
+| **Str-Faith**       | STR + FAI        | Heavy Faith bruiser; Blasphemous Blade is the poster child.    | Blasphemous Blade, Coded Sword, Golden Order GS                                 |
+| **Bleed (Dex/Arc)** | DEX + ARC        | Bleed-focused subset of Arcane, the deadliest meta build.      | Rivers of Blood, Uchigatana (Blood affinity), Hand of Malenia                   |
 
 Notes that matter for the implementation:
 

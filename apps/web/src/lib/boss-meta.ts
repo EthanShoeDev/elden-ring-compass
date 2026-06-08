@@ -22,13 +22,7 @@
 import { GOODS, REGIONS } from '@elden-ring-compass/data';
 import { itemIconUrl } from '@elden-ring-compass/data/images';
 
-export type BossBadge =
-  | 'demigod'
-  | 'shardbearer'
-  | 'legend'
-  | 'great-enemy'
-  | 'field'
-  | 'dungeon';
+export type BossBadge = 'demigod' | 'shardbearer' | 'legend' | 'great-enemy' | 'field' | 'dungeon';
 
 /** Boss defeat-flag → the good id it rewards (a Remembrance, or Heart of Bayle). */
 const BOSS_REWARD_GOOD_BY_FLAG: ReadonlyMap<number, number> = new Map([
@@ -177,8 +171,7 @@ const REGION_NAME_BY_BLOCK: ReadonlyMap<string, string> = (() => {
     // A single-region block is a self-contained dungeon (e.g. a catacomb) — its
     // `name` IS the place. A multi-region block is a big legacy area (Stormveil,
     // Leyndell, …) whose shared `area` names the whole dungeon.
-    const label =
-      names.size === 1 ? first.name : (mode(regions.map((r) => r.area)) ?? first.name);
+    const label = names.size === 1 ? first.name : (mode(regions.map((r) => r.area)) ?? first.name);
     out.set(key, label);
   }
   return out;
@@ -224,17 +217,47 @@ export const BOSS_GALLERY: readonly GalleryGroup[] = [
     subtitle:
       'Any two Great Runes open Leyndell — none of these Shardbearers is individually required, and you can even skip Stormveil (and Godrick) to claim your two elsewhere.',
     bosses: [
-      { flag: 10000800, name: 'Godrick the Grafted', badges: ['demigod', 'shardbearer'], required: false, note: 'Great Rune' },
-      { flag: 14000800, name: 'Rennala, Queen of the Full Moon', badges: ['shardbearer'], required: false, note: 'Rune unlocks respec' },
-      { flag: 1252380800, name: 'Starscourge Radahn', badges: ['demigod', 'shardbearer'], required: false, note: 'Great Rune' },
-      { flag: 16000800, name: 'Praetor Rykard', badges: ['demigod', 'shardbearer'], required: false, note: 'Great Rune' },
+      {
+        flag: 10000800,
+        name: 'Godrick the Grafted',
+        badges: ['demigod', 'shardbearer'],
+        required: false,
+        note: 'Great Rune',
+      },
+      {
+        flag: 14000800,
+        name: 'Rennala, Queen of the Full Moon',
+        badges: ['shardbearer'],
+        required: false,
+        note: 'Rune unlocks respec',
+      },
+      {
+        flag: 1252380800,
+        name: 'Starscourge Radahn',
+        badges: ['demigod', 'shardbearer'],
+        required: false,
+        note: 'Great Rune',
+      },
+      {
+        flag: 16000800,
+        name: 'Praetor Rykard',
+        badges: ['demigod', 'shardbearer'],
+        required: false,
+        note: 'Great Rune',
+      },
     ],
   },
   {
     title: 'Leyndell & the Mountaintops',
     subtitle: 'Through the Royal Capital to the Forge of the Giants.',
     bosses: [
-      { flag: 11000800, name: 'Morgott, the Omen King', badges: ['demigod', 'shardbearer'], required: true, note: 'Great Rune' },
+      {
+        flag: 11000800,
+        name: 'Morgott, the Omen King',
+        badges: ['demigod', 'shardbearer'],
+        required: true,
+        note: 'Great Rune',
+      },
       { flag: 1052520800, name: 'Fire Giant', badges: ['legend'], required: true },
     ],
   },
@@ -243,18 +266,46 @@ export const BOSS_GALLERY: readonly GalleryGroup[] = [
     subtitle: 'Crumbling Farum Azula to the foot of the Erdtree.',
     bosses: [
       { flag: 13000800, name: 'Maliketh, the Black Blade', badges: ['legend'], required: true },
-      { flag: 11050800, name: 'Hoarah Loux, Godfrey', badges: ['demigod', 'legend'], required: true },
-      { flag: 19000810, name: 'Radagon / Elden Beast', badges: ['legend'], required: true, note: 'Final boss' },
+      {
+        flag: 11050800,
+        name: 'Hoarah Loux, Godfrey',
+        badges: ['demigod', 'legend'],
+        required: true,
+      },
+      {
+        flag: 19000810,
+        name: 'Radagon / Elden Beast',
+        badges: ['legend'],
+        required: true,
+        note: 'Final boss',
+      },
     ],
   },
   {
     title: 'Optional Legends',
     subtitle: 'Major Remembrance bosses off the critical path.',
     bosses: [
-      { flag: 12050800, name: 'Mohg, Lord of Blood', badges: ['demigod', 'shardbearer'], required: false, note: 'Opens the DLC' },
-      { flag: 15000800, name: 'Malenia, Blade of Miquella', badges: ['demigod', 'shardbearer'], required: false, note: 'Haligtree' },
+      {
+        flag: 12050800,
+        name: 'Mohg, Lord of Blood',
+        badges: ['demigod', 'shardbearer'],
+        required: false,
+        note: 'Opens the DLC',
+      },
+      {
+        flag: 15000800,
+        name: 'Malenia, Blade of Miquella',
+        badges: ['demigod', 'shardbearer'],
+        required: false,
+        note: 'Haligtree',
+      },
       { flag: 12030850, name: 'Lichdragon Fortissax', badges: ['legend'], required: false },
-      { flag: 12040800, name: 'Astel, Naturalborn of the Void', badges: ['legend'], required: false },
+      {
+        flag: 12040800,
+        name: 'Astel, Naturalborn of the Void',
+        badges: ['legend'],
+        required: false,
+      },
       { flag: 13000830, name: 'Dragonlord Placidusax', badges: ['legend'], required: false },
       { flag: 12090800, name: 'Regal Ancestor Spirit', badges: ['legend'], required: false },
     ],
@@ -266,9 +317,20 @@ export const BOSS_GALLERY: readonly GalleryGroup[] = [
     bosses: [
       { flag: 20000800, name: 'Divine Beast Dancing Lion', badges: ['legend'], required: false },
       { flag: 2048440800, name: 'Rellana, Twin Moon Knight', badges: ['legend'], required: true },
-      { flag: 21010800, name: 'Messmer the Impaler', badges: ['demigod', 'legend'], required: true },
+      {
+        flag: 21010800,
+        name: 'Messmer the Impaler',
+        badges: ['demigod', 'legend'],
+        required: true,
+      },
       { flag: 2044450800, name: 'Romina, Saint of the Bud', badges: ['legend'], required: true },
-      { flag: 20010800, name: 'Promised Consort Radahn', badges: ['demigod', 'legend'], required: true, note: 'DLC final boss' },
+      {
+        flag: 20010800,
+        name: 'Promised Consort Radahn',
+        badges: ['demigod', 'legend'],
+        required: true,
+        note: 'DLC final boss',
+      },
     ],
   },
   {
@@ -276,7 +338,12 @@ export const BOSS_GALLERY: readonly GalleryGroup[] = [
     subtitle: 'Powerful side bosses scattered across the Realm of Shadow.',
     bosses: [
       { flag: 2054390800, name: 'Bayle the Dread', badges: ['legend'], required: false },
-      { flag: 28000800, name: 'Midra, Lord of Frenzied Flame', badges: ['legend'], required: false },
+      {
+        flag: 28000800,
+        name: 'Midra, Lord of Frenzied Flame',
+        badges: ['legend'],
+        required: false,
+      },
       { flag: 25000800, name: 'Metyr, Mother of Fingers', badges: ['legend'], required: false },
       { flag: 2049480800, name: 'Commander Gaius', badges: ['legend'], required: false },
       { flag: 22000800, name: 'Putrescent Knight', badges: ['legend'], required: false },

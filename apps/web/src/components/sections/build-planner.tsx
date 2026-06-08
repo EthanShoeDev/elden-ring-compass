@@ -111,7 +111,9 @@ export function BuildPlannerSection() {
     if (archetype) setTarget(archetype.target);
     else setTarget(current);
   };
-  const dirty = archetype ? ATTR_META.some((m) => target[m.key] !== archetype.target[m.key]) : false;
+  const dirty = archetype
+    ? ATTR_META.some((m) => target[m.key] !== archetype.target[m.key])
+    : false;
 
   // weapon id → highest owned upgrade level, from the save's inventory.
   const ownedById = useMemo(() => {
@@ -182,7 +184,9 @@ export function BuildPlannerSection() {
   const hpVal = pgd && target.vigor === current.vigor ? pgd.base_max_hp : hp(target.vigor);
   const fpVal = pgd && target.mind === current.mind ? pgd.base_max_fp : fp(target.mind);
   const staminaVal =
-    pgd && target.endurance === current.endurance ? pgd.base_max_stamina : stamina(target.endurance);
+    pgd && target.endurance === current.endurance
+      ? pgd.base_max_stamina
+      : stamina(target.endurance);
 
   const tableAttrs = rankContext === 'current' ? current : target;
 
@@ -234,9 +238,7 @@ export function BuildPlannerSection() {
               Custom
             </ToggleGroupItem>
           </ToggleGroup>
-          {archetype && (
-            <p className='mt-3 text-sm text-muted-foreground'>{archetype.blurb}</p>
-          )}
+          {archetype && <p className='mt-3 text-sm text-muted-foreground'>{archetype.blurb}</p>}
         </CardContent>
       </Card>
 
@@ -259,8 +261,8 @@ export function BuildPlannerSection() {
               {strongestOwned && strongestOwned.id !== bestOwnedForBuild.id && (
                 <Muted>
                   Hardest-hitter right now (any build):{' '}
-                  <strong className='text-foreground'>{strongestOwned.name}</strong> {strongestOwned.ar}{' '}
-                  AR at your Lvl {currentLevel}.
+                  <strong className='text-foreground'>{strongestOwned.name}</strong>{' '}
+                  {strongestOwned.ar} AR at your Lvl {currentLevel}.
                 </Muted>
               )}
               {statusBuild && (
@@ -269,13 +271,14 @@ export function BuildPlannerSection() {
             </>
           ) : (
             <Muted>
-              You don&apos;t own a weapon that scales for this build yet — see &ldquo;Aim for&rdquo;.
+              You don&apos;t own a weapon that scales for this build yet — see &ldquo;Aim
+              for&rdquo;.
               {strongestOwned && (
                 <>
                   {' '}
                   Your current hardest-hitter is{' '}
-                  <strong className='text-foreground'>{strongestOwned.name}</strong> ({strongestOwned.ar}{' '}
-                  AR).
+                  <strong className='text-foreground'>{strongestOwned.name}</strong> (
+                  {strongestOwned.ar} AR).
                 </>
               )}
             </Muted>
@@ -305,17 +308,11 @@ export function BuildPlannerSection() {
           )}
         </AdvisorCard>
 
-        <AdvisorCard
-          icon={<TrendingUpIcon className='size-4' />}
-          title='Next level-up'
-        >
+        <AdvisorCard icon={<TrendingUpIcon className='size-4' />} title='Next level-up'>
           <LevelUpAdvice current={current} target={target} />
         </AdvisorCard>
 
-        <AdvisorCard
-          icon={<RotateCcwIcon className='size-4' />}
-          title='Respec verdict'
-        >
+        <AdvisorCard icon={<RotateCcwIcon className='size-4' />} title='Respec verdict'>
           <RespecVerdict
             slot={slot}
             current={current}
@@ -335,7 +332,8 @@ export function BuildPlannerSection() {
             <div>
               <CardTitle>Target attributes</CardTitle>
               <CardDescription>
-                Ticks mark soft caps. {archetype ? `Seeded from the ${archetype.label} build.` : 'Custom build.'}
+                Ticks mark soft caps.{' '}
+                {archetype ? `Seeded from the ${archetype.label} build.` : 'Custom build.'}
               </CardDescription>
             </div>
             <Button
@@ -419,7 +417,9 @@ export function BuildPlannerSection() {
               </div>
               {slot && (
                 <div className='flex items-center justify-between'>
-                  <span className='text-sm text-muted-foreground'>From your Lvl {currentLevel}</span>
+                  <span className='text-sm text-muted-foreground'>
+                    From your Lvl {currentLevel}
+                  </span>
                   <span className='font-mono font-semibold tabular-nums'>
                     {runesBetween(
                       Math.min(currentLevel, levelTarget),
@@ -464,13 +464,20 @@ export function BuildPlannerSection() {
         </ToggleGroup>
       </div>
 
-      <WeaponArTable attrs={arAttrsFromAttrs8(tableAttrs)} archetype={archetype} ownedById={ownedById} />
+      <WeaponArTable
+        attrs={arAttrsFromAttrs8(tableAttrs)}
+        archetype={archetype}
+        ownedById={ownedById}
+      />
     </div>
   );
 }
 
 const topWeapon = (list: readonly RatedWeapon[]): RatedWeapon | undefined =>
-  list.reduce<RatedWeapon | undefined>((best, r) => (!best || r.ar > best.ar ? r : best), undefined);
+  list.reduce<RatedWeapon | undefined>(
+    (best, r) => (!best || r.ar > best.ar ? r : best),
+    undefined,
+  );
 
 const scaleAttrsOf = (scaling: Readonly<Partial<Record<ScalingAttr, number>>>): ScalingAttr[] =>
   SCALING_ATTRS.filter((a) => (scaling[a] ?? 0) > 0);
@@ -526,14 +533,19 @@ function AdvisorLine({
 
 function LevelUpAdvice({ current, target }: { current: Attrs8; target: Attrs8 }) {
   const need = (k: Attr8Key) => Math.max(0, target[k] - current[k]);
-  const primary = OFFENSIVE_KEYS.filter((k) => target[k] >= 30).toSorted((a, b) => target[b] - target[a]);
+  const primary = OFFENSIVE_KEYS.filter((k) => target[k] >= 30).toSorted(
+    (a, b) => target[b] - target[a],
+  );
 
   const rec = (() => {
     // Survival nudge — but only toward the Vigor *you* set as a target (drag the
     // slider to weight health however you like). The ~40 figure is a community
     // rule of thumb, not a rule.
     if (current.vigor < Math.min(target.vigor, 40) && need('vigor') > 0)
-      return { key: 'vigor' as Attr8Key, reason: 'health is low — most builds want ~40 Vigor first' };
+      return {
+        key: 'vigor' as Attr8Key,
+        reason: 'health is low — most builds want ~40 Vigor first',
+      };
     const prim = primary.find((k) => need(k) > 0);
     if (prim) return { key: prim, reason: `your main damage stat (${need(prim)} to target)` };
     if (need('mind') > 0) return { key: 'mind' as Attr8Key, reason: 'more FP for casts' };
@@ -551,8 +563,7 @@ function LevelUpAdvice({ current, target }: { current: Attrs8; target: Attrs8 })
   return (
     <>
       <p className='text-sm'>
-        Put your next point in{' '}
-        <strong className='text-foreground'>{label(rec.key)}</strong>{' '}
+        Put your next point in <strong className='text-foreground'>{label(rec.key)}</strong>{' '}
         <span className='font-mono text-muted-foreground'>
           {current[rec.key]} → {target[rec.key]}
         </span>
@@ -590,7 +601,8 @@ function RespecVerdict({
   currentLevel: number;
   levelTarget: number;
 }) {
-  if (!slot) return <Muted>Connect a save for a respec recommendation tailored to your build.</Muted>;
+  if (!slot)
+    return <Muted>Connect a save for a respec recommendation tailored to your build.</Muted>;
 
   const label = (k: Attr8Key) => ATTR_META.find((m) => m.key === k)?.label ?? k;
   const buildLabel = archetype?.label ?? 'this';
@@ -629,15 +641,18 @@ function RespecVerdict({
       ) : mismatch && equipped ? (
         <p className='text-sm'>
           <strong className='text-foreground'>Loadout mismatch.</strong> Your {equipped.name} scales
-          with {scaleAttrsOf(equipped.scaling.scaling).map((a) => SCALING_LABEL[a]).join('/')}, but a{' '}
-          {buildLabel} build leans on{' '}
-          {archetype?.scaleAttrs.map((a) => SCALING_LABEL[a]).join('/')}. Swap weapon — your stats are
-          fine.
+          with{' '}
+          {scaleAttrsOf(equipped.scaling.scaling)
+            .map((a) => SCALING_LABEL[a])
+            .join('/')}
+          , but a {buildLabel} build leans on{' '}
+          {archetype?.scaleAttrs.map((a) => SCALING_LABEL[a]).join('/')}. Swap weapon — your stats
+          are fine.
         </p>
       ) : (
         <p className='text-sm'>
-          <strong className='text-foreground'>No respec needed.</strong> Your offensive stats already
-          suit a {buildLabel} build. Vigor, Mind &amp; Endurance are your call.
+          <strong className='text-foreground'>No respec needed.</strong> Your offensive stats
+          already suit a {buildLabel} build. Vigor, Mind &amp; Endurance are your call.
         </p>
       )}
       {needsRespec && extraLevels > 0 && (
