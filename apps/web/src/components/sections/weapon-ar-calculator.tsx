@@ -79,7 +79,17 @@ export function WeaponArTable({
 
     // Default order = highest AR first ("best weapon for your build").
     return filtered.toSorted((a, b) => b.ar - a.ar);
-  }, [attrs, upgrade, twoHanding, showVariants, ownedOnly, relevantOnly, archetype, search, ownedById]);
+  }, [
+    attrs,
+    upgrade,
+    twoHanding,
+    showVariants,
+    ownedOnly,
+    relevantOnly,
+    archetype,
+    search,
+    ownedById,
+  ]);
 
   // The Owned column is only meaningful with a save connected.
   const columns = useMemo<Array<ColumnDef<RatedWeapon>>>(() => {
@@ -194,8 +204,10 @@ const columnHelper = createColumnHelper<RatedWeapon>();
 const iconColumn = columnHelper.display({
   id: 'icon',
   header: 'Icon',
-  size: 1,
-  maxSize: 1,
+  // The icon is a fixed 40px (`size-10`) image; give the column a real width so
+  // the virtualized grid layout (fixed `getSize()` widths) doesn't clip it.
+  size: 56,
+  enableResizing: false,
   cell: (cell) => (
     <TooltipImg imgSrc={itemIconUrl(cell.row.original.icon) ?? ''} alt={cell.row.original.name} />
   ),

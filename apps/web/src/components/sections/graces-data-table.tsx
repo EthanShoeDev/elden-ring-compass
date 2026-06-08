@@ -15,8 +15,8 @@ export function GracesDataTable() {
   const litCount = items.filter((item) => item.on).length;
 
   return (
-    <Card className='w-full'>
-      <CardHeader>
+    <Card className='flex min-h-0 w-full flex-1 flex-col'>
+      <CardHeader className='shrink-0'>
         <CardTitle>Sites of Grace</CardTitle>
         <CardDescription>
           Graces discovered across the Lands Between
@@ -26,9 +26,9 @@ export function GracesDataTable() {
           {((litCount / items.length) * 100).toFixed(0)}% lit
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className='flex min-h-0 flex-1 flex-col'>
         {/* tableId stays 'events' so column state + map pin-selection sync are shared. */}
-        <DataTable tableId='events' className='' columns={columns} data={items} />
+        <DataTable tableId='events' columns={columns} data={items} fill />
       </CardContent>
     </Card>
   );

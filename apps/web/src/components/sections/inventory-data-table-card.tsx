@@ -177,8 +177,8 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
       : items.filter((i) => (ownerFilter === 'owned' ? i.quantity > 0 : i.quantity === 0));
 
   return (
-    <Card className='w-full'>
-      <CardHeader>
+    <Card className='flex min-h-0 w-full flex-1 flex-col'>
+      <CardHeader className='shrink-0'>
         <CategoryPicker table={table} onSelect={setTableType} allTables={allTables} />
         <CardDescription>
           {ownedCount} / {items.length}
@@ -192,8 +192,8 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
           )}
         </CardDescription>
       </CardHeader>
-      <CardContent className='space-y-4'>
-        <div className='flex flex-wrap items-center justify-between gap-3'>
+      <CardContent className='flex min-h-0 flex-1 flex-col gap-4'>
+        <div className='flex shrink-0 flex-wrap items-center justify-between gap-3'>
           <div className='inline-flex rounded-lg border border-border p-0.5'>
             {(['all', 'owned', 'missing'] as const).map((key) => (
               <button
@@ -225,7 +225,7 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
             </Label>
           )}
         </div>
-        <DataTable tableId={table} columns={tables[table]} data={filteredItems} />
+        <DataTable tableId={table} columns={tables[table]} data={filteredItems} fill />
       </CardContent>
     </Card>
   );
@@ -274,8 +274,10 @@ function defaultColumns<T extends BaseRow>(columnHelperT: ColumnHelper<T>): Arra
     columnHelper.display({
       id: 'icon',
       header: 'Icon',
-      size: 1,
-      maxSize: 1,
+      // The icon is a fixed 40px (`size-10`) image; give the column a real width so
+      // the virtualized grid layout (fixed `getSize()` widths) doesn't clip it.
+      size: 56,
+      enableResizing: false,
       cell: (cell) => (
         <div>
           <TooltipImg

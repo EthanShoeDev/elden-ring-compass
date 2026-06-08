@@ -19,16 +19,23 @@ export const Route = createFileRoute('/_app')({
  * personalizes each section.
  */
 function AppLayout() {
+  // Fixed-height app frame: the shell (sidebar, top bar, banner) is pinned and a
+  // single inner region scrolls. This lets table-only routes hand their card
+  // `flex-1 min-h-0` so a virtualized DataTable fills the viewport exactly;
+  // content-heavy routes (overview, calculator, map) just flow and scroll, with
+  // the footer trailing the content (pushed to the bottom on short pages).
   return (
-    <SidebarProvider>
+    <SidebarProvider className='h-svh overflow-hidden'>
       <AppSidebar />
-      <SidebarInset className='min-w-0'>
+      <SidebarInset className='min-h-0 min-w-0 overflow-hidden'>
         <AppTopBar />
         <SharedViewBanner />
-        <div className='flex flex-1 flex-col gap-5 p-4 md:p-7'>
-          <Outlet />
+        <div className='flex min-h-0 flex-1 flex-col overflow-y-auto'>
+          <div className='flex flex-1 flex-col gap-5 p-4 md:p-7'>
+            <Outlet />
+          </div>
+          <Footer />
         </div>
-        <Footer />
       </SidebarInset>
     </SidebarProvider>
   );
