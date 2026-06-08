@@ -47,14 +47,34 @@ export const bossFlagToPixel: ReadonlyMap<number, MasterPixel> = new Map(
 /** A boss pin (its name + overworld position) keyed by its defeat-flag id. */
 export interface BossPin extends MasterPixel {
   name: string;
+  /** Defeat event-flag id (the map key) — for boss-meta reward/badge lookups. */
+  flag: number;
+  /** Arena map id (`m10_00_00_00`) — for `bossMapName`/`bossBadges`. */
+  mapId: string;
 }
 
 /** Boss defeat-flag id → placed pin, for the all-bosses table's map selection. */
 export const bossPinByFlag: ReadonlyMap<number, BossPin> = new Map(
   BOSSES.flatMap((b) => {
     const p = overworldMarkerToMasterPixel(b.mapId, b.x, b.z);
-    return p ? [[b.defeatFlagId, { ...p, name: b.name ?? 'Unknown boss' }] as const] : [];
+    return p
+      ? [
+          [
+            b.defeatFlagId,
+            { ...p, name: b.name ?? 'Unknown boss', flag: b.defeatFlagId, mapId: b.mapId },
+          ] as const,
+        ]
+      : [];
   }),
+);
+
+/**
+ * Boss defeat-flag id → arena map id, for ALL bosses (not just placed ones). Lets
+ * pins sourced from the events table — which only know the flag — still enrich with
+ * `bossMapName`/`bossBadges` (which need the map id).
+ */
+export const bossMapIdByFlag: ReadonlyMap<number, string> = new Map(
+  BOSSES.map((b) => [b.defeatFlagId, b.mapId] as const),
 );
 
 // Item ids are NOT globally unique — each item TYPE (weapon/armor/goods/talisman/

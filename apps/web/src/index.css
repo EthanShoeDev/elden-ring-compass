@@ -222,6 +222,42 @@
   }
 }
 
+/* Leaflet's popup + tooltip chrome is hard-coded white in leaflet.css and ignores
+   our theme tokens (only the inner React content is themed). Repaint the wrapper,
+   tip triangle, close button, and hover tooltip with the popover surface so they
+   read correctly on the dark theme — matching the global shadcn Tooltip. */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
+}
+.leaflet-popup-content-wrapper {
+  border: 1px solid hsl(var(--border)) !important;
+}
+.leaflet-popup-close-button {
+  color: hsl(var(--muted-foreground)) !important;
+}
+.leaflet-popup-close-button:hover {
+  color: hsl(var(--popover-foreground)) !important;
+}
+.leaflet-tooltip {
+  background: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+.leaflet-tooltip-top::before {
+  border-top-color: hsl(var(--border)) !important;
+}
+.leaflet-tooltip-bottom::before {
+  border-bottom-color: hsl(var(--border)) !important;
+}
+.leaflet-tooltip-left::before {
+  border-left-color: hsl(var(--border)) !important;
+}
+.leaflet-tooltip-right::before {
+  border-right-color: hsl(var(--border)) !important;
+}
+
 @layer base {
   :root {
     --chart-1: 12 76% 61%;

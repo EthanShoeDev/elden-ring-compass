@@ -1,5 +1,6 @@
 import { eventFlagOffset } from '@elden-ring-compass/data';
-import { CheckIcon, ExternalLinkIcon, MapPinIcon, SwordIcon } from 'lucide-react';
+import { CheckIcon, ExternalLinkIcon, SwordIcon } from 'lucide-react';
+import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
 
 import { ConnectSaveButton } from '@/components/misc/save-file-source-selector';
 import { type BossBadge, type GalleryBoss, BOSS_GALLERY, bossReward } from '@/lib/boss-meta';
@@ -182,7 +183,7 @@ function Legend({ connected }: { connected?: boolean }) {
   return (
     <div className='flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground'>
       <span className='flex items-center gap-1.5'>
-        <MapPinIcon className='size-3 text-amber-300' fill='currentColor' /> Pinned on map
+        <MapPinGlyph className='size-3 text-amber-300' filled /> Pinned on map
       </span>
       {connected && (
         <>
@@ -259,14 +260,14 @@ function BossCell({
 
         {/* Pinned marker, bottom-right corner — quiet unless active. */}
         {pinnable && (
-          <MapPinIcon
+          <MapPinGlyph
             className={cn(
               'absolute right-2.5 bottom-3 size-4 transition-opacity',
               pinned
                 ? 'text-amber-300 opacity-100'
                 : 'text-stone-200/70 opacity-0 group-hover:opacity-100',
             )}
-            fill={pinned ? 'currentColor' : 'none'}
+            filled={pinned}
           />
         )}
 

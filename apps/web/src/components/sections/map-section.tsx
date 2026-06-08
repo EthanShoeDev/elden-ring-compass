@@ -11,6 +11,7 @@
  * selection (effect-atom).
  */
 import { LocateFixedIcon, MapPinIcon, PackageIcon, SkullIcon, Trash2Icon } from 'lucide-react';
+import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 
 import { useDataTableData } from '@/lib/data-table-data';
@@ -20,8 +21,9 @@ import {
   TABLE_PLACEMENT_TYPE,
   useInventoryTables,
 } from '@/lib/inventory-catalog';
+import { BADGE_LABEL, bossBadges, bossMapName, bossReward } from '@/lib/boss-meta';
 import { playerToMasterPixel } from '@/lib/map-affine';
-import { bossPinByFlag, itemPins } from '@/lib/vm/map-pins';
+import { bossMapIdByFlag, bossPinByFlag, itemPins } from '@/lib/vm/map-pins';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 import { useRowSelectionControls, useTableStateMap } from '../data-table/data-table-store';
@@ -77,68 +79,110 @@ function MapFallback({ message }: { message: string }) {
 }
 
 /** Selected markers across the events/inventory tables → extracted overworld pins. */
+/**
+ * Shared boss-pin enrichment from boss-meta — reward / map-area / badges / status.
+ * `defeated` is `undefined` when we don't know the save state (status omitted then).
+ */
+function bossEnrichment(flag: number, mapId: string | undefined, defeated: boolean | undefined) {
+  const reward = bossReward(flag);
+  return {
+    area: mapId ? bossMapName(mapId) : undefined,
+    badges: mapId ? bossBadges(flag, mapId).map((b) => BADGE_LABEL[b]) : undefined,
+    reward: reward ? { name: reward.name, iconUrl: reward.iconUrl } : undefined,
+    status: defeated === undefined ? undefined : defeated ? 'Defeated' : 'Remaining',
+  };
+}
+
 function useSelectedPins(): MapPin[] {
   const tableState = useTableStateMap();
   const eventsItems = useDataTableData('events');
   const allTables = useInventoryTables();
 
-  return useMemo(
-    () =>
-      Object.entries(tableState).flatMap(([tableId, sel]) =>
-        Object.entries(sel?.rowSelection ?? {})
-          .filter(([, v]) => v)
-          .flatMap(([id]): MapPin[] => {
-            if (tableId === 'events') {
-              const e = eventsItems.find((ev) => ev.id.toString() === id);
-              if (!e?.pixel) return [];
+  return useMemo(() => {
+    // Defeat state by flag, so bosses-table pins (which only know the flag) get the
+    // same Defeated/Remaining status the events table already computed from the save.
+    const defeatedByFlag = new Map(eventsItems.map((e) => [e.id, e.on]));
+
+    return Object.entries(tableState).flatMap(([tableId, sel]) =>
+      Object.entries(sel?.rowSelection ?? {})
+        .filter(([, v]) => v)
+        .flatMap(([id]): MapPin[] => {
+          if (tableId === 'events') {
+            const e = eventsItems.find((ev) => ev.id.toString() === id);
+            if (!e?.pixel) return [];
+            const base = { master: e.pixel.master, px: e.pixel.px, py: e.pixel.py };
+            if (e.type === 'grace') {
               return [
                 {
+                  kind: 'grace',
                   name: e.name,
-                  category: e.type === 'grace' ? 'Site of Grace' : 'Boss',
-                  description: e.subtitle ?? '',
-                  // grace found / boss defeated → brighter shade on the map.
-                  discovered: e.on,
-                  master: e.pixel.master,
-                  px: e.pixel.px,
-                  py: e.pixel.py,
-                },
-              ];
-            }
-            if (tableId === 'bosses') {
-              const pin = bossPinByFlag.get(Number(id));
-              if (!pin) return [];
-              return [
-                {
-                  name: pin.name,
-                  category: 'Boss',
+                  category: 'Site of Grace',
                   description: '',
-                  master: pin.master,
-                  px: pin.px,
-                  py: pin.py,
+                  discovered: e.on, // found → brighter shade
+                  area: e.subtitle ?? undefined,
+                  status: e.on ? 'Discovered' : 'Undiscovered',
+                  ...base,
                 },
               ];
             }
-            // Inventory item → its extracted overworld pickup locations.
-            if (tableId === 'regions' || tableId === 'weapons') return [];
-            const type = TABLE_PLACEMENT_TYPE[tableId as InventoryTableType];
-            const row = allTables[tableId as InventoryTableType].items.find(
-              (e) => e.id.toString() === id,
-            );
-            if (!row) return [];
-            return itemPins(type, row.id).map((p) => ({
-              name: row.name,
-              category: p.source === 'map' ? 'Treasure' : p.approx ? 'Drop · approx. area' : 'Drop',
-              description: p.chance < 1 ? `${(p.chance * 100).toFixed(0)}% drop` : '',
-              // owned (quantity > 0) → brighter "collected" shade.
-              discovered: row.quantity > 0,
-              master: p.master,
-              px: p.px,
-              py: p.py,
-            }));
-          }),
-      ),
-    [tableState, eventsItems, allTables],
-  );
+            return [
+              {
+                kind: 'boss',
+                name: e.name,
+                category: 'Boss',
+                description: '',
+                discovered: e.on, // defeated → brighter shade
+                ...bossEnrichment(e.id, bossMapIdByFlag.get(e.id), e.on),
+                ...base,
+              },
+            ];
+          }
+          if (tableId === 'bosses') {
+            const pin = bossPinByFlag.get(Number(id));
+            if (!pin) return [];
+            const defeated = defeatedByFlag.get(pin.flag);
+            return [
+              {
+                kind: 'boss',
+                name: pin.name,
+                category: 'Boss',
+                description: '',
+                discovered: defeated,
+                ...bossEnrichment(pin.flag, pin.mapId, defeated),
+                master: pin.master,
+                px: pin.px,
+                py: pin.py,
+              },
+            ];
+          }
+          // Inventory item → its extracted overworld pickup locations.
+          if (tableId === 'regions' || tableId === 'weapons') return [];
+          const type = TABLE_PLACEMENT_TYPE[tableId as InventoryTableType];
+          const row = allTables[tableId as InventoryTableType].items.find(
+            (e) => e.id.toString() === id,
+          );
+          if (!row) return [];
+          const locations = itemPins(type, row.id);
+          const owned = row.quantity > 0;
+          return locations.map((p) => ({
+            kind: 'item',
+            name: row.name,
+            category: p.source === 'map' ? 'Treasure' : p.approx ? 'Drop · approx. area' : 'Drop',
+            description: '',
+            discovered: owned, // owned → brighter "collected" shade
+            sourceLabel:
+              p.source === 'map' ? 'Treasure' : p.approx ? 'Drop · approx. area' : 'Drop',
+            chancePct: p.chance < 1 ? Math.round(p.chance * 100) : undefined,
+            quantity: row.quantity,
+            locationCount: locations.length,
+            status: owned ? 'Collected' : 'Not collected',
+            master: p.master,
+            px: p.px,
+            py: p.py,
+          }));
+        }),
+    );
+  }, [tableState, eventsItems, allTables]);
 }
 
 /** "You are here" pin from the active save's player position (overworld only). */
@@ -150,9 +194,11 @@ function usePlayerPin(): MapPin | null {
     const px = playerToMasterPixel(map_id, player_coords);
     if (!px) return null; // in a dungeon / not overworld
     return {
+      kind: 'player',
       name: slot.player_game_data.character_name || 'Current location',
       category: '',
       description: 'Your current position',
+      status: 'You are here',
       master: px.master,
       px: px.px,
       py: px.py,
@@ -179,10 +225,17 @@ function useBloodstainPin(): MapPin | null {
     const { coords, map_id, runes } = slot.blood_stain;
     const px = playerToMasterPixel(map_id, coords);
     if (!px) return null; // interior we can't place on the world map
+    const active = runes > 0;
+    const runeText = active ? `${runes.toLocaleString()} runes` : null;
     return {
-      name: runes > 0 ? 'Lost runes' : 'Last death',
+      kind: 'bloodstain',
+      name: active ? 'Lost runes' : 'Last death',
       category: '',
-      description: '',
+      // status drives the hover tooltip; description the popup sentence.
+      status: active ? `${runeText} on the ground` : 'Last death · runes recovered',
+      description: active
+        ? `${runeText} waiting to be recovered`
+        : 'Runes here have already been recovered',
       master: px.master,
       px: px.px,
       py: px.py,
@@ -394,18 +447,18 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
           brighter "discovered" shade and a muted "undiscovered" one. */}
       <div className='flex flex-wrap items-center gap-x-4 gap-y-1 text-[11.5px] text-muted-foreground'>
         <span className='flex items-center gap-1'>
-          <MapPinIcon className='size-3.5' style={{ color: '#ecbd4a' }} fill='currentColor' />
-          <MapPinIcon className='size-3.5' style={{ color: '#8c7a3e' }} fill='currentColor' />{' '}
+          <MapPinGlyph className='size-3.5' style={{ color: '#ecbd4a' }} filled />
+          <MapPinGlyph className='size-3.5' style={{ color: '#8c7a3e' }} filled />{' '}
           Graces (found / undiscovered)
         </span>
         <span className='flex items-center gap-1'>
-          <MapPinIcon className='size-3.5' style={{ color: '#e24a4a' }} fill='currentColor' />
-          <MapPinIcon className='size-3.5' style={{ color: '#8a4040' }} fill='currentColor' />{' '}
+          <MapPinGlyph className='size-3.5' style={{ color: '#e24a4a' }} filled />
+          <MapPinGlyph className='size-3.5' style={{ color: '#8a4040' }} filled />{' '}
           Bosses (defeated / remaining)
         </span>
         <span className='flex items-center gap-1'>
-          <MapPinIcon className='size-3.5' style={{ color: '#3cbfdb' }} fill='currentColor' />
-          <MapPinIcon className='size-3.5' style={{ color: '#356e7a' }} fill='currentColor' /> Items
+          <MapPinGlyph className='size-3.5' style={{ color: '#3cbfdb' }} filled />
+          <MapPinGlyph className='size-3.5' style={{ color: '#356e7a' }} filled /> Items
           (collected / not collected)
         </span>
         <span className='flex items-center gap-1.5'>

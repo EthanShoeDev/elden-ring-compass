@@ -1,5 +1,6 @@
 import { ColumnDef, ColumnHelper, Row } from '@tanstack/react-table';
-import { CheckIcon, MapPinIcon, XIcon } from 'lucide-react';
+import { CheckIcon, XIcon } from 'lucide-react';
+import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
 import { cn } from '@/lib/utils';
 import { DataTableColumnHeader } from './data-table-column-header';
 
@@ -38,7 +39,7 @@ function PinToggle({
             : 'border-input text-muted-foreground hover:border-amber-500/55 hover:bg-amber-500/10 hover:text-amber-400',
       )}
     >
-      <MapPinIcon className='size-[15px]' fill={state === 'on' ? 'currentColor' : 'none'} />
+      <MapPinGlyph className='size-[15px]' filled={state === 'on'} />
     </button>
   );
 }

@@ -27,8 +27,12 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, Marker, Popup, Tooltip, useMap, useMapEvents } from 'react-leaflet';
 
+/** What kind of thing a pin represents — drives its hover/popup content. */
+export type PinKind = 'grace' | 'boss' | 'item' | 'player' | 'bloodstain';
+
 /** A map pin already resolved to a specific master (`M00`/`M10`) + master pixel. */
 export interface MapPin {
+  kind: PinKind;
   name: string;
   category: string;
   description: string;
@@ -36,9 +40,9 @@ export interface MapPin {
   px: number;
   py: number;
   /**
-   * For graces/bosses: whether this point is "discovered" (grace found / boss
-   * defeated). Drives a brighter vs. muted shade of the category colour. Absent
-   * for item pickups and the player marker, which have no such state.
+   * For graces/bosses/items: whether this point is "discovered" (grace found /
+   * boss defeated / item owned). Drives a brighter vs. muted shade of the category
+   * colour. Absent for the player marker, which has no such state.
    */
   discovered?: boolean;
   /**
@@ -47,6 +51,24 @@ export interface MapPin {
    * other pins.
    */
   runes?: number;
+
+  // --- enrichment (optional, populated per kind in map-section.tsx) ---
+  /** One-line status shown in the hover tooltip + as a popup badge. */
+  status?: string;
+  /** Human map area ("Stormveil Castle", a grace's region, …). */
+  area?: string;
+  /** Boss category badges ("Demigod", "Shardbearer", …). */
+  badges?: string[];
+  /** Boss reward drop (Remembrance / Heart of Bayle). */
+  reward?: { name: string; iconUrl?: string };
+  /** Item: source label ("Treasure" | "Drop" | "Drop · approx. area"). */
+  sourceLabel?: string;
+  /** Item: drop chance as a percentage (omitted when guaranteed). */
+  chancePct?: number;
+  /** Item: how many of this item the player owns. */
+  quantity?: number;
+  /** Item: how many pins this item places across the map. */
+  locationCount?: number;
 }
 
 export interface MapLayer {
@@ -231,6 +253,86 @@ const bloodstainRecoveredIcon = divIcon({
   popupAnchor: [0, -8],
 });
 
+/**
+ * Hover tooltip — the at-a-glance summary: name + one-line status. Identical
+ * across every pin kind so hovering always reads the same way. (The bloodstain's
+ * `name` IS its status, e.g. "Lost runes", so its `status` line carries the runes.)
+ */
+function PinTooltipBody({ pin }: { pin: MapPin }) {
+  return (
+    <span>
+      <strong>{pin.name}</strong>
+      {pin.status && <span className='opacity-70'> · {pin.status}</span>}
+    </span>
+  );
+}
+
+/** A faded x/y readout, popup-only — handy for reporting a location. */
+function PinCoords({ pin }: { pin: MapPin }) {
+  return (
+    <p className='mt-1 font-mono text-[11px] opacity-60'>
+      x {Math.round(pin.px)}, y {Math.round(pin.py)}
+    </p>
+  );
+}
+
+/**
+ * Click popup — the full detail card, laid out by `kind`. Every kind ends with the
+ * shared faded coords line; the middle rows are the enriched, type-specific meta.
+ */
+function PinPopupBody({ pin }: { pin: MapPin }) {
+  return (
+    <div className='select-text space-y-1'>
+      <strong className='block'>{pin.name}</strong>
+
+      {pin.kind === 'boss' && (
+        <>
+          {pin.badges && pin.badges.length > 0 && (
+            <p className='text-[11px] opacity-70'>{pin.badges.join(' · ')}</p>
+          )}
+          {pin.area && <p>{pin.area}</p>}
+          {pin.reward && (
+            <p className='flex items-center gap-1.5'>
+              {pin.reward.iconUrl && (
+                <img src={pin.reward.iconUrl} alt='' className='size-5 shrink-0' />
+              )}
+              <span>{pin.reward.name}</span>
+            </p>
+          )}
+        </>
+      )}
+
+      {pin.kind === 'grace' && (
+        <>
+          <p className='opacity-80'>Site of Grace</p>
+          {pin.area && <p>{pin.area}</p>}
+        </>
+      )}
+
+      {pin.kind === 'item' && (
+        <>
+          {pin.sourceLabel && <p className='opacity-80'>{pin.sourceLabel}</p>}
+          {pin.chancePct !== undefined && <p>{pin.chancePct}% drop</p>}
+          {pin.quantity !== undefined && <p>Owned: {pin.quantity}</p>}
+          {pin.locationCount !== undefined && pin.locationCount > 1 && (
+            <p className='opacity-70'>{pin.locationCount} locations on map</p>
+          )}
+        </>
+      )}
+
+      {pin.kind === 'player' && <p className='opacity-80'>Your current position</p>}
+
+      {pin.kind === 'bloodstain' && pin.description && <p>{pin.description}</p>}
+
+      {pin.status && pin.kind !== 'bloodstain' && pin.kind !== 'player' && (
+        <p className='text-[11px] font-medium opacity-80'>{pin.status}</p>
+      )}
+
+      <PinCoords pin={pin} />
+    </div>
+  );
+}
+
 /** Pins — already in master-pixel space; unproject at native zoom → latlng. */
 function MarkerLayer({ pins, zoom }: { pins: MapPin[]; zoom: number }) {
   const map = useMap();
@@ -242,20 +344,11 @@ function MarkerLayer({ pins, zoom }: { pins: MapPin[]; zoom: number }) {
           position={map.unproject([pin.px, pin.py], zoom)}
           icon={pinIcon(pin.category, pin.discovered)}
         >
+          <Tooltip direction='top' offset={[0, -18]}>
+            <PinTooltipBody pin={pin} />
+          </Tooltip>
           <Popup>
-            <div className='select-text'>
-              <strong>{pin.name}</strong>
-              {pin.category && <p>{pin.category}</p>}
-              {pin.description && (
-                <p
-                  className='prose max-w-sm dark:prose-invert'
-                  dangerouslySetInnerHTML={{ __html: pin.description }}
-                />
-              )}
-              <p className='font-mono opacity-70'>
-                x {Math.round(pin.px)}, y {Math.round(pin.py)}
-              </p>
-            </div>
+            <PinPopupBody pin={pin} />
           </Popup>
         </Marker>
       ))}
@@ -380,51 +473,30 @@ function MapBody({
       <MarkerLayer pins={pins.filter((p) => p.master === activeMapId)} zoom={z} />
       {playerPin && playerPin.master === activeMapId && (
         <Marker position={map.unproject([playerPin.px, playerPin.py], z)} icon={playerIcon}>
+          <Tooltip direction='top' offset={[0, -10]}>
+            <PinTooltipBody pin={playerPin} />
+          </Tooltip>
           <Popup>
-            <div className='select-text'>
-              <strong>{playerPin.name}</strong>
-              {playerPin.description && <p>{playerPin.description}</p>}
-              <p className='font-mono opacity-70'>
-                x {Math.round(playerPin.px)}, y {Math.round(playerPin.py)}
-              </p>
-            </div>
+            <PinPopupBody pin={playerPin} />
           </Popup>
         </Marker>
       )}
-      {bloodstainPin &&
-        bloodstainPin.master === activeMapId &&
-        (() => {
-          // runes > 0 → active "lost runes"; otherwise the spot is retained but
-          // the runes have already been recovered (or were never dropped).
-          const active = (bloodstainPin.runes ?? 0) > 0;
-          const runeText =
-            bloodstainPin.runes !== undefined && bloodstainPin.runes > 0
-              ? `${bloodstainPin.runes.toLocaleString()} runes`
-              : null;
-          return (
-            <Marker
-              position={map.unproject([bloodstainPin.px, bloodstainPin.py], z)}
-              icon={active ? bloodstainIcon : bloodstainRecoveredIcon}
-            >
-              <Tooltip direction='top' offset={[0, -6]}>
-                {active ? `${runeText} on the ground` : 'Last death · runes recovered'}
-              </Tooltip>
-              <Popup>
-                <div className='select-text'>
-                  <strong>{active ? 'Lost runes' : 'Last death'}</strong>
-                  <p>
-                    {active
-                      ? `${runeText} waiting to be recovered`
-                      : 'Runes here have already been recovered'}
-                  </p>
-                  <p className='font-mono opacity-70'>
-                    x {Math.round(bloodstainPin.px)}, y {Math.round(bloodstainPin.py)}
-                  </p>
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })()}
+      {bloodstainPin && bloodstainPin.master === activeMapId && (
+        // runes > 0 → active "lost runes"; otherwise the spot is retained but the
+        // runes have already been recovered (or were never dropped). Text is built
+        // in `useBloodstainPin`; here we only pick the active vs. recovered icon.
+        <Marker
+          position={map.unproject([bloodstainPin.px, bloodstainPin.py], z)}
+          icon={(bloodstainPin.runes ?? 0) > 0 ? bloodstainIcon : bloodstainRecoveredIcon}
+        >
+          <Tooltip direction='top' offset={[0, -6]}>
+            <PinTooltipBody pin={bloodstainPin} />
+          </Tooltip>
+          <Popup>
+            <PinPopupBody pin={bloodstainPin} />
+          </Popup>
+        </Marker>
+      )}
       <MapStatusReadout zoom={z} />
     </>
   );
