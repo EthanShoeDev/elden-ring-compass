@@ -1,8 +1,6 @@
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router';
-import { useAtomSet } from '@effect/atom-react';
 import { useEffect, useState } from 'react';
 import { decodeFromUrl } from '@/lib/share/decode';
-import { saveFileSourceAtom } from '@/stores/save-file-source-store';
 
 type ShareSearchParams = {
   d?: string;
@@ -17,7 +15,6 @@ export const Route = createFileRoute('/share')({
 
 function SharePage() {
   const { d } = useSearch({ from: '/share' });
-  const setSaveFileSource = useAtomSet(saveFileSourceAtom);
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
@@ -33,12 +30,10 @@ function SharePage() {
       return;
     }
 
-    // Set the shared data as the save source
-    setSaveFileSource({ sharedData: data });
-
-    // Navigate to the main page to view the shared progression
-    void navigate({ to: '/' });
-  }, [d, setSaveFileSource, navigate]);
+    // Back-compat: old links used /share?d=. The root route now owns the global
+    // ?save= param and retains it across navigation.
+    void navigate({ to: '/', search: { save: d } });
+  }, [d, navigate]);
 
   if (error) {
     return (

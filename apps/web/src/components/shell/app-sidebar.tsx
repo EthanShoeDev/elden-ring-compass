@@ -6,6 +6,7 @@ import {
   FileCheckIcon,
   FlaskConicalIcon,
   HandshakeIcon,
+  Share2Icon,
   SwordIcon,
   type LucideIcon,
 } from 'lucide-react';
@@ -38,7 +39,11 @@ import {
 } from '@/components/ui/sidebar';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
-import { isSampleSource, saveFileSourceAtom } from '@/stores/save-file-source-store';
+import {
+  isSampleSource,
+  isSharedSource,
+  saveFileSourceAtom,
+} from '@/stores/save-file-source-store';
 import { useSaveLoading, useSelectedSlot } from '@/stores/slot-selection-store';
 
 import { NAV, REPO_URL } from './nav';
@@ -93,7 +98,9 @@ export function AppSidebar() {
   // slot resolving, so the sidebar shows "Loading save…" not the Connect button.
   const saveLoading = useSaveLoading();
   // Distinguish the bundled demo save from the user's own connected save.
-  const sourceIsSample = isSampleSource(useAtomValue(saveFileSourceAtom));
+  const saveFileSource = useAtomValue(saveFileSourceAtom);
+  const sourceIsSample = isSampleSource(saveFileSource);
+  const sourceIsShared = isSharedSource(saveFileSource);
 
   const connected = hydrated && !!selectedSlot;
   // Treat the pre-hydration window as "loading" so the SSR HTML prebakes a
@@ -102,6 +109,7 @@ export function AppSidebar() {
   // guest state first), and a true guest sees a brief spinner → "No save loaded".
   const loadingSave = !hydrated || saveLoading;
   const isSample = hydrated && sourceIsSample;
+  const isShared = hydrated && sourceIsShared;
 
   return (
     <Sidebar collapsible='icon'>
@@ -272,20 +280,26 @@ export function AppSidebar() {
                 'flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs group-data-[collapsible=icon]:hidden',
                 isSample
                   ? 'border-amber-500/40 bg-amber-500/10'
+                  : isShared
+                    ? 'border-blue-500/40 bg-blue-500/10'
                   : 'border-green-500/40 bg-green-500/10',
               )}
             >
               {isSample ? (
                 <FlaskConicalIcon className='size-3.5 shrink-0 text-amber-500' />
+              ) : isShared ? (
+                <Share2Icon className='size-3.5 shrink-0 text-blue-500' />
               ) : (
                 <span className='relative flex size-2 shrink-0'>
                   <span className='absolute inline-flex size-full animate-ping rounded-full bg-green-500 opacity-60' />
                   <span className='relative inline-flex size-2 rounded-full bg-green-500' />
                 </span>
               )}
-              <span className='font-semibold'>{isSample ? 'Sample save' : 'Live'}</span>
+              <span className='font-semibold'>
+                {isSample ? 'Sample save' : isShared ? 'Shared link' : 'Live'}
+              </span>
               <span className='truncate text-muted-foreground'>
-                {isSample ? '· demo data' : '· synced'}
+                {isSample ? '· demo data' : isShared ? '· read-only' : '· synced'}
               </span>
               <DisconnectButton className='-mr-1 ml-auto size-6 text-muted-foreground hover:text-foreground' />
             </div>

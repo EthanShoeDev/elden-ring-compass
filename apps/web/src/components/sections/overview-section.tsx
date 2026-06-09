@@ -19,7 +19,7 @@ import { ActiveEffectsCard } from './active-effects-card';
 import { CompletionBreakdown, CompletionHero } from './completion-overview';
 import { EquipmentCard } from './equipment-card';
 import { RegionsDataTable } from './regions-data-table';
-import { ConnectSaveButton } from '../misc/save-file-source-selector';
+import { ConnectSaveButton, ShareCharacterButton } from '../misc/save-file-source-selector';
 import { TooltipImg } from '../misc/tooltip-img';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
@@ -230,6 +230,9 @@ export function OverviewSection() {
 
   return (
     <>
+      <div className='flex justify-end'>
+        <ShareCharacterButton />
+      </div>
       <CompletionHero />
       <CompletionBreakdown />
 

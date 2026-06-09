@@ -4,7 +4,7 @@ import { BOSSES, eventFlagOffset, GRACES, MAP_FRAGMENTS } from '@elden-ring-comp
 // map-fragment flag the app tracks (matching what the events table reads). The collectible
 // trackers (cookbooks/whetblades) are inventory-derived, not flags, and ride along in the
 // shared `inv` payload instead. Replaces iterating the legacy precomputed `EVENT_FLAGS` list.
-const SHAREABLE_EVENT_IDS: ReadonlyArray<number> = [
+export const SHAREABLE_EVENT_IDS: ReadonlyArray<number> = [
   ...GRACES.map((g) => g.flagId),
   ...BOSSES.map((b) => b.defeatFlagId),
   310, // Starscourge Radahn — see lib/vm/events.ts

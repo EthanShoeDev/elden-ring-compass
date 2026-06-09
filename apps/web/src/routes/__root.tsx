@@ -1,6 +1,16 @@
-import { createRootRoute, HeadContent, Scripts, Outlet } from '@tanstack/react-router';
-import { RegistryProvider } from '@effect/atom-react';
+import {
+  createRootRoute,
+  HeadContent,
+  Scripts,
+  Outlet,
+  retainSearchParams,
+} from '@tanstack/react-router';
+import { RegistryProvider, useAtomSet } from '@effect/atom-react';
+import { Effect, Exit, Schema } from 'effect';
+import { useEffect } from 'react';
 import { Providers } from '@/components/providers/providers';
+import { decodeFromUrlEffect } from '@/lib/share/decode';
+import { saveFileSourceAtom } from '@/stores/save-file-source-store';
 import '../index.css';
 
 // Dev-only React Scan render profiler — highlights components as they re-render
@@ -18,7 +28,13 @@ const SITE_DESCRIPTION =
   'A free, open-source, read-only Elden Ring save analyzer — explore the world map, bosses, ' +
   'inventory and weapon AR right in your browser. Your save never leaves your device.';
 
+const SearchSchema = Schema.Struct({
+  save: Schema.optional(Schema.String),
+});
+
 export const Route = createRootRoute({
+  validateSearch: Schema.toStandardSchemaV1(SearchSchema),
+  search: { middlewares: [retainSearchParams(['save'])] },
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
@@ -55,6 +71,7 @@ function RootComponent() {
       <body>
         <RegistryProvider>
           <Providers>
+            <SharedSaveSource />
             <Outlet />
           </Providers>
         </RegistryProvider>
@@ -62,4 +79,27 @@ function RootComponent() {
       </body>
     </html>
   );
+}
+
+function SharedSaveSource() {
+  const { save } = Route.useSearch();
+  const setSaveFileSource = useAtomSet(saveFileSourceAtom);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!save) return;
+
+    const fiber = Effect.runFork(decodeFromUrlEffect(save));
+    fiber.addObserver((exit) => {
+      if (!cancelled && Exit.isSuccess(exit) && exit.value) {
+        setSaveFileSource({ sharedData: exit.value });
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [save, setSaveFileSource]);
+
+  return null;
 }

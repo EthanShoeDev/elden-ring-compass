@@ -1,19 +1,28 @@
 import { itemIconUrl } from '@elden-ring-compass/data/images';
 import { useEldenRingSave } from '@/lib/atoms/save';
 import { fileToArrBuffer } from '@/lib/er-save-parser';
+import { encodeToUrl, slotToShareableProgression } from '@/lib/share/encode';
+import { ShareCodecError } from '@/lib/share/types';
 import { cn } from '@/lib/utils';
 import { statsDbView } from '@/lib/vm/stats';
-import { SAMPLE_SAVE_URL, saveFileSourceAtom } from '@/stores/save-file-source-store';
+import {
+  isSharedSource,
+  SAMPLE_SAVE_URL,
+  saveFileSourceAtom,
+} from '@/stores/save-file-source-store';
 import { useSelectedSlot, useSlotNameSelection } from '@/stores/slot-selection-store';
 import { useAtomSet, useAtomValue } from '@effect/atom-react';
-import { ClientOnly } from '@tanstack/react-router';
+import { ClientOnly, useNavigate } from '@tanstack/react-router';
+import { Effect, Exit } from 'effect';
 import {
   CheckIcon,
   ChevronsUpDownIcon,
+  CopyIcon,
   EditIcon,
   FileCheckIcon,
   Link2OffIcon,
   LinkIcon,
+  Share2Icon,
   SwordIcon,
   UnplugIcon,
   UploadCloudIcon,
@@ -47,6 +56,73 @@ const DEFAULT_LOCAL_URL = 'http://localhost:8080/ER0000.sl2';
 // Faint remembrance art behind the modal (Godfrey), echoing the design kit's
 // `modal-art`. Decorative only.
 const MODAL_ART = itemIconUrl(170);
+
+export function ShareCharacterButton({
+  className,
+  variant = 'outline',
+  size = 'sm',
+}: Pick<React.ComponentProps<typeof Button>, 'className' | 'variant' | 'size'>) {
+  const slot = useSelectedSlot();
+  const [shareUrl, setShareUrl] = useState('');
+  const [status, setStatus] = useState<'idle' | 'building' | 'copied' | 'error'>('idle');
+
+  if (!slot) return null;
+
+  const buildLink = () => {
+    setStatus('building');
+    const fiber = Effect.runFork(
+      Effect.gen(function* () {
+        const encoded = yield* encodeToUrl(slotToShareableProgression(slot));
+        const url = new URL(
+          typeof window === 'undefined' ? 'http://localhost/' : window.location.href,
+        );
+        url.pathname = '/';
+        url.search = '';
+        url.searchParams.set('save', encoded);
+        url.hash = '';
+        const nextUrl = url.toString();
+        yield* Effect.sync(() => setShareUrl(nextUrl));
+        if (navigator.clipboard) {
+          yield* Effect.tryPromise({
+            try: () => navigator.clipboard.writeText(nextUrl),
+            catch: (cause) => new ShareCodecError({ cause }),
+          });
+        }
+      }),
+    );
+    fiber.addObserver((exit) => {
+      if (Exit.isSuccess(exit)) {
+        setStatus('copied');
+      } else {
+        setStatus('error');
+      }
+    });
+  };
+
+  return (
+    <div className={cn('flex min-w-0 flex-col gap-2', className)}>
+      <Button variant={variant} size={size} onClick={buildLink}>
+        {status === 'copied' ? <CheckIcon /> : status === 'building' ? <CopyIcon /> : <Share2Icon />}
+        {status === 'building'
+          ? 'Building link'
+          : status === 'copied'
+            ? 'Copied share link'
+            : 'Share this character'}
+      </Button>
+      {shareUrl && (
+        <Input
+          readOnly
+          className='h-8 min-w-0 font-mono text-xs'
+          value={shareUrl}
+          onFocus={(event) => event.currentTarget.select()}
+        />
+      )}
+      {status === 'error' && (
+        <div className='text-[12.5px] text-destructive'>Could not create share link.</div>
+      )}
+    </div>
+  );
+}
 
 /**
  * The Connect-a-save flow, as a centered modal (was an app-bar dropdown).
@@ -233,6 +309,8 @@ function ConnectSaveContent() {
 
       <ConnectStatusLine />
 
+      {save.data && <ShareCharacterButton className='rounded-lg border border-border p-3' />}
+
       <div className='flex flex-wrap gap-x-4 gap-y-1.5 text-[12.5px] text-muted-foreground'>
         <span className='flex items-center gap-1.5'>
           <CheckIcon className='size-3.5 text-green-500' /> Read-only — never writes your save
@@ -304,6 +382,8 @@ export function ConnectSaveButton({
 /** Disconnect the active save (clears the source). */
 export function DisconnectButton({ className, ...props }: React.ComponentProps<typeof Button>) {
   const setSaveFileSource = useAtomSet(saveFileSourceAtom);
+  const saveFileSource = useAtomValue(saveFileSourceAtom);
+  const navigate = useNavigate();
   return (
     <Button
       variant='ghost'
@@ -311,6 +391,12 @@ export function DisconnectButton({ className, ...props }: React.ComponentProps<t
       title='Disconnect save'
       onClick={() => {
         setSaveFileSource(undefined);
+        if (isSharedSource(saveFileSource)) {
+          void navigate({
+            search: ((prev: { readonly save?: string }) => ({ ...prev, save: undefined })) as never,
+            replace: true,
+          });
+        }
       }}
       className={className}
       {...props}
