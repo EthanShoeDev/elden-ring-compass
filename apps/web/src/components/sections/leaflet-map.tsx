@@ -481,22 +481,23 @@ function MapBody({
           </Popup>
         </Marker>
       )}
-      {bloodstainPin && bloodstainPin.master === activeMapId && (
-        // runes > 0 → active "lost runes"; otherwise the spot is retained but the
-        // runes have already been recovered (or were never dropped). Text is built
-        // in `useBloodstainPin`; here we only pick the active vs. recovered icon.
-        <Marker
-          position={map.unproject([bloodstainPin.px, bloodstainPin.py], z)}
-          icon={(bloodstainPin.runes ?? 0) > 0 ? bloodstainIcon : bloodstainRecoveredIcon}
-        >
-          <Tooltip direction='top' offset={[0, -6]}>
-            <PinTooltipBody pin={bloodstainPin} />
-          </Tooltip>
-          <Popup>
-            <PinPopupBody pin={bloodstainPin} />
-          </Popup>
-        </Marker>
-      )}
+      {bloodstainPin &&
+        bloodstainPin.master === activeMapId && (
+          // runes > 0 → active "lost runes"; otherwise the spot is retained but the
+          // runes have already been recovered (or were never dropped). Text is built
+          // in `useBloodstainPin`; here we only pick the active vs. recovered icon.
+          <Marker
+            position={map.unproject([bloodstainPin.px, bloodstainPin.py], z)}
+            icon={(bloodstainPin.runes ?? 0) > 0 ? bloodstainIcon : bloodstainRecoveredIcon}
+          >
+            <Tooltip direction='top' offset={[0, -6]}>
+              <PinTooltipBody pin={bloodstainPin} />
+            </Tooltip>
+            <Popup>
+              <PinPopupBody pin={bloodstainPin} />
+            </Popup>
+          </Marker>
+        )}
       <MapStatusReadout zoom={z} />
     </>
   );

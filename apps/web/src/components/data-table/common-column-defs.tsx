@@ -115,6 +115,28 @@ function defaultFacetedFilterFn<T>(row: Row<T>, columnId: string, filterVal: Arr
 }
 defaultFacetedFilterFn[defaultFacetedFilterFnSymbol] = true;
 
+/**
+ * Filter for the inventory Quantity column. ONE filter value, two shapes, so the
+ * prominent All/Owned/Missing segmented control (see `InventoryDataTableCard`) and
+ * the column's faceted dropdown stay linked to a single source of truth instead of
+ * being two controls that can disagree:
+ *   - `'owned'`   → `quantity > 0`   (the toggle's Owned preset)
+ *   - `'missing'` → `quantity === 0` (the toggle's Missing preset)
+ *   - `number[]`  → exact-value facet selection (e.g. "weapons I have 2 of")
+ *   - anything else / cleared → keep every row
+ * Tagged with `defaultFacetedFilterFnSymbol` so the toolbar still renders the
+ * faceted chip; the facet UI interprets the `'owned'`/`'missing'` presets into
+ * checked boxes (see `DataTableFacetedFilter`).
+ */
+export function quantityFilterFn<T>(row: Row<T>, columnId: string, filterVal: unknown) {
+  const qty = row.getValue<number>(columnId);
+  if (filterVal === 'owned') return qty > 0;
+  if (filterVal === 'missing') return qty === 0;
+  if (Array.isArray(filterVal)) return filterVal.length === 0 || filterVal.includes(qty);
+  return true;
+}
+quantityFilterFn[defaultFacetedFilterFnSymbol] = true;
+
 export const commonAccessorColumnDef = <T,>(
   columnHelper: ColumnHelper<T>,
   accessor: Parameters<ColumnHelper<T>['accessor']>[0],

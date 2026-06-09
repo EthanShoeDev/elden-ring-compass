@@ -92,9 +92,12 @@ export const TABLE_PLACEMENT_TYPE: Record<InventoryTableType, string> = {
 export type WithOwnership<T> = T & {
   quantity: number;
   weaponUpgradeLevel: number;
-  // Whether the item has any extracted overworld pickup location (drives the
-  // "Has Coordinates" column + map pinning). The actual pins live in `itemIdToPins`.
+  // Whether the item has any extracted overworld pickup location (drives map
+  // pinning via `enableRowSelection`). The actual pins live in `itemIdToPins`.
   hasCoords: boolean;
+  // How many overworld pins selecting this row drops on the map — the visible
+  // "Locations" column. `hasCoords === (locationCount > 0)`.
+  locationCount: number;
 };
 
 /** Broad shape every joined row satisfies (used where the category isn't statically known). */
@@ -147,13 +150,15 @@ export function useInventoryTables(): Record<InventoryTableType, InventoryTableR
         .map((row) => {
           const o = owned.get(row.id);
           const weaponUpgradeLevel = o?.upgradeLevel ?? 0;
+          const locationCount = itemPins(placementType, row.id).length;
           return {
             ...row,
             quantity: o?.quantity ?? 0,
             weaponUpgradeLevel,
             name:
               weaponUpgradeLevel > 0 ? `${row.name} +${weaponUpgradeLevel.toString()}` : row.name,
-            hasCoords: itemPins(placementType, row.id).length > 0,
+            hasCoords: locationCount > 0,
+            locationCount,
           };
         });
       return { items, ownedCount: items.filter((i) => i.quantity > 0).length };

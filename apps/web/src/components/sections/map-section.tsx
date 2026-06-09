@@ -448,18 +448,18 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
       <div className='flex flex-wrap items-center gap-x-4 gap-y-1 text-[11.5px] text-muted-foreground'>
         <span className='flex items-center gap-1'>
           <MapPinGlyph className='size-3.5' style={{ color: '#ecbd4a' }} filled />
-          <MapPinGlyph className='size-3.5' style={{ color: '#8c7a3e' }} filled />{' '}
-          Graces (found / undiscovered)
+          <MapPinGlyph className='size-3.5' style={{ color: '#8c7a3e' }} filled /> Graces (found /
+          undiscovered)
         </span>
         <span className='flex items-center gap-1'>
           <MapPinGlyph className='size-3.5' style={{ color: '#e24a4a' }} filled />
-          <MapPinGlyph className='size-3.5' style={{ color: '#8a4040' }} filled />{' '}
-          Bosses (defeated / remaining)
+          <MapPinGlyph className='size-3.5' style={{ color: '#8a4040' }} filled /> Bosses (defeated
+          / remaining)
         </span>
         <span className='flex items-center gap-1'>
           <MapPinGlyph className='size-3.5' style={{ color: '#3cbfdb' }} filled />
-          <MapPinGlyph className='size-3.5' style={{ color: '#356e7a' }} filled /> Items
-          (collected / not collected)
+          <MapPinGlyph className='size-3.5' style={{ color: '#356e7a' }} filled /> Items (collected
+          / not collected)
         </span>
         <span className='flex items-center gap-1.5'>
           <span className='size-2.5 rounded-full bg-amber-500 ring-2 ring-amber-500/40' /> You are

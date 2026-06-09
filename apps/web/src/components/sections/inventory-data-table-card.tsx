@@ -1,6 +1,6 @@
 import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
 import { useNavigate } from '@tanstack/react-router';
-import { ColumnDef, ColumnHelper, createColumnHelper } from '@tanstack/react-table';
+import { CellContext, ColumnDef, ColumnHelper, createColumnHelper } from '@tanstack/react-table';
 import { useAtom } from '@effect/atom-react';
 import {
   ChevronsUpDownIcon,
@@ -22,8 +22,11 @@ import { useState } from 'react';
 import {
   commonAccessorColumnDef,
   commonPinColumnDef,
+  quantityFilterFn,
 } from '@/components/data-table/common-column-defs';
 import { DataTable } from '@/components/data-table/data-table';
+import { useColumnFilterValue } from '@/components/data-table/data-table-store';
+import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
 import { TooltipImg } from '@/components/misc/tooltip-img';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -169,11 +172,23 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
 
   // Ownership filter — "what I've collected" vs "what's left" vs the whole catalogue.
   // Pairs with the affinity-variant toggle (variants = "every variant in the game").
-  const [ownerFilter, setOwnerFilter] = useState<'all' | 'owned' | 'missing'>('all');
-  const filteredItems =
-    ownerFilter === 'all'
-      ? items
-      : items.filter((i) => (ownerFilter === 'owned' ? i.quantity > 0 : i.quantity === 0));
+  // This segmented control and the Quantity column's faceted chip are the SAME
+  // filter (it writes the `'owned'`/`'missing'` presets that `quantityFilterFn`
+  // reads, the facet writes exact values) — one shared source of truth, so the two
+  // controls can't drift out of sync.
+  const [qtyFilter, setQtyFilter] = useColumnFilterValue(table, 'Quantity');
+  // The toggle reflects the shared Quantity filter: its presets light up, an
+  // explicit value-facet selection (e.g. `[2]`) lights up nothing (null), and a
+  // cleared filter is "all". So picking exact quantities in the facet doesn't
+  // falsely highlight "All".
+  const ownerFilter: 'all' | 'owned' | 'missing' | null =
+    qtyFilter === 'owned'
+      ? 'owned'
+      : qtyFilter === 'missing'
+        ? 'missing'
+        : qtyFilter == null
+          ? 'all'
+          : null;
 
   // Full-bleed: the table *is* the route now (no Card chrome, no page padding —
   // see the `/inventory/$category` route's `fullBleed` staticData). A slim header
@@ -198,7 +213,7 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
                 key={key}
                 type='button'
                 onClick={() => {
-                  setOwnerFilter(key);
+                  setQtyFilter(key === 'all' ? undefined : key);
                 }}
                 className={cn(
                   'rounded-md px-3 py-1 text-sm capitalize transition-colors',
@@ -225,7 +240,7 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
         </div>
       </div>
       <div className='flex min-h-0 flex-1 flex-col p-2'>
-        <DataTable tableId={table} columns={tables[table]} data={filteredItems} fill />
+        <DataTable tableId={table} columns={tables[table]} data={items} fill />
       </div>
     </div>
   );
@@ -292,9 +307,29 @@ function defaultColumns<T extends BaseRow>(columnHelperT: ColumnHelper<T>): Arra
     commonAccessorColumnDef(columnHelper, 'name', 'Name', {
       filterFn: 'includesString',
     }),
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity'),
+    // Quantity shares one filter between the prominent All/Owned/Missing segmented
+    // control (which writes the `'owned'`/`'missing'` presets) and its faceted chip
+    // (which writes exact values like `[2]` — "weapons I have 2 of"). See
+    // `quantityFilterFn`; both stay in sync because it's a single column filter.
+    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity', { filterFn: quantityFilterFn }),
     commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
-    commonAccessorColumnDef(columnHelper, (row) => row.hasCoords, 'Has Coordinates'),
+    // How many map pins selecting this row drops (supersedes the old boolean
+    // "Has Coordinates" column — a count is strictly more informative). Sortable +
+    // faceted-filterable; 0 = can't be pinned (matches the muted pin cell).
+    commonAccessorColumnDef(columnHelper, 'locationCount', 'Locations', {
+      size: 120,
+      cell: (cell: CellContext<BaseRow, number>) => {
+        const n = cell.getValue();
+        return n > 0 ? (
+          <div className='flex items-center gap-1.5'>
+            <MapPinGlyph filled className='size-3.5 text-amber-400/80' />
+            <span>{n}</span>
+          </div>
+        ) : (
+          <span className='text-muted-foreground/40'>—</span>
+        );
+      },
+    }),
     // oxlint-disable-next-line unknown-cast/forbidden -- columns built against BaseRow are structurally valid for the caller's narrower T
   ] as unknown as Array<ColumnDef<T>>;
 }

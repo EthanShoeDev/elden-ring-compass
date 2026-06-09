@@ -131,6 +131,31 @@ export const useDataTableState = (initProps: DataTableStateInitProps) => {
   };
 };
 
+/**
+ * Read/write a SINGLE column's filter value for a table, from outside the
+ * `DataTable` (e.g. the inventory card's ownership segmented control, which is the
+ * UI for the Quantity column's filter). Writes the same `columnFilters` slice the
+ * table reads, so the control and the table share one source of truth. Gated on
+ * hydration like `useDataTableState` so the control's SSR/first-client render
+ * (value `undefined`) matches before the persisted filter restores.
+ */
+export const useColumnFilterValue = (tableId: TableId, columnId: string) => {
+  const hydrated = useHydrated();
+  const slice = useAtomValue(tableStateSliceFamily(tableId));
+  const setTableState = useAtomSet(tableStateAtom);
+  const value = hydrated ? slice?.columnFilters.find((f) => f.id === columnId)?.value : undefined;
+  const setValue = (next: unknown) => {
+    setTableState((prev) => {
+      const prevState = prev[tableId] ?? defaultTableState({ tableId });
+      const others = prevState.columnFilters.filter((f) => f.id !== columnId);
+      const columnFilters =
+        next == null || next === '' ? others : [...others, { id: columnId, value: next }];
+      return { ...prev, [tableId]: { ...prevState, columnFilters } };
+    });
+  };
+  return [value, setValue] as const;
+};
+
 /** The full per-table state map (e.g. to derive selected map markers). */
 export const useTableStateMap = (): TableStateMap => useAtomValue(tableStateAtom);
 
