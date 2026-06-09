@@ -22,8 +22,8 @@ export function useDataTableData(
     if (tableId == 'events') return eventsDbView(slot);
     if (tableId == 'regions') return regionsDbView(slot);
     // 'weapons', 'weapon-calculator' and 'bosses' serve their own data (see
-    // weapons-data-table.tsx / weapon-ar-calculator.tsx / bosses-data-table.tsx),
-    // not the save-driven inventory join, so they never reach this hook.
+    // weapon-ar-calculator.tsx / bosses-data-table.tsx), not the save-driven
+    // inventory join, so they never reach this hook.
     if (tableId == 'weapons' || tableId == 'weapon-calculator' || tableId == 'bosses') return [];
     return allTables[tableId].items;
   }, [slot, tableId, allTables]);

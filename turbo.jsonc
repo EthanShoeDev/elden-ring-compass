@@ -56,6 +56,7 @@
         "//#oxfmt:fix",
         "//#jscpd:check",
         "//#oxlint:fix",
+        "//#knip:check",
         "//#catalog:fix",
       ],
     },
@@ -64,12 +65,16 @@
         "//#oxfmt:check",
         "//#jscpd:check",
         "//#oxlint:check",
+        "//#knip:check",
         "//#catalog:check",
       ],
     },
     "//#oxfmt:fix": {},
     "//#oxfmt:check": {},
     "//#jscpd:check": {},
+    // knip reports unused deps/exports/files. Dependency/catalog/binary issues are
+    // counted (fail the gate); dead files/exports are warnings (see knip.jsonc rules).
+    "//#knip:check": {},
     "//#catalog:fix": {},
     "//#catalog:check": {},
     // oxlint must wait for the custom plugins to be compiled.

@@ -21,8 +21,6 @@ const AFFINITY_LABELS = [
   'Occult',
 ] as const;
 
-export type Affinity = (typeof AFFINITY_LABELS)[number];
-
 export type EnrichedWeapon = Weapon & {
   /** 0 = Standard (the base/unique row), 1..12 = an infused variant. */
   readonly affinityIndex: number;

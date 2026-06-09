@@ -36,11 +36,55 @@ once the native Rust port lands (Task 3).
 
 ## Tasks
 
-### Task 1 — Set up and properly configure knip
+### Task 1 — Set up and properly configure knip — _DONE (2026-06-09)_
 
 **Goal:** find and remove dead code, unused dependencies, unused exports, and unused files across
 the monorepo. We have none of this today; it's the highest-value addition because it catches a
 category nothing else does (oxlint flags unused _locals_, not unused _exports/files/deps_).
+
+**Status:** `knip` (catalog-pinned) is wired in via `knip.ts` (typed `KnipConfig`, modelled on the
+listening-astro reference) + the `//#knip:check` root turbo task, which now runs inside both
+`//#lint:root` and `//#lint:check:root`. Config notes:
+
+- Bun catalogs and `workspace:*` are resolved natively; `knip.ts` is deliberately minimal — **no
+  fake entry points**. The save-parser worker is auto-detected (`new Worker(new URL(...))`); the
+  only real entries are root `scripts/*.ts` (map-calibrate isn't a stage yet) and the save-parser
+  `perf/*.bench.ts` benchmark. Ignores: the vendored `**/components/ui/**`, the `assert` polyfill
+  alias, the `nix` binary, and the extractor's `git` subcommand mis-parse. Generated code is
+  excluded by knip's own plugins.
+- The dead `app.tsx` (pre-Start `<RouterProvider>` bootstrap — the framework hydrates via
+  `__root.tsx` + `router.tsx`; confirmed by a clean build) was **deleted**, not entry-listed.
+- `bun-types` was an unresolved-import false-positive: the tsconfigs' `types: ["node","bun-types"]`
+  resolved only transitively. Switched to `["node","bun"]` (→ the declared `@types/bun`), so no
+  `ignoreUnresolved` is needed.
+- The extractor's `ignoreExportsUsedInFile` is the one scoped exception: its pipeline stages are
+  Effect values whose inferred types name internal errors/interfaces, and `declaration: true`
+  (tsconfig.base) forces those to stay `export`ed even though nothing imports them by name. (They
+  are package-internal, not a cross-workspace public API — the extractor only exposes a `bin`.)
+- **All issue types block the gate** (default severity — no `rules` overrides). The baseline was
+  cleaned first (below), so files/exports/types are now counted, not warn-only.
+- `knip --fix` is a no-op in this repo (it rewrites neither `catalog:`-protocol deps nor `export`
+  keywords here), so fixes are applied by hand.
+- Coexists with `scripts/catalog-check.ts`: catalog-check enforces that _used_ deps reference the
+  catalog; knip removes catalog entries nothing references. Non-overlapping, verified both pass.
+
+**Baseline cleanup done in the same pass** (knip now runs clean — `typecheck`, `oxlint`, and the
+web/save-parser/extractor test suites all green):
+
+- **Dead dependencies removed:** `wasm-pack` (WASM parser deleted), `@tanstack/react-query` +
+  `zustand` (data-layer rework), `@faker-js/faker`, `react-markdown`, `@types/lz-string`.
+- **Dead files deleted:** the superseded `weapons-data-table`, `copy-button`, `share-button`,
+  `quests-section`, `dlc-switch`, the `share/index` barrel, and the `SlotSelector`/`RefreshButton`
+  controls (replaced by `SlotSwitcher`).
+- **Dead exports/symbols deleted:** the cascaded weapons atoms, the orphaned share-encoder
+  (`extractShareableData`/`generateShareUrl` — sharing is view-only until the Share button is
+  re-wired), a batch of unused `save-dto` aliases, etc.
+- **Over-exports unexported:** ~30 symbols that were `export`ed but only used within their own file
+  lost the `export` keyword (mostly `packages/extractor` internals).
+- **Effect runtime now actually used for logging** (so it isn't flagged): `clientRuntime` runs the
+  worker parse path; a new isomorphic `lib/runtime/log.ts` routes `decode.ts` logging through
+  `clientRuntime`/`serverRuntime` per environment (`import.meta.env.SSR`, tree-shaken per bundle).
+- **Reserved-not-dead** kept as knip entries: `lib/er-objectives.ts` (future quest-compass data).
 
 Considerations specific to this repo:
 

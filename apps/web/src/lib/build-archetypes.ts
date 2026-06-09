@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 import type { ScalingAttr, WeaponScaling } from '@/lib/ar';
-import { type Attr8Key, type Attrs8, VAGABOND } from '@/lib/build-stats';
+import { type Attr8Key, type Attrs8 } from '@/lib/build-stats';
 
 export type BuildArchetypeKey =
   | 'strength'
@@ -32,18 +32,6 @@ export type BuildArchetypeKey =
   | 'intFaith'
   | 'strFaith'
   | 'bleed';
-
-/** Offensive 8-attribute key → the AR formula's scaling-attribute key. */
-export const OFFENSIVE_TO_SCALING: Record<
-  Extract<Attr8Key, 'strength' | 'dexterity' | 'intelligence' | 'faith' | 'arcane'>,
-  ScalingAttr
-> = {
-  strength: 'str',
-  dexterity: 'dex',
-  intelligence: 'int',
-  faith: 'fai',
-  arcane: 'arc',
-};
 
 export interface BuildArchetype {
   readonly key: BuildArchetypeKey;
@@ -171,9 +159,6 @@ export const buildArchetypeByKey: ReadonlyMap<BuildArchetypeKey, BuildArchetype>
   BUILD_ARCHETYPES.map((a) => [a.key, a]),
 );
 
-/** Custom = the player's own slider build (no preset). */
-export const DEFAULT_ARCHETYPE_KEY: BuildArchetypeKey = 'strength';
-
 /**
  * Infer the player's *current* build archetype from their stat spread, so the
  * picker can pre-select it and the respec advisor can spot a mismatch. Heuristic:
@@ -236,6 +221,3 @@ export function weaponScalesWith(weapon: WeaponScaling, arche: BuildArchetype): 
 
 /** Status-driven builds whose AR-only ranking is knowingly incomplete (bleed/rot not modelled yet). */
 export const STATUS_ARCHETYPES: ReadonlySet<BuildArchetypeKey> = new Set(['arcane', 'bleed']);
-
-/** A near-empty "starting point" spread for the Custom option (when no save). */
-export const CUSTOM_DEFAULT: Attrs8 = VAGABOND;

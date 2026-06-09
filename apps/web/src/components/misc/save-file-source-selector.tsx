@@ -7,7 +7,6 @@ import { SAMPLE_SAVE_URL, saveFileSourceAtom } from '@/stores/save-file-source-s
 import { useSelectedSlot, useSlotNameSelection } from '@/stores/slot-selection-store';
 import { useAtomSet, useAtomValue } from '@effect/atom-react';
 import { ClientOnly } from '@tanstack/react-router';
-import { formatDistance } from 'date-fns';
 import {
   CheckIcon,
   ChevronsUpDownIcon,
@@ -15,15 +14,13 @@ import {
   FileCheckIcon,
   Link2OffIcon,
   LinkIcon,
-  RefreshCcwIcon,
   SwordIcon,
   UnplugIcon,
   UploadCloudIcon,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { CodeSnippet } from './code-snippet';
 import { Button } from '../ui/button';
-import { ComboboxSelect } from '../ui/combobox-select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -397,63 +394,5 @@ export function SlotSwitcher() {
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  );
-}
-
-export function SlotSelector() {
-  const { data } = useEldenRingSave();
-  const slotState = useSlotNameSelection();
-  if (!data) return null;
-  return (
-    <ComboboxSelect
-      valueState={slotState}
-      emptyLabel='No slot selected'
-      placeholder='Select slot from save file'
-      triggerButtonClassName='w-full'
-      popoverContentClassName='w-[200px]'
-      items={data.slots
-        .map((slot) => slot.player_game_data.character_name)
-        .map((s) => ({
-          label: s,
-          value: s,
-        }))}
-    />
-  );
-}
-
-/** "Re-read save" — a run-scoped control for the top bar when connected. */
-export function RefreshButton() {
-  const saveFileSource = useAtomValue(saveFileSourceAtom);
-  const save = useEldenRingSave();
-  const [now, setNow] = useState<number>(() => Date.now());
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setNow(Date.now());
-    }, 500);
-    return () => {
-      clearInterval(interval);
-    };
-  }, [setNow]);
-
-  if (!saveFileSource) return null;
-
-  return (
-    <Button
-      variant='outline'
-      size='sm'
-      disabled={save.isFetching || (!!saveFileSource && 'file' in saveFileSource)}
-      onClick={() => {
-        save.refresh();
-      }}
-      title={
-        save.data && save.dataUpdatedAt
-          ? `Updated ${formatDistance(save.dataUpdatedAt, now, { addSuffix: true, includeSeconds: true })}`
-          : 'Re-read save'
-      }
-    >
-      <RefreshCcwIcon className={save.isFetching ? 'animate-spin' : undefined} />
-      Re-read save
-    </Button>
   );
 }

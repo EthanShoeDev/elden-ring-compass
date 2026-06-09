@@ -1,37 +1,65 @@
-# Elden Ring Compass. Save file / Progression Website
+# Elden Ring Compass — Save file / Progression Website
 
 ### Check it out here: [www.eldenringcompass.com](https://www.eldenringcompass.com)
 
+Upload (or continuously poll) your Elden Ring save and the site reads your
+progression — inventory, bosses defeated, graces, map markers, and more —
+entirely in your browser. Nothing is ever written back to the save.
+
 ## Key Technologies
 
-- TanStack Start (framework)
-- TanStack Router (file-based routing)
-- TanStack Query (data fetching)
-- React 19
-- Shadcn
-- Tailwind CSS v4
-- oxlint/oxfmt (linting/formatting)
+- **TanStack Start** (full-stack React framework) + **TanStack Router** (file-based routing)
+- **React 19** (with the React Compiler)
+- **Effect** + **`@effect/atom-react`** — app state and the in-memory data layer (no TanStack Query, no IndexedDB)
+- **shadcn** (Base UI variant, `@base-ui/react`) + **Tailwind CSS v4**
+- **Leaflet / react-leaflet** — tiled interactive map
+- **TanStack Table** + **TanStack Virtual** — virtualized data tables
+- **Bun** + **Turborepo** — package manager and monorepo task runner
+- **Vite** / **Nitro** — bundling and the production server
+- **oxlint / oxfmt** — linting and formatting
+- **tsgo** (TypeScript native preview) — type checking
+- **Vitest** + **Playwright** — unit, browser, and E2E tests
 
-## Incredible Packages Used
+## Monorepo Layout
 
-- [erdb](https://github.com/EldenRingDatabase/erdb)
-- [ER-Save-Editor](https://github.com/ClayAmore/ER-Save-Editor/)
+| Package                                   | What it is                                                                                                                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/web`                                | The website itself.                                                                                                                                                       |
+| `packages/data`                           | The **single runtime data source** — game data + item icons baked by the extractor. This is all the web app consumes.                                                     |
+| `packages/save-parser` (`save-parser-ts`) | Pure-TypeScript Elden Ring save parser. Runs in the browser/worker.                                                                                                       |
+| `packages/extractor` (`er-extractor`)     | Build-time CLI that reads an installed copy of the game and bakes everything `data` needs (names, stats, markers, icons, graces, event scripts).                          |
+| `packages/vendored-data`                  | Build-time-only reverse-engineered constants the extractor can't derive from the install (event-flag tables, AES/RSA keys, param schemas). See its README for provenance. |
+| `packages/config/*`                       | Shared TypeScript / oxlint config.                                                                                                                                        |
+
+## Data & Save Parsing
+
+The save parser is **pure TypeScript** — the old Rust/WASM save-editor stack has
+been removed (the TS port is dramatically faster and ships with no native deps).
+
+Game data is produced by our own `er-extractor`, which reads the installed game
+directly (Oodle decompression via `bun:ffi`, dvdbnd unpacking, FMG/PARAM/MSB/EMEVD
+parsing) and bakes the result into `@elden-ring-compass/data`. This replaces the
+external `erdb` dataset the project originally relied on. The reverse-engineered
+constants that can't be read from the install are vendored in `packages/vendored-data`,
+adapted from these excellent upstream projects:
+
+- [ER-Save-Lib](https://github.com/ClayAmore/ER-Save-Lib) — save-format constants (event-flag table, regulation key)
+- [UXM-Selective-Unpack](https://github.com/Nordgaren/UXM-Selective-Unpack) — archive RSA keys + file-path dictionary
+- [soulsmods / Paramdex](https://github.com/soulsmods/Paramdex) — PARAMDEF field schemas for `regulation.bin`
+- [soulstruct](https://github.com/Grimrukh/soulstruct) — EMEVD instruction dictionary (EMEDF)
 
 ## Features
 
-- **Wasm Compilation**: I recompiled the Rust save editor to WebAssembly, enabling it to mostly run in the browser. While save editing isn't implemented yet, it's a potential future update.
-- **Local Storage Sync**: The site syncs everything to local storage, including map position, row selection, and column filters.
-- **Continuous** Save Polling: A defining feature is the ability to continuously poll your save file, keeping the tab updated without needing to re-upload your save repeatedly.
+- **In-browser save parsing**: your save is parsed locally — it never leaves your machine, and the site never writes to it.
+- **Continuous save polling**: point the tab at your save and it keeps the view updated as you play, without re-uploading.
+- **Local storage sync**: map position, row selection, and column filters all persist locally.
+- **Tiled interactive map** with item/boss/grace markers.
 
 ## Additional Details
 
 The default code snippet requires Node.js for the HTTP server, but any simple HTTP file server will work.
 
 If you prefer, you can manually upload the save without using continuous polling.
-
-## Future Plans
-
-Adding a Quest section.
 
 ## Can this get me banned?
 
@@ -44,13 +72,13 @@ Let me know what you think!
 
 ### Prerequisites
 
-This project uses **Nix** with `flake.nix` to provide a reproducible development environment including:
+The web app only needs **[Bun](https://bun.sh/)**. A reproducible toolchain is also
+provided via **Nix** (`flake.nix`).
 
-- Rust toolchain (required for WASM compilation)
-- wasm-pack
-- Bun runtime
-- Node.js
-- oxlint/oxfmt
+> Note: building game `data` from scratch with `er-extractor` additionally requires an
+> installed copy of Elden Ring and the Rust toolchain (for the extractor's native image
+> codec). You do **not** need either to run or develop the web app — the prebuilt `data`
+> package is committed.
 
 #### Setting up Nix (recommended)
 
@@ -66,44 +94,14 @@ direnv allow
 
 #### Without Nix
 
-If you prefer not to use Nix, you'll need to install manually:
-
-- [Rust toolchain](https://rustup.rs/) (latest stable)
-- [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
-- [Bun](https://bun.sh/)
+Just install [Bun](https://bun.sh/).
 
 ### Setup
 
-1. **Enter development environment** (Nix users):
-
-   ```bash
-   nix develop
-   ```
-
-2. **Install dependencies:**
-
-   ```bash
-   bun i
-   ```
-
-3. **Build the WASM parser:**
-   ```bash
-   bun run build:wasm-parser
-   ```
-
-### Testing
-
-Run the full test suite:
+Install dependencies:
 
 ```bash
-# Lint and format check
-bun run lint
-
-# TypeScript type checking
-bun run typecheck
-
-# Full build verification
-bun run build
+bun install
 ```
 
 ### Development
@@ -114,8 +112,18 @@ Start the development server:
 bun run dev
 ```
 
-### Notes
+### Checks
 
-- The `flake.nix` ensures all developers have identical tool versions
-- WASM compilation is required before the app can fully build
-- TypeScript errors for missing assets (`src/assets/erdb/`) are expected until WASM is built
+```bash
+# Lint + format
+bun run lint
+
+# Type checking (tsgo)
+bun run typecheck
+
+# Tests
+bun run test
+
+# Full production build
+bun run build
+```

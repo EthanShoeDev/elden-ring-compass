@@ -62,7 +62,7 @@ export const useSelectedSlot = () => {
  * above runs (so there's no flash of the Connect button). Derived atom — the
  * loading state lives in the effect-atom graph, not ad-hoc in components.
  */
-export const saveLoadingAtom = Atom.make((get) => {
+const saveLoadingAtom = Atom.make((get) => {
   const source = get(saveFileSourceAtom);
   if (!source) return false;
   const result = get(saveAtom);

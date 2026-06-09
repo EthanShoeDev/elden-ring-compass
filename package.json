@@ -16,13 +16,11 @@
       "@effect/platform-node": "4.0.0-beta.75",
       "@effect/tsgo": "0.13.1",
       "@effect/vitest": "4.0.0-beta.75",
-      "@faker-js/faker": "^10.4.0",
       "@playwright/test": "^1.60.0",
       "@rolldown/plugin-babel": "^0.2.3",
       "@tailwindcss/typography": "^0.5.19",
       "@tailwindcss/vite": "^4.3.0",
       "@tanstack/devtools-vite": "^0.7.0",
-      "@tanstack/react-query": "^5.100.14",
       "@tanstack/react-router": "1.170.10",
       "@tanstack/react-start": "1.168.18",
       "@tanstack/react-table": "^8.21.3",
@@ -33,7 +31,6 @@
       "@types/bun": "^1.3.14",
       "@types/eslint": "^9.6.1",
       "@types/leaflet": "^1.9.21",
-      "@types/lz-string": "^1.5.0",
       "@types/node": "^25.9.1",
       "@types/react": "^19.2.16",
       "@types/react-dom": "^19.2.3",
@@ -50,6 +47,7 @@
       "effect": "4.0.0-beta.75",
       "jscpd": "^4.2.4",
       "jsdom": "^29.1.1",
+      "knip": "^6.16.1",
       "leaflet": "^1.9.4",
       "lucide-react": "^1.17.0",
       "lz-string": "^1.5.0",
@@ -61,7 +59,6 @@
       "react": "19.2.7",
       "react-dom": "19.2.7",
       "react-leaflet": "^5.0.0",
-      "react-markdown": "^10.1.0",
       "react-scan": "^0.5.7",
       "scheduler": "*",
       "semver": "^7.8.1",
@@ -74,8 +71,7 @@
       "type-fest": "^5.7.0",
       "typescript": "^6.0.3",
       "vite": "^8.0.16",
-      "vitest": "^4.1.8",
-      "zustand": "^5.0.14"
+      "vitest": "^4.1.8"
     }
   },
   "type": "module",
@@ -92,9 +88,11 @@
     "lint:check": "turbo run lint:check",
     "oxlint:check": "oxlint -c oxlint.config.ts --type-aware --type-check --report-unused-disable-directives-severity=error .",
     "oxlint:fix": "oxlint -c oxlint.config.ts --type-aware --type-check --report-unused-disable-directives-severity=error --fix .",
-    "oxfmt:check": "oxfmt --check .",
-    "oxfmt:fix": "oxfmt --write .",
+    "oxfmt:check": "oxfmt --check . '!**/*.gen.*'",
+    "oxfmt:fix": "oxfmt --write . '!**/*.gen.*'",
     "jscpd:check": "cross-env NODE_OPTIONS=--max-old-space-size=8192 jscpd --config .jscpd.json",
+    "knip:check": "knip",
+    "knip:fix": "knip --fix",
     "catalog:check": "bun scripts/catalog-check.ts",
     "catalog:fix": "bun scripts/catalog-check.ts --fix",
     "nix:flake:update": "nix flake update",
@@ -115,6 +113,7 @@
     "cross-env": "catalog:",
     "effect": "catalog:",
     "jscpd": "catalog:",
+    "knip": "catalog:",
     "npm-check-updates": "^22.2.1",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
@@ -123,7 +122,7 @@
     "turbo": "catalog:",
     "type-fest": "catalog:",
     "typescript": "catalog:",
-    "wasm-pack": "^0.12.1"
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=22.18.0"

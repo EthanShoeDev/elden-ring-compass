@@ -14,7 +14,7 @@ import { baseIdOf, enrichWeapon } from '@/lib/atoms/weapons';
 
 // Non-armament placeholders that have an AR row but aren't real weapons:
 // "DLC dummy" (id 1000, absurd all-element scaling) and "Unarmed" (110000).
-export const EXCLUDED_WEAPON_IDS = new Set([1000, 110000]);
+const EXCLUDED_WEAPON_IDS = new Set([1000, 110000]);
 
 export interface RatedWeapon {
   readonly id: number;

@@ -4,7 +4,7 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
-    "types": ["node", "bun-types", "vitest/globals"],
+    "types": ["node", "bun", "vitest/globals"],
     "paths": {
       "@/*": ["./src/*"]
     }

@@ -25,9 +25,6 @@ export const InventoryGaItemTypeToOffset = {
   ITEM: 0xb0000000,
   AOW: 0xc0000000,
 } as const;
-export type InventoryItemType = keyof typeof InventoryItemTypeToOffset;
-
-export const inventoryItemTypes: Array<string> = Object.keys(InventoryItemTypeToOffset);
 
 export function inventoryDbView(slot: Readonly<Slot>) {
   function itemTypeFromGaHandle(gaHandle: number): keyof typeof InventoryGaItemTypeToOffset {
@@ -150,4 +147,3 @@ export function inventoryDbView(slot: Readonly<Slot>) {
 
   return userInventory;
 }
-export type UserInventoryDbView = ReturnType<typeof inventoryDbView>;

@@ -24,9 +24,6 @@
  */
 import { type LegacyConv, WORLD_MAP_LEGACY_CONV } from '@elden-ring-compass/data';
 
-/** Native (z6) master edge in px: 41 tiles × 256. Pins live in this space; Leaflet unprojects at `maxNativeZoom`. */
-export const MASTER_PX = 10496;
-
 /**
  * Absolute world→master-pixel offsets: `px = worldX + OFFSET_X`, `py = OFFSET_Y − worldZ`.
  * Scale is exactly 1 px = 1 world-unit, and the offset is an exact INTEGER number of
@@ -44,7 +41,7 @@ const OFFSET_X = -7168;
 const OFFSET_Y = 16640;
 
 /** Which tile-pyramid master a pin belongs to (surface M00/M10 or underground M01/M11). */
-export type MasterId = 'M00' | 'M01' | 'M10' | 'M11';
+type MasterId = 'M00' | 'M01' | 'M10' | 'M11';
 
 /** A pin resolved to a specific master + master pixel. */
 export interface MasterPixel {

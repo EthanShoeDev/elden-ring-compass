@@ -20,7 +20,7 @@ import { INVENTORY_TABLES } from '@/lib/inventory-tables';
  * previews of future features (docs/projects/future/*).
  */
 /** A nested nav entry — rendered as a `SidebarMenuSub` link under its parent. */
-export type NavChild = {
+type NavChild = {
   to: LinkProps['to'];
   /** Route params, for dynamic child routes (e.g. `/inventory/$category`). */
   params?: Record<string, string>;

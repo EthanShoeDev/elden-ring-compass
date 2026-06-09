@@ -1,5 +1,6 @@
 import LZString from 'lz-string';
 import { eventFlagOffset } from '@elden-ring-compass/data';
+import { logError, logWarning } from '@/lib/runtime/log';
 import type { Slot } from '@/lib/save-dto';
 import { MAX_EVENT_BYTE_OFFSET } from './shareable-events';
 import { type ShareableProgression, SHAREABLE_VERSION } from './types';
@@ -16,13 +17,13 @@ export function decodeFromUrl(encoded: string): ShareableProgression | null {
 
     // Validate version
     if (data.v !== SHAREABLE_VERSION) {
-      console.warn(`Unknown share data version: ${String(data.v)}`);
+      logWarning(`Unknown share data version: ${String(data.v)}`);
       return null;
     }
 
     return data;
   } catch (e) {
-    console.error('Failed to decode shared data:', e);
+    logError('Failed to decode shared data:', e);
     return null;
   }
 }

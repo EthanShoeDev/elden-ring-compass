@@ -47,10 +47,6 @@ export const ATTR_META: ReadonlyArray<{
   { key: 'arcane', label: 'Arcane', softCaps: [20, 55, 80] },
 ];
 
-/** First soft cap per attribute (the "stop here unless you're committing" line). */
-export const firstSoftCap = (key: Attr8Key): number =>
-  ATTR_META.find((m) => m.key === key)?.softCaps[0] ?? 99;
-
 // Vagabond starting stats (level 9) — a sensible default when no save is loaded.
 export const VAGABOND: Attrs8 = {
   vigor: 15,
@@ -167,7 +163,7 @@ export const equipLoad = (v: number) => Math.round(lerpCurve(EQ_C, v) * 10) / 10
 // --- Rune / level math -------------------------------------------------------
 
 /** Approximate FromSoft level-up rune cost curve (estimate). */
-export const runeForLevel = (level: number) => Math.round(0.1 * level ** 3 + 100 * level);
+const runeForLevel = (level: number) => Math.round(0.1 * level ** 3 + 100 * level);
 
 export function runesBetween(a: number, b: number): number {
   if (b <= a) return 0;

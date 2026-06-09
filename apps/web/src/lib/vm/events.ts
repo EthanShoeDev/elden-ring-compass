@@ -7,7 +7,7 @@ function get_bit(byte: number, bit_pos: number) {
   return (byte & (1 << bit_pos)) != 0;
 }
 
-export type EventType = 'grace' | 'boss';
+type EventType = 'grace' | 'boss';
 // `subtitle` is shown under the name in the map popup (a grace's region, etc.).
 type BaseEvent = { id: number; name: string; type: EventType; subtitle?: string };
 

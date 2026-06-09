@@ -13,15 +13,11 @@
     in {
       default = pkgs.mkShell {
         packages = with pkgs; [
-          # Rust toolchain
+          # Rust toolchain (used by er-extractor's native image codec)
           rustc
           cargo
           rustfmt
           clippy
-
-          # WASM compilation
-          wasm-pack
-          lld  # LLVM linker required for WASM target
 
           # Node.js runtime
           nodejs_22
