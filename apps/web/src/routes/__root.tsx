@@ -1,5 +1,6 @@
 import { createRootRoute, HeadContent, Scripts, Outlet } from '@tanstack/react-router';
 import { RegistryProvider } from '@effect/atom-react';
+import { Analytics } from '@vercel/analytics/react';
 import { Providers } from '@/components/providers/providers';
 import '../index.css';
 
@@ -58,6 +59,7 @@ function RootComponent() {
             <Outlet />
           </Providers>
         </RegistryProvider>
+        <Analytics />
         <Scripts />
       </body>
     </html>

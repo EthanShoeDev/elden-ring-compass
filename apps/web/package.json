@@ -23,6 +23,7 @@
     "@tanstack/react-router": "catalog:",
     "@tanstack/react-table": "catalog:",
     "@tanstack/react-virtual": "catalog:",
+    "@vercel/analytics": "catalog:",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "date-fns": "catalog:",
