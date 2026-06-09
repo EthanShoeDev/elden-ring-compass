@@ -37,7 +37,16 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
               )[defaultFacetedFilterFnSymbol],
           )
           .map((column) => {
-            const options = Array.from(column.getFacetedUniqueValues().keys()).map((value) => ({
+            // [value, count] pairs. Numeric columns (e.g. Upgrade Level, Locations)
+            // read most naturally sorted by value ascending; everything else by
+            // aggregate count descending (most-common first). `getFacetedUniqueValues`
+            // iterates in row-encounter order otherwise, which feels random.
+            const entries = Array.from(column.getFacetedUniqueValues().entries());
+            const isNumeric = entries.length > 0 && entries.every(([v]) => typeof v === 'number');
+            entries.sort(([va, ca], [vb, cb]) =>
+              isNumeric ? (va as number) - (vb as number) : cb - ca,
+            );
+            const options = entries.map(([value]) => ({
               label:
                 typeof value != 'string' ? (value == null ? 'NA' : JSON.stringify(value)) : value,
               value: value as unknown,

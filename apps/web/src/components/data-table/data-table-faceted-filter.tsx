@@ -49,7 +49,21 @@ export function DataTableFacetedFilter<TData, TValue>({
 }: DataTableFacetedFilterProps<TData, TValue>) {
   'use no memo';
   const facets = column?.getFacetedUniqueValues();
-  const selectedValues = new Set(column?.getFilterValue() as Array<unknown>);
+  // The filter value is normally an `Array<value>` (faceted multi-select). The
+  // inventory Quantity column additionally accepts the ownership presets the
+  // segmented control writes (`'owned'` / `'missing'`) — interpret those into the
+  // equivalent checked boxes so the toggle and this dropdown stay visibly linked.
+  // Numeric: 'owned' = every value > 0, 'missing' = the 0 bucket.
+  const rawFilterValue = column?.getFilterValue();
+  const numericValues = options
+    .map((o) => o.value)
+    .filter((v): v is number => typeof v === 'number');
+  const selectedValues =
+    rawFilterValue === 'owned'
+      ? new Set<unknown>(numericValues.filter((v) => v > 0))
+      : rawFilterValue === 'missing'
+        ? new Set<unknown>(numericValues.filter((v) => v === 0))
+        : new Set(Array.isArray(rawFilterValue) ? rawFilterValue : []);
 
   const setSelected = (values: Array<unknown>) =>
     column?.setFilterValue(values.length ? values : undefined);
@@ -95,11 +109,18 @@ export function DataTableFacetedFilter<TData, TValue>({
     </>
   );
 
+  // The aggregate row-count for a value. Rendered as a muted pill pushed to the far
+  // right so it reads as secondary meta — for numeric columns the option label is
+  // itself a number, and a bare right-aligned count was ambiguous (which number is
+  // the value, which is the count?). The pill + `count ×` affordance disambiguates.
   const optionCount = (option: FacetOption) => {
     const count = facets?.get(option.value);
     return count ? (
-      <span className='ml-auto flex size-4 items-center justify-center font-mono text-xs'>
-        {count}
+      <span
+        title={`${count} ${count === 1 ? 'item' : 'items'}`}
+        className='ml-auto shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground tabular-nums'
+      >
+        {count}×
       </span>
     ) : null;
   };
@@ -122,7 +143,7 @@ export function DataTableFacetedFilter<TData, TValue>({
               onCheckedChange={() => toggle(option.value)}
             >
               {option.icon && <option.icon className='mr-2 size-4 text-muted-foreground' />}
-              <span>{option.label}</span>
+              <span className='min-w-0 flex-1 truncate'>{option.label}</span>
               {optionCount(option)}
             </DropdownMenuCheckboxItem>
           ))}
@@ -165,7 +186,7 @@ export function DataTableFacetedFilter<TData, TValue>({
           {(option: FacetOption) => (
             <ComboboxItem key={optionKey(option)} value={option}>
               {option.icon && <option.icon className='mr-2 size-4 text-muted-foreground' />}
-              <span>{option.label}</span>
+              <span className='min-w-0 flex-1 truncate'>{option.label}</span>
               {optionCount(option)}
             </ComboboxItem>
           )}
