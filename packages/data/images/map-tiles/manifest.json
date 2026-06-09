@@ -1,0 +1,101 @@
+{
+  "tileSize": 256,
+  "width": 10496,
+  "height": 10496,
+  "maxNativeZoom": 6,
+  "format": "webp",
+  "tileUrlTemplate": "{map}/base/{z}/{y}/{x}.webp",
+  "maps": [
+    {
+      "id": "M00",
+      "name": "Lands Between (Overworld)",
+      "worldToPixelAffine": null,
+      "fragmentBits": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32,
+        64,
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        32768,
+        65536,
+        131072,
+        262144,
+        524288,
+        1048576
+      ],
+      "eventBits": [
+        16384
+      ],
+      "layers": [
+        {
+          "id": "base",
+          "base": true,
+          "tileCount": 1681
+        }
+      ]
+    },
+    {
+      "id": "M01",
+      "name": "Lands Between (Underground)",
+      "worldToPixelAffine": null,
+      "fragmentBits": [
+        1,
+        2,
+        4,
+        8,
+        16
+      ],
+      "eventBits": [],
+      "layers": [
+        {
+          "id": "base",
+          "base": true,
+          "tileCount": 1681
+        }
+      ]
+    },
+    {
+      "id": "M10",
+      "name": "Land of Shadow (DLC)",
+      "worldToPixelAffine": null,
+      "fragmentBits": [
+        1,
+        2,
+        4,
+        8,
+        16
+      ],
+      "eventBits": [],
+      "layers": [
+        {
+          "id": "base",
+          "base": true,
+          "tileCount": 1681
+        }
+      ]
+    },
+    {
+      "id": "M11",
+      "name": "Land of Shadow — Underground (DLC)",
+      "worldToPixelAffine": null,
+      "fragmentBits": [],
+      "eventBits": [],
+      "layers": [
+        {
+          "id": "base",
+          "base": true,
+          "tileCount": 160
+        }
+      ]
+    }
+  ]
+}

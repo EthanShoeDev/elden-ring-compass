@@ -1,11 +1,26 @@
 {
-  "workbench.sideBar.location": "right",
-  "workbench.colorTheme": "Default Dark+",
-  "workbench.iconTheme": "vscode-icons",
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.stickyScroll.enabled": true,
+  "files.watcherExclude": {
+    "**/routeTree.gen.ts": true
+  },
+  "search.exclude": {
+    "**/routeTree.gen.ts": true
+  },
+  "files.readonlyInclude": {
+    "**/routeTree.gen.ts": true
+  },
+  "git.enabled": true,
+  "vitest.disableWorkspaceWarning": true,
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "oxc.path.oxfmt": "node_modules/oxfmt/bin/oxfmt",
+  "[jsonc]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
   "editor.formatOnSave": true,
-
+  "workbench.sideBar.location": "right",
+  "editor.stickyScroll.enabled": true,
   "git.autofetch": true,
   "tailwindCSS.classAttributes": [
     "class",

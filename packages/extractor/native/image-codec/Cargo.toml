@@ -1,0 +1,19 @@
+[package]
+name = "er-image-codec"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+# Native cdylib loaded by @elden-ring-compass/er-extractor via bun:ffi (same
+# pattern as the Oodle DLL). Decodes the BCn (BC1/BC7/…) DDS textures that come
+# out of TPF containers and re-encodes them as PNG, since Bun has no native
+# image codec.
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+image_dds = "0.7"
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+[profile.release]
+opt-level = 3

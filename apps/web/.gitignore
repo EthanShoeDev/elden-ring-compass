@@ -1,0 +1,13 @@
+.vercel
+
+# Generated: map tiles staged from @elden-ring-compass/data by the erDataTiles() vite plugin
+public/map-tiles/
+
+# Vitest browser-mode artifacts (perf tests): attachments + on-failure screenshots
+.vitest-attachments/
+**/__screenshots__/
+
+# Playwright E2E artifacts
+/test-results/
+/playwright-report/
+/playwright/.cache/

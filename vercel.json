@@ -1,4 +1,7 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "bun i",
+  "buildCommand": "turbo run build",
   "headers": [
     {
       "source": "/\\.(png|sl2|jpeg)$",

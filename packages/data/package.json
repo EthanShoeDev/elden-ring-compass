@@ -1,0 +1,29 @@
+{
+  "name": "@elden-ring-compass/data",
+  "version": "0.0.0",
+  "private": true,
+  "files": [
+    "src",
+    "images"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./images": "./src/images.ts",
+    "./ar": "./src/ar.ts",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "clean": "rm -rf .turbo *.tsbuildinfo",
+    "typecheck": "tsgo --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "devDependencies": {
+    "@elden-ring-compass/typescript-config": "workspace:*",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:"
+  }
+}

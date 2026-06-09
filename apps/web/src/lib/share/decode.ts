@@ -1,0 +1,160 @@
+import LZString from 'lz-string';
+import { eventFlagOffset } from '@elden-ring-compass/data';
+import type { Slot } from '@/lib/save-dto';
+import { MAX_EVENT_BYTE_OFFSET } from './shareable-events';
+import { type ShareableProgression, SHAREABLE_VERSION } from './types';
+
+/**
+ * Decode and decompress shareable data from URL query param.
+ */
+export function decodeFromUrl(encoded: string): ShareableProgression | null {
+  try {
+    const json = LZString.decompressFromEncodedURIComponent(encoded);
+    if (!json) return null;
+
+    const data = JSON.parse(json) as ShareableProgression;
+
+    // Validate version
+    if (data.v !== SHAREABLE_VERSION) {
+      console.warn(`Unknown share data version: ${String(data.v)}`);
+      return null;
+    }
+
+    return data;
+  } catch (e) {
+    console.error('Failed to decode shared data:', e);
+    return null;
+  }
+}
+
+/**
+ * Reconstruct a partial Slot (new lean shape) from shareable data so the existing
+ * view-models can consume a shared link. Only the fields the VMs read are populated.
+ */
+export function reconstructSlot(data: ShareableProgression): Partial<Slot> {
+  // Reconstruct event_flags Uint8Array from delta-encoded IDs.
+  const flags = new Uint8Array(MAX_EVENT_BYTE_OFFSET + 1);
+  let currentId = 0;
+  for (const delta of data.ef) {
+    currentId += delta;
+    const offset = eventFlagOffset(currentId);
+    if (offset) {
+      const [byteOffset, bitPos] = offset;
+      flags[byteOffset] = (flags[byteOffset] ?? 0) | (1 << bitPos);
+    }
+  }
+
+  // Reconstruct inventory items (equip storage only; weapons can't be shown without ga_items).
+  const commonItems = data.inv.map(([handle, qty], i) => ({
+    ga_item_handle: handle,
+    quantity: qty,
+    inventory_index: i,
+  }));
+
+  // Fields a shared link doesn't carry (coords, equipment) use zero-filled placeholders of
+  // the right arity — the DTO's fixed tuples (map_id is 4 bytes, etc.) make the shape explicit.
+  return {
+    steam_id: '',
+    map_id: [0, 0, 0, 0],
+    player_game_data: {
+      character_name: data.n,
+      vigor: data.s.v,
+      mind: data.s.m,
+      endurance: data.s.e,
+      strength: data.s.st,
+      dexterity: data.s.d,
+      intelligence: data.s.i,
+      faith: data.s.f,
+      arcane: data.s.a,
+      level: data.s.l,
+      souls: data.s.r,
+      soulsmemory: data.s.rm,
+      gender: data.g,
+      arche_type: data.at,
+      match_making_wpn_lvl: data.wl,
+      // Not carried by a shared link — zero placeholders (the VMs reading a shared slot
+      // only consume the stats above).
+      hp: 0,
+      max_hp: 0,
+      base_max_hp: 0,
+      fp: 0,
+      max_fp: 0,
+      base_max_fp: 0,
+      stamina: 0,
+      max_stamina: 0,
+      base_max_stamina: 0,
+      buildup: {
+        poison: 0,
+        rot: 0,
+        bleed: 0,
+        death: 0,
+        frost: 0,
+        sleep: 0,
+        madness: 0,
+      },
+      voice_type: 0,
+      gift: 0,
+      additional_talisman_slot_count: 0,
+      summon_spirit_level: 0,
+      furl_calling_finger_on: false,
+      white_cipher_ring_on: false,
+      blue_cipher_ring_on: false,
+      great_rune_on: false,
+      max_crimson_flask_count: 0,
+      max_cerulean_flask_count: 0,
+    },
+    player_coords: {
+      player_coords: [0, 0, 0],
+      map_id: [0, 0, 0, 0],
+      angle: [0, 0, 0, 0],
+    },
+    regions: {
+      unlocked_regions_count: data.ur.length,
+      unlocked_regions: data.ur,
+    },
+    event_flags: { flags },
+    ga_items: [],
+    chr_asm2: {
+      left_hand_armaments: [0, 0, 0],
+      right_hand_armaments: [0, 0, 0],
+      arrows: [0, 0],
+      bolts: [0, 0],
+      head: 0,
+      chest: 0,
+      arms: 0,
+      legs: 0,
+      talismans: [0, 0, 0, 0],
+    },
+    equip_inventory_data: {
+      common_inventory_items_distinct_count: commonItems.length,
+      common_items: commonItems,
+      key_inventory_items_distinct_count: 0,
+      key_items: [],
+    },
+    storage_inventory_data: {
+      common_inventory_items_distinct_count: 0,
+      common_items: [],
+      key_inventory_items_distinct_count: 0,
+      key_items: [],
+    },
+    equip_item_data: { quick_slot_items: [], pouch_items: [] },
+    sp_effects: [],
+  } satisfies Partial<Slot>;
+}
+
+/**
+ * Check if decoded data is valid.
+ */
+export function isValidShareData(data: unknown): data is ShareableProgression {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return (
+    d.v === SHAREABLE_VERSION &&
+    typeof d.n === 'string' &&
+    typeof d.s === 'object' &&
+    Array.isArray(d.ef) &&
+    Array.isArray(d.ur) &&
+    Array.isArray(d.inv) &&
+    Array.isArray(d.ga)
+  );
+}

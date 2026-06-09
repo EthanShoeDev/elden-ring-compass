@@ -1,0 +1,40 @@
+{
+  "name": "@elden-ring-compass/extractor",
+  "version": "0.0.0",
+  "private": true,
+  "bin": {
+    "er-extractor": "./src/bin.ts"
+  },
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "start": "bun src/bin.ts",
+    "extract": "bun src/bin.ts extract",
+    "build:image-codec": "cargo build --release --manifest-path native/image-codec/Cargo.toml",
+    "update-paramdex": "bun scripts/update-paramdex.ts",
+    "gen-icon-thumbs": "bun scripts/gen-icon-thumbs.ts",
+    "clean": "rm -rf .turbo dist *.tsbuildinfo",
+    "typecheck": "tsgo --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "dependencies": {
+    "@effect/platform-bun": "catalog:",
+    "@elden-ring-compass/vendored-data": "workspace:*",
+    "effect": "catalog:",
+    "sharp": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@elden-ring-compass/typescript-config": "workspace:*",
+    "@types/bun": "catalog:",
+    "@types/node": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:"
+  }
+}

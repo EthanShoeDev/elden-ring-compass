@@ -21,4 +21,37 @@ dist-ssr
 *.sln
 *.sw?
 package-lock.json
-.eslintcache
+
+# Turbo
+.turbo
+
+# Vite
+*.local
+.vercel
+.env*.local
+
+# Nitro build output
+.output
+.nitro
+
+# TypeScript / tsgo
+*.tsbuildinfo
+
+# Test coverage
+coverage
+
+# oxlint-plugins build output
+packages/oxlint-plugins/dist
+
+# Cloned documentation repos
+docs/cloned-repos-as-docs/
+
+.direnv/
+
+# Rust build output (er-image-codec cdylib — rebuilt via `bun run build:image-codec`)
+target/
+
+# Extractor output (unpacked artifacts, generated images) — re-extracted on demand
+.er-extractor-out/
+tmp/
+.vercel

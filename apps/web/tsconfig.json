@@ -1,0 +1,16 @@
+{
+  "extends": "@elden-ring-compass/typescript-config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "jsx": "react-jsx",
+    "types": ["node", "bun-types", "vitest/globals"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "vite.config.ts", "vite-plugins"],
+  // The worker entry runs in a Web Worker, not the DOM — it's excluded here and typechecked under
+  // the WebWorker lib by `tsconfig.worker.json`. `tsconfig.typecheck.json` builds both in one pass.
+  "exclude": ["node_modules", "dist", ".output", ".nitro", "src/lib/er-save-parser.worker.ts"]
+}

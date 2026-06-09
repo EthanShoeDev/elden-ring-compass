@@ -4,9 +4,13 @@
 
 ## Key Technologies
 
+- TanStack Start (framework)
+- TanStack Router (file-based routing)
+- TanStack Query (data fetching)
 - React 19
 - Shadcn
-- Tanstack Query
+- Tailwind CSS v4
+- oxlint/oxfmt (linting/formatting)
 
 ## Incredible Packages Used
 
@@ -38,20 +42,80 @@ Let me know what you think!
 
 ## Contributing
 
-1. Build the Wasm Parser Library
+### Prerequisites
+
+This project uses **Nix** with `flake.nix` to provide a reproducible development environment including:
+
+- Rust toolchain (required for WASM compilation)
+- wasm-pack
+- Bun runtime
+- Node.js
+- oxlint/oxfmt
+
+#### Setting up Nix (recommended)
+
+If you have Nix installed with flake support enabled:
 
 ```bash
-bun run build:wasm-parser
+# Enter the development shell (auto-activates with direnv if installed)
+nix develop
+
+# Or if using direnv:
+direnv allow
 ```
 
-2. Install Dependencies
+#### Without Nix
+
+If you prefer not to use Nix, you'll need to install manually:
+
+- [Rust toolchain](https://rustup.rs/) (latest stable)
+- [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
+- [Bun](https://bun.sh/)
+
+### Setup
+
+1. **Enter development environment** (Nix users):
+
+   ```bash
+   nix develop
+   ```
+
+2. **Install dependencies:**
+
+   ```bash
+   bun i
+   ```
+
+3. **Build the WASM parser:**
+   ```bash
+   bun run build:wasm-parser
+   ```
+
+### Testing
+
+Run the full test suite:
 
 ```bash
-bun i
+# Lint and format check
+bun run lint
+
+# TypeScript type checking
+bun run typecheck
+
+# Full build verification
+bun run build
 ```
 
-3. Finally, run the development server:
+### Development
+
+Start the development server:
 
 ```bash
 bun run dev
 ```
+
+### Notes
+
+- The `flake.nix` ensures all developers have identical tool versions
+- WASM compilation is required before the app can fully build
+- TypeScript errors for missing assets (`src/assets/erdb/`) are expected until WASM is built
