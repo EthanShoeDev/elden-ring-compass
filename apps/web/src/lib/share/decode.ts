@@ -29,7 +29,7 @@ function parseShareableProgressionJson(json: string): ShareableProgression | nul
   return decoded.value;
 }
 
-const gunzip = Effect.fn('gunzip')(function*(bytes: Uint8Array) {
+const gunzip = Effect.fn('gunzip')(function* (bytes: Uint8Array) {
   if (typeof DecompressionStream !== 'function' || typeof Blob.prototype.stream !== 'function') {
     return bytes;
   }
@@ -63,7 +63,7 @@ export function decodeFromUrl(encoded: string): ShareableProgression | null {
   }
 }
 
-export const decodeFromUrlEffect = Effect.fn('decodeFromUrlEffect')(function*(encoded: string) {
+export const decodeFromUrlEffect = Effect.fn('decodeFromUrlEffect')(function* (encoded: string) {
   if (!encoded) return null;
   if (!encoded.startsWith(GZIP_PREFIX)) return decodeFromUrl(encoded);
 

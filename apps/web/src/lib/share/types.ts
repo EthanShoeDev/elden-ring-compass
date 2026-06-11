@@ -1,9 +1,8 @@
 import { Schema } from 'effect';
 
-export class ShareCodecError extends Schema.TaggedErrorClass<ShareCodecError>()(
-  'ShareCodecError',
-  { cause: Schema.Defect },
-) {}
+export class ShareCodecError extends Schema.TaggedErrorClass<ShareCodecError>()('ShareCodecError', {
+  cause: Schema.Defect,
+}) {}
 
 const Num2 = Schema.Tuple([Schema.Number, Schema.Number]);
 const Num3 = Schema.Tuple([Schema.Number, Schema.Number, Schema.Number]);

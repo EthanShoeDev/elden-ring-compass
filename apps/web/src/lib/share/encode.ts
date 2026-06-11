@@ -3,11 +3,7 @@ import { eventFlagOffset } from '@elden-ring-compass/data';
 import { Effect, Schema } from 'effect';
 import type { Slot } from '@/lib/save-dto';
 import { SHAREABLE_EVENT_IDS } from './shareable-events';
-import {
-  ShareCodecError,
-  type ShareableProgression,
-  ShareableProgressionSchema,
-} from './types';
+import { ShareCodecError, type ShareableProgression, ShareableProgressionSchema } from './types';
 
 const GZIP_PREFIX = 'gz.';
 const ShareableProgressionJson = Schema.fromJsonString(ShareableProgressionSchema);
@@ -15,12 +11,11 @@ const ShareableProgressionJson = Schema.fromJsonString(ShareableProgressionSchem
 function bytesToBase64Url(bytes: Uint8Array): string {
   let binary = '';
   for (const byte of bytes) binary += String.fromCharCode(byte);
-  const base64 =
-    typeof btoa === 'function' ? btoa(binary) : Buffer.from(bytes).toString('base64');
+  const base64 = typeof btoa === 'function' ? btoa(binary) : Buffer.from(bytes).toString('base64');
   return base64.replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 }
 
-const gzip = Effect.fn('gzip')(function*(bytes: Uint8Array) {
+const gzip = Effect.fn('gzip')(function* (bytes: Uint8Array) {
   if (typeof CompressionStream !== 'function' || typeof Blob.prototype.stream !== 'function') {
     return bytes;
   }
@@ -37,7 +32,7 @@ const gzip = Effect.fn('gzip')(function*(bytes: Uint8Array) {
 /**
  * Compress and encode shareable data for URL query param.
  */
-export const encodeToUrl = Effect.fn('encodeToUrl')(function*(data: ShareableProgression) {
+export const encodeToUrl = Effect.fn('encodeToUrl')(function* (data: ShareableProgression) {
   const json = yield* Schema.encodeUnknownEffect(ShareableProgressionJson)(data);
   if (data.v === 2) {
     const encodedJson = new TextEncoder().encode(json);
@@ -126,11 +121,7 @@ export function slotToShareableProgression(slot: Slot): ShareableProgression {
       m: slot.player_coords.map_id,
       a: slot.player_coords.angle,
     },
-    ga: slot.ga_items.map((item) => [
-      item.gaitem_handle,
-      item.item_id,
-      item.gem_gaitem_handle,
-    ]),
+    ga: slot.ga_items.map((item) => [item.gaitem_handle, item.item_id, item.gem_gaitem_handle]),
     ca: {
       l: slot.chr_asm2.left_hand_armaments,
       r: slot.chr_asm2.right_hand_armaments,

@@ -282,7 +282,7 @@ export function AppSidebar() {
                   ? 'border-amber-500/40 bg-amber-500/10'
                   : isShared
                     ? 'border-blue-500/40 bg-blue-500/10'
-                  : 'border-green-500/40 bg-green-500/10',
+                    : 'border-green-500/40 bg-green-500/10',
               )}
             >
               {isSample ? (

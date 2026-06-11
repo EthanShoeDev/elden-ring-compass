@@ -102,7 +102,13 @@ export function ShareCharacterButton({
   return (
     <div className={cn('flex min-w-0 flex-col gap-2', className)}>
       <Button variant={variant} size={size} onClick={buildLink}>
-        {status === 'copied' ? <CheckIcon /> : status === 'building' ? <CopyIcon /> : <Share2Icon />}
+        {status === 'copied' ? (
+          <CheckIcon />
+        ) : status === 'building' ? (
+          <CopyIcon />
+        ) : (
+          <Share2Icon />
+        )}
         {status === 'building'
           ? 'Building link'
           : status === 'copied'
