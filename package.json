@@ -93,7 +93,7 @@
     "oxfmt:fix": "oxfmt --write . '!**/*.gen.*'",
     "jscpd:check": "cross-env NODE_OPTIONS=--max-old-space-size=8192 jscpd --config .jscpd.json",
     "knip:check": "knip",
-    "knip:fix": "knip --fix",
+    "knip:fix:danger": "knip --fix",
     "catalog:check": "bun scripts/catalog-check.ts",
     "catalog:fix": "bun scripts/catalog-check.ts --fix",
     "nix:flake:update": "nix flake update",

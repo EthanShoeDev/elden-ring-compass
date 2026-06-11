@@ -56,7 +56,7 @@
         "//#oxfmt:fix",
         "//#jscpd:check",
         "//#oxlint:fix",
-        "//#knip:check",
+        "//#knip:fix:danger",
         "//#catalog:fix",
       ],
     },
@@ -72,9 +72,12 @@
     "//#oxfmt:fix": {},
     "//#oxfmt:check": {},
     "//#jscpd:check": {},
-    // knip reports unused deps/exports/files. Dependency/catalog/binary issues are
-    // counted (fail the gate); dead files/exports are warnings (see knip.jsonc rules).
+    // knip reports unused deps/exports/files; every issue type fails the gate
+    // (knip.ts has no `rules` downgrades). `knip:fix:danger` (the `lint` group)
+    // auto-removes dead exports/deps — "danger" because a missing entry point in
+    // knip.ts would make it delete live code; review its diff like a codemod.
     "//#knip:check": {},
+    "//#knip:fix:danger": {},
     "//#catalog:fix": {},
     "//#catalog:check": {},
     // oxlint must wait for the custom plugins to be compiled.

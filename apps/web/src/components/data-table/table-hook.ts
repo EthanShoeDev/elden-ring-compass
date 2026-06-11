@@ -31,7 +31,7 @@ import type { ComponentType } from 'react';
 // TanStack Table v9 treats features as tree-shakeable plugins: only what's registered
 // here ships in the bundle. This is the exact set the shared `DataTable` uses — no
 // pagination (tables are virtualized, not paged), no grouping/expanding/pinning.
-export const dataTableFeatures = tableFeatures({
+const dataTableFeatures = tableFeatures({
   columnFacetingFeature, // faceted filter chips (unique-value counts)
   columnFilteringFeature,
   columnOrderingFeature, // header dropdown's move-left/right

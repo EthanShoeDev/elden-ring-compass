@@ -8,7 +8,7 @@ const Num2 = Schema.Tuple([Schema.Number, Schema.Number]);
 const Num3 = Schema.Tuple([Schema.Number, Schema.Number, Schema.Number]);
 const Num4 = Schema.Tuple([Schema.Number, Schema.Number, Schema.Number, Schema.Number]);
 
-export const ShareableStatsV1 = Schema.Struct({
+const ShareableStatsV1 = Schema.Struct({
   l: Schema.Number,
   v: Schema.Number,
   m: Schema.Number,
@@ -21,9 +21,9 @@ export const ShareableStatsV1 = Schema.Struct({
   r: Schema.Number,
   rm: Schema.Number,
 });
-export type ShareableStatsV1 = typeof ShareableStatsV1.Type;
+type ShareableStatsV1 = typeof ShareableStatsV1.Type;
 
-export const ShareableProgressionV1 = Schema.Struct({
+const ShareableProgressionV1 = Schema.Struct({
   v: Schema.Literal(1),
   n: Schema.String,
   s: ShareableStatsV1,
@@ -35,9 +35,9 @@ export const ShareableProgressionV1 = Schema.Struct({
   inv: Schema.Array(Num2),
   ga: Schema.Array(Num2),
 });
-export type ShareableProgressionV1 = typeof ShareableProgressionV1.Type;
+type ShareableProgressionV1 = typeof ShareableProgressionV1.Type;
 
-export const ShareableStatsV2 = Schema.Struct({
+const ShareableStatsV2 = Schema.Struct({
   ...ShareableStatsV1.fields,
   hp: Schema.Number,
   mhp: Schema.Number,
@@ -68,14 +68,14 @@ export const ShareableStatsV2 = Schema.Struct({
   mcf: Schema.Number,
   mcef: Schema.Number,
 });
-export type ShareableStatsV2 = typeof ShareableStatsV2.Type;
+type ShareableStatsV2 = typeof ShareableStatsV2.Type;
 
 const ShareInventoryItems = Schema.Struct({
   c: Schema.Array(Num3),
   k: Schema.Array(Num3),
 });
 
-export const ShareableProgressionV2 = Schema.Struct({
+const ShareableProgressionV2 = Schema.Struct({
   v: Schema.Literal(2),
   n: Schema.String,
   s: ShareableStatsV2,
@@ -133,7 +133,7 @@ export const ShareableProgressionV2 = Schema.Struct({
     m: Schema.Boolean,
   }),
 });
-export type ShareableProgressionV2 = typeof ShareableProgressionV2.Type;
+type ShareableProgressionV2 = typeof ShareableProgressionV2.Type;
 
 export const ShareableProgressionSchema = Schema.Union([
   ShareableProgressionV1,

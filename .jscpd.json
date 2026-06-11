@@ -17,6 +17,8 @@
     "**/apps/web/src/components/ui/**",
     "**/packages/elden-ring-save-parser/pkg/**",
     "**/packages/ER-Save-Editor/**",
+    "**/packages/vendored-data/**",
+    "**/map-tiles/**",
     "**/.agents/**",
     "**/.claude/**",
     "**/.cursor/**",

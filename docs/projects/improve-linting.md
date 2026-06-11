@@ -17,7 +17,14 @@ The lint stack is centralized at the repo root and run through turbo:
   prefer-effect). **This matters: the repo already runs oxlint JS plugins**, so adding more is a
   known, low-friction path.
 - **oxfmt** `0.53.0` — formatting (owns import ordering).
-- **jscpd** — copy/paste detection.
+- **jscpd** — copy/paste detection, `threshold: 0` (any duplication fails). Gotcha fixed
+  2026-06-10: jscpd rounds the duplication percentage to 2 decimals
+  (`Math.round(1e4 * cloned / total) / 100`), so a huge scanned line count silently masks real
+  clones — with the multi-million-line `packages/vendored-data` paramdex XMLs in scope, ~900
+  duplicated lines rounded to 0.00% and the gate never tripped. Vendored
+  (`packages/vendored-data`) and generated (`**/map-tiles/**` vips/manifest artifacts) trees are
+  now ignored, which both kills the noise and keeps the denominator small enough (~28k lines)
+  that any ≥33-line clone registers above 0%.
 
 **React Compiler lint coverage today** (see the [react-compiler enablement work] and the
 `react_compiler_oxc` discussion below): we enabled the React Compiler build pass via
@@ -63,8 +70,12 @@ listening-astro reference) + the `//#knip:check` root turbo task, which now runs
   are package-internal, not a cross-workspace public API — the extractor only exposes a `bin`.)
 - **All issue types block the gate** (default severity — no `rules` overrides). The baseline was
   cleaned first (below), so files/exports/types are now counted, not warn-only.
-- `knip --fix` is a no-op in this repo (it rewrites neither `catalog:`-protocol deps nor `export`
-  keywords here), so fixes are applied by hand.
+- `knip --fix` works (it strips `export` keywords from unused exports and their same-name type
+  aliases; verified 2026-06-10 on the table-hook/share-types baseline). An earlier note here
+  claimed it was a no-op — that was wrong. It's wired into the `lint` (fix) pipeline as
+  `knip:fix:danger` (naming mirrors listening-astro): "danger" because its blast radius is only as
+  correct as `knip.ts` — a missing entry point makes it strip live code, so review its diff like
+  any codemod. `lint:check` still runs the non-mutating `knip` gate.
 - Coexists with `scripts/catalog-check.ts`: catalog-check enforces that _used_ deps reference the
   catalog; knip removes catalog entries nothing references. Non-overlapping, verified both pass.
 
