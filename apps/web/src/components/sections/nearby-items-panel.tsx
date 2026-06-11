@@ -16,7 +16,7 @@
  * syncs with the table UI, persists, and clears via the normal "Clear pins".
  */
 import { itemIconUrl } from '@elden-ring-compass/data/images';
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 
 import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
 import {
@@ -29,13 +29,15 @@ import { cn } from '@/lib/utils';
 import { ALL_ITEM_PINS, type PlacedItemPin } from '@/lib/vm/map-pins';
 
 import { useRowSelectionControls, useTableStateMap } from '../data-table/data-table-store';
+import { Slider } from '../ui/slider';
 import { Switch } from '../ui/switch';
-import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 import type { MapPin } from './leaflet-map';
 import { OVERLAY_PANEL, PanelLabel } from './map-overlay-chrome';
 
-/** Search radii in world-units (≈ meters; 1 master pixel = 1 world-unit). */
-const RADII = [100, 250, 500] as const;
+/** Search-radius slider bounds, in world-units (≈ meters; 1 master pixel = 1 world-unit). */
+const MIN_RADIUS = 50;
+const MAX_RADIUS = 2000;
+const RADIUS_STEP = 25;
 const DEFAULT_RADIUS = 250;
 /** Cap the visible list; the header still reports the full in-range count. */
 const MAX_ROWS = 40;
@@ -65,6 +67,7 @@ function useNearbyItems(
   playerPin: MapPin | null,
   radius: number,
   includeOwned: boolean,
+  includeChanceDrops: boolean,
 ): NearbyEntry[] {
   const allTables = useInventoryTables();
 
@@ -91,6 +94,9 @@ function useNearbyItems(
     >();
     for (const pin of ALL_ITEM_PINS) {
       if (pin.master !== playerPin.master) continue;
+      // Sure-drop filter applies per PLACEMENT, before grouping — an item can
+      // have both a guaranteed treasure spot and a <100% enemy drop in range.
+      if (!includeChanceDrops && pin.chance < 1) continue;
       const dx = pin.px - playerPin.px;
       const dy = pin.py - playerPin.py;
       const d2 = dx * dx + dy * dy;
@@ -121,7 +127,7 @@ function useNearbyItems(
       });
     }
     return entries.toSorted((a, b) => a.distance - b.distance);
-  }, [playerPin, radius, includeOwned, rowByKey]);
+  }, [playerPin, radius, includeOwned, includeChanceDrops, rowByKey]);
 }
 
 function entryMeta(e: NearbyEntry): string {
@@ -144,7 +150,10 @@ export function NearbyItemsPanel({
 }) {
   const [radius, setRadius] = useState<number>(DEFAULT_RADIUS);
   const [includeOwned, setIncludeOwned] = useState(false);
-  const entries = useNearbyItems(playerPin, radius, includeOwned);
+  const [includeChanceDrops, setIncludeChanceDrops] = useState(true);
+  // Defer the scan/regroup while the slider is dragged; the label stays live.
+  const deferredRadius = useDeferredValue(radius);
+  const entries = useNearbyItems(playerPin, deferredRadius, includeOwned, includeChanceDrops);
   const tableState = useTableStateMap();
   const { setRowSelection } = useRowSelectionControls();
   const shown = entries.slice(0, MAX_ROWS);
@@ -168,29 +177,38 @@ export function NearbyItemsPanel({
     >
       <div>
         <PanelLabel>Nearby items</PanelLabel>
-        <div className='flex items-center justify-between gap-2'>
-          <ToggleGroup
-            spacing={0}
-            className='rounded-md border border-border bg-muted/50 p-0.5'
-            value={[radius.toString()]}
+        <div className='flex items-center gap-2.5'>
+          <Slider
+            min={MIN_RADIUS}
+            max={MAX_RADIUS}
+            step={RADIUS_STEP}
+            value={radius}
             onValueChange={(v) => {
-              const next = v[v.length - 1];
-              if (next) setRadius(Number(next));
+              setRadius(Array.isArray(v) ? (v[0] ?? DEFAULT_RADIUS) : v);
             }}
+            aria-label='Search radius'
+            className='flex-1'
+          />
+          <span className='w-12 shrink-0 text-right font-mono text-xs text-muted-foreground tabular-nums'>
+            {radius}m
+          </span>
+        </div>
+        <div className='mt-2 flex items-center justify-between gap-2'>
+          <label
+            htmlFor='nearby-include-chance'
+            title='Include chance-based enemy drops (below 100%) — off shows only guaranteed pickups'
+            className='flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground select-none'
           >
-            {RADII.map((r) => (
-              <ToggleGroupItem
-                key={r}
-                value={r.toString()}
-                size='sm'
-                className='rounded px-2 text-xs text-muted-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm'
-              >
-                {r}m
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
+            % drops
+            <Switch
+              id='nearby-include-chance'
+              checked={includeChanceDrops}
+              onCheckedChange={setIncludeChanceDrops}
+            />
+          </label>
           <label
             htmlFor='nearby-include-owned'
+            title='Include items you already own'
             className='flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground select-none'
           >
             Owned
@@ -214,13 +232,14 @@ export function NearbyItemsPanel({
         </p>
       ) : entries.length === 0 ? (
         <p className='text-xs text-muted-foreground'>
-          Nothing {includeOwned ? 'placeable' : 'uncollected'} within {radius}m. Try a wider radius.
+          Nothing {includeOwned ? 'placeable' : 'uncollected'} within {deferredRadius}m. Try a wider
+          radius.
         </p>
       ) : (
         <>
           <p className='text-xs text-muted-foreground'>
-            {entries.length} item{entries.length === 1 ? '' : 's'} within {radius}m — click to pin
-            on the map.
+            {entries.length} item{entries.length === 1 ? '' : 's'} within {deferredRadius}m — click
+            to pin on the map.
           </p>
           <div className='flex flex-col'>
             {shown.map((e) => {
