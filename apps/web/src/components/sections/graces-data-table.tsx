@@ -1,9 +1,8 @@
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-
 import { useDataTableData } from '@/lib/data-table-data';
 import { eventsDbView } from '@/lib/vm/events';
 import { commonAccessorColumnDef, commonPinColumnDef } from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
+import { createAppColumnHelper, DataTableColumnDef } from '../data-table/table-hook';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
 type Grace = ReturnType<typeof eventsDbView>[0];
@@ -34,8 +33,8 @@ export function GracesDataTable() {
   );
 }
 
-const columnHelper = createColumnHelper<Grace>();
-const columns: Array<ColumnDef<Grace>> = [
+const columnHelper = createAppColumnHelper<Grace>();
+const columns: Array<DataTableColumnDef<Grace>> = [
   commonPinColumnDef(columnHelper),
   commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
   commonAccessorColumnDef(columnHelper, 'name', 'Name', {

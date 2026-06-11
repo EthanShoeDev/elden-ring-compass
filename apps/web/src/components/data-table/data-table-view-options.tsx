@@ -1,5 +1,7 @@
 import { SlidersHorizontal as MixerHorizontalIcon } from 'lucide-react';
-import { Table } from '@tanstack/react-table';
+import { RowData } from '@tanstack/react-table';
+
+import { DataTableInstance } from './table-hook';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -12,12 +14,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-type DataTableViewOptionsProps<TData> = {
-  table: Table<TData>;
+type DataTableViewOptionsProps<TData extends RowData> = {
+  table: DataTableInstance<TData>;
 };
 
-export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
-  'use no memo';
+export function DataTableViewOptions<TData extends RowData>({
+  table,
+}: DataTableViewOptionsProps<TData>) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger

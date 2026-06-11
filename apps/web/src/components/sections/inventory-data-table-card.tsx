@@ -1,6 +1,5 @@
 import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
 import { useNavigate } from '@tanstack/react-router';
-import { CellContext, ColumnDef, ColumnHelper, createColumnHelper } from '@tanstack/react-table';
 import { useAtom } from '@effect/atom-react';
 import {
   ChevronsUpDownIcon,
@@ -26,6 +25,12 @@ import {
 } from '@/components/data-table/common-column-defs';
 import { DataTable } from '@/components/data-table/data-table';
 import { useColumnFilterValue } from '@/components/data-table/data-table-store';
+import {
+  createAppColumnHelper,
+  DataTableCellContext,
+  DataTableColumnDef,
+  DataTableColumnHelper,
+} from '@/components/data-table/table-hook';
 import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
 import { TooltipImg } from '@/components/misc/tooltip-img';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -280,9 +285,11 @@ const effectsText = (effects: readonly Effect[]) =>
     .join('\n');
 
 /** id / icon / name / quantity / rarity / has-coords — shared by every inventory table. */
-function defaultColumns<T extends BaseRow>(columnHelperT: ColumnHelper<T>): Array<ColumnDef<T>> {
+function defaultColumns<T extends BaseRow>(
+  columnHelperT: DataTableColumnHelper<T>,
+): Array<DataTableColumnDef<T>> {
   // oxlint-disable-next-line unknown-cast/forbidden -- TanStack ColumnHelper is invariant in its row type; we reuse one helper across the shared BaseRow shape
-  const columnHelper = columnHelperT as unknown as ColumnHelper<BaseRow>;
+  const columnHelper = columnHelperT as unknown as DataTableColumnHelper<BaseRow>;
   return [
     commonPinColumnDef(columnHelper),
     commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
@@ -318,8 +325,10 @@ function defaultColumns<T extends BaseRow>(columnHelperT: ColumnHelper<T>): Arra
     // faceted-filterable; 0 = can't be pinned (matches the muted pin cell).
     commonAccessorColumnDef(columnHelper, 'locationCount', 'Locations', {
       size: 120,
-      cell: (cell: CellContext<BaseRow, number>) => {
-        const n = cell.getValue();
+      // The override slot erases the accessor's TValue to `unknown`, so narrow at
+      // the read (`getValue<number>()`) instead of in the context annotation.
+      cell: (cell: DataTableCellContext<BaseRow>) => {
+        const n = cell.getValue<number>();
         return n > 0 ? (
           <div className='flex items-center gap-1.5'>
             <MapPinGlyph filled className='size-3.5 text-amber-400/80' />
@@ -331,11 +340,11 @@ function defaultColumns<T extends BaseRow>(columnHelperT: ColumnHelper<T>): Arra
       },
     }),
     // oxlint-disable-next-line unknown-cast/forbidden -- columns built against BaseRow are structurally valid for the caller's narrower T
-  ] as unknown as Array<ColumnDef<T>>;
+  ] as unknown as Array<DataTableColumnDef<T>>;
 }
 
 const armamentColumns = (() => {
-  const h = createColumnHelper<Row<'armaments'>>();
+  const h = createAppColumnHelper<Row<'armaments'>>();
   return [
     ...defaultColumns(h),
     commonAccessorColumnDef(h, 'category', 'Category'),
@@ -356,7 +365,7 @@ const armamentColumns = (() => {
 })();
 
 const ammoColumns = (() => {
-  const h = createColumnHelper<Row<'ammo'>>();
+  const h = createAppColumnHelper<Row<'ammo'>>();
   return [
     ...defaultColumns(h),
     commonAccessorColumnDef(h, 'category', 'Category'),
@@ -365,7 +374,7 @@ const ammoColumns = (() => {
 })();
 
 const armorColumns = (() => {
-  const h = createColumnHelper<Row<'armor'>>();
+  const h = createAppColumnHelper<Row<'armor'>>();
   return [
     ...defaultColumns(h),
     commonAccessorColumnDef(h, 'category', 'Category'),
@@ -375,7 +384,7 @@ const armorColumns = (() => {
 })();
 
 const talismanColumns = (() => {
-  const h = createColumnHelper<Row<'talismans'>>();
+  const h = createAppColumnHelper<Row<'talismans'>>();
   return [
     ...defaultColumns(h),
     commonAccessorColumnDef(h, 'weight', 'Weight'),
@@ -385,7 +394,7 @@ const talismanColumns = (() => {
 })();
 
 const ashesColumns = (() => {
-  const h = createColumnHelper<Row<'ashes'>>();
+  const h = createAppColumnHelper<Row<'ashes'>>();
   return [
     ...defaultColumns(h),
     commonAccessorColumnDef(h, (row) => row.armamentCategories.join(', '), 'Armament Categories'),
@@ -394,7 +403,7 @@ const ashesColumns = (() => {
 })();
 
 const spellColumns = (() => {
-  const h = createColumnHelper<Row<'spells'>>();
+  const h = createAppColumnHelper<Row<'spells'>>();
   return [
     ...defaultColumns(h),
     // Sorcery vs Incantation — the Spells tab unions both, so surface which is which.
@@ -407,7 +416,7 @@ const spellColumns = (() => {
 })();
 
 const spiritColumns = (() => {
-  const h = createColumnHelper<Row<'spirits'>>();
+  const h = createAppColumnHelper<Row<'spirits'>>();
   return [
     ...defaultColumns(h),
     commonAccessorColumnDef(h, 'hpCost', 'HP Cost'),
@@ -420,14 +429,14 @@ const spiritColumns = (() => {
 })();
 
 const goodsColumns = (() => {
-  const h = createColumnHelper<BaseRow & { maxHeld: number }>();
+  const h = createAppColumnHelper<BaseRow & { maxHeld: number }>();
   return [...defaultColumns(h), commonAccessorColumnDef(h, 'maxHeld', 'Max Held')];
 })();
 
 // Tools / Key Items each union several dataset categories — add a Category column so the
 // sub-types (Cookbook, Crystal Tear, Remembrance, Great Rune, …) stay distinguishable.
 const mixedGoodsColumns = (() => {
-  const h = createColumnHelper<BaseRow & { category: string; maxHeld: number }>();
+  const h = createAppColumnHelper<BaseRow & { category: string; maxHeld: number }>();
   return [
     ...defaultColumns(h),
     commonAccessorColumnDef(h, 'category', 'Category'),
@@ -437,7 +446,7 @@ const mixedGoodsColumns = (() => {
 
 // Columns per category. Labels/slugs/order live in `@/lib/inventory-tables`
 // (shared with the sidebar nav + the route); this map only owns the columns.
-const tables: Record<InventoryTableType, Array<ColumnDef<any>>> = {
+const tables: Record<InventoryTableType, Array<DataTableColumnDef<any>>> = {
   armaments: armamentColumns,
   ammo: ammoColumns,
   armor: armorColumns,

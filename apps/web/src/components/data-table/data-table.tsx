@@ -1,21 +1,12 @@
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getSortedRowModel,
-  Table,
-  useReactTable,
-} from '@tanstack/react-table';
+import { FlexRender } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { type CSSProperties, useState } from 'react';
 
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { DataTableStateInitProps, useDataTableState } from './data-table-store';
+import { DataTableStateInitProps, useDataTableStateSync } from './data-table-store';
 import { DataTableToolbar } from './data-table-toolbar';
+import { DataTableColumnDef, DataTableInstance, useAppTable } from './table-hook';
 
 // Every row is forced to this fixed height (see the `<tr>` style + cell
 // `overflow-hidden`), so the virtualizer's translate math is exact without
@@ -34,7 +25,7 @@ const cellStyle = (columnId: string, size: number): CSSProperties => ({
   flexBasis: size,
 });
 
-export function DataTable<TData extends { id: number; name: string }, TValue>({
+export function DataTable<TData extends { id: number; name: string }>({
   className,
   columns,
   data,
@@ -43,7 +34,7 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
   ...props
 }: {
   className?: string;
-  columns: Array<ColumnDef<TData, TValue>>;
+  columns: Array<DataTableColumnDef<TData>>;
   data: Array<TData>;
   /**
    * Fill the available height of a flex-column parent (`flex-1 min-h-0`) instead
@@ -54,19 +45,20 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
   /** Cap for the scrolling body when not in `fill` mode. */
   maxBodyHeight?: string;
 } & DataTableStateInitProps) {
-  'use no memo';
-  const state = useDataTableState(props);
-
-  const table = useReactTable({
+  // Default selector = re-render on any registered state change (v8 parity). v9's
+  // `useTable` returns a fresh `table` reference per state change, so the React
+  // Compiler correctly invalidates everything derived from it — no `'use no memo'`.
+  //
+  // The table OWNS its state (no `state` option): controlled state is synced into
+  // the atom graph during render, which trips React's update-while-rendering
+  // warning once `Subscribe` components are mounted. Persistence + external
+  // writers flow through `useDataTableStateSync` below instead.
+  const table = useAppTable({
     data,
     columns,
-    state: {
-      sorting: state.sorting,
-      columnVisibility: state.columnVisibility,
-      rowSelection: state.rowSelection,
-      columnFilters: state.columnFilters,
-      columnSizing: state.columnSizing,
-      columnOrder: state.columnOrder,
+    initialState: {
+      columnVisibility: props.initialColumnVisibility ?? {},
+      rowSelection: props.initialRowSelection ?? {},
     },
     defaultColumn: {
       minSize: 50,
@@ -79,18 +71,8 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
       return !!(r.pixel || r.hasCoords);
     },
     getRowId: (row) => row.id.toString(),
-    onRowSelectionChange: state.setRowSelection,
-    onSortingChange: state.setSorting,
-    onColumnSizingChange: state.setColumnSizing,
-    onColumnFiltersChange: state.setColumnFilters,
-    onColumnVisibilityChange: state.setColumnVisibility,
-    onColumnOrderChange: state.setColumnOrder,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
   });
+  useDataTableStateSync(table, props);
 
   const rowCount = table.getRowModel().rows.length;
   const totalWidth = table.getTotalSize();
@@ -137,9 +119,7 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
                     className='relative flex h-10 items-center px-2 text-left align-middle font-medium whitespace-nowrap text-foreground'
                     style={cellStyle(header.column.id, header.getSize())}
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.isPlaceholder ? null : <table.FlexRender header={header} />}
                     {header.column.getCanResize() && (
                       // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- column-resize grip is a pointer-only drag affordance with no keyboard equivalent
                       <div
@@ -176,13 +156,16 @@ export function DataTable<TData extends { id: number; name: string }, TValue>({
  * rows. The body reserves the full scroll height and absolutely-positions each
  * visible row at its virtual offset.
  */
-function DataTableBody<TData>({
+function DataTableBody<TData extends { id: number; name: string }>({
   table,
   scrollEl,
 }: {
-  table: Table<TData>;
+  table: DataTableInstance<TData>;
   scrollEl: HTMLDivElement | null;
 }) {
+  // Table v9 is React Compiler-safe, but @tanstack/react-virtual still isn't: the
+  // virtualizer instance mutates in place, so compiler memoization would freeze
+  // `getVirtualItems()` at its first result. Keep this one component opted out.
   'use no memo';
   const { rows } = table.getRowModel();
 
@@ -228,7 +211,7 @@ function DataTableBody<TData>({
                 className='flex items-center overflow-hidden p-2 align-middle whitespace-nowrap has-[img]:p-0'
                 style={cellStyle(cell.column.id, cell.column.getSize())}
               >
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                <FlexRender cell={cell} />
               </td>
             ))}
           </tr>

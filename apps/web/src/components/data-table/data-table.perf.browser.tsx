@@ -1,4 +1,3 @@
-import { createColumnHelper } from '@tanstack/react-table';
 import { RegistryProvider } from '@effect/atom-react';
 import { it } from '@effect/vitest';
 import { Effect } from 'effect';
@@ -8,6 +7,7 @@ import { CATALOG } from '@/lib/inventory-catalog';
 import { forceGcHeapUsedBytes, mb } from '@/test/perf/cdp-memory';
 import { commonAccessorColumnDef, commonPinColumnDef } from './common-column-defs';
 import { DataTable } from './data-table';
+import { createAppColumnHelper } from './table-hook';
 
 // Data-table perf in real Chromium, mounting the REAL `DataTable` with the full armaments catalog
 // (WEAPONS minus ammo — ~2.6 MB of source data, the heaviest table and the worst case). Covers the
@@ -19,7 +19,7 @@ import { DataTable } from './data-table';
 const ARMAMENTS = CATALOG.armaments;
 type Armament = (typeof ARMAMENTS)[number];
 
-const helper = createColumnHelper<Armament>();
+const helper = createAppColumnHelper<Armament>();
 const columns = [
   commonPinColumnDef(helper),
   // The toolbar "Search" box filters the `Name` column; use a string-contains filter (not the
