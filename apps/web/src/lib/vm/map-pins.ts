@@ -83,26 +83,43 @@ export const bossMapIdByFlag: ReadonlyMap<number, string> = new Map(
 // cross-type collisions.
 const itemKey = (itemType: string, itemId: number) => `${itemType}:${itemId}`;
 
-const itemPinsByKey: ReadonlyMap<string, ItemPin[]> = (() => {
+/** An {@link ItemPin} that also knows WHICH item it places (for spatial queries). */
+export interface PlacedItemPin extends ItemPin {
+  itemType: string;
+  itemId: number;
+}
+
+const { itemPinsByKey, allItemPins } = (() => {
   const map = new Map<string, ItemPin[]>();
+  const all: PlacedItemPin[] = [];
   for (const p of PLACEMENTS) {
     const px = overworldMarkerToMasterPixel(p.mapId, p.x, p.z);
     if (!px) continue;
-    const pin: ItemPin = {
+    const pin: PlacedItemPin = {
       ...px,
+      itemType: p.itemType,
+      itemId: p.itemId,
       source: p.source,
       chance: p.chance,
       quantity: p.quantity,
       approx: p.source === 'event' && p.entityId === 0,
     };
+    all.push(pin);
     const k = itemKey(p.itemType, p.itemId);
     const cur = map.get(k);
     if (cur) cur.push(pin);
     else map.set(k, [pin]);
   }
-  return map;
+  return { itemPinsByKey: map as ReadonlyMap<string, ItemPin[]>, allItemPins: all };
 })();
 
 /** Overworld pickup locations for an item, by its placement type + id. */
 export const itemPins = (itemType: string, itemId: number): ItemPin[] =>
   itemPinsByKey.get(itemKey(itemType, itemId)) ?? [];
+
+/**
+ * Every placeable item pickup, flat — the spatial-query view of the same data
+ * `itemPins` serves per item (one projection pass builds both). Used by the
+ * map's "Nearby items" panel to find pickups around the player.
+ */
+export const ALL_ITEM_PINS: readonly PlacedItemPin[] = allItemPins;

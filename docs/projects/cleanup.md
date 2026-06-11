@@ -25,14 +25,18 @@ Small UI/UX nits and loose ideas that don't warrant their own project doc.
   per-sub-category toggles. Not sure it's worth it.
 
 - **"Show all undiscovered items at current zoom level" button** on the map route.
-  Idea-stage; overlaps heavily with
-  [future/nearby-items.md](future/nearby-items.md) — probably design them together.
+  Idea-stage. The player-radius half of this shipped as the Nearby-items panel
+  ([complete/nearby-items.md](complete/nearby-items.md)); this is the viewport-scoped
+  sibling. Beware the pin-noise wart noted in that doc: item-level pinning places ALL
+  of an item's locations, so a viewport-scoped version probably needs per-placement
+  rendering rather than row selection.
 
 ## Spun out
 
 - **Mobile-friendly website** → [future/mobile-friendly.md](future/mobile-friendly.md)
   (audit + fix every route at phone widths; manual verification checklist).
-- **Nearby items / glance-while-playing** → [future/nearby-items.md](future/nearby-items.md).
+- **Nearby items / glance-while-playing** → shipped 2026-06-11; doc at
+  [complete/nearby-items.md](complete/nearby-items.md).
 - **Equipped-gear 3D viewer** (extract weapon/armor models, three.js render) →
   [future/equipped-gear-3d-viewer.md](future/equipped-gear-3d-viewer.md).
 - **Sharing feature** → shipped; doc at

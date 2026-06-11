@@ -19,9 +19,9 @@ import {
   LocateFixedIcon,
   MapPinIcon,
   PackageIcon,
+  PackageSearchIcon,
   SkullIcon,
   Trash2Icon,
-  XIcon,
 } from 'lucide-react';
 import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
@@ -45,6 +45,8 @@ import { Button } from '../ui/button';
 import { Switch } from '../ui/switch';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 import type { MapManifest, MapPin, TileIndex } from './leaflet-map';
+import { OVERLAY_BUTTON, OVERLAY_PANEL, PanelLabel } from './map-overlay-chrome';
+import { NearbyItemsPanel } from './nearby-items-panel';
 
 const LeafletMap = lazy(() => import('./leaflet-map'));
 
@@ -84,64 +86,65 @@ const LAYER_META = [
 ] as const;
 
 /**
- * Shared chrome for the floating panels over the map: translucent popover
- * surface + blur so map detail stays legible underneath. Sits at z-[1000] —
- * Leaflet's own control tier — above panes (400) and popups (700).
+ * Top-right floating rail: a button row toggling the two right-side panels —
+ * "Nearby items" (closed by default; opt-in glance tool) and the map controls
+ * (layer visibility, quick-select presets, clear-pins). `defaultControlsOpen`
+ * is read once at mount — the rail only mounts after the manifest loads
+ * (client-side), by which point `useIsMobile` has settled, so desktop starts
+ * with controls open / phones start collapsed without a flash.
  */
-const OVERLAY_PANEL =
-  'rounded-lg border border-border bg-popover/90 text-popover-foreground shadow-md backdrop-blur-sm';
-
-/** Translucent surface for standalone floating buttons (toggle, locate, pill). */
-const OVERLAY_BUTTON = 'bg-background/90 shadow-md backdrop-blur-sm dark:bg-background/80';
-
-/** Tiny uppercase section label inside a floating panel. */
-function PanelLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div className='mb-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase'>
-      {children}
-    </div>
-  );
-}
-
-/**
- * Top-right floating controls: layer visibility, quick-select presets and
- * clear-pins, collapsed behind a layers button. `defaultOpen` is read once at
- * mount — the overlay only mounts after the manifest loads (client-side), by
- * which point `useIsMobile` has settled, so desktop starts open / phones start
- * collapsed without a flash.
- */
-function MapControlsOverlay({
-  defaultOpen,
+function MapRightRail({
+  defaultControlsOpen,
   layers,
   onLayerChange,
   onQuickSelect,
   onClearPins,
   pinCount,
+  playerPin,
+  slotConnected,
 }: {
-  defaultOpen: boolean;
+  defaultControlsOpen: boolean;
   layers: Record<LayerKey, boolean>;
   onLayerChange: (key: LayerKey, visible: boolean) => void;
   onQuickSelect: (type: 'grace' | 'boss', on: boolean) => void;
   onClearPins: () => void;
   pinCount: number;
+  playerPin: MapPin | null;
+  slotConnected: boolean;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [controlsOpen, setControlsOpen] = useState(defaultControlsOpen);
+  const [nearbyOpen, setNearbyOpen] = useState(false);
   return (
-    // Full-height column so the panel can scroll instead of spilling past the
+    // Full-height column so the panels can scroll instead of spilling past the
     // map on short viewports; pointer-events pass through everywhere but the
-    // actual button/panel.
+    // actual buttons/panels.
     <div className='pointer-events-none absolute inset-y-3 right-3 z-[1000] flex flex-col items-end gap-2'>
-      <Button
-        variant='outline'
-        size='icon'
-        aria-label={open ? 'Hide map controls' : 'Show map controls'}
-        aria-expanded={open}
-        className={cn('pointer-events-auto', OVERLAY_BUTTON)}
-        onClick={() => setOpen((o) => !o)}
-      >
-        {open ? <XIcon /> : <LayersIcon />}
-      </Button>
-      {open && (
+      <div className='flex gap-2'>
+        <Button
+          variant='outline'
+          size='icon'
+          aria-label={nearbyOpen ? 'Hide nearby items' : 'Show nearby items'}
+          aria-expanded={nearbyOpen}
+          title='Nearby items'
+          className={cn('pointer-events-auto', OVERLAY_BUTTON)}
+          onClick={() => setNearbyOpen((o) => !o)}
+        >
+          <PackageSearchIcon />
+        </Button>
+        <Button
+          variant='outline'
+          size='icon'
+          aria-label={controlsOpen ? 'Hide map controls' : 'Show map controls'}
+          aria-expanded={controlsOpen}
+          title='Map controls'
+          className={cn('pointer-events-auto', OVERLAY_BUTTON)}
+          onClick={() => setControlsOpen((o) => !o)}
+        >
+          <LayersIcon />
+        </Button>
+      </div>
+      {nearbyOpen && <NearbyItemsPanel playerPin={playerPin} slotConnected={slotConnected} />}
+      {controlsOpen && (
         <div
           className={cn(
             OVERLAY_PANEL,
@@ -647,13 +650,15 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
               ))}
             </div>
 
-            <MapControlsOverlay
-              defaultOpen={!isMobile}
+            <MapRightRail
+              defaultControlsOpen={!isMobile}
               layers={layers}
               onLayerChange={(key, visible) => setLayers((l) => ({ ...l, [key]: visible }))}
               onQuickSelect={selectEvents}
               onClearPins={clearPins}
               pinCount={pins.length}
+              playerPin={playerPin}
+              slotConnected={slotConnected}
             />
 
             {/* "Center on me" — a locate button bottom-right, above the
