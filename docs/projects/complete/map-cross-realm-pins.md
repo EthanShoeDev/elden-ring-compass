@@ -1,7 +1,35 @@
 # Surface pins that live on a different map (overworld ↔ underground)
 
-> **Status (2026-06-06): NOT STARTED → filed under `future/`.** Captures the
-> long-standing map todo (was task #11). Nothing in-progress.
+> **Status (2026-06-11): SHIPPED → moved to `complete/`.** Implemented as
+> **option (1) + a gated option (2)**, all in `sections/map-section.tsx`; option
+> (3) (auto-switch) was deliberately NOT built — the chip makes the jump one
+> click without ever yanking the map. Context shift since this doc was written:
+> the "under-map control strip" it preferred no longer exists — the map chrome
+> floats on the map (see `cleanup-2026-06.md`), so the signals live on the
+> floating Map switcher instead, which is even closer to the pins.
+>
+> What shipped:
+>
+> - **(1) Per-realm count badges** on each switcher segment: `pinCountByMaster`
+>   counts `visiblePins` per master — i.e. what would actually RENDER, so pins
+>   hidden by a layer toggle don't count, and the player/bloodstain markers are
+>   excluded (always present; "Center on me" already owns that jump). The badge
+>   on the ACTIVE segment is muted; on other segments it's amber — amber =
+>   "pins you can't currently see."
+> - **(2, gated) "N pins on <realm> — switch" chip(s)** under the switcher,
+>   shown ONLY in the silent-no-op case: the selection has pins but the active
+>   map has ZERO of them (`offRealmPins`). One chip per holding realm, most
+>   pins first; click = `setActiveMapId`. Realm names reuse the switcher's
+>   compact `SHORT_MAP_NAME` labels.
+>
+> Verified in real Chromium (Playwright, dev server): pinned "Siofra River
+> Bank" (an M01 grace) from the `/graces` table with Overworld active → badge
+> "Underground 1" + chip "1 pin on Underground — switch"; chip click switched
+> realms, rendered the marker (tooltip "Siofra River Bank · Undiscovered"),
+> chip gone; hiding the Graces layer removed marker AND badge; quick-select
+> Undiscovered Graces (283/30/105 across Overworld/Underground/Land of Shadow)
+> badged all three segments with no chip (active map has pins); Clear pins
+> removed everything. Typecheck + oxlint + oxfmt green.
 
 ## Problem
 

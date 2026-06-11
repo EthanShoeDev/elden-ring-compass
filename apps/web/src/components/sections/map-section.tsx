@@ -490,6 +490,24 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
     () => pins.filter((p) => layers[pinLayer(p.category)]),
     [pins, layers],
   );
+  // Selected-pin counts per realm, surfaced as badges on the map switcher so a
+  // pin dropped on a non-active map is never a silent no-op. Counts what would
+  // actually RENDER (layer-hidden pins excluded); the player/bloodstain markers
+  // aren't counted — they always exist and "Center on me" handles that jump.
+  const pinCountByMaster = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of visiblePins) counts.set(p.master, (counts.get(p.master) ?? 0) + 1);
+    return counts;
+  }, [visiblePins]);
+  // The acute case: the selection has pins, but NONE on the active map — show a
+  // one-click "switch" chip per realm that has them (most pins first).
+  const offRealmPins = useMemo(
+    () =>
+      (pinCountByMaster.get(activeMapId) ?? 0) > 0
+        ? []
+        : [...pinCountByMaster.entries()].toSorted((a, b) => b[1] - a[1]),
+    [pinCountByMaster, activeMapId],
+  );
   const eventsItems = useDataTableData('events');
   const { setRowSelection, clearAllRowSelection: clearPins } = useRowSelectionControls();
 
@@ -568,8 +586,11 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
         {manifest && (
           <>
             {/* Map switcher — top-left, offset to clear Leaflet's zoom control;
-                wraps inside the panel on narrow screens. */}
-            <div className='absolute top-3 left-14 z-[1000] max-w-[calc(100%-7.5rem)]'>
+                wraps inside the panel on narrow screens. Each segment badges how
+                many selected pins live on that realm (amber = pins you can't see
+                from the active map), and when the active map has NONE of them a
+                "switch" chip offers the one-click jump. */}
+            <div className='absolute top-3 left-14 z-[1000] flex max-w-[calc(100%-7.5rem)] flex-col items-start gap-2'>
               <ToggleGroup
                 spacing={0}
                 className={cn(OVERLAY_PANEL, 'flex-wrap p-0.5')}
@@ -583,17 +604,47 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
               >
                 {manifest.maps
                   .filter((m) => !HIDDEN_MAP_IDS.has(m.id))
-                  .map((m) => (
-                    <ToggleGroupItem
-                      key={m.id}
-                      value={m.id}
-                      size='sm'
-                      className='rounded-md px-2.5 text-xs text-muted-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm'
-                    >
-                      {SHORT_MAP_NAME[m.id] ?? m.name}
-                    </ToggleGroupItem>
-                  ))}
+                  .map((m) => {
+                    const count = pinCountByMaster.get(m.id) ?? 0;
+                    return (
+                      <ToggleGroupItem
+                        key={m.id}
+                        value={m.id}
+                        size='sm'
+                        className='rounded-md px-2.5 text-xs text-muted-foreground data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm'
+                      >
+                        {SHORT_MAP_NAME[m.id] ?? m.name}
+                        {count > 0 && (
+                          <span
+                            title={`${count} selected pin${count === 1 ? '' : 's'} on this map`}
+                            className={cn(
+                              'ml-1.5 rounded-full px-1.5 py-px text-[10px] font-semibold tabular-nums',
+                              m.id === activeMapId
+                                ? 'bg-muted text-muted-foreground'
+                                : 'bg-amber-400/20 text-amber-600 dark:text-amber-400',
+                            )}
+                          >
+                            {count}
+                          </span>
+                        )}
+                      </ToggleGroupItem>
+                    );
+                  })}
               </ToggleGroup>
+              {offRealmPins.map(([id, count]) => (
+                <Button
+                  key={id}
+                  variant='outline'
+                  size='sm'
+                  className={OVERLAY_BUTTON}
+                  onClick={() => setActiveMapId(id)}
+                >
+                  <MapPinGlyph className='size-3.5 text-amber-400' filled />
+                  {count} pin{count === 1 ? '' : 's'} on{' '}
+                  {SHORT_MAP_NAME[id] ?? manifest.maps.find((m) => m.id === id)?.name ?? id} —
+                  switch
+                </Button>
+              ))}
             </div>
 
             <MapControlsOverlay
