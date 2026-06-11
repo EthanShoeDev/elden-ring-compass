@@ -32,11 +32,23 @@
 > pinned Golden Rune [1] (markers 0 → 259, "Clear pins (276)", row flips to "Remove pin"),
 > second click unpinned. Typecheck + oxlint + oxfmt + knip + build green.
 >
-> **Known wart / follow-up**: a row pin places ALL of the item's map locations (that's
-> what item-level selection means — Golden Rune [1] = 259 markers), not just the nearby
-> one(s). Per-placement pinning would need a placement-level selection model — out of
-> scope here. The viewport-scoped sibling idea ("show all undiscovered at current zoom")
-> also remains open in `../cleanup.md`.
+> **Update 2026-06-11 — slider + sure-drop filter**: the 100/250/500 m presets were
+> replaced with a 50–2000 m slider (25 m steps, live label, scan deferred while
+> dragging), and a "% drops" switch was added that filters chance-based enemy drops
+> per PLACEMENT before grouping (off = guaranteed pickups only); both verified in
+> Chromium alongside the Owned switch.
+>
+> **Known wart — kept DELIBERATELY (decided 2026-06-11)**: a row pin places ALL of the
+> item's map locations (that's what item-level selection means — Golden Rune [1] = 259
+> markers), not just the in-radius one(s). Radius-scoped pinning ("pin only the Stone
+> Sword Keys near me") was considered and REJECTED by the user: panel pins ARE the
+> item's inventory-table row selection, and a placement-subset pin would put that table
+> row in a state that's neither selected nor unselected — "the true answer would be
+> partial". Keeping pin = row selection means the table checkbox-pin, the map, and this
+> panel can never disagree. Don't re-propose per-placement pinning without first
+> solving partial-selection representation in the tables. The viewport-scoped sibling
+> idea ("show all undiscovered at current zoom") remains open in `../cleanup.md` and
+> would hit the same question.
 
 ## The idea (original wording)
 
