@@ -1,8 +1,9 @@
-import { ColumnDef, ColumnHelper, Row } from '@tanstack/react-table';
+import { RowData, Subscribe } from '@tanstack/react-table';
 import { CheckIcon, XIcon } from 'lucide-react';
 import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
 import { cn } from '@/lib/utils';
 import { DataTableColumnHeader } from './data-table-column-header';
+import { DataTableColumnDef, DataTableColumnHelper, DataTableRow } from './table-hook';
 
 /**
  * The map-pin affordance that replaces the old select checkbox. A row's
@@ -60,29 +61,43 @@ function PinUnavailable() {
  * header pins/unpins every pinnable row on the page and each cell toggles a
  * single row. (Formerly a select-all / row checkbox.)
  */
-export const commonPinColumnDef = <T,>(columnHelper: ColumnHelper<T>): ColumnDef<T> =>
+export const commonPinColumnDef = <T extends RowData>(
+  columnHelper: DataTableColumnHelper<T>,
+): DataTableColumnDef<T> =>
   columnHelper.display({
     id: 'pin',
     size: 56,
-    header: ({ table }) => {
-      const all = table.getIsAllPageRowsSelected();
-      const some = table.getIsSomePageRowsSelected();
-      return (
-        <div className='flex flex-col items-center gap-0.5'>
-          <PinToggle
-            state={all ? 'on' : some ? 'ind' : 'off'}
-            onToggle={() => {
-              table.toggleAllPageRowsSelected(!all);
-            }}
-            title={all ? 'Unpin this page' : 'Pin all on this page'}
-          />
-          <span className='text-[9px] font-bold tracking-wider text-muted-foreground uppercase'>
-            Pin
-          </span>
-        </div>
-      );
-    },
-    cell: ({ row }) => {
+    // Header and cell read selection through builder APIs (`getIsAllPageRowsSelected`,
+    // `getIsSelected`) from stable `table`/`row` references, which hides the state
+    // dependency from the React Compiler — wrap in `Subscribe` so the JSX re-runs on
+    // the slices those reads derive from (the v9-documented pattern).
+    header: ({ table }) => (
+      <Subscribe
+        source={table.store}
+        // The page-rows aggregate also shifts when filtering changes which rows exist.
+        selector={(s) => ({ rowSelection: s.rowSelection, columnFilters: s.columnFilters })}
+      >
+        {() => {
+          const all = table.getIsAllPageRowsSelected();
+          const some = table.getIsSomePageRowsSelected();
+          return (
+            <div className='flex flex-col items-center gap-0.5'>
+              <PinToggle
+                state={all ? 'on' : some ? 'ind' : 'off'}
+                onToggle={() => {
+                  table.toggleAllPageRowsSelected(!all);
+                }}
+                title={all ? 'Unpin this page' : 'Pin all on this page'}
+              />
+              <span className='text-[9px] font-bold tracking-wider text-muted-foreground uppercase'>
+                Pin
+              </span>
+            </div>
+          );
+        }}
+      </Subscribe>
+    ),
+    cell: ({ row, table }) => {
       if (!row.getCanSelect()) {
         return (
           <div className='flex justify-center'>
@@ -90,17 +105,22 @@ export const commonPinColumnDef = <T,>(columnHelper: ColumnHelper<T>): ColumnDef
           </div>
         );
       }
-      const on = row.getIsSelected();
       return (
-        <div className='flex justify-center'>
-          <PinToggle
-            state={on ? 'on' : 'off'}
-            onToggle={() => {
-              row.toggleSelected(!on);
-            }}
-            title={on ? 'Remove pin' : 'Pin on map'}
-          />
-        </div>
+        // Per-row atom subscription: only this row's pin re-renders on selection
+        // changes, and the read is compiler-visible (see header comment).
+        <Subscribe source={table.atoms.rowSelection} selector={(s) => !!s[row.id]}>
+          {(on) => (
+            <div className='flex justify-center'>
+              <PinToggle
+                state={on ? 'on' : 'off'}
+                onToggle={() => {
+                  row.toggleSelected(!on);
+                }}
+                title={on ? 'Remove pin' : 'Pin on map'}
+              />
+            </div>
+          )}
+        </Subscribe>
       );
     },
     enableSorting: false,
@@ -110,7 +130,11 @@ export const commonPinColumnDef = <T,>(columnHelper: ColumnHelper<T>): ColumnDef
   });
 
 export const defaultFacetedFilterFnSymbol = Symbol('defaultFacetedFilterFn');
-function defaultFacetedFilterFn<T>(row: Row<T>, columnId: string, filterVal: Array<T>) {
+function defaultFacetedFilterFn<T extends RowData>(
+  row: DataTableRow<T>,
+  columnId: string,
+  filterVal: Array<T>,
+) {
   return filterVal.includes(row.getValue(columnId));
 }
 defaultFacetedFilterFn[defaultFacetedFilterFnSymbol] = true;
@@ -128,7 +152,11 @@ defaultFacetedFilterFn[defaultFacetedFilterFnSymbol] = true;
  * faceted chip; the facet UI interprets the `'owned'`/`'missing'` presets into
  * checked boxes (see `DataTableFacetedFilter`).
  */
-export function quantityFilterFn<T>(row: Row<T>, columnId: string, filterVal: unknown) {
+export function quantityFilterFn<T extends RowData>(
+  row: DataTableRow<T>,
+  columnId: string,
+  filterVal: unknown,
+) {
   const qty = row.getValue<number>(columnId);
   if (filterVal === 'owned') return qty > 0;
   if (filterVal === 'missing') return qty === 0;
@@ -137,12 +165,12 @@ export function quantityFilterFn<T>(row: Row<T>, columnId: string, filterVal: un
 }
 quantityFilterFn[defaultFacetedFilterFnSymbol] = true;
 
-export const commonAccessorColumnDef = <T,>(
-  columnHelper: ColumnHelper<T>,
-  accessor: Parameters<ColumnHelper<T>['accessor']>[0],
+export const commonAccessorColumnDef = <T extends RowData>(
+  columnHelper: DataTableColumnHelper<T>,
+  accessor: Parameters<DataTableColumnHelper<T>['accessor']>[0],
   label: string,
-  overrides?: Parameters<ColumnHelper<T>['accessor']>[1],
-): ColumnDef<T> =>
+  overrides?: Parameters<DataTableColumnHelper<T>['accessor']>[1],
+): DataTableColumnDef<T> =>
   columnHelper.accessor(accessor, {
     id: label,
     header: ({ column, table }) => <DataTableColumnHeader table={table} column={column} />,

@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
+import { Effect } from 'effect';
 import { encodeToUrl } from './encode';
 import { decodeFromUrl, isValidShareData } from './decode';
-import { type ShareableProgression, SHAREABLE_VERSION } from './types';
+import { LEGACY_SHAREABLE_VERSION, type ShareableProgression, SHAREABLE_VERSION } from './types';
 
 describe('Share encode/decode', () => {
   const mockShareableData: ShareableProgression = {
-    v: SHAREABLE_VERSION,
+    v: LEGACY_SHAREABLE_VERSION,
     n: 'TestCharacter',
     s: {
       l: 150,
@@ -35,20 +36,20 @@ describe('Share encode/decode', () => {
     ],
   };
 
-  it('should encode and decode data correctly (round-trip)', () => {
-    const encoded = encodeToUrl(mockShareableData);
+  it('should encode and decode data correctly (round-trip)', async () => {
+    const encoded = await Effect.runPromise(encodeToUrl(mockShareableData));
     const decoded = decodeFromUrl(encoded);
 
     expect(decoded).not.toBeNull();
-    expect(decoded?.v).toBe(SHAREABLE_VERSION);
+    expect(decoded?.v).toBe(LEGACY_SHAREABLE_VERSION);
     expect(decoded?.n).toBe('TestCharacter');
     expect(decoded?.s.l).toBe(150);
     expect(decoded?.ef).toEqual([100, 50, 75, 25]);
     expect(decoded?.ur).toEqual([1, 2, 3, 4, 5]);
   });
 
-  it('should produce a URL-safe encoded string', () => {
-    const encoded = encodeToUrl(mockShareableData);
+  it('should produce a URL-safe encoded string', async () => {
+    const encoded = await Effect.runPromise(encodeToUrl(mockShareableData));
 
     // Should not contain characters that need URL encoding
     expect(encoded).not.toContain(' ');
@@ -72,7 +73,7 @@ describe('Share encode/decode', () => {
 describe('isValidShareData', () => {
   it('should return true for valid share data', () => {
     const validData: ShareableProgression = {
-      v: SHAREABLE_VERSION,
+      v: LEGACY_SHAREABLE_VERSION,
       n: 'Test',
       s: { l: 1, v: 1, m: 1, e: 1, st: 1, d: 1, i: 1, f: 1, a: 1, r: 0, rm: 0 },
       g: 0,

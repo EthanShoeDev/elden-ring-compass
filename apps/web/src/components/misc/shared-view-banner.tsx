@@ -1,5 +1,6 @@
 import { EyeIcon, UploadIcon } from 'lucide-react';
 import { useAtomSet } from '@effect/atom-react';
+import { useNavigate } from '@tanstack/react-router';
 import { Button } from '../ui/button';
 import { useEldenRingSave } from '@/lib/atoms/save';
 import { saveFileSourceAtom } from '@/stores/save-file-source-store';
@@ -7,6 +8,7 @@ import { saveFileSourceAtom } from '@/stores/save-file-source-store';
 export function SharedViewBanner() {
   const { data, isSharedView } = useEldenRingSave();
   const setSaveFileSource = useAtomSet(saveFileSourceAtom);
+  const navigate = useNavigate();
 
   if (!isSharedView || !data) {
     return null;
@@ -18,6 +20,10 @@ export function SharedViewBanner() {
 
   const handleLoadOwn = () => {
     setSaveFileSource(undefined);
+    void navigate({
+      search: ((prev: { readonly save?: string }) => ({ ...prev, save: undefined })) as never,
+      replace: true,
+    });
   };
 
   return (

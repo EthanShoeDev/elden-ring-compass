@@ -1,5 +1,5 @@
 import { X as Cross2Icon } from 'lucide-react';
-import { FilterFn, Table } from '@tanstack/react-table';
+import { ReactTable, RowData } from '@tanstack/react-table';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,14 +7,17 @@ import { DataTableViewOptions } from './data-table-view-options';
 
 import { defaultFacetedFilterFnSymbol } from './common-column-defs';
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
+import { DataTableFeatures, DataTableFilterFn } from './table-hook';
 
-type DataTableToolbarProps<TData> = {
-  table: Table<TData>;
+type DataTableToolbarProps<TData extends RowData> = {
+  // The hook-returned table (not the core `Table`): the toolbar reads state via
+  // `table.state`, and `useAppTable` hands `DataTable` a fresh reference per state
+  // change, so this prop's identity is itself the re-render signal.
+  table: ReactTable<DataTableFeatures, TData>;
 };
 
-export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>) {
-  'use no memo';
-  const isFiltered = table.getState().columnFilters.length > 0;
+export function DataTableToolbar<TData extends RowData>({ table }: DataTableToolbarProps<TData>) {
+  const isFiltered = table.state.columnFilters.length > 0;
 
   return (
     <div className='flex items-center justify-between'>
@@ -31,7 +34,7 @@ export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>)
             (col) =>
               col.getCanFilter() &&
               (
-                col.getFilterFn() as FilterFn<unknown> & {
+                col.getFilterFn() as DataTableFilterFn<TData> & {
                   [defaultFacetedFilterFnSymbol]?: boolean;
                 }
               )[defaultFacetedFilterFnSymbol],

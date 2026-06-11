@@ -5,7 +5,7 @@ import {
   isSharedSource,
   type SaveFileSource,
 } from './save-file-source-store';
-import { SHAREABLE_VERSION } from '@/lib/share/types';
+import { LEGACY_SHAREABLE_VERSION } from '@/lib/share/types';
 
 describe('SaveFileSource type guards', () => {
   describe('isFileSource', () => {
@@ -27,7 +27,7 @@ describe('SaveFileSource type guards', () => {
     it('should return false for shared source', () => {
       const source: SaveFileSource = {
         sharedData: {
-          v: SHAREABLE_VERSION,
+          v: LEGACY_SHAREABLE_VERSION,
           n: 'Test',
           s: { l: 1, v: 1, m: 1, e: 1, st: 1, d: 1, i: 1, f: 1, a: 1, r: 0, rm: 0 },
           g: 0,
@@ -72,7 +72,7 @@ describe('SaveFileSource type guards', () => {
     it('should return true for shared source', () => {
       const source: SaveFileSource = {
         sharedData: {
-          v: SHAREABLE_VERSION,
+          v: LEGACY_SHAREABLE_VERSION,
           n: 'Test',
           s: { l: 1, v: 1, m: 1, e: 1, st: 1, d: 1, i: 1, f: 1, a: 1, r: 0, rm: 0 },
           g: 0,

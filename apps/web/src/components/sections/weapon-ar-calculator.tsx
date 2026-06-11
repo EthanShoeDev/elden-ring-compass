@@ -1,5 +1,4 @@
 import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 
 import { type Attributes, MAX_UPGRADE_LEVEL } from '@/lib/ar';
@@ -8,6 +7,7 @@ import { bestAffinityPerWeapon, type RatedWeapon, rateWeapons } from '@/lib/weap
 
 import { commonAccessorColumnDef } from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
+import { createAppColumnHelper, DataTableColumnDef } from '../data-table/table-hook';
 import { TooltipImg } from '../misc/tooltip-img';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Checkbox } from '../ui/checkbox';
@@ -92,8 +92,8 @@ export function WeaponArTable({
   ]);
 
   // The Owned column is only meaningful with a save connected.
-  const columns = useMemo<Array<ColumnDef<RatedWeapon>>>(() => {
-    const cols: Array<ColumnDef<RatedWeapon>> = [
+  const columns = useMemo<Array<DataTableColumnDef<RatedWeapon>>>(() => {
+    const cols: Array<DataTableColumnDef<RatedWeapon>> = [
       iconColumn,
       commonAccessorColumnDef(columnHelper, 'name', 'Name'),
       commonAccessorColumnDef(columnHelper, 'affinity', 'Affinity'),
@@ -197,7 +197,7 @@ export function WeaponArTable({
   );
 }
 
-const columnHelper = createColumnHelper<RatedWeapon>();
+const columnHelper = createAppColumnHelper<RatedWeapon>();
 
 // Module-scoped so it isn't re-created on every render (and isn't flagged as a
 // nested component). Mirrors the inventory tables' icon column.
@@ -216,4 +216,4 @@ const iconColumn = columnHelper.display({
     />
   ),
   enableHiding: true,
-}) as ColumnDef<RatedWeapon>;
+}) as DataTableColumnDef<RatedWeapon>;

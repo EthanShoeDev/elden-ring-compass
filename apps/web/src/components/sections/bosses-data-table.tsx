@@ -1,5 +1,4 @@
 import { BOSSES, eventFlagOffset } from '@elden-ring-compass/data';
-import { ColumnDef, createColumnHelper, Row } from '@tanstack/react-table';
 import { useMemo } from 'react';
 
 import { type BossBadge, BADGE_LABEL, bossBadges, bossMapName, bossReward } from '@/lib/boss-meta';
@@ -9,6 +8,7 @@ import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 import { commonAccessorColumnDef, commonPinColumnDef } from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
+import { createAppColumnHelper, DataTableColumnDef, DataTableRow } from '../data-table/table-hook';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { BossBadges } from './boss-badge';
 
@@ -33,11 +33,11 @@ type BossRow = {
 
 // Cell renderers kept at module scope (not redefined per render) so the table's
 // column defs stay stable and don't trip react/no-unstable-nested-components.
-const renderCategoryCell = ({ row }: { row: Row<BossRow> }) => (
+const renderCategoryCell = ({ row }: { row: DataTableRow<BossRow> }) => (
   <BossBadges badges={row.original.badges} />
 );
 
-const renderRewardCell = ({ row }: { row: Row<BossRow> }) =>
+const renderRewardCell = ({ row }: { row: DataTableRow<BossRow> }) =>
   row.original.reward ? (
     <div className='flex items-center gap-1.5'>
       {row.original.rewardIcon && (
@@ -49,7 +49,7 @@ const renderRewardCell = ({ row }: { row: Row<BossRow> }) =>
     <span className='text-muted-foreground'>—</span>
   );
 
-const renderRunesCell = ({ row }: { row: Row<BossRow> }) => (
+const renderRunesCell = ({ row }: { row: DataTableRow<BossRow> }) => (
   <span className='font-mono text-xs tabular-nums'>
     {row.original.runes > 0 ? row.original.runes.toLocaleString() : '—'}
   </span>
@@ -99,9 +99,9 @@ export function BossesDataTable() {
     return out;
   }, [slot, connected]);
 
-  const columns = useMemo<Array<ColumnDef<BossRow>>>(() => {
-    const helper = createColumnHelper<BossRow>();
-    const cols: Array<ColumnDef<BossRow>> = [
+  const columns = useMemo<Array<DataTableColumnDef<BossRow>>>(() => {
+    const helper = createAppColumnHelper<BossRow>();
+    const cols: Array<DataTableColumnDef<BossRow>> = [
       commonPinColumnDef(helper),
       commonAccessorColumnDef(helper, 'name', 'Name', { filterFn: 'includesString' }),
       commonAccessorColumnDef(helper, 'mapName', 'Map', { filterFn: 'includesString' }),

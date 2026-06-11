@@ -1,6 +1,8 @@
 import { PlusCircle as PlusCircledIcon } from 'lucide-react';
-import { Column } from '@tanstack/react-table';
+import { RowData } from '@tanstack/react-table';
 import * as React from 'react';
+
+import { DataTableColumn } from './table-hook';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -34,20 +36,22 @@ type FacetOption = {
   icon?: React.ComponentType<{ className?: string }>;
 };
 
-type DataTableFacetedFilterProps<TData, TValue> = {
-  column?: Column<TData, TValue>;
+type DataTableFacetedFilterProps<TData extends RowData, TValue> = {
+  column?: DataTableColumn<TData, TValue>;
   title?: string;
   options: Array<FacetOption>;
 };
 
 const optionKey = (option: FacetOption) => JSON.stringify(option.value) ?? 'NA';
 
-export function DataTableFacetedFilter<TData, TValue>({
+export function DataTableFacetedFilter<TData extends RowData, TValue>({
   column,
   title,
   options,
 }: DataTableFacetedFilterProps<TData, TValue>) {
-  'use no memo';
+  // No `Subscribe` needed despite the `column.get*` reads: the toolbar rebuilds
+  // `options` every render and re-renders per table state change (fresh `table`
+  // ref), so this component's props always change identity alongside the state.
   const facets = column?.getFacetedUniqueValues();
   // The filter value is normally an `Array<value>` (faceted multi-select). The
   // inventory Quantity column additionally accepts the ownership presets the

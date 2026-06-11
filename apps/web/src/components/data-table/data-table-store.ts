@@ -2,19 +2,20 @@ import {
   ColumnFiltersState,
   ColumnOrderState,
   ColumnSizingState,
+  ColumnVisibilityState,
   OnChangeFn,
+  RowData,
   RowSelectionState,
   SortingState,
-  Updater,
-  VisibilityState,
 } from '@tanstack/react-table';
 import { Schema } from 'effect';
 import { Atom } from 'effect/unstable/reactivity';
 import { useAtomSet, useAtomValue } from '@effect/atom-react';
 import { useHydrated } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import { useEffect } from 'react';
 import { browserKvsRuntime } from '@/lib/atoms/kvs';
 import { InventoryTableType } from '../sections/inventory-data-table-card';
+import type { DataTableInstance } from './table-hook';
 
 export type TableId =
   | 'events'
@@ -26,14 +27,14 @@ export type TableId =
 
 export type DataTableStateInitProps = {
   tableId: TableId;
-  initialColumnVisibility?: VisibilityState;
+  initialColumnVisibility?: ColumnVisibilityState;
   initialRowSelection?: RowSelectionState;
 };
 
 export type DataTableState = {
   tableId: TableId;
   rowSelection: RowSelectionState;
-  columnVisibility: VisibilityState;
+  columnVisibility: ColumnVisibilityState;
   columnFilters: ColumnFiltersState;
   sorting: SortingState;
   columnSizing: ColumnSizingState;
@@ -83,52 +84,89 @@ const tableStateSliceFamily = Atom.family((tableId: TableId) =>
   Atom.map(tableStateAtom, (state) => state[tableId]),
 );
 
-/** Per-table state + bound TanStack `onChange` setters (consumed by `DataTable`). */
-export const useDataTableState = (initProps: DataTableStateInitProps) => {
+// The six persisted slices (the table also owns transient state like
+// `columnResizing` that is intentionally not persisted).
+type PersistedKey =
+  | 'rowSelection'
+  | 'columnVisibility'
+  | 'columnFilters'
+  | 'sorting'
+  | 'columnSizing'
+  | 'columnOrder';
+
+/**
+ * Two-way bridge between a v9 table's self-owned state atoms and the persisted
+ * kvs slice (consumed by `DataTable`).
+ *
+ * The table is NOT controlled via `options.state`: v9 syncs controlled state
+ * into its atom graph DURING RENDER (`setOptions` → `syncExternalStateToBaseAtoms`),
+ * which makes every keystroke notify mounted `Subscribe` components mid-render —
+ * React's "cannot update a component while rendering" warning. Instead the table
+ * owns its slices and this hook:
+ *
+ *  - table → kvs: subscribes to each per-slice atom and mirrors writes into the
+ *    persisted map (fires in event handlers / effects, never during render).
+ *  - kvs → table: pushes the persisted slice into the table post-hydration, and
+ *    whenever an EXTERNAL writer changes it (the inventory ownership toggle via
+ *    `useColumnFilterValue`, the map's `useRowSelectionControls`). Ref-equality
+ *    guards stop the echo after one round trip.
+ *
+ * Hydration: the slice lives in localStorage (client-only), so SSR and the first
+ * client render use the table's `initialState`; the persisted filters/sorting/
+ * sizing restore in the post-mount effect. See `useHydrated`.
+ */
+export const useDataTableStateSync = <TData extends RowData>(
+  table: DataTableInstance<TData>,
+  initProps: DataTableStateInitProps,
+) => {
   const { tableId } = initProps;
-  // The persisted slice lives in localStorage (client-only), so it's absent
-  // during SSR and present on the first client render — reading it pre-hydration
-  // would diverge the trees (e.g. a faceted-filter shows a separator + count
-  // badge only on the client). Gate on hydration: SSR and the first client render
-  // both use defaults, then the persisted filters/sorting/sizing restore
-  // post-mount. See `useHydrated`.
   const hydrated = useHydrated();
   const slice = useAtomValue(tableStateSliceFamily(tableId));
   const setTableState = useAtomSet(tableStateAtom);
-  // Stable fallback for a table with no persisted state yet. Memoizing is load-bearing: an
-  // un-memoized `defaultTableState(...)` returns fresh `[]`/`{}` every render, so react-table sees
-  // `state.sorting`/`columnFilters`/… change identity each render and fires `autoResetPageIndex`
-  // → a queued setState → re-render → new arrays → a continuous re-render loop (~60fps) that pegs
-  // the main thread whenever a save is loaded. That loop — not the parse, map, or facets — is what
-  // made the page sluggish/freeze/OOM.
-  // Intentionally keyed on the stable `tableId`, NOT the per-render-fresh `initProps`
-  // (the stable fallback is the whole point — see the comment above).
-  // oxlint-disable-next-line react-hooks/exhaustive-deps -- see above
-  const fallback = useMemo(() => defaultTableState(initProps), [tableId]);
-  const current = (hydrated ? slice : undefined) ?? fallback;
+  // Stable across renders (populated at table construction), unlike the `table`
+  // wrapper `useAppTable` returns — keying the subscription effect on it means
+  // subscribe-once instead of per-render churn.
+  const atoms = table.atoms;
 
-  const makeSetter =
-    <K extends keyof DataTableState>(key: K): OnChangeFn<DataTableState[K]> =>
-    (updater: Updater<DataTableState[K]>) => {
+  // table → kvs. Per-slice subscriptions are spelled out (not looped) because
+  // indexing `atoms` by the key union collapses `subscribe` to an uncallable
+  // overload union.
+  useEffect(() => {
+    const mirror = <K extends PersistedKey>(key: K, value: DataTableState[K]) => {
       setTableState((prev) => {
         const prevState = prev[tableId] ?? defaultTableState({ tableId });
-        const value =
-          typeof updater === 'function'
-            ? (updater as (old: DataTableState[K]) => DataTableState[K])(prevState[key])
-            : updater;
+        if (prevState[key] === value) return prev;
         return { ...prev, [tableId]: { ...prevState, [key]: value } };
       });
     };
+    const subscriptions = [
+      atoms.sorting.subscribe(() => mirror('sorting', atoms.sorting.get())),
+      atoms.columnFilters.subscribe(() => mirror('columnFilters', atoms.columnFilters.get())),
+      atoms.columnVisibility.subscribe(() =>
+        mirror('columnVisibility', atoms.columnVisibility.get()),
+      ),
+      atoms.columnSizing.subscribe(() => mirror('columnSizing', atoms.columnSizing.get())),
+      atoms.columnOrder.subscribe(() => mirror('columnOrder', atoms.columnOrder.get())),
+      atoms.rowSelection.subscribe(() => mirror('rowSelection', atoms.rowSelection.get())),
+    ];
+    return () => {
+      for (const s of subscriptions) s.unsubscribe();
+    };
+  }, [atoms, setTableState, tableId]);
 
-  return {
-    ...current,
-    setRowSelection: makeSetter('rowSelection'),
-    setColumnVisibility: makeSetter('columnVisibility'),
-    setColumnFilters: makeSetter('columnFilters'),
-    setSorting: makeSetter('sorting'),
-    setColumnSizing: makeSetter('columnSizing'),
-    setColumnOrder: makeSetter('columnOrder'),
-  };
+  // kvs → table. Runs after every render (the `table` wrapper is per-render fresh),
+  // but each pass is six ref compares — a no-op unless kvs and the table diverged.
+  useEffect(() => {
+    if (!hydrated || !slice) return;
+    if (slice.sorting !== atoms.sorting.get()) table.setSorting(slice.sorting);
+    if (slice.columnFilters !== atoms.columnFilters.get())
+      table.setColumnFilters(slice.columnFilters);
+    if (slice.columnVisibility !== atoms.columnVisibility.get())
+      table.setColumnVisibility(slice.columnVisibility);
+    if (slice.columnSizing !== atoms.columnSizing.get()) table.setColumnSizing(slice.columnSizing);
+    if (slice.columnOrder !== atoms.columnOrder.get()) table.setColumnOrder(slice.columnOrder);
+    if (slice.rowSelection !== atoms.rowSelection.get()) table.setRowSelection(slice.rowSelection);
+  }, [hydrated, slice, atoms, table]);
 };
 
 /**
