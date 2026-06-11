@@ -18,10 +18,10 @@ Some mobile affordances landed as side effects of the shadcn sidebar adoption:
 
 ## Known suspects to audit
 
-- **Interactive map route** — Leaflet touch gestures, the under-map control clusters
-  (Map/Layers/Quick-select — likely too wide), popup/tooltip sizing. Interacts with the
-  open "map chrome rework / floating controls" item in `../cleanup.md`; if controls move
-  on top of the map, design mobile-first.
+- **Interactive map route** — Leaflet touch gestures, popup/tooltip sizing. The map
+  chrome rework shipped 2026-06-11 (see `../complete/cleanup-2026-06.md`): controls now
+  float on the map and default collapsed on mobile. Known wart to fix here: the OPEN
+  controls panel partially covers the map switcher at phone widths.
 - **Data-table toolbars** — faceted filter chips + search likely wrap badly at 375px.
 - **Bosses gallery** — card grid columns at narrow widths.
 - **Calculator (Build Doctor)** — archetype picker grid + advisor cards + sliders.

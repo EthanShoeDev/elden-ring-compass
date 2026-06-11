@@ -21,13 +21,6 @@ Small UI/UX nits and loose ideas that don't warrant their own project doc.
   refresh via `Atom.kvs`/localStorage (`components/data-table/data-table-store.ts`). The
   map view (pan/zoom/selected realm) is still transient — persist it the same way.
 
-- **Map chrome rework.** [VERIFIED STILL OPEN 2026-06-11] The layers/legend/quick-select/
-  clear-pins controls are still sandwiched underneath the map (`sections/map-section.tsx`)
-  and it does not look great. Worth trying floating/overlaid controls on top of the map.
-  See the `main` branch for how it looked before the major upgrades. (If controls move
-  onto the map, design them mobile-first — see
-  [future/mobile-friendly.md](future/mobile-friendly.md).)
-
 - **Map layers for item sub-categories?** Maybe split the single "items" layer into
   per-sub-category toggles. Not sure it's worth it.
 
