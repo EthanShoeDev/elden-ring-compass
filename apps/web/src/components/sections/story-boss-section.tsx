@@ -6,6 +6,7 @@ import { ConnectSaveButton } from '@/components/misc/save-file-source-selector';
 import { type BossBadge, type GalleryBoss, BOSS_GALLERY, bossReward } from '@/lib/boss-meta';
 import { cn } from '@/lib/utils';
 import { bossPinByFlag } from '@/lib/vm/map-pins';
+import { wikiPageUrl } from '@/lib/wiki';
 import {
   useRowSelectionControls,
   useTableStateMap,
@@ -114,10 +115,10 @@ export function StoryBossSection() {
 }
 
 const WIKI = {
-  bosses: 'https://eldenring.wiki.fextralife.com/Bosses',
-  demigod: 'https://eldenring.wiki.fextralife.com/Demigods',
-  shardbearer: 'https://eldenring.wiki.fextralife.com/Great+Runes',
-  legend: 'https://eldenring.wiki.fextralife.com/Remembrance',
+  bosses: wikiPageUrl('Bosses'),
+  demigod: wikiPageUrl('Demigods'),
+  shardbearer: wikiPageUrl('Great Runes'),
+  legend: wikiPageUrl('Remembrance'),
 };
 
 const CATEGORY_GUIDE: { kind: BossBadge; desc: string; href: string }[] = [

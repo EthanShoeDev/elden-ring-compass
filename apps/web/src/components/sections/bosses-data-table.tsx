@@ -6,7 +6,13 @@ import type { MasterPixel } from '@/lib/map-affine';
 import { bossFlagToPixel } from '@/lib/vm/map-pins';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
-import { commonAccessorColumnDef, commonPinColumnDef } from '../data-table/common-column-defs';
+import { wikiNameForBoss } from '@/lib/wiki';
+
+import {
+  commonAccessorColumnDef,
+  commonPinColumnDef,
+  commonWikiColumnDef,
+} from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
 import { createAppColumnHelper, DataTableColumnDef, DataTableRow } from '../data-table/table-hook';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
@@ -104,6 +110,7 @@ export function BossesDataTable() {
     const cols: Array<DataTableColumnDef<BossRow>> = [
       commonPinColumnDef(helper),
       commonAccessorColumnDef(helper, 'name', 'Name', { filterFn: 'includesString' }),
+      commonWikiColumnDef(helper, (r) => wikiNameForBoss(r.name)),
       commonAccessorColumnDef(helper, 'mapName', 'Map', { filterFn: 'includesString' }),
       commonAccessorColumnDef(helper, 'category', 'Category', { cell: renderCategoryCell }),
       commonAccessorColumnDef(helper, 'reward', 'Reward', { cell: renderRewardCell }),

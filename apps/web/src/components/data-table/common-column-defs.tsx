@@ -1,7 +1,8 @@
 import { RowData, Subscribe } from '@tanstack/react-table';
-import { CheckIcon, XIcon } from 'lucide-react';
+import { CheckIcon, ExternalLinkIcon, XIcon } from 'lucide-react';
 import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
 import { cn } from '@/lib/utils';
+import { wikiPageUrl } from '@/lib/wiki';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableColumnDef, DataTableColumnHelper, DataTableRow } from './table-hook';
 
@@ -127,6 +128,46 @@ export const commonPinColumnDef = <T extends RowData>(
     enableHiding: false,
     enableResizing: false,
     enableColumnFilter: false,
+  });
+
+/**
+ * Per-row external link to the row's Fextralife wiki page. Link-only — the wiki
+ * forbids scraping its content. `wikiName` resolves the row to its page name
+ * (`wikiNameForItem` / `wikiNameForBoss` in `@/lib/wiki`); `null` means the wiki
+ * has no page for the row, rendered as a muted dash. Every URL these resolvers
+ * can produce is validated offline by `scripts/wiki-link-check.ts`.
+ */
+export const commonWikiColumnDef = <T extends RowData>(
+  columnHelper: DataTableColumnHelper<T>,
+  wikiName: (row: T) => string | null,
+): DataTableColumnDef<T> =>
+  columnHelper.display({
+    id: 'wiki',
+    header: 'Wiki',
+    size: 56,
+    enableResizing: false,
+    enableHiding: true,
+    cell: ({ row }) => {
+      const name = wikiName(row.original);
+      return (
+        <div className='flex justify-center'>
+          {name === null ? (
+            <span className='text-muted-foreground/40'>—</span>
+          ) : (
+            <a
+              href={wikiPageUrl(name)}
+              target='_blank'
+              rel='noreferrer'
+              title={`${name} — Elden Ring Wiki`}
+              className='text-muted-foreground hover:text-foreground'
+            >
+              <ExternalLinkIcon className='size-3.5' />
+              <span className='sr-only'>{name} on the Elden Ring Wiki</span>
+            </a>
+          )}
+        </div>
+      );
+    },
   });
 
 export const defaultFacetedFilterFnSymbol = Symbol('defaultFacetedFilterFn');

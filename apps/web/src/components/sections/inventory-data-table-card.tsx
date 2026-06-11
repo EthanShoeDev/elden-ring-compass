@@ -21,6 +21,7 @@ import { useState } from 'react';
 import {
   commonAccessorColumnDef,
   commonPinColumnDef,
+  commonWikiColumnDef,
   quantityFilterFn,
 } from '@/components/data-table/common-column-defs';
 import { DataTable } from '@/components/data-table/data-table';
@@ -41,6 +42,7 @@ import { useDataTableData } from '@/lib/data-table-data';
 import { CATALOG, useInventoryTables, type WithOwnership } from '@/lib/inventory-catalog';
 import { TABLE_LABEL, TYPE_TO_SLUG } from '@/lib/inventory-tables';
 import { cn } from '@/lib/utils';
+import { wikiNameForItem } from '@/lib/wiki';
 
 export type { InventoryTableType } from '@/lib/inventory-catalog';
 import type { InventoryTableType } from '@/lib/inventory-catalog';
@@ -258,6 +260,12 @@ type BaseRow = WithOwnership<{
   name: string;
   icon: number;
   rarity: string;
+  /**
+   * Armaments only (see `EnrichedWeapon`): the affinity-0 sibling's name
+   * ("Dagger" for "Heavy Dagger"). The wiki column links it when present —
+   * affinity/upgrade variants share the base weapon's wiki page.
+   */
+  baseName?: string;
 }>;
 
 type Effect = {
@@ -314,6 +322,7 @@ function defaultColumns<T extends BaseRow>(
     commonAccessorColumnDef(columnHelper, 'name', 'Name', {
       filterFn: 'includesString',
     }),
+    commonWikiColumnDef(columnHelper, wikiNameForItem),
     // Quantity shares one filter between the prominent All/Owned/Missing segmented
     // control (which writes the `'owned'`/`'missing'` presets) and its faceted chip
     // (which writes exact values like `[2]` — "weapons I have 2 of"). See

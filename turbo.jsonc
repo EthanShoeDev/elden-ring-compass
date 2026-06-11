@@ -58,6 +58,7 @@
         "//#oxlint:fix",
         "//#knip:fix:danger",
         "//#catalog:fix",
+        "//#wiki:check",
       ],
     },
     "//#lint:check:root": {
@@ -67,6 +68,7 @@
         "//#oxlint:check",
         "//#knip:check",
         "//#catalog:check",
+        "//#wiki:check",
       ],
     },
     "//#oxfmt:fix": {},
@@ -80,6 +82,12 @@
     "//#knip:fix:danger": {},
     "//#catalog:fix": {},
     "//#catalog:check": {},
+    // Live-checks outbound wiki URLs. Manages its own result cache under
+    // node_modules/.cache/wiki-link-check (verified URLs are skipped), so turbo
+    // must re-run it rather than replay a cached success.
+    "//#wiki:check": {
+      "cache": false,
+    },
     // oxlint must wait for the custom plugins to be compiled.
     "//#oxlint:fix": {
       "dependsOn": ["@elden-ring-compass/oxlint-plugins#build"],

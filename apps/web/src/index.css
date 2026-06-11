@@ -240,6 +240,15 @@
 .leaflet-popup-close-button:hover {
   color: hsl(var(--popover-foreground)) !important;
 }
+/* Links inside popup content (the wiki link) — leaflet.css hard-codes
+   `.leaflet-container a` to a light-theme blue; restyle to the muted→foreground
+   hover pattern external links use elsewhere in the app. */
+.leaflet-popup-content a {
+  color: hsl(var(--muted-foreground)) !important;
+}
+.leaflet-popup-content a:hover {
+  color: hsl(var(--popover-foreground)) !important;
+}
 .leaflet-tooltip {
   background: hsl(var(--popover)) !important;
   color: hsl(var(--popover-foreground)) !important;

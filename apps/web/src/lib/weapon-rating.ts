@@ -20,6 +20,8 @@ export interface RatedWeapon {
   readonly id: number;
   readonly baseId: number;
   readonly name: string;
+  /** Affinity-0 sibling's name ("Dagger" for "Heavy Dagger") — the wiki page name. */
+  readonly baseName: string;
   readonly affinity: string;
   readonly category: string;
   readonly icon: number;
@@ -59,6 +61,7 @@ export function rateWeapons(
       id: w.id,
       baseId: baseIdOf(w.id),
       name: e.affinityIndex === 0 ? e.baseName : `${e.affinity} ${e.baseName}`,
+      baseName: e.baseName,
       affinity: e.affinity,
       category: w.category,
       icon: w.icon,

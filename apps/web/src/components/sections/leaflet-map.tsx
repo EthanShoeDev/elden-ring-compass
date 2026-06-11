@@ -24,8 +24,11 @@ import {
   latLngBounds,
   TileLayer as LeafletTileLayer,
 } from 'leaflet';
+import { ExternalLinkIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, Marker, Popup, Tooltip, useMap, useMapEvents } from 'react-leaflet';
+
+import { wikiNameForBoss, wikiPageUrl } from '@/lib/wiki';
 
 /** What kind of thing a pin represents — drives its hover/popup content. */
 export type PinKind = 'grace' | 'boss' | 'item' | 'player' | 'bloodstain';
@@ -69,6 +72,11 @@ export interface MapPin {
   quantity?: number;
   /** Item: how many pins this item places across the map. */
   locationCount?: number;
+  /**
+   * Item: resolved wiki page name (`wikiNameForItem`) — differs from `name` for
+   * affinity/upgrade variants, absent when the wiki has no page for the item.
+   */
+  wikiName?: string;
 }
 
 export interface MapLayer {
@@ -281,6 +289,16 @@ function PinCoords({ pin }: { pin: MapPin }) {
  * shared faded coords line; the middle rows are the enriched, type-specific meta.
  */
 function PinPopupBody({ pin }: { pin: MapPin }) {
+  // Bosses and items have a reliably-named wiki page (validated by
+  // scripts/wiki-link-check.ts); graces often don't, and player/bloodstain
+  // markers have nothing to look up. Item pins use the pre-resolved `wikiName`
+  // (base weapon for variants; absent when the wiki has no page for the item).
+  const wikiName =
+    pin.kind === 'boss'
+      ? wikiNameForBoss(pin.name)
+      : pin.kind === 'item'
+        ? pin.wikiName
+        : undefined;
   return (
     <div className='select-text space-y-1'>
       <strong className='block'>{pin.name}</strong>
@@ -326,6 +344,18 @@ function PinPopupBody({ pin }: { pin: MapPin }) {
 
       {pin.status && pin.kind !== 'bloodstain' && pin.kind !== 'player' && (
         <p className='text-[11px] font-medium opacity-80'>{pin.status}</p>
+      )}
+
+      {/* Link-only — the wiki forbids scraping its content. */}
+      {wikiName !== undefined && (
+        <a
+          href={wikiPageUrl(wikiName)}
+          target='_blank'
+          rel='noreferrer'
+          className='flex w-fit items-center gap-1 text-[11px]'
+        >
+          Elden Ring Wiki <ExternalLinkIcon className='size-3' />
+        </a>
       )}
 
       <PinCoords pin={pin} />

@@ -16,6 +16,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 
 import { useDataTableData } from '@/lib/data-table-data';
 import { cn } from '@/lib/utils';
+import { wikiNameForItem } from '@/lib/wiki';
 import {
   type InventoryTableType,
   TABLE_PLACEMENT_TYPE,
@@ -167,6 +168,7 @@ function useSelectedPins(): MapPin[] {
           return locations.map((p) => ({
             kind: 'item',
             name: row.name,
+            wikiName: wikiNameForItem(row) ?? undefined,
             category: p.source === 'map' ? 'Treasure' : p.approx ? 'Drop · approx. area' : 'Drop',
             description: '',
             discovered: owned, // owned → brighter "collected" shade

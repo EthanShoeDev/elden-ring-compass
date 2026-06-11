@@ -5,7 +5,9 @@ import { type Attributes, MAX_UPGRADE_LEVEL } from '@/lib/ar';
 import { type BuildArchetype, weaponScalesWith } from '@/lib/build-archetypes';
 import { bestAffinityPerWeapon, type RatedWeapon, rateWeapons } from '@/lib/weapon-rating';
 
-import { commonAccessorColumnDef } from '../data-table/common-column-defs';
+import { wikiNameForItem } from '@/lib/wiki';
+
+import { commonAccessorColumnDef, commonWikiColumnDef } from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
 import { createAppColumnHelper, DataTableColumnDef } from '../data-table/table-hook';
 import { TooltipImg } from '../misc/tooltip-img';
@@ -96,6 +98,7 @@ export function WeaponArTable({
     const cols: Array<DataTableColumnDef<RatedWeapon>> = [
       iconColumn,
       commonAccessorColumnDef(columnHelper, 'name', 'Name'),
+      commonWikiColumnDef(columnHelper, wikiNameForItem),
       commonAccessorColumnDef(columnHelper, 'affinity', 'Affinity'),
       commonAccessorColumnDef(columnHelper, 'ar', 'AR', { size: 1 }),
       commonAccessorColumnDef(columnHelper, 'physical', 'Phys'),

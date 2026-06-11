@@ -96,6 +96,7 @@
     "knip:fix:danger": "knip --fix",
     "catalog:check": "bun scripts/catalog-check.ts",
     "catalog:fix": "bun scripts/catalog-check.ts --fix",
+    "wiki:check": "bun scripts/wiki-link-check.ts",
     "nix:flake:update": "nix flake update",
     "deps:check": "ncu --deep",
     "deps:update": "ncu -u --deep",
