@@ -8,6 +8,7 @@ import {
 import { RegistryProvider, useAtomSet } from '@effect/atom-react';
 import { Effect, Exit, Schema } from 'effect';
 import { useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { Providers } from '@/components/providers/providers';
 import { decodeFromUrlEffect } from '@/lib/share/decode';
 import { saveFileSourceAtom } from '@/stores/save-file-source-store';
@@ -75,6 +76,7 @@ function RootComponent() {
             <Outlet />
           </Providers>
         </RegistryProvider>
+        <Analytics />
         <Scripts />
       </body>
     </html>
