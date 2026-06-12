@@ -14,6 +14,7 @@ import { useAtomSet, useAtomValue } from '@effect/atom-react';
 import { useHydrated } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { browserKvsRuntime } from '@/lib/atoms/kvs';
+import { defaultEventRowSelection } from '@/lib/vm/events';
 import { InventoryTableType } from '../sections/inventory-data-table-card';
 import type { DataTableInstance } from './table-hook';
 
@@ -67,11 +68,27 @@ const DataTableStateSchema = Schema.Struct({
   columnOrder: Schema.Array(Schema.String),
 });
 
+// First-visit default: with no persisted state, seed the `events` table so every
+// placeable grace and boss is already pinned on the map (what a user would get by
+// clicking all four quick-select buttons). `defaultValue` is used ONLY when the
+// `data-table-state` key is absent — the first time someone lands on the site — and
+// is superseded the moment any table state is written, so a returning user who has
+// cleared their pins keeps an empty map.
 const tableStateAtom = Atom.kvs({
   runtime: browserKvsRuntime,
   key: 'data-table-state',
   schema: Schema.Record(Schema.String, DataTableStateSchema),
-  defaultValue: () => ({}),
+  defaultValue: () => ({
+    events: {
+      tableId: 'events',
+      rowSelection: defaultEventRowSelection(),
+      columnVisibility: {},
+      columnFilters: [],
+      sorting: [],
+      columnSizing: {},
+      columnOrder: [],
+    },
+  }),
   // oxlint-disable-next-line unknown-cast/forbidden -- the schema validates the persisted readonly shape; the app uses TanStack's mutable types, bridged here once
 }) as unknown as Atom.Writable<TableStateMap, TableStateMap>;
 

@@ -41,6 +41,21 @@ const FLAG_EVENTS: ReadonlyArray<BaseEvent & { flagId: number }> = [
   ).values(),
 ].map((e) => ({ ...e, flagId: e.id }));
 
+/**
+ * First-visit map selection: every grace/boss that has a placeable overworld
+ * pixel, keyed by flag id. This is the union of what the map's four quick-select
+ * buttons ("Discovered/Undiscovered Graces", "Completed/Incomplete Bosses") would
+ * pin, so a brand-new visitor (no persisted table state yet) lands with all graces
+ * and bosses already on the map. Seeds the `events` table's default row selection.
+ */
+export function defaultEventRowSelection(): Record<string, boolean> {
+  const selection: Record<string, boolean> = {};
+  for (const e of eventsDbView()) {
+    if (e.pixel) selection[e.id.toString()] = true;
+  }
+  return selection;
+}
+
 export function eventsDbView(slot?: Readonly<Slot>) {
   const isFlagOn = (flagId: number) => {
     if (!slot) return false;

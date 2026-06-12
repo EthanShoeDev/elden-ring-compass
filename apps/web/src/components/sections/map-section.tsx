@@ -545,15 +545,18 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
     };
   }, [mounted]);
 
-  /** Select all events of `type` matching `on`, that have a placeable position. */
+  /**
+   * Add all events of `type` matching `on` (that have a placeable position) to the
+   * current pin selection. Additive, not replacing — clicking "Undiscovered Graces"
+   * then "Incomplete Bosses" leaves both pinned; use "Clear pins" to reset.
+   */
   const selectEvents = (type: 'grace' | 'boss', on: boolean) => {
     const matches = eventsItems.filter((e) => e.type === type && e.on === on && e.pixel);
-    setRowSelection('events')(
-      matches.reduce<Record<string, boolean>>((acc, e) => {
-        acc[e.id.toString()] = true;
-        return acc;
-      }, {}),
-    );
+    setRowSelection('events')((prev) => {
+      const next = { ...prev };
+      for (const e of matches) next[e.id.toString()] = true;
+      return next;
+    });
   };
 
   return (
