@@ -421,11 +421,12 @@ export function BuildPlannerSection() {
                     From your Lvl {currentLevel}
                   </span>
                   <span className='font-mono font-semibold tabular-nums'>
-                    {runesBetween(
-                      Math.min(currentLevel, levelTarget),
-                      Math.max(currentLevel, levelTarget),
-                    ).toLocaleString()}
-                    {levelTarget < currentLevel ? ' (respec)' : ''}
+                    {/* runesBetween returns 0 when the target is at or below the
+                        current level — you can't lower your Rune Level, and a
+                        respec (Rennala's Rebirth) costs a Larval Tear, not runes,
+                        so there's genuinely no rune cost to "reach" a lower build. */}
+                    {runesBetween(currentLevel, levelTarget).toLocaleString()}
+                    {levelTarget < currentLevel ? ' — below your level' : ''}
                   </span>
                 </div>
               )}

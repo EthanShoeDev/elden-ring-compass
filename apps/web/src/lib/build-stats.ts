@@ -162,13 +162,31 @@ export const equipLoad = (v: number) => Math.round(lerpCurve(EQ_C, v) * 10) / 10
 
 // --- Rune / level math -------------------------------------------------------
 
-/** Approximate FromSoft level-up rune cost curve (estimate). */
-const runeForLevel = (level: number) => Math.round(0.1 * level ** 3 + 100 * level);
+/**
+ * Exact FromSoft rune cost to advance from `level` to `level + 1`.
+ *
+ * This curve is hardcoded in the game executable (it is NOT a regulation.bin
+ * param, so the extractor can't derive it) — these constants are the
+ * community-reverse-engineered values, which reproduce the in-game table
+ * exactly: runeForLevel(1) === 673, runeForLevel(10) === 829, and the full
+ * 1→713 sum lands on the documented 1,692,558,415 total.
+ *
+ * Source: https://eldenring.wiki.fextralife.com/Level
+ *   x = max(0, ((level + 81) − 92) · 0.02)        // note (level+81)−92 ≡ level−11
+ *   cost = floor((x + 0.1) · (level + 81)² + 1)
+ */
+const runeForLevel = (level: number) =>
+  Math.floor((Math.max(0, (level - 11) * 0.02) + 0.1) * (level + 81) ** 2 + 1);
 
+/**
+ * Total runes to go from level `a` to level `b`. Since runeForLevel(L) is the
+ * cost of the single L→L+1 step, the a→b cost is the sum of steps
+ * runeForLevel(a) … runeForLevel(b − 1).
+ */
 export function runesBetween(a: number, b: number): number {
   if (b <= a) return 0;
   let total = 0;
-  for (let lvl = a + 1; lvl <= b; lvl++) total += runeForLevel(lvl);
+  for (let lvl = a; lvl < b; lvl++) total += runeForLevel(lvl);
   return total;
 }
 
