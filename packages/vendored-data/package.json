@@ -13,7 +13,7 @@
   },
   "scripts": {
     "clean": "rm -rf .turbo *.tsbuildinfo",
-    "typecheck": "tsgo --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@elden-ring-compass/typescript-config": "workspace:*"

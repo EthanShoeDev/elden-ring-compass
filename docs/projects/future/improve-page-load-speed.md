@@ -38,13 +38,14 @@ Two costs follow from this:
 
 1. **Bundle bloat.** The big datasets are compiled into the **main JS bundle** instead of being
    fetched on demand:
-   | dataset | size | rows |
-   | ------------- | ------ | ------ |
-   | `markers.ts` | 4.7 MB | 24,387 |
-   | `placements.ts` (`PLACEMENTS`) | — | 11,361 |
-   | `weapons.ts` | 548 KB | 3,333 |
-   | `armor.ts` | 287 KB | 768 |
-   | `goods.ts` | 240 KB | 2,177 |
+
+   | dataset                        | size   | rows   |
+   | ------------------------------ | ------ | ------ |
+   | `markers.ts`                   | 4.7 MB | 24,387 |
+   | `placements.ts` (`PLACEMENTS`) | —      | 11,361 |
+   | `weapons.ts`                   | 548 KB | 3,333  |
+   | `armor.ts`                     | 287 KB | 768    |
+   | `goods.ts`                     | 240 KB | 2,177  |
 
    That's ~6 MB of static game data the browser downloads + parses **before first paint**, whether
    or not the user opens the map or a data table.

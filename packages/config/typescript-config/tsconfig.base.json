@@ -33,36 +33,12 @@
     "removeComments": false,
     "plugins": [
       {
+        // Effect diagnostics are reported by oxlint (see oxlint.config.ts, the
+        // `effecttsgo/*` rules, wired by the `effect-tsgo patch --oxlint` prepare
+        // step) so they are not emitted twice. The plugin stays for hovers, quick
+        // fixes and refactors.
         "name": "@effect/language-service",
-        "diagnosticSeverity": {
-          "catchAllToMapError": "error",
-          "catchUnfailableEffect": "error",
-          "effectFnIife": "error",
-          "effectFnOpportunity": "error",
-          "effectGenUsesAdapter": "error",
-          "effectInFailure": "error",
-          "effectInVoidSuccess": "error",
-          "effectMapVoid": "error",
-          "effectSucceedWithVoid": "error",
-          "globalErrorInEffectCatch": "error",
-          "globalErrorInEffectFailure": "error",
-          "layerMergeAllWithDependencies": "error",
-          "leakingRequirements": "error",
-          "multipleEffectProvide": "error",
-          "preferSchemaOverJson": "error",
-          "redundantSchemaTagIdentifier": "error",
-          "returnEffectInGen": "error",
-          "runEffectInsideEffect": "error",
-          "schemaStructWithTag": "error",
-          "schemaSyncInEffect": "error",
-          "scopeInLayerEffect": "error",
-          "tryCatchInEffectGen": "error",
-          "unknownInEffectCatch": "error",
-          "unnecessaryEffectGen": "error",
-          "unnecessaryFailYieldableError": "error",
-          "unnecessaryPipe": "error",
-          "unnecessaryPipeChain": "error"
-        }
+        "diagnostics": false
       }
     ]
   }

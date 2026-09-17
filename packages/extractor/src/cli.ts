@@ -6,7 +6,7 @@ import { runPipeline } from './pipeline.ts';
 
 // `--clean`: re-extract the dvdbnd archives from scratch — restore backups and
 // delete previously-unpacked dirs first (e.g. to refresh after a game patch).
-const clean = Flag.boolean('clean').pipe(
+const clean = Flag.Boolean('clean').pipe(
   Flag.withDefault(false),
   Flag.withDescription(
     'Re-extract from scratch: restore backups + delete previously-unpacked dirs.',
@@ -15,7 +15,7 @@ const clean = Flag.boolean('clean').pipe(
 
 // `--game-dir` / `-g`: the Elden Ring install folder (the one containing `Game/`),
 // e.g. `C:\Program Files (x86)\Steam\steamapps\common\ELDEN RING`.
-const gameDir = Flag.directory('game-dir', { mustExist: true }).pipe(
+const gameDir = Flag.Directory('game-dir', { mustExist: true }).pipe(
   Flag.withAlias('g'),
   Flag.withDescription(
     'Path to the Elden Ring install folder (the directory containing Game/).',
@@ -23,7 +23,7 @@ const gameDir = Flag.directory('game-dir', { mustExist: true }).pipe(
 );
 
 // `--out` / `-o`: where extracted artifacts (and the generated data files) land.
-const outDir = Flag.directory('out').pipe(
+const outDir = Flag.Directory('out').pipe(
   Flag.withAlias('o'),
   Flag.withDefault('.er-extractor-out'),
   Flag.withDescription('Directory to write extracted artifacts into.'),
@@ -31,7 +31,7 @@ const outDir = Flag.directory('out').pipe(
 
 // `--image-format` / `--image-quality`: encoding for the images stage. WebP at
 // q80 keeps tiles small; png is lossless; avif is smallest but slowest.
-const imageFormat = Flag.choice('image-format', [
+const imageFormat = Flag.Literals('image-format', [
   'webp',
   'png',
   'jpeg',
@@ -40,7 +40,7 @@ const imageFormat = Flag.choice('image-format', [
   Flag.withDefault('webp' as ImageFormat),
   Flag.withDescription('Output format for extracted images (default webp).'),
 );
-const imageQuality = Flag.integer('image-quality').pipe(
+const imageQuality = Flag.Int('image-quality').pipe(
   Flag.withDefault(80),
   Flag.withDescription('Quality 1–100 for lossy image formats (default 80).'),
 );

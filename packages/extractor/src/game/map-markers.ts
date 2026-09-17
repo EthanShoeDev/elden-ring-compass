@@ -55,7 +55,7 @@ export const loadMapMarkers = (
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const dir = `${gameRoot}/map/mapstudio`;
-    // glob has no effect-native equivalent (FileSystem only lists/​watches); Bun.Glob stays.
+    // glob has no effect-native equivalent (FileSystem only lists/watches); Bun.Glob stays.
     const glob = new Bun.Glob('*.msb.dcx');
     const paths = yield* Effect.tryPromise({
       try: async () => {

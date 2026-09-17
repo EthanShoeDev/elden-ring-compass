@@ -15,12 +15,13 @@
   },
   "scripts": {
     "clean": "rm -rf .turbo *.tsbuildinfo",
-    "typecheck": "tsgo --noEmit",
+    "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run"
   },
   "devDependencies": {
     "@elden-ring-compass/typescript-config": "workspace:*",
+    "vite": "catalog:",
     "vitest": "catalog:"
   },
   "peerDependencies": {

@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { Effect } from 'effect';
-import { bench, describe } from 'vitest';
+import { describe, test } from 'vitest';
 
 import { parseSave } from '../src/index.ts';
 
@@ -26,12 +26,11 @@ const arrayBuffer = fixture.buffer.slice(
 );
 
 describe('parse ER0000.sl2', () => {
+  // Vitest 5: `bench` is a test-context fixture; each registration is run explicitly.
   // `throws: true` surfaces a failing bench instead of silently dropping it.
-  bench(
-    'ts',
-    () => {
+  test('ts', async ({ bench }) => {
+    await bench('ts', () => {
       Effect.runSync(parseSave(arrayBuffer));
-    },
-    { throws: true },
-  );
+    }).run({ throws: true });
+  });
 });

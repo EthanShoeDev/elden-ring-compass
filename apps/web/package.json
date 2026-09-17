@@ -12,7 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "test:perf": "vitest run -c vitest.config.browser.ts --reporter=verbose",
     "test:e2e": "playwright test",
-    "typecheck": "tsgo -b tsconfig.typecheck.json",
+    "typecheck": "tsc -b tsconfig.typecheck.json",
     "clean": "rm -rf .turbo .output .nitro dist *.tsbuildinfo"
   },
   "dependencies": {

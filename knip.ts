@@ -21,12 +21,9 @@ const config: KnipConfig = {
       entry: ['scripts/*.ts'],
     },
     'packages/extractor': {
-      // `git sparse-checkout` / `git rev-parse` in scripts/update-paramdex.ts; knip
-      // mis-reads the git subcommands as standalone binaries.
-      ignoreBinaries: ['sparse-checkout', 'rev-parse'],
       // The pipeline stages are Effect values whose inferred types pull in these internal
       // errors/interfaces; with `declaration: true` (tsconfig.base) they must stay exported
-      // so tsgo can name them in the emitted .d.ts, even though no other file imports them by
+      // so tsc can name them in the emitted .d.ts, even though no other file imports them by
       // name. knip can't see inferred-type usage, so don't flag in-file-only exports here.
       ignoreExportsUsedInFile: true,
     },

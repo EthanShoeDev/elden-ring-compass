@@ -16,7 +16,7 @@
     "update-paramdex": "bun scripts/update-paramdex.ts",
     "gen-icon-thumbs": "bun scripts/gen-icon-thumbs.ts",
     "clean": "rm -rf .turbo dist *.tsbuildinfo",
-    "typecheck": "tsgo --noEmit",
+    "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run"
   },

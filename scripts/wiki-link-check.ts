@@ -202,7 +202,7 @@ const main = ({ concurrency, table, noCache, revalidate }: MainOptions) =>
   Effect.gen(function* () {
     // Never make live requests from CI — every runner would re-hit the wiki
     // (the node_modules cache isn't shared there). This check is a local gate.
-    const ci = yield* Config.boolean('CI').pipe(Config.withDefault(false));
+    const ci = yield* Config.Boolean('CI').pipe(Config.withDefault(false));
     if (ci) {
       yield* Console.log(
         'CI detected — skipping wiki link check (local-only gate).',
@@ -304,25 +304,25 @@ const main = ({ concurrency, table, noCache, revalidate }: MainOptions) =>
 const command = Command.make(
   COMMAND_NAME,
   {
-    concurrency: Flag.integer('concurrency').pipe(
+    concurrency: Flag.Int('concurrency').pipe(
       Flag.withDefault(8),
       Flag.withDescription(
         'Parallel requests (be polite — this hits the live wiki)',
       ),
     ),
-    table: Flag.string('table').pipe(
+    table: Flag.String('table').pipe(
       Flag.optional,
       Flag.withDescription(
         'Only check one inventory table type (e.g. talismans)',
       ),
     ),
-    noCache: Flag.boolean('no-cache').pipe(
+    noCache: Flag.Boolean('no-cache').pipe(
       Flag.withDefault(false),
       Flag.withDescription(
         'Ignore the node_modules/.cache result cache and re-check everything',
       ),
     ),
-    revalidate: Flag.integer('revalidate').pipe(
+    revalidate: Flag.Int('revalidate').pipe(
       Flag.withDefault(10),
       Flag.withDescription(
         'Re-check the N oldest cached entries per run (catches deleted pages)',

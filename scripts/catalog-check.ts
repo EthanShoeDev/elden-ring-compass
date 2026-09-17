@@ -346,20 +346,18 @@ const main = (fix: boolean) =>
 
     yield* Console.log(`Checking ${packagePaths.length} workspace packages...`);
 
-    const workspacePackages = yield* Effect.all(
-      packagePaths.map((p) =>
-        readPackageJson(p).pipe(
-          Effect.map((pkg) => pkg.name),
-          Effect.orElseSucceed(() => null),
-        ),
+    const workspacePackages = yield* Effect.forEach(packagePaths, (p) =>
+      readPackageJson(p).pipe(
+        Effect.map((pkg) => pkg.name),
+        Effect.orElseSucceed(() => null),
       ),
     );
     const workspacePackageNames = new Set(
       workspacePackages.filter(Boolean) as string[],
     );
 
-    const allResults = yield* Effect.all(
-      packagePaths.map((p) => checkPackage(p, catalog, workspacePackageNames)),
+    const allResults = yield* Effect.forEach(packagePaths, (p) =>
+      checkPackage(p, catalog, workspacePackageNames),
     );
 
     const violations = A.flatten(allResults.map((r) => r.violations));
@@ -465,7 +463,7 @@ const main = (fix: boolean) =>
 const command = Command.make(
   COMMAND_NAME,
   {
-    fix: Flag.boolean('fix').pipe(
+    fix: Flag.Boolean('fix').pipe(
       Flag.withDefault(false),
       Flag.withDescription(
         'Automatically fix violations and add deps to catalog',

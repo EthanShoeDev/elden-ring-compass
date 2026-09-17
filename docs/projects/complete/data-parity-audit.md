@@ -69,13 +69,14 @@ checklist — "all closed" means every row below is ✅ or an accepted DROP.
   shop, spells, talismans, tools, spirit-ashes* (\*caveats below). Per-item icons emitted.
 
 **✅ CLOSEABLE-FROM-INSTALL gaps — NOW DONE (all 5 closed this pass):**
-| Gap | Consumer | Resolution |
-| --- | --- | --- |
-| `WEAPONS.allowAshOfWar` | armColumns | ✅ emitted from `EquipParamWeapon.gemMountType==2` |
-| `WEAPONS.isBuffable` | armColumns | ✅ emitted from `EquipParamWeapon.isEnhance` |
-| `ARMOR.category` (Head/Body/Arms/Legs) | armorColumns | ✅ emitted from `EquipParamProtector.protectorCategory` (213/293/124/138) |
-| `ARCHE_TYPE` (class id→label) | `vm/stats.ts` | ✅ new `ARCHETYPES` dataset — `GR_MenuText[288100+id]`, ids 0–9, install-derived |
-| Boss portraits (10) | `story-boss-section` | ✅ already covered — they're Remembrance item icons (goods 2950–2963 → `GOODS.icon` → existing `images/icons/items/{icon}.webp`); web maps boss→remembrance at migration |
+
+| Gap                                    | Consumer             | Resolution                                                                                                                                                               |
+| -------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `WEAPONS.allowAshOfWar`                | armColumns           | ✅ emitted from `EquipParamWeapon.gemMountType==2`                                                                                                                       |
+| `WEAPONS.isBuffable`                   | armColumns           | ✅ emitted from `EquipParamWeapon.isEnhance`                                                                                                                             |
+| `ARMOR.category` (Head/Body/Arms/Legs) | armorColumns         | ✅ emitted from `EquipParamProtector.protectorCategory` (213/293/124/138)                                                                                                |
+| `ARCHE_TYPE` (class id→label)          | `vm/stats.ts`        | ✅ new `ARCHETYPES` dataset — `GR_MenuText[288100+id]`, ids 0–9, install-derived                                                                                         |
+| Boss portraits (10)                    | `story-boss-section` | ✅ already covered — they're Remembrance item icons (goods 2950–2963 → `GOODS.icon` → existing `images/icons/items/{icon}.webp`); web maps boss→remembrance at migration |
 
 **🌐 OPEN GAP — the map subsystem (#4/#9/#10), replaces `map-db.ts` (1.2 MB, ~22 categories):**
 To retire `map-db` we still need: (a) **affine calibration** world→site-pixel [#4 — hand-tuned M00
@@ -93,16 +94,17 @@ to _wire_ the categories/placements to toggleable layers + calibrated rendering.
 This is a separate effort (tiled-map work) and is the **largest remaining legacy dependency.**
 
 **💀 ACCEPTED DROPS / re-mechanism (NOT install-derivable — need your sign-off to drop the UI):**
-| Legacy | Consumer | Decision |
-| --- | --- | --- |
-| `COOKBOOKS` (59) | events table | re-mechanism via **save inventory ownership** (items+names in FMG) — needs a small web change, not a dataset |
-| `WHETBLADES` (12) | events table | curated flag→affinity names — **drop** the tracker or derive ownership |
-| `SUMMONING_POOLS` (162) | events table | **drop** — legacy "names" are literal placeholders |
-| `COLOSSEUMS` (3) | events table | **drop** or keep 3 hardcoded |
-| `SPIRIT_ASHES.abilities` + `summon_quantity` | spiritColumns | wiki-scraped — **drop** those 2 columns |
-| `REGIONS.isBoss` | `vm/regions.ts` | dropped (bossAreaId unreliable) — remove the column |
-| map-fragment fine names | events table | scraped — dropped (coarse names ship) |
-| `STATS` / `STARTING_CLASSES` | none (dead) | delete |
+
+| Legacy                                       | Consumer        | Decision                                                                                                     |
+| -------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------ |
+| `COOKBOOKS` (59)                             | events table    | re-mechanism via **save inventory ownership** (items+names in FMG) — needs a small web change, not a dataset |
+| `WHETBLADES` (12)                            | events table    | curated flag→affinity names — **drop** the tracker or derive ownership                                       |
+| `SUMMONING_POOLS` (162)                      | events table    | **drop** — legacy "names" are literal placeholders                                                           |
+| `COLOSSEUMS` (3)                             | events table    | **drop** or keep 3 hardcoded                                                                                 |
+| `SPIRIT_ASHES.abilities` + `summon_quantity` | spiritColumns   | wiki-scraped — **drop** those 2 columns                                                                      |
+| `REGIONS.isBoss`                             | `vm/regions.ts` | dropped (bossAreaId unreliable) — remove the column                                                          |
+| map-fragment fine names                      | events table    | scraped — dropped (coarse names ship)                                                                        |
+| `STATS` / `STARTING_CLASSES`                 | none (dead)     | delete                                                                                                       |
 
 > **Fallback overlay option (2026-06-04, `er-save-manager`).** Several of the "accepted drops"
 > above are collectible **event-flag trackers** that aren't cleanly install-derivable. The newly

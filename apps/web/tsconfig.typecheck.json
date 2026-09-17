@@ -1,5 +1,5 @@
 {
-  // Typecheck entry point (`tsgo -b tsconfig.typecheck.json`, the `typecheck` script). The app
+  // Typecheck entry point (`tsc -b tsconfig.typecheck.json`, the `typecheck` script). The app
   // (DOM lib) and the worker (WebWorker lib) need different libs, so they're separate programs —
   // but this solution-style config (no files of its own, just references) runs both from a single
   // build command. A `files: []` solution avoids the `composite`/emit requirements that a normal

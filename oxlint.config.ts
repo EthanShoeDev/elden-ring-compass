@@ -1,6 +1,17 @@
+import { recommended as effectTsgoRecommended } from '@effect/tsgo/oxlint-presets';
 import { defineConfig } from 'oxlint';
 
+// Effect diagnostics are reported by oxlint (via the `effect-tsgo patch --oxlint`
+// prepare step), not by the language service, so the whole preset lands at
+// `error` like every other rule here. Deriving the map from the preset keeps new
+// rules enforced when @effect/tsgo is upgraded rather than silently landing at
+// the preset's `warn`. Per-rule opt-outs live in `rules` below.
+const effectTsgoRules = Object.fromEntries(
+  Object.keys(effectTsgoRecommended.rules ?? {}).map((rule) => [rule, 'error']),
+);
+
 export default defineConfig({
+  extends: [effectTsgoRecommended],
   plugins: [
     'eslint',
     'typescript',
@@ -122,6 +133,66 @@ export default defineConfig({
     'promise/always-return': 'off',
     // Memoizing every context value is not required for this app.
     'react/jsx-no-constructed-context-values': 'off',
+
+    // --- Effect rules (@effect/tsgo oxlint preset), all elevated to error ---
+    ...effectTsgoRules,
+    // The rules the Effect language service ships `off` stay off here too:
+    // enabling one is a deliberate opt-in, not a side effect of adopting the
+    // preset (which turns several of them on) or of the blanket `categories`
+    // severities above (which turn on every `effecttsgo` rule in those
+    // categories, preset or not). `prefer-schema-over-json` is the one this
+    // repo opted into (it was `error` in the old tsconfig plugin config), so it
+    // is absent from this list and stays at error.
+    'effecttsgo/any-unknown-in-error-context': 'off',
+    'effecttsgo/async-function': 'off',
+    'effecttsgo/crypto-random-uuid': 'off',
+    'effecttsgo/crypto-random-uuid-in-effect': 'off',
+    'effecttsgo/deterministic-keys': 'off',
+    'effecttsgo/effect-do-notation': 'off',
+    'effecttsgo/extends-native-error': 'off',
+    'effecttsgo/global-console': 'off',
+    'effecttsgo/global-console-in-effect': 'off',
+    'effecttsgo/global-date': 'off',
+    'effecttsgo/global-date-in-effect': 'off',
+    'effecttsgo/global-fetch': 'off',
+    'effecttsgo/global-fetch-in-effect': 'off',
+    'effecttsgo/global-random': 'off',
+    'effecttsgo/global-random-in-effect': 'off',
+    'effecttsgo/global-timers': 'off',
+    'effecttsgo/global-timers-in-effect': 'off',
+    'effecttsgo/instance-of-schema': 'off',
+    'effecttsgo/missed-pipeable-opportunity': 'off',
+    'effecttsgo/missing-effect-service-dependency': 'off',
+    'effecttsgo/missing-pipeable-signature': 'off',
+    'effecttsgo/nested-effect-gen-yield': 'off',
+    'effecttsgo/new-promise': 'off',
+    'effecttsgo/new-schema-class': 'off',
+    'effecttsgo/node-builtin-import': 'off',
+    'effecttsgo/prefer-schema-type-property': 'off',
+    'effecttsgo/process-env': 'off',
+    'effecttsgo/process-env-in-effect': 'off',
+    'effecttsgo/schema-sync': 'off',
+    'effecttsgo/schema-union-of-literals': 'off',
+    'effecttsgo/service-not-as-class': 'off',
+    'effecttsgo/strict-boolean-expressions': 'off',
+    'effecttsgo/strict-effect-provide': 'off',
+    'effecttsgo/unnecessary-arrow-block': 'off',
+    'effecttsgo/unsafe-effect-type-assertion': 'off',
+    // Suggestion-level in the language service (never gated the old `tsc`
+    // typecheck). Every `Schema.Number` in the extractor/data/share schemas
+    // trips it (216 on adoption); switching them to `Schema.Finite` changes
+    // decode semantics (rejects NaN/±Infinity), so that is its own change.
+    'effecttsgo/schema-number': 'off',
+
+    // ─── Newly default at oxlint 1.82 ───────────────────────────────────
+    // React Compiler-derived rules the bump from 1.68 turned on by way of the
+    // blanket `categories` severities above. Held off so the toolchain bump
+    // stays behaviour-neutral; adopting any of them is its own change (the
+    // compiler already bails out of the flagged components at build time).
+    // Counts are the 1.82 first-run totals.
+    'react/set-state-in-effect': 'off', // 7 - theme/mobile/map/share sync-from-external-state effects
+    'react/preserve-manual-memoization': 'off', // 1 - leaflet-map useMemo
+    'react/incompatible-library': 'off', // 1 - data-table (TanStack Table row APIs)
 
     // --- Custom plugin rules ---
     // Disable directives (eslint-disable / @ts-expect-error) must carry a reason.

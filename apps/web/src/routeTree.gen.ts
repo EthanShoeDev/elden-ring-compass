@@ -9,26 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ShareRouteImport } from './routes/share'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as ShareRouteImport } from './routes/share'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as AppQuestsRouteImport } from './routes/_app/quests'
-import { Route as AppOverviewRouteImport } from './routes/_app/overview'
-import { Route as AppInventoryRouteImport } from './routes/_app/inventory'
-import { Route as AppGracesRouteImport } from './routes/_app/graces'
-import { Route as AppCreditsRouteImport } from './routes/_app/credits'
-import { Route as AppBuildRouteImport } from './routes/_app/build'
 import { Route as AppBossesRouteImport } from './routes/_app/bosses'
+import { Route as AppBuildRouteImport } from './routes/_app/build'
+import { Route as AppCreditsRouteImport } from './routes/_app/credits'
+import { Route as AppGracesRouteImport } from './routes/_app/graces'
+import { Route as AppInventoryRouteImport } from './routes/_app/inventory'
+import { Route as AppOverviewRouteImport } from './routes/_app/overview'
+import { Route as AppQuestsRouteImport } from './routes/_app/quests'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app/inventory/index'
 import { Route as AppInventoryCategoryRouteImport } from './routes/_app/inventory/$category'
 
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShareRoute = ShareRouteImport.update({
   id: '/share',
   path: '/share',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppRoute = AppRouteImport.update({
-  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -36,29 +36,9 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppQuestsRoute = AppQuestsRouteImport.update({
-  id: '/quests',
-  path: '/quests',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppOverviewRoute = AppOverviewRouteImport.update({
-  id: '/overview',
-  path: '/overview',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppInventoryRoute = AppInventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppGracesRoute = AppGracesRouteImport.update({
-  id: '/graces',
-  path: '/graces',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCreditsRoute = AppCreditsRouteImport.update({
-  id: '/credits',
-  path: '/credits',
+const AppBossesRoute = AppBossesRouteImport.update({
+  id: '/bosses',
+  path: '/bosses',
   getParentRoute: () => AppRoute,
 } as any)
 const AppBuildRoute = AppBuildRouteImport.update({
@@ -66,9 +46,29 @@ const AppBuildRoute = AppBuildRouteImport.update({
   path: '/build',
   getParentRoute: () => AppRoute,
 } as any)
-const AppBossesRoute = AppBossesRouteImport.update({
-  id: '/bosses',
-  path: '/bosses',
+const AppCreditsRoute = AppCreditsRouteImport.update({
+  id: '/credits',
+  path: '/credits',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGracesRoute = AppGracesRouteImport.update({
+  id: '/graces',
+  path: '/graces',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInventoryRoute = AppInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOverviewRoute = AppOverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppQuestsRoute = AppQuestsRouteImport.update({
+  id: '/quests',
+  path: '/quests',
   getParentRoute: () => AppRoute,
 } as any)
 const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
@@ -171,18 +171,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/share': {
-      id: '/share'
-      path: '/share'
-      fullPath: '/share'
-      preLoaderRoute: typeof ShareRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_app': {
       id: '/_app'
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share': {
+      id: '/share'
+      path: '/share'
+      fullPath: '/share'
+      preLoaderRoute: typeof ShareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/': {
@@ -192,39 +192,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/quests': {
-      id: '/_app/quests'
-      path: '/quests'
-      fullPath: '/quests'
-      preLoaderRoute: typeof AppQuestsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/overview': {
-      id: '/_app/overview'
-      path: '/overview'
-      fullPath: '/overview'
-      preLoaderRoute: typeof AppOverviewRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/inventory': {
-      id: '/_app/inventory'
-      path: '/inventory'
-      fullPath: '/inventory'
-      preLoaderRoute: typeof AppInventoryRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/graces': {
-      id: '/_app/graces'
-      path: '/graces'
-      fullPath: '/graces'
-      preLoaderRoute: typeof AppGracesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/credits': {
-      id: '/_app/credits'
-      path: '/credits'
-      fullPath: '/credits'
-      preLoaderRoute: typeof AppCreditsRouteImport
+    '/_app/bosses': {
+      id: '/_app/bosses'
+      path: '/bosses'
+      fullPath: '/bosses'
+      preLoaderRoute: typeof AppBossesRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/build': {
@@ -234,11 +206,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBuildRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/bosses': {
-      id: '/_app/bosses'
-      path: '/bosses'
-      fullPath: '/bosses'
-      preLoaderRoute: typeof AppBossesRouteImport
+    '/_app/credits': {
+      id: '/_app/credits'
+      path: '/credits'
+      fullPath: '/credits'
+      preLoaderRoute: typeof AppCreditsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/graces': {
+      id: '/_app/graces'
+      path: '/graces'
+      fullPath: '/graces'
+      preLoaderRoute: typeof AppGracesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/inventory': {
+      id: '/_app/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof AppInventoryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/overview': {
+      id: '/_app/overview'
+      path: '/overview'
+      fullPath: '/overview'
+      preLoaderRoute: typeof AppOverviewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/quests': {
+      id: '/_app/quests'
+      path: '/quests'
+      fullPath: '/quests'
+      preLoaderRoute: typeof AppQuestsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/inventory/': {

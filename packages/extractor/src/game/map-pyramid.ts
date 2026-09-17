@@ -1,5 +1,5 @@
 import { Data, Effect, FileSystem, PlatformError } from 'effect';
-import sharp from 'sharp';
+import sharp, { type Sharp } from 'sharp';
 
 import type { ImageEncodeOptions } from './images.ts';
 
@@ -73,10 +73,7 @@ export interface DecodedTile {
   readonly png: Uint8Array;
 }
 
-const encodeMaster = (
-  pipe: sharp.Sharp,
-  opts: ImageEncodeOptions,
-): sharp.Sharp =>
+const encodeMaster = (pipe: Sharp, opts: ImageEncodeOptions): Sharp =>
   opts.format === 'png'
     ? pipe.png()
     : opts.format === 'jpeg'

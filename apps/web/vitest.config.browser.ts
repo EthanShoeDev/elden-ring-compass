@@ -23,13 +23,14 @@ export default mergeConfig(
       // `disableConsoleIntercept`, which is why the script, not this flag, is the fix.)
       // Serialize: parallel browser tabs contend for CPU and ruin timing/memory numbers.
       fileParallelism: false,
+      // Gates `cdp()` (forced GC + heap metrics); safe on localhost (both default true there).
+      // Top-level in Vitest 5 (`browser.api` was removed).
+      api: { allowWrite: true, allowExec: true },
       browser: {
         enabled: true,
         provider: playwright(),
         headless: true,
         instances: [{ browser: 'chromium' }],
-        // Gates `cdp()` (forced GC + heap metrics); safe on localhost (both default true there).
-        api: { allowWrite: true, allowExec: true },
       },
     },
   }),

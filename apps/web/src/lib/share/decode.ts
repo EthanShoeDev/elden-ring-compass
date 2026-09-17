@@ -24,7 +24,7 @@ function base64UrlToBytes(encoded: string): Uint8Array {
 }
 
 function parseShareableProgressionJson(json: string): ShareableProgression | null {
-  const decoded = Schema.decodeUnknownExit(ShareableProgressionJson)(json);
+  const decoded = Schema.decodeExit(ShareableProgressionJson)(json);
   if (decoded._tag === 'Failure') return null;
   return decoded.value;
 }

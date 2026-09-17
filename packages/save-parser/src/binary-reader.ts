@@ -26,7 +26,7 @@
 import { Context, Schema } from 'effect';
 
 /** Raised when a read or seek would run past the end of the save buffer. */
-export class SaveTruncatedError extends Schema.TaggedErrorClass<SaveTruncatedError>()(
+export class SaveTruncatedError extends Schema.TaggedError<SaveTruncatedError>()(
   'save-parser/SaveTruncatedError',
   {
     /** Cursor position the read started at. */

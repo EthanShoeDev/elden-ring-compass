@@ -74,7 +74,7 @@ const nameRows = (table: ReadonlyMap<number, string>): NamedRecord[] =>
   [...table.entries()]
     .filter(([, n]) => n.trim().length > 0 && n !== '[ERROR]')
     .map(([id, name]) => ({ id, name }))
-    .sort((a, b) => a.id - b.id);
+    .toSorted((a, b) => a.id - b.id);
 
 // The generated package lives next to the extractor in the monorepo; resolve it
 // from this module so the output dir is independent of the process cwd.

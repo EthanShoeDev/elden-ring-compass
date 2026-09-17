@@ -31,7 +31,7 @@ import { MapContainer, Marker, Popup, Tooltip, useMap, useMapEvents } from 'reac
 import { wikiNameForBoss, wikiPageUrl } from '@/lib/wiki';
 
 /** What kind of thing a pin represents — drives its hover/popup content. */
-export type PinKind = 'grace' | 'boss' | 'item' | 'player' | 'bloodstain';
+type PinKind = 'grace' | 'boss' | 'item' | 'player' | 'bloodstain';
 
 /** A map pin already resolved to a specific master (`M00`/`M10`) + master pixel. */
 export interface MapPin {
@@ -79,12 +79,12 @@ export interface MapPin {
   wikiName?: string;
 }
 
-export interface MapLayer {
+interface MapLayer {
   id: string;
   base: boolean;
   tileCount: number;
 }
-export interface MapEntry {
+interface MapEntry {
   id: string;
   name: string;
   worldToPixelAffine: null;
@@ -188,7 +188,7 @@ const PIN_COLOR = {
   default: '#a89a87',
 } as const;
 
-export function categoryColor(category: string, discovered?: boolean): string {
+function categoryColor(category: string, discovered?: boolean): string {
   const c = category.toLowerCase();
   if (c.includes('grace')) return discovered === false ? PIN_COLOR.graceOff : PIN_COLOR.graceOn;
   if (c.includes('boss')) return discovered === false ? PIN_COLOR.bossOff : PIN_COLOR.bossOn;
@@ -511,23 +511,22 @@ function MapBody({
           </Popup>
         </Marker>
       )}
-      {bloodstainPin &&
-        bloodstainPin.master === activeMapId && (
-          // runes > 0 → active "lost runes"; otherwise the spot is retained but the
-          // runes have already been recovered (or were never dropped). Text is built
-          // in `useBloodstainPin`; here we only pick the active vs. recovered icon.
-          <Marker
-            position={map.unproject([bloodstainPin.px, bloodstainPin.py], z)}
-            icon={(bloodstainPin.runes ?? 0) > 0 ? bloodstainIcon : bloodstainRecoveredIcon}
-          >
-            <Tooltip direction='top' offset={[0, -6]}>
-              <PinTooltipBody pin={bloodstainPin} />
-            </Tooltip>
-            <Popup>
-              <PinPopupBody pin={bloodstainPin} />
-            </Popup>
-          </Marker>
-        )}
+      {bloodstainPin && bloodstainPin.master === activeMapId && (
+        // runes > 0 → active "lost runes"; otherwise the spot is retained but the
+        // runes have already been recovered (or were never dropped). Text is built
+        // in `useBloodstainPin`; here we only pick the active vs. recovered icon.
+        <Marker
+          position={map.unproject([bloodstainPin.px, bloodstainPin.py], z)}
+          icon={(bloodstainPin.runes ?? 0) > 0 ? bloodstainIcon : bloodstainRecoveredIcon}
+        >
+          <Tooltip direction='top' offset={[0, -6]}>
+            <PinTooltipBody pin={bloodstainPin} />
+          </Tooltip>
+          <Popup>
+            <PinPopupBody pin={bloodstainPin} />
+          </Popup>
+        </Marker>
+      )}
       <MapStatusReadout zoom={z} />
     </>
   );

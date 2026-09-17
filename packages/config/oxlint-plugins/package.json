@@ -20,7 +20,7 @@
   "scripts": {
     "clean": "rm -rf .turbo dist *.tsbuildinfo",
     "build": "tsdown",
-    "typecheck": "tsgo --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@elden-ring-compass/typescript-config": "workspace:*",

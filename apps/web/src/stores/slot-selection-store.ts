@@ -16,7 +16,7 @@ const slotMemoryAtom = Atom.kvs({
   runtime: browserKvsRuntime,
   key: 'selectedSlotBySteamId',
   schema: Schema.Record(Schema.String, Schema.String),
-  defaultValue: () => ({}) as Record<string, string>,
+  defaultValue: () => ({}),
 });
 
 export const useSlotNameSelection = () => {

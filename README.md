@@ -16,8 +16,8 @@ entirely in your browser. Nothing is ever written back to the save.
 - **TanStack Table** + **TanStack Virtual** — virtualized data tables
 - **Bun** + **Turborepo** — package manager and monorepo task runner
 - **Vite** / **Nitro** — bundling and the production server
-- **oxlint / oxfmt** — linting and formatting
-- **tsgo** (TypeScript native preview) — type checking
+- **oxlint / oxfmt** — linting (type-aware via `oxlint-tsgolint`, with Effect rules from `@effect/tsgo`) and formatting
+- **TypeScript 7** (native `tsc`, patched by `@effect/tsgo` for Effect diagnostics) — type checking
 - **Vitest** + **Playwright** — unit, browser, and E2E tests
 
 ## Monorepo Layout
@@ -118,7 +118,7 @@ bun run dev
 # Lint + format
 bun run lint
 
-# Type checking (tsgo)
+# Type checking (TypeScript 7 native tsc)
 bun run typecheck
 
 # Tests

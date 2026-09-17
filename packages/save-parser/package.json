@@ -12,7 +12,7 @@
   },
   "scripts": {
     "clean": "rm -rf .turbo *.tsbuildinfo",
-    "typecheck": "tsgo --noEmit",
+    "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
     "test:perf": "NODE_OPTIONS=--expose-gc vitest run -c vitest.config.perf.ts",
