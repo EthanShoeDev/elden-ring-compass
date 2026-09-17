@@ -19,7 +19,9 @@ test('parses the test save via the worker (file upload)', async ({ page }) => {
 
   // The dialog opens on the File source by default. Upload the committed test save directly — the
   // file input accepts input even while hidden. Path is relative to the runner cwd (apps/web).
-  await page.locator('input[type="file"]').setInputFiles('public/ER0000.sl2');
+  await page
+    .locator('input[type="file"]')
+    .setInputFiles('../../packages/save-parser/test/fixtures/ER0000.sl2');
 
   // The worker parse must resolve (not hang on "Loading…"): the dialog closes itself on success and
   // the sidebar switches to the loaded-save state, whose slot switcher names the parsed character.

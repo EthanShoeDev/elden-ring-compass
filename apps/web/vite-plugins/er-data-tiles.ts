@@ -1,8 +1,10 @@
+import { createHash } from 'node:crypto';
 import {
   cpSync,
   createReadStream,
   existsSync,
   readdirSync,
+  readFileSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -13,10 +15,19 @@ import { type Plugin } from 'vite';
 
 /**
  * Serve the extractor-generated map-tile pyramid from `@elden-ring-compass/data` at
- * `/map-tiles/{map}/{layer}/{z}/{y}/{x}.webp`, with no pre-build sync step. Tiles can't be
- * ESM-imported (Leaflet builds tile URLs from a runtime `{z}/{y}/{x}` template), so in dev a
- * middleware streams them from the package, and for the static build they're staged into
- * `public/map-tiles/` so Vite's public-dir handling emits them.
+ * `/map-tiles/{version}/{map}/{layer}/{z}/{y}/{x}.webp`, with no pre-build sync step. Tiles
+ * can't be ESM-imported (Leaflet builds tile URLs from a runtime `{z}/{y}/{x}` template), so in
+ * dev a middleware streams them from the package, and for the static build they're staged into
+ * `public/map-tiles/{version}/` so Vite's public-dir handling emits them.
+ *
+ * `{version}` is a content hash of the whole pyramid (see `hashTileTree`). Files under
+ * `public/` aren't fingerprinted by Vite, so without it Vercel serves them with
+ * `max-age=0, must-revalidate` and every map pan re-validates every tile (a 304 per tile,
+ * each billed as an edge request). Versioning the path lets the deploy mark `/map-tiles/**`
+ * `immutable` (the `routeRules` entry in `vite.config.ts`) — regenerating tiles changes the
+ * hash, so stale caches can't survive a rebuild. The client reads the prefix from the
+ * `__ER_MAP_TILES_BASE__` define (`@/lib/map-tiles`) rather than a fetched manifest so it costs
+ * zero extra requests and manifest/tile-index live under the same immutable prefix.
  *
  * Extracted from `vite.config.ts` so the perf test project (`vitest.perf.config.ts`) can reuse
  * just this plugin without inheriting the app-server plugins (`tanstackStart`/`nitro`), which
@@ -33,12 +44,14 @@ export function erDataTiles(): Plugin {
     '.png': 'image/png',
     '.jpg': 'image/jpeg',
     '.xml': 'application/xml',
+    '.json': 'application/json',
   };
   const pkgJson = fileURLToPath(import.meta.resolve('@elden-ring-compass/data/package.json'));
   const src = path.join(path.dirname(pkgJson), 'images', 'map-tiles');
-  const publicDest = fileURLToPath(new URL('../public/map-tiles', import.meta.url));
-  const INDEX_PATH = '/map-tiles/tile-index.json';
+  const publicRoot = fileURLToPath(new URL('../public/map-tiles', import.meta.url));
+  const INDEX_FILE = 'tile-index.json';
   let isBuild = false;
+  let version = '';
   let indexJson: string | null = null;
 
   /** Lazily build (and cache) the JSON existence index from the on-disk pyramid. */
@@ -46,48 +59,80 @@ export function erDataTiles(): Plugin {
 
   return {
     name: 'er-data-tiles',
-    configResolved(config) {
-      isBuild = config.command === 'build';
+    config(_config, { command }) {
+      isBuild = command === 'build';
       if (!existsSync(src)) {
         throw new Error(
           `[er-data-tiles] tiles missing: ${src}\n` +
             `Run the er-extractor images stage first (it writes the data package).`,
         );
       }
+      version = hashTileTree(src);
+      return { define: { __ER_MAP_TILES_BASE__: JSON.stringify(`/map-tiles/${version}`) } };
     },
     configureServer(server) {
-      const prefix = '/map-tiles/';
+      const prefix = `/map-tiles/${version}/`;
       server.middlewares.use((req, res, next) => {
         const url = req.url;
         if (!url || !url.startsWith(prefix)) return next();
+        const pathname = url.split('?')[0] ?? url;
         // Synthetic index (no file on disk) — derived from the tile tree.
-        if ((url.split('?')[0] ?? url) === INDEX_PATH) {
+        if (pathname === prefix + INDEX_FILE) {
           res.setHeader('Content-Type', 'application/json');
           res.setHeader('Cache-Control', 'no-cache');
           res.end(getIndexJson());
           return;
         }
-        const rel = path
-          .normalize(decodeURIComponent(url.split('?')[0] ?? url))
-          .slice(prefix.length);
+        const rel = path.normalize(decodeURIComponent(pathname)).slice(prefix.length);
         const file = path.join(src, rel);
         if (!file.startsWith(src) || !existsSync(file) || !statSync(file).isFile()) {
           return next();
         }
         res.setHeader('Content-Type', MIME[path.extname(file)] ?? 'application/octet-stream');
-        res.setHeader('Cache-Control', 'public, max-age=86400');
+        // Not `immutable` in dev: the version is computed once at startup, so tiles regenerated
+        // mid-session would otherwise stay stale in the browser until the URL changes.
+        res.setHeader('Cache-Control', 'no-cache');
         createReadStream(file).pipe(res);
       });
     },
     buildStart() {
       // Stage tiles into public/ so the static build emits them. Dev uses the middleware
-      // above, so skip the copy there (buildStart also fires on `serve`).
+      // above, so skip the copy there (buildStart also fires on `serve`). Wiping the root
+      // (not just this version's dir) drops pyramids staged by earlier builds.
       if (!isBuild) return;
-      rmSync(publicDest, { recursive: true, force: true });
-      cpSync(src, publicDest, { recursive: true });
-      writeFileSync(path.join(publicDest, 'tile-index.json'), getIndexJson());
+      const dest = path.join(publicRoot, version);
+      rmSync(publicRoot, { recursive: true, force: true });
+      cpSync(src, dest, { recursive: true });
+      writeFileSync(path.join(dest, INDEX_FILE), getIndexJson());
     },
   };
+}
+
+/**
+ * Short content hash of every file in the pyramid (paths + bytes, sorted so it's stable across
+ * platforms/checkouts). ~50 MB, so it costs on the order of 100 ms once per dev start / build.
+ * Bytes rather than sizes: a re-encoded tile of identical byte length would otherwise be
+ * served stale for a year under `immutable`.
+ */
+function hashTileTree(srcDir: string): string {
+  const files: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.isFile()) files.push(full);
+    }
+  };
+  walk(srcDir);
+  files.sort();
+  const hash = createHash('sha1');
+  for (const file of files) {
+    hash.update(path.relative(srcDir, file).replaceAll('\\', '/'));
+    hash.update('\0');
+    hash.update(readFileSync(file));
+    hash.update('\0');
+  }
+  return hash.digest('hex').slice(0, 12);
 }
 
 /**

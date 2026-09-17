@@ -26,7 +26,7 @@ import { parseSave } from '../src/index.ts';
 
 const here = (rel: string) => fileURLToPath(new URL(rel, import.meta.url));
 
-const fixture = readFileSync(here('../../../apps/web/public/ER0000.sl2'));
+const fixture = readFileSync(here('./fixtures/ER0000.sl2'));
 const arrayBuffer = fixture.buffer.slice(
   fixture.byteOffset,
   fixture.byteOffset + fixture.byteLength,

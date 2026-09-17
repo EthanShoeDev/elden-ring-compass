@@ -28,6 +28,7 @@ import { ExternalLinkIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, Marker, Popup, Tooltip, useMap, useMapEvents } from 'react-leaflet';
 
+import { MAP_TILES_BASE } from '@/lib/map-tiles';
 import { wikiNameForBoss, wikiPageUrl } from '@/lib/wiki';
 
 /** What kind of thing a pin represents — drives its hover/popup content. */
@@ -494,7 +495,7 @@ function MapBody({
     <>
       <ExistenceTileLayer
         key={activeMapId}
-        url={`/map-tiles/${activeMapId}/${BASE_LAYER}/{z}/{y}/{x}.webp`}
+        url={`${MAP_TILES_BASE}/${activeMapId}/${BASE_LAYER}/{z}/{y}/{x}.webp`}
         tileSize={manifest.tileSize}
         maxNativeZoom={z}
         bounds={bounds}

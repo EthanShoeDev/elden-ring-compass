@@ -8,6 +8,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./fixtures/ER0000.sl2": "./test/fixtures/ER0000.sl2",
     "./package.json": "./package.json"
   },
   "scripts": {

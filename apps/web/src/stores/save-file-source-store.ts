@@ -2,6 +2,7 @@ import { Schema } from 'effect';
 import { Atom } from 'effect/unstable/reactivity';
 import { browserKvsRuntime } from '@/lib/atoms/kvs';
 import type { ShareableProgression } from '@/lib/share/types';
+import sampleSaveUrl from '@elden-ring-compass/save-parser-ts/fixtures/ER0000.sl2?url';
 
 type FileData = {
   name: string;
@@ -48,7 +49,7 @@ export const saveFileSourceAtom = Atom.writable<
     const transient = get(transientSourceAtom);
     if (transient !== undefined) return transient;
     const url = get(persistedUrlAtom);
-    return url ? { url } : undefined;
+    return url ? { url: normalizePersistedUrl(url) } : undefined;
   },
   (ctx, value) => {
     // Set the transient source FIRST: the read fn short-circuits on a defined transient and never
@@ -60,9 +61,27 @@ export const saveFileSourceAtom = Atom.writable<
   },
 );
 
-// The in-repo sample save served from /public — lets people explore a fully
-// connected dashboard without owning the game.
-export const SAMPLE_SAVE_URL = '/ER0000.sl2';
+/**
+ * The in-repo sample save — lets people explore a fully connected dashboard without owning the
+ * game. It's the save-parser package's test fixture, imported as a Vite asset (not dropped in
+ * `public/`) so it's content-hashed into `/assets/ER0000-{hash}.sl2` and served `immutable`: a
+ * 28 MB file that returning visitors would otherwise re-validate on every load, and that would
+ * be served stale for a year if a plain public path were marked immutable and the fixture ever
+ * changed. It must stay OUTSIDE the app root: Nitro's dev router only hands requests with a
+ * known asset extension (js/css/png/webp/…) to Vite, so an in-root `/src/…/ER0000.sl2` dev URL
+ * falls through to SSR and 404s, whereas out-of-root files get a `/@fs/…` URL Nitro passes
+ * straight through.
+ */
+export const SAMPLE_SAVE_URL: string = sampleSaveUrl;
+
+/**
+ * Persisted sample URLs from earlier deploys (`/ER0000.sl2` before it was fingerprinted, or a
+ * previous hash) point at files that no longer exist. Any same-origin `ER0000*.sl2` url is ours,
+ * so re-point it at the current sample. Absolute urls (e.g. a user's local file server) are
+ * left alone.
+ */
+export const normalizePersistedUrl = (url: string): string =>
+  url.startsWith('/') && /\/ER0000(-[\w-]+)?\.sl2$/.test(url) ? SAMPLE_SAVE_URL : url;
 
 // Type guards
 export const isFileSource = (src?: SaveFileSource): src is FileUploadSource =>

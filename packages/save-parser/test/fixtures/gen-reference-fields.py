@@ -18,7 +18,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 REF_SRC = REPO_ROOT / "docs" / "cloned-repos-as-docs" / "er-save-manager" / "src"
-SAVE = REPO_ROOT / "apps" / "web" / "public" / "ER0000.sl2"
+SAVE = REPO_ROOT / "packages" / "save-parser" / "test" / "fixtures" / "ER0000.sl2"
 DEST = Path(__file__).resolve().parent / "reference-fields.er0000.json"
 
 sys.path.insert(0, str(REF_SRC))

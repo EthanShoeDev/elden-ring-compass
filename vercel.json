@@ -1,16 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "bun i",
-  "buildCommand": "turbo run build",
-  "headers": [
-    {
-      "source": "/\\.(png|sl2|jpeg)$",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000"
-        }
-      ]
-    }
-  ]
+  "buildCommand": "turbo run build"
 }

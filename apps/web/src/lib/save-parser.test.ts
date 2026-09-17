@@ -42,7 +42,7 @@ const REPO_ROOT = (() => {
 const savePaths = Effect.sync(() => ({
   // A committed base-game save shipped in public/. (DLC fixtures can join this list once a
   // committed `.sl2` lives in the repo.)
-  baseSave: join(REPO_ROOT, 'apps', 'web', 'public', 'ER0000.sl2'),
+  baseSave: join(REPO_ROOT, 'packages', 'save-parser', 'test', 'fixtures', 'ER0000.sl2'),
 }));
 
 /** Read a save fixture and parse it into the lean DTO, as a typed-failure Effect. */

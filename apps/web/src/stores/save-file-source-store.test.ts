@@ -3,6 +3,8 @@ import {
   isFileSource,
   isUrlSource,
   isSharedSource,
+  normalizePersistedUrl,
+  SAMPLE_SAVE_URL,
   type SaveFileSource,
 } from './save-file-source-store';
 import { LEGACY_SHAREABLE_VERSION } from '@/lib/share/types';
@@ -105,5 +107,28 @@ describe('SaveFileSource type guards', () => {
     it('should return false for undefined', () => {
       expect(isSharedSource(undefined)).toBe(false);
     });
+  });
+});
+
+describe('normalizePersistedUrl', () => {
+  it('re-points the pre-fingerprint sample path at the current sample asset', () => {
+    expect(normalizePersistedUrl('/ER0000.sl2')).toBe(SAMPLE_SAVE_URL);
+  });
+
+  it('re-points a stale fingerprinted sample url at the current one', () => {
+    expect(normalizePersistedUrl('/assets/ER0000-Cabc123_.sl2')).toBe(SAMPLE_SAVE_URL);
+  });
+
+  it('is a no-op for the current sample url', () => {
+    expect(normalizePersistedUrl(SAMPLE_SAVE_URL)).toBe(SAMPLE_SAVE_URL);
+  });
+
+  it('leaves absolute urls (a local file server) alone', () => {
+    const url = 'http://localhost:8080/ER0000.sl2';
+    expect(normalizePersistedUrl(url)).toBe(url);
+  });
+
+  it('leaves other same-origin urls alone', () => {
+    expect(normalizePersistedUrl('/saves/other.sl2')).toBe('/saves/other.sl2');
   });
 });

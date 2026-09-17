@@ -14,7 +14,7 @@ import type { WasmEldenRingSave } from './save-dto';
 // script runs with `--reporter=verbose` to surface them. Thresholds are deliberately HIGH; ratchet
 // down as you learn the real numbers. Run locally with `bun run test:perf`.
 
-const SAVE_URL = '/ER0000.sl2';
+import SAVE_URL from '@elden-ring-compass/save-parser-ts/fixtures/ER0000.sl2?url';
 const WARMUP = 1;
 const RUNS = 5;
 
