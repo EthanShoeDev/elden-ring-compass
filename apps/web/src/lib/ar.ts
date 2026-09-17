@@ -42,3 +42,20 @@ export const MAX_UPGRADE_LEVEL = Math.max(
   0,
   ...[...reinforceLevelCountById.values()].map((n) => n - 1),
 );
+
+/**
+ * Map the shared 0–25 upgrade slider (expressed in regular Smithing Stone
+ * levels) onto one weapon's own reinforce chain. Somber weapons cap at +10, so
+ * clamping made every somber weapon read as fully maxed from +10 upward — a
+ * somber +10 was compared against a regular +13. Scaling proportionally instead
+ * (+25 regular ≡ +10 somber) keeps both chains at the same point in their
+ * progression, matching the community calculators.
+ */
+export const upgradeLevelFor = (w: WeaponScaling, sliderLevel: number): number => {
+  const max = maxUpgradeFor(w);
+  if (max >= MAX_UPGRADE_LEVEL) return Math.min(sliderLevel, max);
+  return Math.round((sliderLevel * max) / MAX_UPGRADE_LEVEL);
+};
+
+/** Somber Smithing Stone weapons' ceiling (+10) — the short reinforce chain. */
+export const SOMBER_MAX_UPGRADE_LEVEL = 10;

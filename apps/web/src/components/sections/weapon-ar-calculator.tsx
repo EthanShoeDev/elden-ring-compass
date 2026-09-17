@@ -1,7 +1,7 @@
 import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
 import { useMemo, useState } from 'react';
 
-import { type Attributes, MAX_UPGRADE_LEVEL } from '@/lib/ar';
+import { type Attributes, MAX_UPGRADE_LEVEL, SOMBER_MAX_UPGRADE_LEVEL } from '@/lib/ar';
 import { type BuildArchetype, weaponScalesWith } from '@/lib/build-archetypes';
 import { bestAffinityPerWeapon, type RatedWeapon, rateWeapons } from '@/lib/weapon-rating';
 
@@ -51,6 +51,10 @@ export function WeaponArTable({
   const [ownedOnly, setOwnedOnly] = useState(false);
   const [relevantOnly, setRelevantOnly] = useState(true);
   const [search, setSearch] = useState('');
+
+  // Somber weapons cap at +10, so the 0–25 slider is mapped onto their shorter
+  // chain — shown here so the comparison the table is making is explicit.
+  const somberUpgrade = Math.round((upgrade * SOMBER_MAX_UPGRADE_LEVEL) / MAX_UPGRADE_LEVEL);
 
   const rows = useMemo<RatedWeapon[]>(() => {
     const query = search.trim().toLowerCase();
@@ -126,7 +130,9 @@ export function WeaponArTable({
         {/* Controls */}
         <div className='flex flex-wrap items-end gap-4'>
           <div className='flex w-44 flex-col gap-1'>
-            <Label className='text-[11px] text-muted-foreground'>Upgrade +{upgrade}</Label>
+            <Label className='text-[11px] text-muted-foreground'>
+              Upgrade +{upgrade} · somber +{somberUpgrade}
+            </Label>
             <Slider
               min={0}
               max={MAX_UPGRADE_LEVEL}
