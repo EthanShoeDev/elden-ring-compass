@@ -109,27 +109,31 @@ export function erDataTiles(): Plugin {
 }
 
 /**
- * Short content hash of every file in the pyramid (paths + bytes, sorted so it's stable across
- * platforms/checkouts). ~50 MB, so it costs on the order of 100 ms once per dev start / build.
- * Bytes rather than sizes: a re-encoded tile of identical byte length would otherwise be
- * served stale for a year under `immutable`.
+ * Short content hash of every file in the pyramid (paths + bytes). ~50 MB, so it costs on the
+ * order of 100 ms once per dev start / build. Bytes rather than sizes: a re-encoded tile of
+ * identical byte length would otherwise be served stale for a year under `immutable`.
+ *
+ * Sorted by the forward-slash RELATIVE path so the hash is identical on every platform: sorting
+ * native paths gives a different order on Windows (`\` is 0x5C and sorts after digits, `/` is
+ * 0x2F and sorts before them — `…/2/…` vs `…/20/…` flips), which made a local build disagree
+ * with Vercel's Linux build about which URL the tiles live at.
  */
 function hashTileTree(srcDir: string): string {
   const files: string[] = [];
-  const walk = (dir: string) => {
+  const walk = (dir: string, rel: string) => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) walk(full);
-      else if (entry.isFile()) files.push(full);
+      const relPath = rel ? `${rel}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) walk(path.join(dir, entry.name), relPath);
+      else if (entry.isFile()) files.push(relPath);
     }
   };
-  walk(srcDir);
+  walk(srcDir, '');
   files.sort();
   const hash = createHash('sha1');
-  for (const file of files) {
-    hash.update(path.relative(srcDir, file).replaceAll('\\', '/'));
+  for (const rel of files) {
+    hash.update(rel);
     hash.update('\0');
-    hash.update(readFileSync(file));
+    hash.update(readFileSync(path.join(srcDir, rel)));
     hash.update('\0');
   }
   return hash.digest('hex').slice(0, 12);
