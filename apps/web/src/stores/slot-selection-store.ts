@@ -7,51 +7,46 @@ import { saveAtom, useEldenRingSave } from '@/lib/atoms/save';
 import { appRuntime } from '@/lib/atoms/runtime';
 import { saveFileSourceAtom } from '@/stores/save-file-source-store';
 
-// In-session selected slot name (effect-atom; replaced the Zustand store).
-const selectedSlotNameAtom = Atom.make<string | undefined>(undefined);
+// In-session selected slot, as an index into `save.slots` (effect-atom; replaced
+// the Zustand store). Indexed rather than keyed by character name: names aren't
+// unique, and same-named characters must stay independently selectable (#10).
+const selectedSlotIndexAtom = Atom.make<number | undefined>(undefined);
 
-// Persisted memory of the chosen slot per save, keyed by steam id (typesafe kvs,
-// not raw localStorage).
+// Persisted memory of the chosen slot index per save, keyed by steam id (typesafe
+// kvs, not raw localStorage).
 const slotMemoryAtom = Atom.kvs({
   runtime: appRuntime,
-  key: 'selectedSlotBySteamId',
-  schema: Schema.Record(Schema.String, Schema.String),
+  key: 'selectedSlotIndexBySteamId',
+  schema: Schema.Record(Schema.String, Schema.Number),
   defaultValue: () => ({}),
 });
 
-export const useSlotNameSelection = () => {
+export const useSlotSelection = () => {
   const { data } = useEldenRingSave();
-  const [selectedSlotName, setSelectedSlotName] = useAtom(selectedSlotNameAtom);
+  const [selectedSlotIndex, setSelectedSlotIndex] = useAtom(selectedSlotIndexAtom);
   const [slotMemory, setSlotMemory] = useAtom(slotMemoryAtom);
 
   useEffect(() => {
-    if (selectedSlotName === undefined && data && data.slots.length > 0) {
-      const steamId = data.global_steam_id;
-      const cached = slotMemory[steamId];
-      if (cached && data.slots.some((s) => s.player_game_data.character_name === cached)) {
-        setSelectedSlotName(cached);
-      } else {
-        const firstSlot = data.slots[0];
-        if (firstSlot) setSelectedSlotName(firstSlot.player_game_data.character_name);
-      }
+    if (selectedSlotIndex === undefined && data && data.slots.length > 0) {
+      const cached = slotMemory[data.global_steam_id];
+      setSelectedSlotIndex(cached !== undefined && cached < data.slots.length ? cached : 0);
     }
-  }, [data, selectedSlotName, slotMemory, setSelectedSlotName]);
+  }, [data, selectedSlotIndex, slotMemory, setSelectedSlotIndex]);
 
-  const setSelectedSlot = (val?: string) => {
+  const setSelectedSlot = (index: number) => {
     if (!data) return;
-    const steamId = data.global_steam_id;
-    if (val) setSlotMemory({ ...slotMemory, [steamId]: val });
-    setSelectedSlotName(val);
+    setSlotMemory({ ...slotMemory, [data.global_steam_id]: index });
+    setSelectedSlotIndex(index);
   };
 
-  return [selectedSlotName, setSelectedSlot] as const;
+  return [selectedSlotIndex, setSelectedSlot] as const;
 };
 
 export const useSelectedSlot = () => {
-  const [slotName] = useSlotNameSelection();
+  const [slotIndex] = useSlotSelection();
   const { data } = useEldenRingSave();
-  if (!data) return;
-  return data.slots.find((slot) => slotName === slot.player_game_data.character_name);
+  if (!data || slotIndex === undefined) return;
+  return data.slots[slotIndex];
 };
 
 /**
@@ -68,7 +63,7 @@ const saveLoadingAtom = Atom.make((get) => {
   const result = get(saveAtom);
   if (AsyncResult.isFailure(result)) return false;
   if (!AsyncResult.isSuccess(result)) return true;
-  return get(selectedSlotNameAtom) === undefined;
+  return get(selectedSlotIndexAtom) === undefined;
 });
 
 export const useSaveLoading = () => useAtomValue(saveLoadingAtom);

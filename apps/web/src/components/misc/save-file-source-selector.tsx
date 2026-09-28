@@ -10,7 +10,7 @@ import {
   SAMPLE_SAVE_URL,
   saveFileSourceAtom,
 } from '@/stores/save-file-source-store';
-import { useSelectedSlot, useSlotNameSelection } from '@/stores/slot-selection-store';
+import { useSelectedSlot, useSlotSelection } from '@/stores/slot-selection-store';
 import { useAtomSet, useAtomValue } from '@effect/atom-react';
 import { ClientOnly, useNavigate } from '@tanstack/react-router';
 import { Effect, Exit } from 'effect';
@@ -423,7 +423,7 @@ export function DisconnectButton({ className, ...props }: React.ComponentProps<t
 export function SlotSwitcher() {
   const { data } = useEldenRingSave();
   const slot = useSelectedSlot();
-  const [slotName, setSlotName] = useSlotNameSelection();
+  const [slotIndex, setSlotIndex] = useSlotSelection();
   if (!data || !slot) return null;
 
   const stats = statsDbView(slot);
@@ -459,17 +459,15 @@ export function SlotSwitcher() {
           </DropdownMenuTrigger>
           {multiple && (
             <DropdownMenuContent align='start' side='right' sideOffset={4} className='w-56'>
-              <DropdownMenuRadioGroup value={slotName ?? ''} onValueChange={setSlotName}>
+              <DropdownMenuRadioGroup value={slotIndex} onValueChange={setSlotIndex}>
                 {/* Label must live inside a group/radio-group — Base UI's
                     MenuGroupContext requirement. */}
                 <DropdownMenuLabel className='text-xs text-muted-foreground'>
                   Save slots
                 </DropdownMenuLabel>
-                {data.slots.map((s) => (
-                  <DropdownMenuRadioItem
-                    key={s.player_game_data.character_name}
-                    value={s.player_game_data.character_name}
-                  >
+                {/* Keyed/valued by slot index — character names can repeat (#10). */}
+                {data.slots.map((s, i) => (
+                  <DropdownMenuRadioItem key={i} value={i}>
                     <span className='flex min-w-0 flex-1 items-center justify-between gap-2'>
                       <span className='truncate'>
                         {s.player_game_data.character_name || 'Tarnished'}

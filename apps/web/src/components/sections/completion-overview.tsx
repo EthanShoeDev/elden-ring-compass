@@ -8,7 +8,7 @@ import {
   type Milestone,
 } from '@/lib/completion';
 import { statsDbView } from '@/lib/vm/stats';
-import { useSelectedSlot, useSlotNameSelection } from '@/stores/slot-selection-store';
+import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { CompletionRing } from './completion-ring';
 import { Badge } from '../ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
@@ -19,7 +19,6 @@ const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : 
 /** The single character card: completion ring + identity + attribute stats. */
 export function CompletionHero() {
   const slot = useSelectedSlot();
-  const [slotName] = useSlotNameSelection();
   const { overallPct } = useCompletion();
 
   if (!slot) return null;
@@ -47,7 +46,9 @@ export function CompletionHero() {
           <CompletionRing pct={overallPct} size={140} centerIconUrl={helm} />
           <div className='flex flex-1 flex-col gap-2 text-center sm:text-left'>
             <div>
-              <div className='text-2xl font-semibold tracking-tight'>{slotName}</div>
+              <div className='text-2xl font-semibold tracking-tight'>
+                {slot.player_game_data.character_name}
+              </div>
               <div className='text-sm text-muted-foreground'>
                 {stats.arche_type} · Level {stats.stats.level} · {playtime}
               </div>
