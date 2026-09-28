@@ -49,8 +49,17 @@ export const MAX_UPGRADE_LEVEL = Math.max(
 export const upgradeLevelFor = (w: WeaponScaling, sliderLevel: number): number => {
   const max = maxUpgradeFor(w);
   if (max >= MAX_UPGRADE_LEVEL) return Math.min(sliderLevel, max);
-  return Math.round((sliderLevel * max) / MAX_UPGRADE_LEVEL);
+  return scaleUpgradeLevel(sliderLevel, max);
 };
+
+/**
+ * Scale a regular-chain level onto a shorter chain of length `max`. Uses
+ * `floor((L + 0.5) · max / 25)` — not `round` — so it reproduces the game's
+ * regular→somber matchmaking table exactly (e.g. +24 → somber +9, not +10:
+ * the last step still needs the Somber Ancient Dragon stone).
+ */
+export const scaleUpgradeLevel = (sliderLevel: number, max: number): number =>
+  Math.floor(((sliderLevel + 0.5) * max) / MAX_UPGRADE_LEVEL);
 
 /** Somber Smithing Stone weapons' ceiling (+10) — the short reinforce chain. */
 export const SOMBER_MAX_UPGRADE_LEVEL = 10;

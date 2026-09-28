@@ -2,7 +2,12 @@ import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
 import { Predicate } from 'effect';
 import { useMemo, useState } from 'react';
 
-import { type Attributes, MAX_UPGRADE_LEVEL, SOMBER_MAX_UPGRADE_LEVEL } from '@/lib/ar';
+import {
+  type Attributes,
+  MAX_UPGRADE_LEVEL,
+  SOMBER_MAX_UPGRADE_LEVEL,
+  scaleUpgradeLevel,
+} from '@/lib/ar';
 import { type BuildArchetype, weaponScalesWith } from '@/lib/build-archetypes';
 import { bestAffinityPerWeapon, type RatedWeapon, rateWeapons } from '@/lib/weapon-rating';
 
@@ -55,7 +60,7 @@ export function WeaponArTable({
 
   // Somber weapons cap at +10, so the 0–25 slider is mapped onto their shorter
   // chain — shown here so the comparison the table is making is explicit.
-  const somberUpgrade = Math.round((upgrade * SOMBER_MAX_UPGRADE_LEVEL) / MAX_UPGRADE_LEVEL);
+  const somberUpgrade = scaleUpgradeLevel(upgrade, SOMBER_MAX_UPGRADE_LEVEL);
 
   const rows = useMemo<RatedWeapon[]>(() => {
     const query = search.trim().toLowerCase();

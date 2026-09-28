@@ -19,4 +19,10 @@ describe('upgradeLevelFor', () => {
     expect(somber && upgradeLevelFor(somber, MAX_UPGRADE_LEVEL)).toBe(10);
     expect(somber && upgradeLevelFor(somber, 0)).toBe(0);
   });
+
+  it('matches the in-game regular→somber matchmaking table at every level', () => {
+    // Regular +0..+25 → somber level (Elden Ring wiki "Weapon Level Restrictions").
+    const table = [0, 0, 1, 1, 1, 2, 2, 3, 3, 3, 4, 4, 5, 5, 5, 6, 6, 7, 7, 7, 8, 8, 9, 9, 9, 10];
+    expect(table.map((_, level) => somber && upgradeLevelFor(somber, level))).toEqual(table);
+  });
 });
