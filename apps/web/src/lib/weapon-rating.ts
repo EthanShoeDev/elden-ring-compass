@@ -6,7 +6,7 @@ import { WEAPONS } from '@elden-ring-compass/data';
 import {
   arCalculator,
   type Attributes,
-  maxUpgradeFor,
+  upgradeLevelFor,
   type WeaponScaling,
   weaponScalingById,
 } from '@/lib/ar';
@@ -39,8 +39,10 @@ export interface RatedWeapon {
 }
 
 /**
- * Rate every armament that has an AR scaling row, at the given attributes and a
- * (per-weapon clamped) upgrade level. `ownedById` maps weapon id → owned, so the
+ * Rate every armament that has an AR scaling row, at the given attributes and an
+ * upgrade level given in regular Smithing Stone terms (0–25) and mapped onto each
+ * weapon's own chain by `upgradeLevelFor`, so somber and regular weapons are
+ * compared at the same point in their progression. `ownedById` maps weapon id → owned, so the
  * caller can partition by ownership.
  */
 export function rateWeapons(
@@ -54,7 +56,7 @@ export function rateWeapons(
     if (EXCLUDED_WEAPON_IDS.has(w.id)) continue;
     const scaling = weaponScalingById.get(w.id);
     if (!scaling) continue; // ammo / no-damage items have no AR
-    const level = Math.min(upgrade, maxUpgradeFor(scaling));
+    const level = upgradeLevelFor(scaling, upgrade);
     const ar = arCalculator.compute(scaling, attrs, level, { twoHanding });
     const e = enrichWeapon(w);
     rated.push({
