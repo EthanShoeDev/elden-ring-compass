@@ -1,9 +1,13 @@
 import { CircleDotIcon, StarIcon, SwordIcon } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
-import { Option, Predicate, Schema } from 'effect';
-import { useEffect, useState } from 'react';
+import { useAtom, useAtomValue } from '@effect/atom-react';
+import { Data, Effect, Option, Predicate, Schema } from 'effect';
+import { HttpClient, HttpClientResponse } from 'effect/http';
+import { Atom } from 'effect/reactivity';
+import * as AsyncResult from 'effect/reactivity/AsyncResult';
 
 import { REPO_URL } from '@/components/shell/nav';
+import { appRuntime } from '@/lib/atoms/runtime';
 import { equipmentDbView } from '@/lib/vm/equipement';
 import { eventsDbView } from '@/lib/vm/events';
 import { inventoryDbView } from '@/lib/vm/inventory';
@@ -47,7 +51,7 @@ export function Footer() {
             <StarIcon />
             Star
             {stars !== null && (
-              <span className='font-mono tabular-nums text-muted-foreground'>
+              <span className='font-mono text-muted-foreground tabular-nums'>
                 {stars.toLocaleString()}
               </span>
             )}
@@ -91,34 +95,32 @@ export function Footer() {
 
 /** The one field read from GitHub's `GET /repos/{owner}/{repo}` response. */
 const GithubRepo = Schema.Struct({ stargazers_count: Schema.Number });
-const decodeGithubRepo = Schema.decodeUnknownOption(GithubRepo);
+
+// REPO_URL = https://github.com/<owner>/<repo>
+const REPO_SLUG = REPO_URL.replace(/^https?:\/\/github\.com\//, '');
 
 /**
  * Live GitHub star count for the repo, fetched client-side (unauthenticated, so
- * subject to GitHub's 60 req/hr/IP limit — fine for a footer). Returns null until
- * loaded or on any failure, so the Star button just omits the number.
+ * subject to GitHub's 60 req/hr/IP limit — fine for a footer). Client-only: SSR
+ * renders the initial state rather than spending the server's rate limit.
+ */
+const githubStarsAtom = appRuntime
+  .atom(
+    HttpClient.get(`https://api.github.com/repos/${REPO_SLUG}`).pipe(
+      Effect.flatMap(HttpClientResponse.filterStatusOk),
+      Effect.flatMap(HttpClientResponse.schemaBodyJson(GithubRepo)),
+      Effect.map((repo) => repo.stargazers_count),
+    ),
+  )
+  .pipe(Atom.withServerValueInitial);
+
+/**
+ * The star count, or null until loaded or on any failure (offline, rate limit),
+ * so the Star button just omits the number.
  */
 function useGithubStars(): number | null {
-  const [stars, setStars] = useState<number | null>(null);
-  useEffect(() => {
-    // REPO_URL = https://github.com/<owner>/<repo>
-    const slug = REPO_URL.replace(/^https?:\/\/github\.com\//, '');
-    const controller = new AbortController();
-    // oxlint-disable-next-line effecttsgo/global-fetch -- one best-effort UI fetch inside a React effect; the web app has no HttpClient layer to route it through
-    fetch(`https://api.github.com/repos/${slug}`, { signal: controller.signal })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((json: unknown) => {
-        const repo = decodeGithubRepo(json);
-        if (Option.isSome(repo)) setStars(repo.value.stargazers_count);
-      })
-      .catch(() => {
-        // Best-effort: on any failure (offline, rate limit, abort) the Star button omits the count.
-      });
-    return () => {
-      controller.abort();
-    };
-  }, []);
-  return stars;
+  const result = useAtomValue(githubStarsAtom);
+  return AsyncResult.isSuccess(result) ? result.value : null;
 }
 
 function uint8ArrayToBase64(uint8Array: Uint8Array) {
@@ -141,55 +143,65 @@ function trimTrailingZeros(uint8Array: Readonly<Uint8Array>) {
 const bigintToString = (_key: string, value: unknown): unknown =>
   Predicate.isBigInt(value) ? value.toString() : value;
 
+type SaveSlot = NonNullable<ReturnType<typeof useSelectedSlot>>;
+
+class CopySaveAsJsonError extends Data.TaggedError('CopySaveAsJsonError')<{
+  readonly message: string;
+  readonly cause: unknown;
+}> {}
+
+/** The selected slot's view-models, in the shape the "Copy Save as JSON" button exports. */
+const saveSlotJson = (slot: SaveSlot) =>
+  JSON.stringify(
+    {
+      stats: statsDbView(slot),
+      regions: regionsDbView(slot)[0],
+      events: {
+        known_events: eventsDbView(slot),
+        event_buffer: uint8ArrayToBase64(trimTrailingZeros(slot.event_flags.flags)),
+      },
+      inventory: inventoryDbView(slot).items,
+      equipment: equipmentDbView(slot),
+    },
+    bigintToString,
+    2,
+  );
+
+/**
+ * Mutation: serialize the slot and write it to the clipboard. Its AsyncResult is the
+ * button's whole state — `waiting` while running, the typed failure, or success (✔
+ * until the next copy).
+ */
+const copySaveAsJsonAtom = appRuntime.fn((slot: SaveSlot) =>
+  Effect.gen(function* () {
+    const json = yield* Effect.try({
+      try: () => saveSlotJson(slot),
+      catch: (cause) => new CopySaveAsJsonError({ message: 'Could not serialize the save', cause }),
+    });
+    yield* Effect.tryPromise({
+      try: () => navigator.clipboard.writeText(json),
+      catch: (cause) =>
+        new CopySaveAsJsonError({ message: 'Could not write to the clipboard', cause }),
+    });
+  }),
+);
+
 function CopySaveAsJsonButton() {
   const slot = useSelectedSlot();
-  const [recentSuccess, setRecentSuccess] = useState(false);
-  const [isPending, setIsPending] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const handleCopy = async () => {
-    if (!slot) return;
-    setIsPending(true);
-    setError(null);
-    try {
-      const equipmentVm = equipmentDbView(slot);
-      const eventsVm = eventsDbView(slot);
-      const inventoryVm = inventoryDbView(slot);
-      const regionsVm = regionsDbView(slot);
-      const statsVm = statsDbView(slot);
-
-      const result = {
-        stats: statsVm,
-        regions: regionsVm[0],
-        events: {
-          known_events: eventsVm,
-          event_buffer: uint8ArrayToBase64(trimTrailingZeros(slot.event_flags.flags)),
-        },
-        inventory: inventoryVm.items,
-        equipment: equipmentVm,
-      };
-
-      await navigator.clipboard.writeText(JSON.stringify(result, bigintToString, 2));
-      setRecentSuccess(true);
-      setTimeout(() => {
-        setRecentSuccess(false);
-      }, 2000);
-    } catch (error) {
-      setError(error instanceof Error ? error : new Error(String(error)));
-    } finally {
-      setIsPending(false);
-    }
-  };
+  const [result, copy] = useAtom(copySaveAsJsonAtom);
+  const error = Option.getOrUndefined(AsyncResult.error(result));
 
   return (
     <Button
       variant='outline'
       size='sm'
-      disabled={!slot || isPending}
-      onClick={() => void handleCopy()}
+      disabled={!slot || result.waiting}
+      onClick={() => {
+        if (slot) copy(slot);
+      }}
     >
-      {isPending && <Spinner />}
-      {recentSuccess && <span className='text-green-500'>✔</span>}
+      {result.waiting && <Spinner />}
+      {AsyncResult.isSuccess(result) && <span className='text-green-500'>✔</span>}
       {error ? error.message : 'Copy Save as JSON'}
     </Button>
   );

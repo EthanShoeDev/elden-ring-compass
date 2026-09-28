@@ -302,7 +302,7 @@ const effectsText = (effects: readonly Effect[]) =>
 function defaultColumns<T extends BaseRow>(
   columnHelperT: DataTableColumnHelper<T>,
 ): Array<DataTableColumnDef<T>> {
-  // oxlint-disable-next-line unknown-cast/forbidden, anti-slop/no-chained-type-assertions -- TanStack ColumnHelper is invariant in its row type; we reuse one helper across the shared BaseRow shape
+  // oxlint-disable-next-line anti-slop/no-chained-type-assertions -- TanStack ColumnHelper is invariant in its row type; we reuse one helper across the shared BaseRow shape
   const columnHelper = columnHelperT as unknown as DataTableColumnHelper<BaseRow>;
   // oxlint-disable-next-line anti-slop/no-chained-type-assertions -- columns built against BaseRow are structurally valid for the caller's narrower T (the `as unknown as` closing this array)
   return [
@@ -334,7 +334,9 @@ function defaultColumns<T extends BaseRow>(
     // control (which writes the `'owned'`/`'missing'` presets) and its faceted chip
     // (which writes exact values like `[2]` — "weapons I have 2 of"). See
     // `quantityFilterFn`; both stay in sync because it's a single column filter.
-    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity', { filterFn: quantityFilterFn }),
+    commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity', {
+      filterFn: quantityFilterFn,
+    }),
     commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
     // How many map pins selecting this row drops (supersedes the old boolean
     // "Has Coordinates" column — a count is strictly more informative). Sortable +
@@ -355,7 +357,7 @@ function defaultColumns<T extends BaseRow>(
         );
       },
     }),
-    // oxlint-disable-next-line unknown-cast/forbidden -- columns built against BaseRow are structurally valid for the caller's narrower T
+    // Cast: columns built against BaseRow are structurally valid for the caller's narrower T
   ] as unknown as Array<DataTableColumnDef<T>>;
 }
 

@@ -56,6 +56,7 @@
         "tailwind-merge": "catalog:",
       },
       "devDependencies": {
+        "@effect/platform-bun": "catalog:",
         "@effect/platform-node": "catalog:",
         "@effect/vitest": "catalog:",
         "@elden-ring-compass/typescript-config": "workspace:*",

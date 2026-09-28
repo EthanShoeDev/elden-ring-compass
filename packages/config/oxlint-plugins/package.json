@@ -4,11 +4,9 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./forbidden-unknown-cast": "./src/forbidden-unknown-cast.ts",
     "./no-cross-package-relative-imports": "./src/no-cross-package-relative-imports.ts",
     "./no-render-time-match-route": "./src/no-render-time-match-route.ts",
     "./no-unexplained-dynamic-import": "./src/no-unexplained-dynamic-import.ts",
-    "./prefer-effect": "./src/prefer-effect.ts",
     "./require-disable-description": "./src/require-disable-description.ts",
     "./vendor/anti-slop": "./src/vendor/anti-slop/index.ts",
     "./vendor/anti-slop/effect": "./src/vendor/anti-slop/effect/index.ts",
@@ -16,11 +14,9 @@
   },
   "publishConfig": {
     "exports": {
-      "./forbidden-unknown-cast": "./dist/forbidden-unknown-cast.mjs",
       "./no-cross-package-relative-imports": "./dist/no-cross-package-relative-imports.mjs",
       "./no-render-time-match-route": "./dist/no-render-time-match-route.mjs",
       "./no-unexplained-dynamic-import": "./dist/no-unexplained-dynamic-import.mjs",
-      "./prefer-effect": "./dist/prefer-effect.mjs",
       "./require-disable-description": "./dist/require-disable-description.mjs",
       "./vendor/anti-slop": "./dist/vendor/anti-slop/index.mjs",
       "./vendor/anti-slop/effect": "./dist/vendor/anti-slop/effect/index.mjs",

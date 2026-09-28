@@ -39,7 +39,7 @@ const rule: Rule.RuleModule = {
 
         for (const comment of sourceCode.getAllComments()) {
           const text = comment.value.trim();
-          // oxlint-disable-next-line anti-slop/no-chained-type-assertions, unknown-cast/forbidden -- ESLint Comment type lacks loc/range but context.report accepts it
+          // oxlint-disable-next-line anti-slop/no-chained-type-assertions -- ESLint Comment type lacks loc/range but context.report accepts it
           const node = comment as unknown as Rule.Node;
           if (effectDiagnosticsPattern.test(text)) {
             context.report({ node, messageId: 'forbiddenEffectDiagnostics' });

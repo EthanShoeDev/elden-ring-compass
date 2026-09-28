@@ -28,7 +28,7 @@ import { ExternalLinkIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, Marker, Popup, Tooltip, useMap, useMapEvents } from 'react-leaflet';
 
-import { MAP_TILES_BASE } from '@/lib/map-tiles';
+import { MAP_TILES_BASE, type MapManifest, type TileIndex } from '@/lib/map-tiles';
 import { wikiNameForBoss, wikiPageUrl } from '@/lib/wiki';
 
 /** What kind of thing a pin represents — drives its hover/popup content. */
@@ -80,34 +80,6 @@ export interface MapPin {
   wikiName?: string;
 }
 
-interface MapLayer {
-  id: string;
-  base: boolean;
-  tileCount: number;
-}
-interface MapEntry {
-  id: string;
-  name: string;
-  worldToPixelAffine: null;
-  layers: MapLayer[];
-}
-export interface MapManifest {
-  tileSize: number;
-  width: number;
-  height: number;
-  maxNativeZoom: number;
-  format: string;
-  tileUrlTemplate: string;
-  maps: MapEntry[];
-}
-
-/**
- * Existence index from `tile-index.json` (derived from the on-disk pyramid by the
- * `er-data-tiles` Vite plugin): `{ [mapId]: { [zoom]: [x0, y0, x1, y1, …] } }`.
- * The extractor drops blank tiles, so this lets us skip requesting them.
- */
-export type TileIndex = Record<string, Record<string, number[]>>;
-
 const BASE_LAYER = 'base';
 
 /** Pack a tile coord into one int key (x, y < 2^16 — far above any zoom's grid). */
@@ -150,14 +122,14 @@ function ExistenceTileLayer({
         // `GridLayer._isValidTile` applies the `bounds`/`noWrap` envelope; we add existence.
         // @types/leaflet doesn't expose GridLayer.prototype._isValidTile; reach
         // the private envelope check through a typed view of the prototype.
-        // oxlint-disable-next-line unknown-cast/forbidden, anti-slop/no-chained-type-assertions -- see comment above
+        // oxlint-disable-next-line anti-slop/no-chained-type-assertions -- see comment above
         const gridProto = GridLayer.prototype as unknown as {
           _isValidTile: (c: { x: number; y: number; z: number }) => boolean;
         };
         const inEnvelope = gridProto._isValidTile.call(this, coords);
         return inEnvelope && exists(coords.z, coords.x, coords.y);
       },
-      // oxlint-disable-next-line unknown-cast/forbidden -- extend() loses TileLayer's (url, options) ctor signature in @types/leaflet (see comment above)
+      // Cast: extend() loses TileLayer's (url, options) ctor signature in @types/leaflet (see comment above)
     }) as unknown as typeof LeafletTileLayer;
     const layer = new ExistenceTL(url, {
       tileSize,
@@ -302,7 +274,7 @@ function PinPopupBody({ pin }: { pin: MapPin }) {
         ? pin.wikiName
         : undefined;
   return (
-    <div className='select-text space-y-1'>
+    <div className='space-y-1 select-text'>
       <strong className='block'>{pin.name}</strong>
 
       {pin.kind === 'boss' && (
@@ -397,7 +369,11 @@ function MapStatusReadout({ zoom }: { zoom: number }) {
   const map = useMap();
   const read = () => {
     const p = map.project(map.getCenter(), zoom);
-    return { z: map.getZoom().toFixed(1), x: Math.round(p.x), y: Math.round(p.y) };
+    return {
+      z: map.getZoom().toFixed(1),
+      x: Math.round(p.x),
+      y: Math.round(p.y),
+    };
   };
   const [info, setInfo] = useState(read);
   useMapEvents({

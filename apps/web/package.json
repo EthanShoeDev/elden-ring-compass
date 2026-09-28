@@ -13,6 +13,7 @@
     "test:perf": "vitest run -c vitest.config.browser.ts --reporter=verbose",
     "test:e2e": "playwright test",
     "typecheck": "tsc -b tsconfig.typecheck.json",
+    "wiki:check": "bun scripts/wiki-link-check.ts",
     "clean": "rm -rf .turbo .output .nitro dist *.tsbuildinfo"
   },
   "dependencies": {
@@ -38,6 +39,7 @@
     "tailwind-merge": "catalog:"
   },
   "devDependencies": {
+    "@effect/platform-bun": "catalog:",
     "@effect/platform-node": "catalog:",
     "@effect/vitest": "catalog:",
     "@elden-ring-compass/typescript-config": "workspace:*",

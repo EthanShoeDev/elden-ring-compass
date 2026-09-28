@@ -4,7 +4,7 @@ import * as AsyncResult from 'effect/reactivity/AsyncResult';
 import { useAtom, useAtomValue } from '@effect/atom-react';
 import { useEffect } from 'react';
 import { saveAtom, useEldenRingSave } from '@/lib/atoms/save';
-import { browserKvsRuntime } from '@/lib/atoms/kvs';
+import { appRuntime } from '@/lib/atoms/runtime';
 import { saveFileSourceAtom } from '@/stores/save-file-source-store';
 
 // In-session selected slot name (effect-atom; replaced the Zustand store).
@@ -13,7 +13,7 @@ const selectedSlotNameAtom = Atom.make<string | undefined>(undefined);
 // Persisted memory of the chosen slot per save, keyed by steam id (typesafe kvs,
 // not raw localStorage).
 const slotMemoryAtom = Atom.kvs({
-  runtime: browserKvsRuntime,
+  runtime: appRuntime,
   key: 'selectedSlotBySteamId',
   schema: Schema.Record(Schema.String, Schema.String),
   defaultValue: () => ({}),

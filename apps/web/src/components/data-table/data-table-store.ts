@@ -14,7 +14,7 @@ import { Atom } from 'effect/reactivity';
 import { useAtomSet, useAtomValue } from '@effect/atom-react';
 import { useHydrated } from '@tanstack/react-router';
 import { useEffect } from 'react';
-import { browserKvsRuntime } from '@/lib/atoms/kvs';
+import { appRuntime } from '@/lib/atoms/runtime';
 import { defaultEventRowSelection } from '@/lib/vm/events';
 import type { InventoryTableType } from '@/lib/inventory-catalog-data';
 import type { DataTableInstance } from './table-hook';
@@ -77,7 +77,7 @@ const DataTableStateSchema = Schema.Struct({
 // cleared their pins keeps an empty map.
 // oxlint-disable-next-line anti-slop/no-chained-type-assertions -- see the `as unknown as` below: bridges the schema's readonly string-keyed shape to TanStack's mutable TableId-keyed types (Writable is invariant, so a single `as` is rejected)
 const tableStateAtom = Atom.kvs({
-  runtime: browserKvsRuntime,
+  runtime: appRuntime,
   key: 'data-table-state',
   schema: Schema.Record(Schema.String, DataTableStateSchema),
   defaultValue: () => ({
@@ -91,7 +91,7 @@ const tableStateAtom = Atom.kvs({
       columnOrder: [],
     },
   }),
-  // oxlint-disable-next-line unknown-cast/forbidden -- the schema validates the persisted readonly string-keyed shape; the app uses TanStack's mutable types keyed by TableId, bridged here once (a single `as` is rejected: Writable is invariant)
+  // Cast: the schema validates the persisted readonly string-keyed shape; the app uses TanStack's mutable types keyed by TableId, bridged here once (a single `as` is rejected: Writable is invariant)
 }) as unknown as Atom.Writable<TableStateMap, TableStateMap>;
 
 // Per-table derived slice. Each `DataTable` subscribes only to ITS slice, so interacting with one

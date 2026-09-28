@@ -69,8 +69,6 @@ export default defineConfig({
   // by their package export paths and resolved through the bun workspace.
   jsPlugins: [
     '@elden-ring-compass/oxlint-plugins/require-disable-description',
-    '@elden-ring-compass/oxlint-plugins/forbidden-unknown-cast',
-    '@elden-ring-compass/oxlint-plugins/prefer-effect',
     '@elden-ring-compass/oxlint-plugins/no-cross-package-relative-imports',
     '@elden-ring-compass/oxlint-plugins/no-unexplained-dynamic-import',
     '@elden-ring-compass/oxlint-plugins/no-render-time-match-route',
@@ -294,8 +292,8 @@ export default defineConfig({
     // Fights unicorn/prefer-logical-operator-over-ternary when || is intentional.
     'typescript/prefer-nullish-coalescing': 'off',
     // Type-aware assertions are used deliberately at JSON/ESLint-AST
-    // boundaries (catalog-check, the oxlint plugins). `unknown-cast/forbidden`
-    // already guards the dangerous `as unknown as` form with a required reason.
+    // boundaries (catalog-check, the oxlint plugins).
+    // anti-slop/no-chained-type-assertions still gates the evidence-free `as unknown as` form.
     'typescript/no-unsafe-type-assertion': 'off',
     // Empty interfaces are TypeScript module augmentation.
     'typescript/no-empty-object-type': 'off',
@@ -375,7 +373,7 @@ export default defineConfig({
     'import/no-namespace': 'off',
     // In-package parent imports are normal; cross-package ones are caught by import-boundaries.
     'import/no-relative-parent-imports': 'off',
-    // Tooling imports node builtins; prefer-effect/* and effecttsgo/node-builtin-import cover runtime code.
+    // Tooling imports node builtins; effecttsgo/node-builtin-import covers runtime code.
     'import/no-nodejs-modules': 'off',
     // Side-effect imports: CSS, test setup.
     'import/no-unassigned-import': 'off',
@@ -607,11 +605,6 @@ export default defineConfig({
     'unicorn/text-encoding-identifier-case': ['error', { withDash: true }],
     // Every disable directive carries a reason.
     'disable-comments/require-description': 'error',
-    // `as unknown as` double-casts bypass the type system; opt in explicitly.
-    'unknown-cast/forbidden': 'error',
-    // Prefer Effect's FileSystem/Path over raw node:fs / node:path.
-    'prefer-effect/no-node-path': 'error',
-    'prefer-effect/no-node-fs': 'error',
     // Relative imports stay inside their package.
     'import-boundaries/no-cross-package-relative-imports': 'error',
     // A dynamic import() must carry a `dynamic-import -- reason` comment.
@@ -698,10 +691,6 @@ export default defineConfig({
         'effecttsgo/global-fetch': 'off',
         // Fixtures read save files and parity data off disk.
         'effecttsgo/node-builtin-import': 'off',
-        // Fixture reads in tests are not runtime/library code.
-        'prefer-effect/no-node-path': 'off',
-        // Same as prefer-effect/no-node-path.
-        'prefer-effect/no-node-fs': 'off',
         // Shared suites take any layer and fixtures mint arbitrary-error effects.
         'effecttsgo/any-unknown-in-error-context': 'off',
         // Harness, perf and spec output goes to the runner's console.
@@ -788,10 +777,6 @@ export default defineConfig({
       ],
       rules: {
         // Tooling touches the filesystem directly.
-        'prefer-effect/no-node-path': 'off',
-        // Same as prefer-effect/no-node-path.
-        'prefer-effect/no-node-fs': 'off',
-        // Same as prefer-effect/no-node-path.
         'effecttsgo/node-builtin-import': 'off',
         // A CLI's report is its stdout.
         'effecttsgo/global-console': 'off',

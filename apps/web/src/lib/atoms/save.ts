@@ -1,8 +1,8 @@
 import { Cause, Data, Effect, Exit, Option, Schema } from 'effect';
-import { FetchHttpClient, HttpClient } from 'effect/http';
-import { Atom } from 'effect/reactivity';
+import { HttpClient } from 'effect/http';
 import * as AsyncResult from 'effect/reactivity/AsyncResult';
 import { useAtomRefresh, useAtomValue } from '@effect/atom-react';
+import { appRuntime } from '@/lib/atoms/runtime';
 import { reconstructSlot } from '@/lib/share/decode';
 import { ParseResponse, type ParseRequest } from '@/lib/er-save-parser.protocol';
 import { isSharedSource, saveFileSourceAtom } from '@/stores/save-file-source-store';
@@ -86,7 +86,7 @@ const toParseError = (cause: unknown) =>
 let parseRunCount = 0;
 
 /** Async atom: parses the active save source via the TS worker. */
-export const saveAtom = Atom.make((get) =>
+export const saveAtom = appRuntime.atom((get) =>
   Effect.gen(function* () {
     const src = get(saveFileSourceAtom);
     if (!src) return yield* new NoSaveSourceError();
@@ -117,7 +117,6 @@ export const saveAtom = Atom.make((get) =>
         : yield* HttpClient.get(src.url).pipe(
             Effect.flatMap((r) => r.arrayBuffer),
             Effect.mapError(toParseError),
-            Effect.provide(FetchHttpClient.layer),
           );
 
     const save = yield* Effect.tryPromise({

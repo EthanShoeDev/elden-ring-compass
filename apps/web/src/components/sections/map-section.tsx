@@ -4,7 +4,7 @@
  * TanStack Start renders server-side, but Leaflet touches `window` at import. So
  * the real map (`leaflet-map.tsx`) is loaded only on the client: a mounted guard
  * gates a `React.lazy` dynamic import, so the leaflet module never executes during
- * SSR. The manifest (tile geometry + map list) is fetched from `MAP_TILES_BASE`.
+ * SSR. The manifest (tile geometry + map list) comes from `mapManifestAtom` (lib/map-tiles.ts).
  *
  * This component owns the non-map UI — the floating control overlays (map
  * switcher, layer toggles, quick-select presets, locate button, legend) — and
@@ -24,6 +24,9 @@ import {
   Trash2Icon,
 } from 'lucide-react';
 import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
+import { useAtomValue } from '@effect/atom-react';
+import { Option } from 'effect';
+import * as AsyncResult from 'effect/reactivity/AsyncResult';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -37,7 +40,7 @@ import {
 } from '@/lib/inventory-catalog';
 import { BADGE_LABEL, bossBadges, bossMapName, bossReward } from '@/lib/boss-meta';
 import { playerToMasterPixel } from '@/lib/map-affine';
-import { MAP_TILES_BASE } from '@/lib/map-tiles';
+import { mapManifestAtom, mapTileIndexAtom } from '@/lib/map-tiles';
 import { bossMapIdByFlag, bossPinByFlag, itemPins } from '@/lib/vm/map-pins';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
@@ -45,7 +48,7 @@ import { useRowSelectionControls, useTableStateMap } from '../data-table/data-ta
 import { Button } from '../ui/button';
 import { Switch } from '../ui/switch';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
-import type { MapManifest, MapPin, TileIndex } from './leaflet-map';
+import type { MapPin } from './leaflet-map';
 import { OVERLAY_BUTTON, OVERLAY_PANEL, PanelLabel } from './map-overlay-chrome';
 import { NearbyItemsPanel } from './nearby-items-panel';
 
@@ -333,7 +336,11 @@ function useSelectedPins(): MapPin[] {
           if (tableId === 'events') {
             const e = eventsItems.find((ev) => ev.id.toString() === id);
             if (!e?.pixel) return [];
-            const base = { master: e.pixel.master, px: e.pixel.px, py: e.pixel.py };
+            const base = {
+              master: e.pixel.master,
+              px: e.pixel.px,
+              py: e.pixel.py,
+            };
             if (e.type === 'grace') {
               return [
                 {
@@ -470,9 +477,12 @@ function useBloodstainPin(): MapPin | null {
 
 export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
   const [mounted, setMounted] = useState(false);
-  const [manifest, setManifest] = useState<MapManifest | null>(null);
-  const [tileIndex, setTileIndex] = useState<TileIndex | undefined>(undefined);
-  const [error, setError] = useState<string | null>(null);
+  const manifestResult = useAtomValue(mapManifestAtom);
+  const manifest = Option.getOrNull(AsyncResult.value(manifestResult));
+  const error = Option.getOrNull(Option.map(AsyncResult.error(manifestResult), (e) => e.message));
+  // Best-effort (see mapTileIndexAtom): on failure every tile is requested.
+  const tileIndexResult = useAtomValue(mapTileIndexAtom);
+  const tileIndex = Option.getOrUndefined(AsyncResult.value(tileIndexResult));
   const [activeMapId, setActiveMapId] = useState('M00');
   // Layer visibility — hide (but don't clear) graces/bosses/items on the map.
   const [layers, setLayers] = useState<Record<LayerKey, boolean>>({
@@ -483,7 +493,7 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
   // Bumped to ask the map to recenter on the player ("center on me").
   const [recenterToken, setRecenterToken] = useState(0);
 
-  // Settled well before the manifest fetch resolves (its effect runs at mount),
+  // Settled well before the manifest fetch resolves (the atom only fetches on the client),
   // so the overlays' mount-time `defaultOpen` is reliable.
   const isMobile = useIsMobile();
 
@@ -519,37 +529,6 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    let cancelled = false;
-    // oxlint-disable-next-line effecttsgo/global-fetch -- static tile-manifest load inside a React effect; the web app has no HttpClient layer to route it through
-    fetch(`${MAP_TILES_BASE}/manifest.json`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`manifest ${r.status}`);
-        return r.json() as Promise<MapManifest>;
-      })
-      .then((m) => {
-        if (!cancelled) setManifest(m);
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) setError(String(error));
-      });
-    // Existence index — best-effort: if it fails the map still works (it just
-    // falls back to requesting every tile, blank ones included).
-    // oxlint-disable-next-line effecttsgo/global-fetch -- same static-asset load as the manifest above
-    fetch(`${MAP_TILES_BASE}/tile-index.json`)
-      .then((r) => (r.ok ? (r.json() as Promise<TileIndex>) : null))
-      .then((idx) => {
-        if (!cancelled && idx) setTileIndex(idx);
-      })
-      .catch(() => {
-        // Best-effort (see above): without the index every tile is requested.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [mounted]);
 
   /**
    * Add all events of `type` matching `on` (that have a placeable position) to the

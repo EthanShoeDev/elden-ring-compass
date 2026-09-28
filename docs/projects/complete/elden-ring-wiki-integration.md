@@ -32,12 +32,12 @@ none`) — a link there couldn't be clicked.
   ("Cleanrot Knight (Spear)" → "Cleanrot Knight") + 4 irregular titles
   (e.g. "Spiritcaller Snail" → "Spirit-Caller Snail").
 
-### Validation — `scripts/wiki-link-check.ts`
+### Validation — `apps/web/scripts/wiki-link-check.ts`
 
-`bun run wiki:check` — also part of `turbo run lint` (`//#wiki:check`).
+`bun run wiki:check` — also part of `turbo run lint` (the web package's `wiki:check` task).
 Flags: `[--table <type>] [--concurrency N] [--no-cache] [--revalidate N]`
 
-Effect-TS (v4 `effect/unstable/http` HttpClient + Bun runtime) script that
+Effect-TS (v4 `effect/http` HttpClient + Bun runtime) script that
 enumerates every URL the UI can produce — the same `CATALOG` grouping and the
 same resolvers — and HEAD-requests each unique one (no content fetched, honoring
 the no-scraping rule). 429/5xx get backoff retries (the wiki rate-limits bursts
@@ -45,7 +45,7 @@ with 502s). All 2,800+ links resolved HTTP 200 as of 2026-06-11.
 
 To keep wiki traffic minimal as a lint step:
 
-- verified-200 URLs are cached in `node_modules/.cache/wiki-link-check/results.json`
+- verified-200 URLs are cached in `apps/web/node_modules/.cache/wiki-link-check/results.json`
   and skipped; only never-seen URLs (new data, or changed URL rules — the cache is
   keyed by final URL) hit the network, plus the `--revalidate` (default 10) oldest
   cached entries per run so deleted pages still surface eventually

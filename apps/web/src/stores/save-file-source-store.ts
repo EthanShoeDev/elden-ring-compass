@@ -1,6 +1,6 @@
 import { Schema } from 'effect';
 import { Atom } from 'effect/reactivity';
-import { browserKvsRuntime } from '@/lib/atoms/kvs';
+import { appRuntime } from '@/lib/atoms/runtime';
 import type { ShareableProgression } from '@/lib/share/types';
 import sampleSaveUrl from '@elden-ring-compass/save-parser-ts/fixtures/ER0000.sl2?url';
 
@@ -27,7 +27,7 @@ export type SaveFileSource = FileUploadSource | UrlSource | SharedDataSource;
 // session-only. We persist the url string (schema-validated) and keep the live
 // source (file/shared/url) in a transient atom that takes precedence.
 const persistedUrlAtom = Atom.kvs({
-  runtime: browserKvsRuntime,
+  runtime: appRuntime,
   key: 'saveFileSourceUrl',
   schema: Schema.String,
   defaultValue: () => '',

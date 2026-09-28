@@ -37,16 +37,22 @@
       "cache": false,
       "dependsOn": ["^clean"],
     },
+    // Live-checks outbound wiki URLs (apps/web/scripts/wiki-link-check.ts). Manages
+    // its own result cache under node_modules/.cache/wiki-link-check (verified URLs
+    // are skipped), so turbo must re-run it rather than replay a cached success.
+    "wiki:check": {
+      "cache": false,
+    },
 
     // `lint` runs the full local pipeline for a package: typecheck plus the
     // root-only checks (oxfmt, jscpd, oxlint, catalog).
     "lint": {
       "dependsOn": ["^build"],
-      "with": ["typecheck", "//#lint:root"],
+      "with": ["typecheck", "wiki:check", "//#lint:root"],
     },
     "lint:check": {
       "dependsOn": ["^build"],
-      "with": ["typecheck", "//#lint:check:root"],
+      "with": ["typecheck", "wiki:check", "//#lint:check:root"],
     },
 
     // === Root-only tasks (the bodies live in root package.json scripts) ===
@@ -58,7 +64,6 @@
         "//#oxlint:fix",
         "//#knip:fix:danger",
         "//#catalog:fix",
-        "//#wiki:check",
       ],
     },
     "//#lint:check:root": {
@@ -68,7 +73,6 @@
         "//#oxlint:check",
         "//#knip:check",
         "//#catalog:check",
-        "//#wiki:check",
       ],
     },
     "//#oxfmt:fix": {},
@@ -82,12 +86,6 @@
     "//#knip:fix:danger": {},
     "//#catalog:fix": {},
     "//#catalog:check": {},
-    // Live-checks outbound wiki URLs. Manages its own result cache under
-    // node_modules/.cache/wiki-link-check (verified URLs are skipped), so turbo
-    // must re-run it rather than replay a cached success.
-    "//#wiki:check": {
-      "cache": false,
-    },
     // oxlint must wait for the custom plugins to be compiled.
     "//#oxlint:fix": {
       "dependsOn": ["@elden-ring-compass/oxlint-plugins#build"],

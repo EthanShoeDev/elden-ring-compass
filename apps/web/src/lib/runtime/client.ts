@@ -11,7 +11,7 @@ import { Logger, ManagedRuntime } from 'effect';
 // garbage, so `colors: false` keeps client logs readable. Use Effect's logging (`Effect.log*`)
 // everywhere; this runtime is how non-Effect code emits those logs.
 //
-// Distinct from `browserKvsRuntime` (`Atom.runtime` in atoms/kvs.ts), which backs reactive atoms —
+// Distinct from `appRuntime` (`Atom.runtime` in atoms/runtime.ts), which backs reactive atoms —
 // that's for state; this is for running effects at entry points.
 const ClientLayer = Logger.layer([Logger.consolePretty({ colors: false })]);
 
