@@ -258,14 +258,24 @@ export const BOSS_GALLERY: readonly GalleryGroup[] = [
         required: true,
         note: 'Great Rune',
       },
-      { flag: 1052520800, name: 'Fire Giant', badges: ['legend'], required: true },
+      {
+        flag: 1052520800,
+        name: 'Fire Giant',
+        badges: ['legend'],
+        required: true,
+      },
     ],
   },
   {
     title: 'The Ashen Endgame',
     subtitle: 'Crumbling Farum Azula to the foot of the Erdtree.',
     bosses: [
-      { flag: 13000800, name: 'Maliketh, the Black Blade', badges: ['legend'], required: true },
+      {
+        flag: 13000800,
+        name: 'Maliketh, the Black Blade',
+        badges: ['legend'],
+        required: true,
+      },
       {
         flag: 11050800,
         name: 'Hoarah Loux, Godfrey',
@@ -299,15 +309,30 @@ export const BOSS_GALLERY: readonly GalleryGroup[] = [
         required: false,
         note: 'Haligtree',
       },
-      { flag: 12030850, name: 'Lichdragon Fortissax', badges: ['legend'], required: false },
+      {
+        flag: 12030850,
+        name: 'Lichdragon Fortissax',
+        badges: ['legend'],
+        required: false,
+      },
       {
         flag: 12040800,
         name: 'Astel, Naturalborn of the Void',
         badges: ['legend'],
         required: false,
       },
-      { flag: 13000830, name: 'Dragonlord Placidusax', badges: ['legend'], required: false },
-      { flag: 12090800, name: 'Regal Ancestor Spirit', badges: ['legend'], required: false },
+      {
+        flag: 13000830,
+        name: 'Dragonlord Placidusax',
+        badges: ['legend'],
+        required: false,
+      },
+      {
+        flag: 12090800,
+        name: 'Regal Ancestor Spirit',
+        badges: ['legend'],
+        required: false,
+      },
     ],
   },
   {
@@ -315,15 +340,30 @@ export const BOSS_GALLERY: readonly GalleryGroup[] = [
     subtitle:
       'Enter through Mohg’s arena after felling Radahn and Mohg, then raise your Scadutree Blessing as you go.',
     bosses: [
-      { flag: 20000800, name: 'Divine Beast Dancing Lion', badges: ['legend'], required: false },
-      { flag: 2048440800, name: 'Rellana, Twin Moon Knight', badges: ['legend'], required: true },
+      {
+        flag: 20000800,
+        name: 'Divine Beast Dancing Lion',
+        badges: ['legend'],
+        required: false,
+      },
+      {
+        flag: 2048440800,
+        name: 'Rellana, Twin Moon Knight',
+        badges: ['legend'],
+        required: true,
+      },
       {
         flag: 21010800,
         name: 'Messmer the Impaler',
         badges: ['demigod', 'legend'],
         required: true,
       },
-      { flag: 2044450800, name: 'Romina, Saint of the Bud', badges: ['legend'], required: true },
+      {
+        flag: 2044450800,
+        name: 'Romina, Saint of the Bud',
+        badges: ['legend'],
+        required: true,
+      },
       {
         flag: 20010800,
         name: 'Promised Consort Radahn',
@@ -337,17 +377,42 @@ export const BOSS_GALLERY: readonly GalleryGroup[] = [
     title: 'Shadow of the Erdtree — optional Remembrances',
     subtitle: 'Powerful side bosses scattered across the Realm of Shadow.',
     bosses: [
-      { flag: 2054390800, name: 'Bayle the Dread', badges: ['legend'], required: false },
+      {
+        flag: 2054390800,
+        name: 'Bayle the Dread',
+        badges: ['legend'],
+        required: false,
+      },
       {
         flag: 28000800,
         name: 'Midra, Lord of Frenzied Flame',
         badges: ['legend'],
         required: false,
       },
-      { flag: 25000800, name: 'Metyr, Mother of Fingers', badges: ['legend'], required: false },
-      { flag: 2049480800, name: 'Commander Gaius', badges: ['legend'], required: false },
-      { flag: 22000800, name: 'Putrescent Knight', badges: ['legend'], required: false },
-      { flag: 20020800, name: 'Scadutree Avatar', badges: ['legend'], required: false },
+      {
+        flag: 25000800,
+        name: 'Metyr, Mother of Fingers',
+        badges: ['legend'],
+        required: false,
+      },
+      {
+        flag: 2049480800,
+        name: 'Commander Gaius',
+        badges: ['legend'],
+        required: false,
+      },
+      {
+        flag: 22000800,
+        name: 'Putrescent Knight',
+        badges: ['legend'],
+        required: false,
+      },
+      {
+        flag: 20020800,
+        name: 'Scadutree Avatar',
+        badges: ['legend'],
+        required: false,
+      },
     ],
   },
 ];

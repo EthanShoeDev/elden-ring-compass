@@ -1,4 +1,4 @@
-import { Effect } from 'effect';
+import { Effect, Predicate } from 'effect';
 
 import { PipelineContext } from '../domain/context.ts';
 import { findOodleDll } from '../external/oodle.ts';
@@ -26,7 +26,7 @@ import { loadMapMarkers } from '../game/map-markers.ts';
 
 const num = (row: ReadonlyMap<string, RowValue>, key: string): number => {
   const v = row.get(key);
-  return typeof v === 'number' ? v : 0;
+  return Predicate.isNumber(v) ? v : 0;
 };
 
 export const markers = (

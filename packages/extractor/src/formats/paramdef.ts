@@ -65,12 +65,12 @@ export const parseParamdefXml = (
   xml: string,
 ): Effect.Effect<Paramdef, ParamdefError> =>
   Effect.gen(function* () {
-    const paramType = xml.match(/<ParamType>([^<]+)<\/ParamType>/)?.[1]?.trim();
+    const paramType = /<ParamType>([^<]+)<\/ParamType>/.exec(xml)?.[1]?.trim();
     if (!paramType) {
       return yield* new ParamdefError({ detail: 'no <ParamType> in def XML' });
     }
     const dataVersion = Number(
-      xml.match(/<DataVersion>(\d+)<\/DataVersion>/)?.[1] ?? -1,
+      /<DataVersion>(\d+)<\/DataVersion>/.exec(xml)?.[1] ?? -1,
     );
     const fields: ParamdefField[] = [];
     // Each field is "<Field Def=\"...\" ...>"; the Def attribute carries the layout.

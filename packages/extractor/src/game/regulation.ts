@@ -1,3 +1,4 @@
+// oxlint-disable-next-line effecttsgo/node-builtin-import -- Effect's Crypto has no AES cipher; FromSoft archives use raw AES (no Effect counterpart)
 import { createDecipheriv } from 'node:crypto';
 
 import { ER_REGULATION_KEY } from '@elden-ring-compass/vendored-data';
@@ -59,7 +60,7 @@ export const loadRegulationParams = (
     const params = new Map<string, Uint8Array>();
     for (const entry of entries) {
       const base = (entry.name ?? '').split(/[\\/]/).pop() ?? '';
-      const name = base.match(/^(.+)\.param$/i)?.[1];
+      const name = /^(.+)\.param$/i.exec(base)?.[1];
       if (name !== undefined) params.set(name, entry.bytes);
     }
     return params;

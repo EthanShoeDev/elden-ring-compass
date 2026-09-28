@@ -1,4 +1,4 @@
-import { Effect, FileSystem, Path } from 'effect';
+import { Effect, FileSystem, Path, Predicate } from 'effect';
 
 import {
   decodeRow,
@@ -46,7 +46,7 @@ export interface SpEffectLabel {
 
 const num = (row: ReadonlyMap<string, RowValue>, key: string): number => {
   const v = row.get(key);
-  return typeof v === 'number' ? v : 0;
+  return Predicate.isNumber(v) ? v : 0;
 };
 
 const isName = (n: string | undefined): n is string =>
@@ -90,7 +90,7 @@ export const loadSpEffectLabels = (
           const name = nameMap.get(r.id);
           if (!isName(name)) continue;
           const f = decodeRow(bytes, r.dataOffset, def, parsed.little);
-          const src = typeof source === 'function' ? source(f) : source;
+          const src = Predicate.isFunction(source) ? source(f) : source;
           for (const field of fields) add(num(f, field), name, src);
         }
       });

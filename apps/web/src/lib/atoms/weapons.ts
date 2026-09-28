@@ -1,4 +1,4 @@
-import { Atom } from 'effect/unstable/reactivity';
+import { Atom } from 'effect/reactivity';
 
 // Affinity derivation (collapse the ~13 affinity variants of each weapon) lives in
 // `@/lib/weapon-affinity` so the save-driven inventory catalog can share it. See

@@ -4,7 +4,7 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import tailwindcss from '@tailwindcss/vite';
 import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { nitro } from 'nitro/vite';
-import path from 'path';
+import path from 'node:path';
 // Pure Vite build/plugins config for the app (`vite dev`/`vite build`). The Vitest test
 // PROJECTS live in the root `vitest.config.ts` + `apps/web/vitest.config{,.browser}.ts`,
 // which `mergeConfig` THIS config to inherit the plugins below. `defineConfig` from

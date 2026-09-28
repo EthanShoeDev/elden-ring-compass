@@ -75,9 +75,9 @@ export interface ReinforceType {
 }
 export interface AttackElementCorrect {
   readonly id: number;
-  readonly correct: {
-    readonly [damageType: string]: { readonly [attr: string]: number | true };
-  };
+  readonly correct: Readonly<
+    Record<string, Readonly<Record<string, number | true>>>
+  >;
 }
 export interface CalcCorrectStage {
   readonly maxVal: number;
@@ -122,9 +122,9 @@ export function evaluateCalcCorrectGraph(
     const lo = i === 1 ? 1 : prev.maxVal + 1;
     const hi = i === stages.length - 1 ? 148 : stage.maxVal;
     for (let v = lo; v <= hi; v++) {
-      if (arr[v] != null) continue;
+      if (arr[v] !== undefined) continue;
       let ratio = (v - prev.maxVal) / (stage.maxVal - prev.maxVal);
-      if (prev.adjPt > 0) ratio = ratio ** prev.adjPt;
+      if (prev.adjPt > 0) ratio **= prev.adjPt;
       else if (prev.adjPt < 0) ratio = 1 - (1 - ratio) ** -prev.adjPt;
       arr[v] = prev.maxGrowVal + (stage.maxGrowVal - prev.maxGrowVal) * ratio;
     }
@@ -177,7 +177,7 @@ export function createArCalculator(tables: ArTables): {
     const ineffectiveAttrs = new Set<ScalingAttr>();
     for (const a of SCALING_ATTRS) {
       const req = weapon.requirements[a];
-      if (req != null && attrs[a] < req) ineffectiveAttrs.add(a);
+      if (req !== undefined && attrs[a] < req) ineffectiveAttrs.add(a);
     }
 
     const damage: Partial<Record<DamageType, number>> = {};

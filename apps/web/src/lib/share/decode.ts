@@ -1,36 +1,26 @@
 import LZString from 'lz-string';
 import { eventFlagOffset } from '@elden-ring-compass/data';
-import { Effect, Schema } from 'effect';
+import { Effect, Option, Schema } from 'effect';
 import { logError, logWarning } from '@/lib/runtime/log';
 import type { Slot } from '@/lib/save-dto';
 import { GZIP_PREFIX } from './encode';
 import { MAX_EVENT_BYTE_OFFSET } from './shareable-events';
-import {
-  LEGACY_SHAREABLE_VERSION,
-  ShareCodecError,
-  type ShareableProgression,
-  ShareableProgressionSchema,
-  SHAREABLE_VERSION,
-} from './types';
+import { ShareCodecError, type ShareableProgression, ShareableProgressionSchema } from './types';
 
 const ShareableProgressionJson = Schema.fromJsonString(ShareableProgressionSchema);
 
 function base64UrlToBytes(encoded: string): Uint8Array {
   const base64 = encoded.replaceAll('-', '+').replaceAll('_', '/');
   const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
-  const binary =
-    typeof atob === 'function' ? atob(padded) : Buffer.from(padded, 'base64').toString('binary');
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  return Uint8Array.from(atob(padded), (char) => char.codePointAt(0) ?? 0);
 }
 
 function parseShareableProgressionJson(json: string): ShareableProgression | null {
-  const decoded = Schema.decodeExit(ShareableProgressionJson)(json);
-  if (decoded._tag === 'Failure') return null;
-  return decoded.value;
+  return Schema.decodeOption(ShareableProgressionJson)(json).pipe(Option.getOrNull);
 }
 
 const gunzip = Effect.fn('gunzip')(function* (bytes: Uint8Array) {
-  if (typeof DecompressionStream !== 'function' || typeof Blob.prototype.stream !== 'function') {
+  if (typeof DecompressionStream === 'undefined' || !('stream' in Blob.prototype)) {
     return bytes;
   }
   const stream = new Blob([bytes.buffer as ArrayBuffer])
@@ -38,7 +28,7 @@ const gunzip = Effect.fn('gunzip')(function* (bytes: Uint8Array) {
     .pipeThrough(new DecompressionStream('gzip'));
   const buffer = yield* Effect.tryPromise({
     try: () => new Response(stream).arrayBuffer(),
-    catch: (cause) => new ShareCodecError({ cause }),
+    catch: (cause) => ShareCodecError.make({ cause }),
   });
   return new Uint8Array(buffer);
 });
@@ -57,8 +47,8 @@ export function decodeFromUrl(encoded: string): ShareableProgression | null {
     if (!json) return null;
 
     return parseShareableProgressionJson(json);
-  } catch (e) {
-    logError('Failed to decode shared data:', e);
+  } catch (error) {
+    logError('Failed to decode shared data:', error);
     return null;
   }
 }
@@ -353,26 +343,4 @@ export function reconstructSlot(data: ShareableProgression): Partial<Slot> {
 /**
  * Check if decoded data is valid.
  */
-export function isValidShareData(data: unknown): data is ShareableProgression {
-  if (!data || typeof data !== 'object') return false;
-  const d = data as Record<string, unknown>;
-  if (d.v === SHAREABLE_VERSION) {
-    return (
-      typeof d.n === 'string' &&
-      typeof d.s === 'object' &&
-      Array.isArray(d.ef) &&
-      Array.isArray(d.ur) &&
-      Array.isArray(d.ga) &&
-      typeof d.pc === 'object'
-    );
-  }
-  return (
-    d.v === LEGACY_SHAREABLE_VERSION &&
-    typeof d.n === 'string' &&
-    typeof d.s === 'object' &&
-    Array.isArray(d.ef) &&
-    Array.isArray(d.ur) &&
-    Array.isArray(d.inv) &&
-    Array.isArray(d.ga)
-  );
-}
+export const isValidShareData = Schema.is(ShareableProgressionSchema);

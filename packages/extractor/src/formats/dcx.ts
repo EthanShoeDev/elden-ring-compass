@@ -79,13 +79,14 @@ export const dcxDecompress = (
   Effect.gen(function* () {
     const { format, uncompressedSize, compressed } = yield* parseDcx(bytes);
     switch (format) {
-      case 'KRAK':
+      case 'KRAK': {
         return yield* oodleDecompress(
           compressed,
           uncompressedSize,
           oo2corePath,
         );
-      case 'ZSTD':
+      }
+      case 'ZSTD': {
         return yield* Effect.tryPromise({
           try: async () => new Uint8Array(await Bun.zstdDecompress(compressed)),
           catch: (cause) =>
@@ -93,7 +94,8 @@ export const dcxDecompress = (
               detail: `zstd decompress failed: ${String(cause)}`,
             }),
         });
-      case 'DFLT':
+      }
+      case 'DFLT': {
         // Bun has no async inflate (only `inflateSync`); DFLT is a cold path for
         // Elden Ring (modern files are KRAK/ZSTD only), so sync here is fine and
         // keeps us off node:zlib/node:util.
@@ -105,9 +107,11 @@ export const dcxDecompress = (
           catch: (cause) =>
             new DcxError({ detail: `zlib inflate failed: ${String(cause)}` }),
         });
-      default:
+      }
+      default: {
         return yield* new DcxError({
           detail: `unsupported DCX format "${format}"`,
         });
+      }
     }
   });

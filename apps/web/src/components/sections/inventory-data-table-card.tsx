@@ -16,6 +16,7 @@ import {
   WrenchIcon,
   type LucideIcon,
 } from 'lucide-react';
+import { Predicate } from 'effect';
 import { useState } from 'react';
 
 import {
@@ -39,13 +40,17 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { showAffinityVariantsAtom } from '@/lib/atoms/weapons';
 import { useDataTableData } from '@/lib/data-table-data';
-import { CATALOG, useInventoryTables, type WithOwnership } from '@/lib/inventory-catalog';
+import {
+  CATALOG,
+  useInventoryTables,
+  type WithOwnership,
+  type InventoryTableType,
+} from '@/lib/inventory-catalog';
 import { TABLE_LABEL, TYPE_TO_SLUG } from '@/lib/inventory-tables';
 import { cn } from '@/lib/utils';
 import { wikiNameForItem } from '@/lib/wiki';
 
 export type { InventoryTableType } from '@/lib/inventory-catalog';
-import type { InventoryTableType } from '@/lib/inventory-catalog';
 
 // Per-category icon (Lucide).
 const CAT_ICON: Record<InventoryTableType, LucideIcon> = {
@@ -193,7 +198,7 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
       ? 'owned'
       : qtyFilter === 'missing'
         ? 'missing'
-        : qtyFilter == null
+        : Predicate.isNullish(qtyFilter)
           ? 'all'
           : null;
 
@@ -280,14 +285,15 @@ const effectsText = (effects: readonly Effect[]) =>
   effects
     .map((e) => {
       const sign =
-        e.type == 'positive'
-          ? e.model == 'additive'
+        e.type === 'positive'
+          ? e.model === 'additive'
             ? '+'
             : '* '
-          : e.model == 'additive'
+          : e.model === 'additive'
             ? '-'
             : '* -';
-      const conditions = e.conditions && e.conditions.length ? ` ${e.conditions.join(',')}` : '';
+      const conditions =
+        e.conditions && e.conditions.length > 0 ? ` ${e.conditions.join(',')}` : '';
       return `${e.attribute} ${sign}${e.value.toString()}${conditions}`;
     })
     .join('\n');
@@ -296,8 +302,9 @@ const effectsText = (effects: readonly Effect[]) =>
 function defaultColumns<T extends BaseRow>(
   columnHelperT: DataTableColumnHelper<T>,
 ): Array<DataTableColumnDef<T>> {
-  // oxlint-disable-next-line unknown-cast/forbidden -- TanStack ColumnHelper is invariant in its row type; we reuse one helper across the shared BaseRow shape
+  // oxlint-disable-next-line unknown-cast/forbidden, anti-slop/no-chained-type-assertions -- TanStack ColumnHelper is invariant in its row type; we reuse one helper across the shared BaseRow shape
   const columnHelper = columnHelperT as unknown as DataTableColumnHelper<BaseRow>;
+  // oxlint-disable-next-line anti-slop/no-chained-type-assertions -- columns built against BaseRow are structurally valid for the caller's narrower T (the `as unknown as` closing this array)
   return [
     commonPinColumnDef(columnHelper),
     commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
@@ -455,6 +462,7 @@ const mixedGoodsColumns = (() => {
 
 // Columns per category. Labels/slugs/order live in `@/lib/inventory-tables`
 // (shared with the sidebar nav + the route); this map only owns the columns.
+// oxlint-disable-next-line typescript/no-explicit-any -- each category's columns are typed to its own row shape and ColumnDef is invariant in it; the consumer pairs them with that category's rows
 const tables: Record<InventoryTableType, Array<DataTableColumnDef<any>>> = {
   armaments: armamentColumns,
   ammo: ammoColumns,

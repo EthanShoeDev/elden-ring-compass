@@ -36,7 +36,7 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
     return <div className={cn(className)}>{title}</div>;
   }
 
-  title = title ?? column.id;
+  const headerTitle = title ?? column.id;
 
   // This component renders through a header context, where `column`/`table` are
   // stable references — the React Compiler may memoize it across table state
@@ -63,7 +63,7 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                   />
                 }
               >
-                <span>{title}</span>
+                <span>{headerTitle}</span>
                 {column.getIsSorted() === 'desc' ? (
                   <ArrowDownIcon className='ml-2 size-4' />
                 ) : column.getIsSorted() === 'asc' ? (

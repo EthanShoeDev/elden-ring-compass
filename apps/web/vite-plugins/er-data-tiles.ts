@@ -10,8 +10,8 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import path from 'path';
-import { type Plugin } from 'vite';
+import path from 'node:path';
+import type { Plugin } from 'vite';
 
 /**
  * Serve the extractor-generated map-tile pyramid from `@elden-ring-compass/data` at

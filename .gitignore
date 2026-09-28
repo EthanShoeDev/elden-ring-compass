@@ -55,3 +55,4 @@ target/
 .er-extractor-out/
 tmp/
 .vercel
+.claude

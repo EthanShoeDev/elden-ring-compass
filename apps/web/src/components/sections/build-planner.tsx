@@ -1,4 +1,5 @@
 import { SCALING_ATTRS, type ScalingAttr } from '@elden-ring-compass/data/ar';
+import { Predicate } from 'effect';
 import {
   PackageCheckIcon,
   RefreshCcwIcon,
@@ -58,7 +59,7 @@ const SCALING_LABEL: Record<ScalingAttr, string> = {
 };
 
 const sliderNum = (v: number | readonly number[]): number =>
-  typeof v === 'number' ? v : (v[0] ?? 0);
+  Predicate.isNumber(v) ? v : (v[0] ?? 0);
 
 type ArchetypeChoice = BuildArchetypeKey | 'custom';
 
@@ -208,7 +209,7 @@ export function BuildPlannerSection() {
             className='flex-wrap'
             value={[archetypeKey]}
             onValueChange={(v) => {
-              const next = v[v.length - 1] as ArchetypeChoice | undefined;
+              const next = v.at(-1) as ArchetypeChoice | undefined;
               if (next) pickArchetype(next);
             }}
           >
@@ -443,7 +444,7 @@ export function BuildPlannerSection() {
           className='rounded-lg border border-border bg-muted/50 p-0.5'
           value={[rankContext]}
           onValueChange={(v) => {
-            const next = v[v.length - 1] as 'target' | 'current' | undefined;
+            const next = v.at(-1) as 'target' | 'current' | undefined;
             if (next) setRankContext(next);
           }}
         >

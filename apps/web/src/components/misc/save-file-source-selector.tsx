@@ -85,7 +85,7 @@ export function ShareCharacterButton({
         if (navigator.clipboard) {
           yield* Effect.tryPromise({
             try: () => navigator.clipboard.writeText(nextUrl),
-            catch: (cause) => new ShareCodecError({ cause }),
+            catch: (cause) => ShareCodecError.make({ cause }),
           });
         }
       }),
@@ -183,7 +183,7 @@ function ConnectSaveContent() {
         className='self-start rounded-md border'
         value={[type]}
         onValueChange={(v) => {
-          const next = v[v.length - 1];
+          const next = v.at(-1);
           if (next) setType(next as 'file' | 'url');
         }}
       >

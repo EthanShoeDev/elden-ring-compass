@@ -180,7 +180,7 @@ function DataTableBody<TData extends { id: number; name: string }>({
     overscan: 12,
   });
 
-  if (!rows.length) {
+  if (rows.length === 0) {
     return (
       <tbody className='grid'>
         <tr className='flex'>
@@ -203,7 +203,10 @@ function DataTableBody<TData extends { id: number; name: string }>({
             // reflow (e.g. the tooltip's floating-ui reading a cell rect on hover)
             // doesn't recompute the whole virtualized grid.
             className='absolute flex w-full border-b transition-colors [contain:layout_paint] hover:bg-muted/50 data-[state=selected]:bg-muted'
-            style={{ height: ROW_HEIGHT, transform: `translateY(${virtualRow.start}px)` }}
+            style={{
+              height: ROW_HEIGHT,
+              transform: `translateY(${virtualRow.start}px)`,
+            }}
           >
             {row.getVisibleCells().map((cell) => (
               <td

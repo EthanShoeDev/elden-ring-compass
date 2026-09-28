@@ -10,7 +10,10 @@ import { LeanSave } from '@elden-ring-compass/save-parser-ts';
 import { Schema } from 'effect';
 
 /** Client → worker: a correlation id and the raw save bytes to parse. */
-export type ParseRequest = { readonly id: number; readonly buffer: ArrayBuffer };
+export type ParseRequest = {
+  readonly id: number;
+  readonly buffer: ArrayBuffer;
+};
 
 /** Worker → client: the parsed save (`ok: true`) or a human-readable error (`ok: false`). */
 export const ParseResponse = Schema.Union([

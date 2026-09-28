@@ -52,7 +52,7 @@ import { NAV, REPO_URL } from './nav';
 // eldenring.exe). Trim trailing ".0" segments for a tidy "1.16" / "1.16.1".
 function prettyVersion(version: string): string {
   const parts = version.split('.');
-  while (parts.length > 2 && parts[parts.length - 1] === '0') parts.pop();
+  while (parts.length > 2 && parts.at(-1) === '0') parts.pop();
   return parts.join('.');
 }
 

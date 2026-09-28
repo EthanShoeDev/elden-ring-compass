@@ -108,10 +108,10 @@ export function wikiNameForItem(row: {
 export function wikiPageUrl(name: string): string {
   const page = name
     .trim()
-    .replace(/[’‘]/g, "'")
-    .replace(/"/g, '')
-    .replace(/\[(\d+)\]/g, '($1)')
-    .replace(/\+(?=\d)/g, '')
-    .replace(/\s+/g, '+');
+    .replaceAll(/[’‘]/g, "'")
+    .replaceAll('"', '')
+    .replaceAll(/\[(\d+)\]/g, '($1)')
+    .replaceAll(/\+(?=\d)/g, '')
+    .replaceAll(/\s+/g, '+');
   return `${WIKI_BASE_URL}/${encodeURI(page)}`;
 }

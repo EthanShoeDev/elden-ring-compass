@@ -10,13 +10,12 @@ const ShareableProgressionJson = Schema.fromJsonString(ShareableProgressionSchem
 
 function bytesToBase64Url(bytes: Uint8Array): string {
   let binary = '';
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  const base64 = typeof btoa === 'function' ? btoa(binary) : Buffer.from(bytes).toString('base64');
-  return base64.replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+  for (const byte of bytes) binary += String.fromCodePoint(byte);
+  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 }
 
 const gzip = Effect.fn('gzip')(function* (bytes: Uint8Array) {
-  if (typeof CompressionStream !== 'function' || typeof Blob.prototype.stream !== 'function') {
+  if (typeof CompressionStream === 'undefined' || !('stream' in Blob.prototype)) {
     return bytes;
   }
   const stream = new Blob([bytes.buffer as ArrayBuffer])
@@ -24,7 +23,7 @@ const gzip = Effect.fn('gzip')(function* (bytes: Uint8Array) {
     .pipeThrough(new CompressionStream('gzip'));
   const buffer = yield* Effect.tryPromise({
     try: () => new Response(stream).arrayBuffer(),
-    catch: (cause) => new ShareCodecError({ cause }),
+    catch: (cause) => ShareCodecError.make({ cause }),
   });
   return new Uint8Array(buffer);
 });

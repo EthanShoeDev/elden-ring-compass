@@ -1,4 +1,5 @@
 import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
+import { Predicate } from 'effect';
 import { useMemo, useState } from 'react';
 
 import { type Attributes, MAX_UPGRADE_LEVEL } from '@/lib/ar';
@@ -18,7 +19,7 @@ import { Label } from '../ui/label';
 import { Slider } from '../ui/slider';
 
 const sliderNum = (v: number | readonly number[]): number =>
-  typeof v === 'number' ? v : (v[0] ?? 0);
+  Predicate.isNumber(v) ? v : (v[0] ?? 0);
 
 /**
  * Weapon AR Calculator — the save-aware min-maxing table. Rates every armament's

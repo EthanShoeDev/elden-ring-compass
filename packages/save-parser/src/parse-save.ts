@@ -157,7 +157,7 @@ export const parseSave = (
 function walkSave(r: BinaryReaderApi): LeanSave {
   for (let i = 0; i < PC_MAGIC.length; i++) {
     if (r.byteAt(i) !== PC_MAGIC[i]) {
-      throw new SaveMagicMismatchError();
+      throw SaveMagicMismatchError.make();
     }
   }
 

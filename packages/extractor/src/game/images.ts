@@ -267,7 +267,7 @@ export const extractImages = (
             ),
             oo2corePath,
           )
-        : new Map();
+        : new Map<string, MapMask>();
 
       const bhd = new Uint8Array(
         yield* Effect.promise(() => Bun.file(bhdPath).arrayBuffer()),
@@ -297,7 +297,7 @@ export const extractImages = (
         const key = `${t.col}_${t.row}`;
         const arr = cells.get(key) ?? [];
         arr.push({
-          variant: parseInt(t.layer, 16) >>> 0,
+          variant: Number.parseInt(t.layer, 16) >>> 0,
           col: t.col,
           row: t.row,
           offset: h.dataOffset,
@@ -438,7 +438,7 @@ export const extractImages = (
       const textures = yield* tpfTextures(bytes, oo2corePath);
       yield* fs.makeDirectory(`${iconDir}/${sheet}`, { recursive: true });
       for (const [i, t] of textures.entries()) {
-        const safe = (t.name || `tex_${i}`).replace(/[^\w.-]/g, '_');
+        const safe = (t.name || `tex_${i}`).replaceAll(/[^\w.-]/g, '_');
         const outBase = `${iconDir}/${sheet}/${i}_${safe}`;
         if (yield* fileExists(`${outBase}.${ext}`)) continue;
         const png = yield* ddsToPng(t.dds);
@@ -470,10 +470,10 @@ export const extractImages = (
       );
       for (const h of headers) {
         const base = (h.name ?? '').split(/[\\/]/).pop() ?? '';
-        const m = base.match(/MENU_Knowledge_0*(\d+)/i);
+        const m = /MENU_Knowledge_0*(\d+)/i.exec(base);
         const idStr = m?.[1];
         if (idStr === undefined) continue;
-        const iconId = parseInt(idStr, 10);
+        const iconId = Number.parseInt(idStr, 10);
         const outBase = `${itemIconDir}/${iconId}`;
         const thumbBase = `${itemThumbDir}/${iconId}`;
         const haveFull = yield* fileExists(`${outBase}.${ext}`);

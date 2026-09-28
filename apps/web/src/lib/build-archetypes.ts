@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 import type { ScalingAttr, WeaponScaling } from '@/lib/ar';
-import { type Attr8Key, type Attrs8 } from '@/lib/build-stats';
+import type { Attr8Key, Attrs8 } from '@/lib/build-stats';
 
 export type BuildArchetypeKey =
   | 'strength'
@@ -159,6 +159,15 @@ export const buildArchetypeByKey: ReadonlyMap<BuildArchetypeKey, BuildArchetype>
   BUILD_ARCHETYPES.map((a) => [a.key, a]),
 );
 
+/** Pure archetype for the single dominant offensive stat (detectArchetype's fallback). */
+const TOP_STAT_ARCHETYPE = {
+  strength: 'strength',
+  dexterity: 'dexterity',
+  intelligence: 'sorcery',
+  faith: 'faith',
+  arcane: 'arcane',
+} as const satisfies Partial<Record<Attr8Key, BuildArchetypeKey>>;
+
 /**
  * Infer the player's *current* build archetype from their stat spread, so the
  * picker can pre-select it and the respec advisor can spot a mismatch. Heuristic:
@@ -191,21 +200,10 @@ export function detectArchetype(attrs: Attrs8): BuildArchetypeKey {
       ['intelligence', i],
       ['faith', f],
       ['arcane', a],
-    ] as ReadonlyArray<[Attr8Key, number]>
+    ] as ReadonlyArray<[keyof typeof TOP_STAT_ARCHETYPE, number]>
   ).toSorted((x, y) => y[1] - x[1]);
   const topKey = ranked[0]?.[0];
-  switch (topKey) {
-    case 'dexterity':
-      return 'dexterity';
-    case 'intelligence':
-      return 'sorcery';
-    case 'faith':
-      return 'faith';
-    case 'arcane':
-      return 'arcane';
-    default:
-      return 'strength';
-  }
+  return topKey === undefined ? 'strength' : TOP_STAT_ARCHETYPE[topKey];
 }
 
 /**

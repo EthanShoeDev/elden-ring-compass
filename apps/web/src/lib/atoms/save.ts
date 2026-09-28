@@ -1,6 +1,7 @@
-import { Cause, Data, Effect, Schema } from 'effect';
-import { Atom } from 'effect/unstable/reactivity';
-import * as AsyncResult from 'effect/unstable/reactivity/AsyncResult';
+import { Cause, Data, Effect, Exit, Option, Schema } from 'effect';
+import { FetchHttpClient, HttpClient } from 'effect/http';
+import { Atom } from 'effect/reactivity';
+import * as AsyncResult from 'effect/reactivity/AsyncResult';
 import { useAtomRefresh, useAtomValue } from '@effect/atom-react';
 import { reconstructSlot } from '@/lib/share/decode';
 import { ParseResponse, type ParseRequest } from '@/lib/er-save-parser.protocol';
@@ -13,7 +14,15 @@ import type { WasmEldenRingSave } from '@/lib/save-dto';
 // / React Query, and no Comlink — a plain `postMessage` request/response (see the worker).
 
 class NoSaveSourceError extends Data.TaggedError('NoSaveSourceError')<object> {}
-class SaveParseError extends Data.TaggedError('SaveParseError')<{ readonly message: string }> {}
+class SaveParseError extends Data.TaggedError('SaveParseError')<{
+  readonly message: string;
+}> {}
+
+// Just the correlation id of a reply that failed the full protocol decode.
+const decodeReplyId = (data: unknown) =>
+  Schema.decodeUnknownOption(Schema.Struct({ id: Schema.Number }))(data).pipe(
+    Option.map((r) => r.id),
+  );
 
 // Lazily-created parse worker + a request/response correlation map keyed by a monotonic id.
 let worker: Worker | null = null;
@@ -34,14 +43,13 @@ const getWorker = (): Worker | null => {
       // postMessage erases types: validate the reply against the protocol schema before
       // trusting it (runs once per save load — see er-save-parser.protocol.ts).
       const decoded = Schema.decodeUnknownExit(ParseResponse)(event.data);
-      if (decoded._tag === 'Failure') {
+      if (Exit.isFailure(decoded)) {
         // Malformed reply — best-effort reject the correlated request (if its id survived).
-        const raw = event.data;
-        const rawId = typeof raw === 'object' && raw !== null && 'id' in raw ? raw.id : undefined;
-        if (typeof rawId === 'number') {
-          const p = pending.get(rawId);
+        const rawId = decodeReplyId(event.data);
+        if (Option.isSome(rawId)) {
+          const p = pending.get(rawId.value);
           if (p) {
-            pending.delete(rawId);
+            pending.delete(rawId.value);
             p.reject(new Error('Save parser returned a malformed response'));
           }
         }
@@ -69,7 +77,9 @@ const parseInWorker = (buffer: ArrayBuffer): Promise<WasmEldenRingSave> => {
 };
 
 const toParseError = (cause: unknown) =>
-  new SaveParseError({ message: cause instanceof Error ? cause.message : String(cause) });
+  new SaveParseError({
+    message: cause instanceof Error ? cause.message : String(cause),
+  });
 
 // Counts how many times the parse atom executes, surfaced in the logs below so a re-parse storm
 // (the atom re-running unexpectedly) is visible at a glance.
@@ -104,10 +114,11 @@ export const saveAtom = Atom.make((get) =>
     const buffer =
       'file' in src
         ? src.file.buffer
-        : yield* Effect.tryPromise({
-            try: () => fetch(src.url).then((r) => r.arrayBuffer()),
-            catch: toParseError,
-          });
+        : yield* HttpClient.get(src.url).pipe(
+            Effect.flatMap((r) => r.arrayBuffer),
+            Effect.mapError(toParseError),
+            Effect.provide(FetchHttpClient.layer),
+          );
 
     const save = yield* Effect.tryPromise({
       try: () => parseInWorker(buffer),

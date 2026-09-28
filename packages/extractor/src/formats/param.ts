@@ -145,27 +145,38 @@ export const decodeRow = (
     else if (type === 'fixstrW') value = r.fixStrW(arrayLength * 2);
     else if (isBitType(type) && bitSize === -1) {
       switch (type) {
-        case 's8':
+        case 's8': {
           value = r.i8();
           break;
-        case 'u8':
+        }
+        case 'u8': {
           value = arrayLength > 1 ? r.bytes(arrayLength) : r.u8();
           break;
-        case 's16':
+        }
+        case 's16': {
           value = r.i16();
           break;
-        case 'u16':
+        }
+        case 'u16': {
           value = r.u16();
           break;
-        case 's32':
+        }
+        case 's32': {
           value = r.i32();
           break;
-        case 'u32':
+        }
+        case 'u32': {
           value = r.u32();
           break;
-        case 'dummy8':
+        }
+        case 'dummy8': {
           value = r.bytes(arrayLength);
           break;
+        }
+        default: {
+          // Remaining bit types fall through to the packed-bitfield read below.
+          break;
+        }
       }
     }
 

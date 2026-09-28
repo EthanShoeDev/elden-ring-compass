@@ -5,27 +5,41 @@
   "type": "module",
   "exports": {
     "./forbidden-unknown-cast": "./src/forbidden-unknown-cast.ts",
+    "./no-cross-package-relative-imports": "./src/no-cross-package-relative-imports.ts",
+    "./no-render-time-match-route": "./src/no-render-time-match-route.ts",
+    "./no-unexplained-dynamic-import": "./src/no-unexplained-dynamic-import.ts",
     "./prefer-effect": "./src/prefer-effect.ts",
     "./require-disable-description": "./src/require-disable-description.ts",
+    "./vendor/anti-slop": "./src/vendor/anti-slop/index.ts",
+    "./vendor/anti-slop/effect": "./src/vendor/anti-slop/effect/index.ts",
     "./package.json": "./package.json"
   },
   "publishConfig": {
     "exports": {
       "./forbidden-unknown-cast": "./dist/forbidden-unknown-cast.mjs",
+      "./no-cross-package-relative-imports": "./dist/no-cross-package-relative-imports.mjs",
+      "./no-render-time-match-route": "./dist/no-render-time-match-route.mjs",
+      "./no-unexplained-dynamic-import": "./dist/no-unexplained-dynamic-import.mjs",
       "./prefer-effect": "./dist/prefer-effect.mjs",
       "./require-disable-description": "./dist/require-disable-description.mjs",
+      "./vendor/anti-slop": "./dist/vendor/anti-slop/index.mjs",
+      "./vendor/anti-slop/effect": "./dist/vendor/anti-slop/effect/index.mjs",
       "./package.json": "./package.json"
     }
   },
   "scripts": {
     "clean": "rm -rf .turbo dist *.tsbuildinfo",
     "build": "tsdown",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@elden-ring-compass/typescript-config": "workspace:*",
+    "@oxlint/plugins": "catalog:",
     "@types/eslint": "catalog:",
-    "tsdown": "catalog:"
+    "oxlint": "catalog:",
+    "tsdown": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "typescript": "catalog:"

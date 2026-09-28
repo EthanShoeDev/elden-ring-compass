@@ -61,7 +61,12 @@ export const bossPinByFlag: ReadonlyMap<number, BossPin> = new Map(
       ? [
           [
             b.defeatFlagId,
-            { ...p, name: b.name ?? 'Unknown boss', flag: b.defeatFlagId, mapId: b.mapId },
+            {
+              ...p,
+              name: b.name ?? 'Unknown boss',
+              flag: b.defeatFlagId,
+              mapId: b.mapId,
+            },
           ] as const,
         ]
       : [];
@@ -110,7 +115,10 @@ const { itemPinsByKey, allItemPins } = (() => {
     if (cur) cur.push(pin);
     else map.set(k, [pin]);
   }
-  return { itemPinsByKey: map as ReadonlyMap<string, ItemPin[]>, allItemPins: all };
+  return {
+    itemPinsByKey: map as ReadonlyMap<string, ItemPin[]>,
+    allItemPins: all,
+  };
 })();
 
 /** Overworld pickup locations for an item, by its placement type + id. */

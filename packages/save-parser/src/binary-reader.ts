@@ -41,30 +41,30 @@ export class SaveTruncatedError extends Schema.TaggedError<SaveTruncatedError>()
 /** The resolved {@link BinaryReader} service value (its synchronous read surface). */
 export interface BinaryReaderApi {
   /** Current cursor position (does not move). */
-  pos(): number;
+  pos: () => number;
   /** Move the cursor to an absolute position (bounds-checked). */
-  seek(pos: number): void;
+  seek: (pos: number) => void;
   /** Advance the cursor by `n` bytes (bounds-checked). */
-  skip(n: number): void;
+  skip: (n: number) => void;
 
-  u8(): number;
-  u16(): number;
-  u32(): number;
-  i32(): number;
-  f32(): number;
+  u8: () => number;
+  u16: () => number;
+  u32: () => number;
+  i32: () => number;
+  f32: () => number;
   /** Reads a u64 and returns it as a decimal string (JS-safe; steam ids overflow Number). */
-  u64String(): string;
+  u64String: () => string;
   /** A 4-byte fixed array (e.g. `MapId`), copied so it detaches from the backing buffer. */
-  byteTuple4(): [number, number, number, number];
+  byteTuple4: () => [number, number, number, number];
 
   /** Absolute u32 read (does not move the cursor) — for fixed-offset struct fields. */
-  u32At(absPos: number): number;
+  u32At: (absPos: number) => number;
   /** Absolute single-byte read (does not move the cursor). */
-  byteAt(absPos: number): number;
+  byteAt: (absPos: number) => number;
   /** Absolute zero-copy view of `len` bytes (does not move the cursor) — char name. */
-  subarrayAt(absPos: number, len: number): Uint8Array;
+  subarrayAt: (absPos: number, len: number) => Uint8Array;
   /** A view (zero-copy) over the next `n` bytes — used for the large event-flag bitfield. */
-  bytesView(n: number): Uint8Array;
+  bytesView: (n: number) => Uint8Array;
 }
 
 /**
@@ -87,7 +87,7 @@ export const makeBinaryReader = (buffer: ArrayBuffer): BinaryReaderApi => {
   const take = (n: number): number => {
     const at = pos;
     if (at + n > bytes.length) {
-      throw new SaveTruncatedError({ at, need: n, length: bytes.length });
+      throw SaveTruncatedError.make({ at, need: n, length: bytes.length });
     }
     pos = at + n;
     return at;
@@ -96,7 +96,7 @@ export const makeBinaryReader = (buffer: ArrayBuffer): BinaryReaderApi => {
   // Absolute bounds check that does NOT move the cursor.
   const checkAbs = (absPos: number, n: number): number => {
     if (absPos < 0 || absPos + n > bytes.length) {
-      throw new SaveTruncatedError({
+      throw SaveTruncatedError.make({
         at: absPos,
         need: n,
         length: bytes.length,
@@ -110,7 +110,11 @@ export const makeBinaryReader = (buffer: ArrayBuffer): BinaryReaderApi => {
 
     seek: (to) => {
       if (to < 0 || to > bytes.length) {
-        throw new SaveTruncatedError({ at: to, need: 0, length: bytes.length });
+        throw SaveTruncatedError.make({
+          at: to,
+          need: 0,
+          length: bytes.length,
+        });
       }
       pos = to;
     },

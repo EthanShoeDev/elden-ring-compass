@@ -8,11 +8,12 @@ import { cdp } from 'vitest/browser';
 // over raw. It is NOT a measurement wrapper — timing stays inline (`performance.now()` + `expect`)
 // in each test.
 interface CdpSend {
-  send(method: 'Performance.enable'): Promise<unknown>;
-  send(method: 'HeapProfiler.collectGarbage'): Promise<unknown>;
-  send(method: 'Performance.getMetrics'): Promise<{
-    metrics: Array<{ name: string; value: number }>;
-  }>;
+  send: {
+    (method: 'Performance.enable' | 'HeapProfiler.collectGarbage'): Promise<unknown>;
+    (method: 'Performance.getMetrics'): Promise<{
+      metrics: Array<{ name: string; value: number }>;
+    }>;
+  };
 }
 
 let performanceEnabled = false;
@@ -23,7 +24,7 @@ let performanceEnabled = false;
  * signal for "is the app holding too much live data" (and the thing IndexedDB would reduce).
  */
 export async function forceGcHeapUsedBytes(): Promise<number> {
-  // oxlint-disable-next-line unknown-cast/forbidden -- Playwright's CDPSession isn't typed with the send() shape we use
+  // oxlint-disable-next-line unknown-cast/forbidden, anti-slop/no-chained-type-assertions -- Playwright's CDPSession isn't typed with the send() shape we use
   const session = cdp() as unknown as CdpSend;
   if (!performanceEnabled) {
     // `Performance.getMetrics` returns nothing until the domain is enabled (idempotent).

@@ -49,8 +49,7 @@ once the native Rust port lands (Task 3).
 the monorepo. We have none of this today; it's the highest-value addition because it catches a
 category nothing else does (oxlint flags unused _locals_, not unused _exports/files/deps_).
 
-**Status:** `knip` (catalog-pinned) is wired in via `knip.ts` (typed `KnipConfig`, modelled on the
-listening-astro reference) + the `//#knip:check` root turbo task, which now runs inside both
+**Status:** `knip` (catalog-pinned) is wired in via `knip.ts` (typed `KnipConfig`) + the `//#knip:check` root turbo task, which now runs inside both
 `//#lint:root` and `//#lint:check:root`. Config notes:
 
 - Bun catalogs and `workspace:*` are resolved natively; `knip.ts` is deliberately minimal — **no
@@ -73,7 +72,7 @@ listening-astro reference) + the `//#knip:check` root turbo task, which now runs
 - `knip --fix` works (it strips `export` keywords from unused exports and their same-name type
   aliases; verified 2026-06-10 on the table-hook/share-types baseline). An earlier note here
   claimed it was a no-op — that was wrong. It's wired into the `lint` (fix) pipeline as
-  `knip:fix:danger` (naming mirrors listening-astro): "danger" because its blast radius is only as
+  `knip:fix:danger`: "danger" because its blast radius is only as
   correct as `knip.ts` — a missing entry point makes it strip live code, so review its diff like
   any codemod. `lint:check` still runs the non-mutating `knip` gate.
 - Coexists with `scripts/catalog-check.ts`: catalog-check enforces that _used_ deps reference the
@@ -197,7 +196,7 @@ Task 2 — at native speed, in a single toolchain.
 ## Other linting improvements (backlog / lower priority)
 
 - **Audit oxlint rule deviations** — `oxlint.config.ts` carries a block of rules disabled "for
-  parity with reference monorepos (fressh, listening-astro)." Some (e.g. the `react-perf/*`
+  parity with reference monorepos." Some (e.g. the `react-perf/*`
   family) were turned off on the rationale _"rely on the React Compiler / profiling instead"_ —
   now that the compiler is actually enabled, re-confirm those are still the right calls.
 - **CI gating consistency** — ensure knip + (optional) react-compiler JS rules sit in the same

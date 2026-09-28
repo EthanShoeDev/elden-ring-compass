@@ -3,8 +3,12 @@
   "compilerOptions": {
     "noEmit": true,
     "allowImportingTsExtensions": true,
+    // The vendored anti-slop plugin uses `.ts`-suffixed relative imports
+    // (upstream's convention). Rewriting them on emit keeps
+    // `src/vendor/anti-slop/**` byte-identical to upstream.
+    "rewriteRelativeImportExtensions": true,
     "types": ["node", "bun"]
   },
-  "include": ["src/**/*", "tsdown.config.ts"],
+  "include": ["src/**/*", "*.ts"],
   "exclude": ["node_modules", "dist"]
 }

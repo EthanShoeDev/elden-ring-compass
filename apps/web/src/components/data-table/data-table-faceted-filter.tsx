@@ -1,6 +1,7 @@
 import { PlusCircle as PlusCircledIcon } from 'lucide-react';
 import { RowData } from '@tanstack/react-table';
 import * as React from 'react';
+import { Predicate } from 'effect';
 
 import { DataTableColumn } from './table-hook';
 
@@ -59,9 +60,7 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
   // equivalent checked boxes so the toggle and this dropdown stay visibly linked.
   // Numeric: 'owned' = every value > 0, 'missing' = the 0 bucket.
   const rawFilterValue = column?.getFilterValue();
-  const numericValues = options
-    .map((o) => o.value)
-    .filter((v): v is number => typeof v === 'number');
+  const numericValues = options.map((o) => o.value).filter(Predicate.isNumber);
   const selectedValues =
     rawFilterValue === 'owned'
       ? new Set<unknown>(numericValues.filter((v) => v > 0))
@@ -70,7 +69,7 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
         : new Set(Array.isArray(rawFilterValue) ? rawFilterValue : []);
 
   const setSelected = (values: Array<unknown>) =>
-    column?.setFilterValue(values.length ? values : undefined);
+    column?.setFilterValue(values.length > 0 ? values : undefined);
   const toggle = (value: unknown) => {
     const next = new Set(selectedValues);
     if (next.has(value)) next.delete(value);

@@ -1,3 +1,4 @@
+import { Predicate } from 'effect';
 import type { RowValue } from '../formats/param.ts';
 
 /**
@@ -420,7 +421,7 @@ const effectsFromRow = (
   const out: ItemEffect[] = [];
   for (const [field, f] of Object.entries(fields)) {
     const raw = row.get(field);
-    if (typeof raw !== 'number') continue;
+    if (!Predicate.isNumber(raw)) continue;
     if (raw === f.defaultValue) continue;
     const value = f.parser(raw, f.model);
     const conditions = [

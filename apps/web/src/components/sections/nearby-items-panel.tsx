@@ -16,6 +16,7 @@
  * syncs with the table UI, persists, and clears via the normal "Clear pins".
  */
 import { itemIconUrl } from '@elden-ring-compass/data/images';
+import { Predicate } from 'effect';
 import { useDeferredValue, useMemo, useState } from 'react';
 
 import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
@@ -159,13 +160,12 @@ export function NearbyItemsPanel({
   const shown = entries.slice(0, MAX_ROWS);
 
   const togglePin = (e: NearbyEntry) => {
-    setRowSelection(e.tableId)((prev) => {
-      const id = e.row.id.toString();
-      const next = { ...prev };
-      if (next[id]) delete next[id];
-      else next[id] = true;
-      return next;
-    });
+    const id = e.row.id.toString();
+    setRowSelection(e.tableId)((prev) =>
+      prev[id]
+        ? Object.fromEntries(Object.entries(prev).filter(([key]) => key !== id))
+        : { ...prev, [id]: true },
+    );
   };
 
   return (
@@ -184,7 +184,7 @@ export function NearbyItemsPanel({
             step={RADIUS_STEP}
             value={radius}
             onValueChange={(v) => {
-              setRadius(Array.isArray(v) ? (v[0] ?? DEFAULT_RADIUS) : v);
+              setRadius(Predicate.isNumber(v) ? v : (v[0] ?? DEFAULT_RADIUS));
             }}
             aria-label='Search radius'
             className='flex-1'
@@ -256,7 +256,7 @@ export function NearbyItemsPanel({
                   )}
                   onClick={() => togglePin(e)}
                 >
-                  {iconUrl != null ? (
+                  {iconUrl !== undefined ? (
                     <img src={iconUrl} alt='' className='size-6 shrink-0' loading='lazy' />
                   ) : (
                     <span className='size-6 shrink-0' />

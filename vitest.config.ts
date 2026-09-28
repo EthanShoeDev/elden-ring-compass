@@ -9,7 +9,7 @@ import { defineConfig } from 'vitest/config';
 // project and does NOT expand a package's own nested `test.projects` — see
 // node/projects/resolveProjects.ts — so multi-mode packages get one config file per mode.)
 //
-// Projects: extractor, save-parser, save-parser-perf, web, web-perf.
+// Projects: extractor, save-parser, save-parser-perf, web, web-perf, oxlint-plugins-unit.
 // Benches (tinybench, `vitest bench`) live in the save-parser-perf project.
 // Root-only options (coverage, reporters) belong here, not in the project files.
 export default defineConfig({
@@ -21,6 +21,8 @@ export default defineConfig({
       'packages/save-parser/vitest.config.perf.ts',
       'apps/web/vitest.config.ts',
       'apps/web/vitest.config.browser.ts',
+      // The vendored anti-slop RuleTester suites (oxlint-plugins-unit).
+      'packages/config/oxlint-plugins/vitest.config.ts',
     ],
   },
 });

@@ -1,4 +1,4 @@
-import { Data, Effect, FileSystem, Path } from 'effect';
+import { Data, Effect, FileSystem, Path, Predicate } from 'effect';
 
 import { type DcxError, dcxDecompress } from '../formats/dcx.ts';
 import {
@@ -161,7 +161,7 @@ export const loadEventDropLocations = (
             const d = decodeInstruction(emedf, ins);
             const flag = d?.args['Target Event Flag ID'];
             const state = d?.args['Desired Flag State'];
-            if (state === 1 && typeof flag === 'number' && flag > 0)
+            if (state === 1 && Predicate.isNumber(flag) && flag > 0)
               enabledFlags.push(flag);
           }
           // Body-entity scan: any raw int32 that is a placed CHARACTER marker. Safe because

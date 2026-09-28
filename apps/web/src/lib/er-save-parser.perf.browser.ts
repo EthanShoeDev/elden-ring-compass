@@ -1,6 +1,7 @@
 import { parseSave as parseSaveTs } from '@elden-ring-compass/save-parser-ts';
 import { it } from '@effect/vitest';
 import { Effect } from 'effect';
+import { FetchHttpClient, HttpClient } from 'effect/http';
 import { expect } from 'vitest';
 import { forceGcHeapUsedBytes, mb } from '@/test/perf/cdp-memory';
 import type { WasmEldenRingSave } from './save-dto';
@@ -10,11 +11,12 @@ import type { WasmEldenRingSave } from './save-dto';
 // worker round-trip is covered by the Playwright E2E `e2e/save-parse.spec.ts`, not here.)
 //
 // The TS port replaced the Rust/WASM parser (~60× faster in node; see
-// `docs/projects/typescript-save-parser-port.md`). Numbers are `console.log`-ged; the `test:perf`
+// `docs/projects/typescript-save-parser-port.md`). Numbers are `Effect.log`-ged; the `test:perf`
 // script runs with `--reporter=verbose` to surface them. Thresholds are deliberately HIGH; ratchet
 // down as you learn the real numbers. Run locally with `bun run test:perf`.
 
 import SAVE_URL from '@elden-ring-compass/save-parser-ts/fixtures/ER0000.sl2?url';
+
 const WARMUP = 1;
 const RUNS = 5;
 
@@ -24,7 +26,11 @@ const PARSE_HEAP_MB = 300;
 const median = (xs: readonly number[]): number =>
   [...xs].toSorted((a, b) => a - b)[Math.floor(xs.length / 2)] ?? 0;
 
-const loadSaveBuffer = Effect.promise(() => fetch(SAVE_URL).then((r) => r.arrayBuffer()));
+const loadSaveBuffer = HttpClient.get(SAVE_URL).pipe(
+  Effect.flatMap((r) => r.arrayBuffer),
+  Effect.orDie,
+  Effect.provide(FetchHttpClient.layer),
+);
 
 it.effect('parse TS (direct): median time + retained heap within bounds', () =>
   Effect.gen(function* () {
@@ -46,12 +52,11 @@ it.effect('parse TS (direct): median time + retained heap within bounds', () =>
 
     const med = median(times);
     const heapDeltaMb = mb(heapAfter - heapBefore);
-    // `console.log` (not `Effect.log`) so the number surfaces in the vitest terminal output.
-    console.log(
+    yield* Effect.log(
       `[perf][browser] ts    (direct): median ${med.toFixed(1)}ms (${RUNS} runs), retained +${heapDeltaMb}MB`,
     );
 
-    expect((save?.slots.length ?? 0) > 0).toBe(true);
+    expect(save?.slots.length ?? 0).toBeGreaterThan(0);
     expect(med).toBeLessThan(PARSE_DIRECT_MS);
     expect(heapDeltaMb).toBeLessThan(PARSE_HEAP_MB);
   }),

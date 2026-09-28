@@ -53,7 +53,7 @@ export function EquipmentCard() {
       <CardContent className='flex flex-col gap-3'>
         <div className='flex flex-col gap-1'>
           <div className='text-xs font-medium text-muted-foreground'>Armaments</div>
-          {armaments.length ? (
+          {armaments.length > 0 ? (
             armaments.map((item, i) => <ArmamentRow key={i} item={item} />)
           ) : (
             <span className='text-sm text-muted-foreground'>None equipped</span>
@@ -71,7 +71,7 @@ export function EquipmentCard() {
           <div className='text-xs font-medium text-muted-foreground'>
             Talismans ({talismans.length}/{eq.talisman_count})
           </div>
-          {talismans.length ? (
+          {talismans.length > 0 ? (
             talismans.map((item, i) => (
               <span key={i} className='text-sm'>
                 {item.name}

@@ -3,19 +3,20 @@ import {
   ColumnOrderState,
   ColumnSizingState,
   ColumnVisibilityState,
+  functionalUpdate,
   OnChangeFn,
   RowData,
   RowSelectionState,
   SortingState,
 } from '@tanstack/react-table';
-import { Schema } from 'effect';
-import { Atom } from 'effect/unstable/reactivity';
+import { Predicate, Schema } from 'effect';
+import { Atom } from 'effect/reactivity';
 import { useAtomSet, useAtomValue } from '@effect/atom-react';
 import { useHydrated } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { browserKvsRuntime } from '@/lib/atoms/kvs';
 import { defaultEventRowSelection } from '@/lib/vm/events';
-import { InventoryTableType } from '../sections/inventory-data-table-card';
+import type { InventoryTableType } from '@/lib/inventory-catalog-data';
 import type { DataTableInstance } from './table-hook';
 
 export type TableId =
@@ -74,6 +75,7 @@ const DataTableStateSchema = Schema.Struct({
 // `data-table-state` key is absent — the first time someone lands on the site — and
 // is superseded the moment any table state is written, so a returning user who has
 // cleared their pins keeps an empty map.
+// oxlint-disable-next-line anti-slop/no-chained-type-assertions -- see the `as unknown as` below: bridges the schema's readonly string-keyed shape to TanStack's mutable TableId-keyed types (Writable is invariant, so a single `as` is rejected)
 const tableStateAtom = Atom.kvs({
   runtime: browserKvsRuntime,
   key: 'data-table-state',
@@ -89,7 +91,7 @@ const tableStateAtom = Atom.kvs({
       columnOrder: [],
     },
   }),
-  // oxlint-disable-next-line unknown-cast/forbidden -- the schema validates the persisted readonly shape; the app uses TanStack's mutable types, bridged here once
+  // oxlint-disable-next-line unknown-cast/forbidden -- the schema validates the persisted readonly string-keyed shape; the app uses TanStack's mutable types keyed by TableId, bridged here once (a single `as` is rejected: Writable is invariant)
 }) as unknown as Atom.Writable<TableStateMap, TableStateMap>;
 
 // Per-table derived slice. Each `DataTable` subscribes only to ITS slice, so interacting with one
@@ -204,7 +206,9 @@ export const useColumnFilterValue = (tableId: TableId, columnId: string) => {
       const prevState = prev[tableId] ?? defaultTableState({ tableId });
       const others = prevState.columnFilters.filter((f) => f.id !== columnId);
       const columnFilters =
-        next == null || next === '' ? others : [...others, { id: columnId, value: next }];
+        Predicate.isNullish(next) || next === ''
+          ? others
+          : [...others, { id: columnId, value: next }];
       return { ...prev, [tableId]: { ...prevState, columnFilters } };
     });
   };
@@ -223,8 +227,7 @@ export const useRowSelectionControls = () => {
     (updater) => {
       setTableState((prev) => {
         const prevState = prev[tableId] ?? defaultTableState({ tableId });
-        const rowSelection =
-          typeof updater === 'function' ? updater(prevState.rowSelection) : updater;
+        const rowSelection = functionalUpdate(updater, prevState.rowSelection);
         return { ...prev, [tableId]: { ...prevState, rowSelection } };
       });
     };

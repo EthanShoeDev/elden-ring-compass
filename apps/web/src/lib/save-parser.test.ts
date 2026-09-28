@@ -11,7 +11,7 @@ import type { Slot, WasmEldenRingSave } from './save-dto';
 // Runtime-verification of the lean-DTO save parser against a real `.sl2`: structural sanity of the
 // web-facing DTO (stats, event flags, ga_items, regions) through the app's `parseEldenRingData`
 // (the pure-TS parser). Byte-exact correctness is pinned separately by the parser package's parity
-// test (packages/save-parser/test/parity.test.ts).
+// suite, packages/save-parser/test/parity.test.ts.
 //
 // Why no browser / fetch / DOM: `parseEldenRingData` is pure compute (bytes in -> JS object out).
 //
@@ -70,7 +70,7 @@ it.layer(NodeServices.layer)('TS save parser — lean DTO (ER0000.sl2)', (it) =>
     Effect.gen(function* () {
       const { baseSave } = yield* savePaths;
       const save = yield* parseFixture(baseSave);
-      expect(typeof save.global_steam_id).toBe('string');
+      expect(save.global_steam_id).toBeTypeOf('string');
       expect(save.global_steam_id).toMatch(/^\d+$/);
       expect(Array.isArray(save.slots)).toBe(true);
       expect(save.slots.length).toBeGreaterThan(0);

@@ -19,7 +19,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { Effect } from 'effect';
+import { Effect, Predicate } from 'effect';
 import { describe, expect, it } from 'vitest';
 
 import { parseSave } from '../src/index.ts';
@@ -36,7 +36,7 @@ type OracleSlot = Record<string, unknown> & {
   event_flags: { flags_length: number; flags_sha256: string };
 };
 const oracle = JSON.parse(
-  readFileSync(here('./fixtures/oracle.er0000.json'), 'utf8'),
+  readFileSync(here('./fixtures/oracle.er0000.json'), 'utf-8'),
 ) as {
   global_steam_id: string;
   character_steam_ids: string[];
@@ -44,7 +44,7 @@ const oracle = JSON.parse(
 };
 
 const reference = JSON.parse(
-  readFileSync(here('./fixtures/reference-fields.er0000.json'), 'utf8'),
+  readFileSync(here('./fixtures/reference-fields.er0000.json'), 'utf-8'),
 ) as { global_steam_id: string; slots: Record<string, unknown>[] };
 
 const parsed = Effect.runSync(parseSave(arrayBuffer));
@@ -67,7 +67,7 @@ const normalize = (slot: (typeof parsed.slots)[number]) => ({
  */
 const deepPick = (value: unknown, template: unknown): unknown => {
   if (Array.isArray(template)) return value;
-  if (template && typeof template === 'object') {
+  if (Predicate.isObject(template)) {
     const v = value as Record<string, unknown>;
     return Object.fromEntries(
       Object.keys(template).map((k) => [

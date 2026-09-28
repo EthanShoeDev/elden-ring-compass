@@ -10,10 +10,18 @@ import {
   createFilteredRowModel,
   createSortedRowModel,
   createTableHook,
-  filterFns,
+  filterFn_arrIncludes,
+  filterFn_equals,
+  filterFn_inDateRange,
+  filterFn_includesString,
+  filterFn_inNumberRange,
+  filterFn_weakEquals,
   rowSelectionFeature,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_basic,
+  sortFn_datetime,
+  sortFn_text,
   tableFeatures,
 } from '@tanstack/react-table';
 import type {
@@ -26,15 +34,16 @@ import type {
   RowData,
   Table,
 } from '@tanstack/react-table';
-import type { ComponentType } from 'react';
 
 // TanStack Table v9 treats features as tree-shakeable plugins: only what's registered
 // here ships in the bundle. This is the exact set the shared `DataTable` uses — no
 // pagination (tables are virtualized, not paged), no grouping/expanding/pinning.
 // Row-model factories and the filter/sort fn registries are slots on the same
 // object (v9 stable moved them off `createTableHook`); the registries decide which
-// string `filterFn`/`sortingFn` names (and the `'auto'` resolution) are valid, so
-// the full built-in sets are registered — same bundle footprint as before.
+// string `filterFn`/`sortingFn` names (and the `'auto'` resolution) are valid.
+// Registered: every fn table-core's `'auto'` resolution can pick
+// (column_getAutoFilterFn / column_getAutoSortFn), which also covers the only
+// string name columns use (`'includesString'`).
 const dataTableFeatures = tableFeatures({
   columnFacetingFeature, // faceted filter chips (unique-value counts)
   columnFilteringFeature,
@@ -48,8 +57,20 @@ const dataTableFeatures = tableFeatures({
   sortedRowModel: createSortedRowModel(),
   facetedRowModel: createFacetedRowModel(),
   facetedUniqueValues: createFacetedUniqueValues(),
-  filterFns,
-  sortFns,
+  filterFns: {
+    arrIncludes: filterFn_arrIncludes,
+    equals: filterFn_equals,
+    inDateRange: filterFn_inDateRange,
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+    weakEquals: filterFn_weakEquals,
+  },
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    basic: sortFn_basic,
+    datetime: sortFn_datetime,
+    text: sortFn_text,
+  },
 });
 
 export type DataTableFeatures = typeof dataTableFeatures;
@@ -85,5 +106,5 @@ export type DataTableColumn<TData extends RowData, TValue extends CellData = Cel
 export type DataTableCellContext<
   TData extends RowData,
   TValue extends CellData = CellData,
-> = AppCellContext<DataTableFeatures, TData, TValue, Record<string, ComponentType<any>>>;
+> = AppCellContext<DataTableFeatures, TData, TValue, Record<never, never>>;
 export type DataTableFilterFn<TData extends RowData> = FilterFn<DataTableFeatures, TData>;

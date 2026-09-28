@@ -1,5 +1,5 @@
-import { KeyValueStore } from 'effect/unstable/persistence';
-import { Atom } from 'effect/unstable/reactivity';
+import { KeyValueStore } from 'effect/persistence';
+import { Atom } from 'effect/reactivity';
 
 // Shared effect-atom runtime providing a KeyValueStore backed by localStorage in
 // the browser (in-memory on the server, for SSR). Persisted atoms use `Atom.kvs`

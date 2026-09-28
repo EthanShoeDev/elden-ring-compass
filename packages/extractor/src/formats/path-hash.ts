@@ -8,10 +8,11 @@ const U64 = (1n << 64n) - 1n;
 const PRIME64 = 0x85n;
 
 export function erPathHash(path: string): bigint {
-  let h = path.trim().replace(/\\/g, '/').toLowerCase();
-  if (!h.startsWith('/')) h = '/' + h;
+  let h = path.trim().replaceAll('\\', '/').toLowerCase();
+  if (!h.startsWith('/')) h = `/${h}`;
   let acc = 0n;
   for (let i = 0; i < h.length; i++) {
+    // oxlint-disable-next-line unicorn/prefer-code-point -- the path hash is defined over UTF-16 code units, not code points
     acc = (acc * PRIME64 + BigInt(h.charCodeAt(i))) & U64;
   }
   return acc;

@@ -1,5 +1,5 @@
 import { Effect, Path } from 'effect';
-import { Command, Flag } from 'effect/unstable/cli';
+import { Command, Flag } from 'effect/cli';
 
 import { type ImageFormat, PipelineContext } from './domain/context.ts';
 import { runPipeline } from './pipeline.ts';

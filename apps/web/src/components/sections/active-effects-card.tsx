@@ -25,7 +25,7 @@ export function ActiveEffectsCard() {
         </CardDescription>
       </CardHeader>
       <CardContent className='flex flex-col gap-1'>
-        {labeled.length ? (
+        {labeled.length > 0 ? (
           labeled.map((e, i) => (
             <div key={i} className='flex items-center justify-between gap-6 text-sm'>
               <span>{e.label}</span>
@@ -34,7 +34,7 @@ export function ActiveEffectsCard() {
           ))
         ) : (
           <span className='text-sm text-muted-foreground'>
-            {effects.length ? 'No labeled effects' : 'No active effects'}
+            {effects.length > 0 ? 'No labeled effects' : 'No active effects'}
           </span>
         )}
       </CardContent>

@@ -25,7 +25,7 @@ export const loadEventFlagBst = Effect.gen(function* () {
     const trimmed = line.trim();
     if (trimmed.length === 0) continue;
     const comma = trimmed.indexOf(',');
-    if (comma < 0) continue;
+    if (comma === -1) continue;
     out.push([
       Number(trimmed.slice(0, comma)),
       Number(trimmed.slice(comma + 1)),

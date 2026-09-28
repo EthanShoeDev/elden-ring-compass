@@ -30,8 +30,16 @@ export const INVENTORY_TABLES: readonly InventoryTableMeta[] = [
   { key: 'spells', slug: 'spells', label: 'Spells' },
   { key: 'spirits', slug: 'spirit-ashes', label: 'Spirit Ashes' },
   { key: 'tools', slug: 'tools', label: 'Tools' },
-  { key: 'craftingMaterials', slug: 'crafting-materials', label: 'Crafting Materials' },
-  { key: 'upgradeMaterials', slug: 'bolstering-materials', label: 'Bolstering Materials' },
+  {
+    key: 'craftingMaterials',
+    slug: 'crafting-materials',
+    label: 'Crafting Materials',
+  },
+  {
+    key: 'upgradeMaterials',
+    slug: 'bolstering-materials',
+    label: 'Bolstering Materials',
+  },
   { key: 'keyItems', slug: 'key-items', label: 'Key Items' },
   { key: 'infoItems', slug: 'info-items', label: 'Info Items' },
   { key: 'gestures', slug: 'gestures', label: 'Gestures' },

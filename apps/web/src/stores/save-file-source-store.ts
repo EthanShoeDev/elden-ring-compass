@@ -1,5 +1,5 @@
 import { Schema } from 'effect';
-import { Atom } from 'effect/unstable/reactivity';
+import { Atom } from 'effect/reactivity';
 import { browserKvsRuntime } from '@/lib/atoms/kvs';
 import type { ShareableProgression } from '@/lib/share/types';
 import sampleSaveUrl from '@elden-ring-compass/save-parser-ts/fixtures/ER0000.sl2?url';

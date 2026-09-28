@@ -49,6 +49,7 @@ import type { MapManifest, MapPin, TileIndex } from './leaflet-map';
 import { OVERLAY_BUTTON, OVERLAY_PANEL, PanelLabel } from './map-overlay-chrome';
 import { NearbyItemsPanel } from './nearby-items-panel';
 
+// dynamic-import -- Leaflet touches `window` at import time, so the map is code-split and loaded client-only.
 const LeafletMap = lazy(() => import('./leaflet-map'));
 
 /**
@@ -522,6 +523,7 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
   useEffect(() => {
     if (!mounted) return;
     let cancelled = false;
+    // oxlint-disable-next-line effecttsgo/global-fetch -- static tile-manifest load inside a React effect; the web app has no HttpClient layer to route it through
     fetch(`${MAP_TILES_BASE}/manifest.json`)
       .then((r) => {
         if (!r.ok) throw new Error(`manifest ${r.status}`);
@@ -530,17 +532,20 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
       .then((m) => {
         if (!cancelled) setManifest(m);
       })
-      .catch((e: unknown) => {
-        if (!cancelled) setError(String(e));
+      .catch((error: unknown) => {
+        if (!cancelled) setError(String(error));
       });
     // Existence index — best-effort: if it fails the map still works (it just
     // falls back to requesting every tile, blank ones included).
+    // oxlint-disable-next-line effecttsgo/global-fetch -- same static-asset load as the manifest above
     fetch(`${MAP_TILES_BASE}/tile-index.json`)
       .then((r) => (r.ok ? (r.json() as Promise<TileIndex>) : null))
       .then((idx) => {
         if (!cancelled && idx) setTileIndex(idx);
       })
-      .catch(() => {});
+      .catch(() => {
+        // Best-effort (see above): without the index every tile is requested.
+      });
     return () => {
       cancelled = true;
     };
@@ -605,7 +610,7 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
                 onValueChange={(v) => {
                   // ToggleGroup is multi-select by default; take the last toggled
                   // value to get single-select (and ignore deselect-to-empty).
-                  const next = v[v.length - 1];
+                  const next = v.at(-1);
                   if (next) setActiveMapId(next);
                 }}
               >

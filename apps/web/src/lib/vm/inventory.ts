@@ -68,9 +68,9 @@ export function inventoryDbView(slot: Readonly<Slot>) {
       part_gaitem_handle = ((firstGaItem.gaitem_handle >> 16) & 0xff) >>> 0;
     }
 
-    next_gaitem_handle = next_gaitem_handle + 1;
-    next_aow_index = next_aow_index + 1;
-    next_armament_or_armor_index = next_armament_or_armor_index + 1;
+    next_gaitem_handle += 1;
+    next_aow_index += 1;
+    next_armament_or_armor_index += 1;
 
     return {
       next_gaitem_handle,
@@ -81,8 +81,8 @@ export function inventoryDbView(slot: Readonly<Slot>) {
   }
 
   const gaItemMap = new Map<number, GaItem>((slot.ga_items || []).map((i) => [i.gaitem_handle, i]));
-  const fill_storage_type = (inventory_data: EquipInventoryData) => {
-    return inventory_data.common_items
+  const fill_storage_type = (inventory_data: EquipInventoryData) =>
+    inventory_data.common_items
       .map((commonItem, idx) => {
         const itemType = itemTypeFromGaHandle(commonItem.ga_item_handle);
         const equip_index = idx + 0x180;
@@ -134,8 +134,7 @@ export function inventoryDbView(slot: Readonly<Slot>) {
           upgrade_level,
         };
       })
-      .filter((i): i is NonNullable<typeof i> => i !== null && i.item_id != -1 && i.item_id != 0);
-  };
+      .filter((i): i is NonNullable<typeof i> => i !== null && i.item_id !== -1 && i.item_id !== 0);
 
   const equip_inventory = fill_storage_type(slot.equip_inventory_data);
   const storage_inventory = fill_storage_type(slot.storage_inventory_data);

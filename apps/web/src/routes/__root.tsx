@@ -19,7 +19,10 @@ import '../index.css';
 // and gated on `import.meta.env.DEV`, so both the call and the dependency are
 // stripped from production builds; the `window` guard keeps it off the SSR pass.
 if (import.meta.env.DEV && typeof window !== 'undefined') {
-  void import('react-scan').then(({ scan }) => {
+  // oxlint-disable-next-line unicorn/prefer-top-level-await -- awaiting a dev-only profiler would block the root route module's evaluation
+  void import(
+    /* dynamic-import -- the DEV guard lets Vite drop react-scan from production builds. */ 'react-scan'
+  ).then(({ scan }) => {
     scan({ enabled: true });
   });
 }

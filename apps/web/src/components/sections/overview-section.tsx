@@ -1,6 +1,7 @@
 import { GOODS } from '@elden-ring-compass/data';
 import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
 import { Link } from '@tanstack/react-router';
+import { Predicate } from 'effect';
 import {
   CoinsIcon,
   MapIcon,
@@ -11,7 +12,7 @@ import {
 } from 'lucide-react';
 
 import { goodsByName } from '@/lib/game-data';
-import { assertDefined, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { eventsDbView } from '@/lib/vm/events';
 import { inventoryDbView } from '@/lib/vm/inventory';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
@@ -56,7 +57,7 @@ function Tile({
         <Icon className='size-[18px] text-muted-foreground' />
       </div>
       <div className='text-2xl font-semibold tabular-nums'>
-        {typeof value === 'number' ? value.toLocaleString() : value}
+        {Predicate.isNumber(value) ? value.toLocaleString() : value}
       </div>
       {sub && <div className='text-[11.5px] text-muted-foreground'>{sub}</div>}
     </div>
@@ -209,24 +210,17 @@ export function OverviewSection() {
     ownedByName('Great Ghost Glovewort') +
     ownedByName('Great Grave Glovewort');
 
-  const baseFlaskItem = assertDefined(
-    goodsByName.get('Flask of Crimson Tears'),
-    'Flask of Crimson Tears missing from data',
-  );
+  const baseFlaskName = 'Flask of Crimson Tears';
+  const baseFlaskItem = goodsByName.get(baseFlaskName);
 
   const usersFlask =
     Array.from({ length: 12 })
-      .map((_, i) =>
-        goodsByName.get(`${baseFlaskItem.name}${i == 0 ? '' : ` +${(i + 1).toString()}`}`),
-      )
+      .map((_, i) => goodsByName.get(`${baseFlaskName}${i === 0 ? '' : ` +${(i + 1).toString()}`}`))
       .filter((flask) => flask !== undefined)
       .toReversed()
       .find((flask) => (inventoryQuantityById.get(flask.id) ?? 0) > 0) ?? baseFlaskItem;
 
-  const ceruleanFlask = assertDefined(
-    goodsByName.get('Flask of Cerulean Tears'),
-    'Flask of Cerulean Tears missing from data',
-  );
+  const ceruleanFlask = goodsByName.get('Flask of Cerulean Tears');
 
   return (
     <>
@@ -286,7 +280,7 @@ export function OverviewSection() {
                   const smithingStone =
                     i < 9
                       ? goodsByName.get(
-                          i == 8
+                          i === 8
                             ? 'Ancient Dragon Smithing Stone'
                             : `Smithing Stone [${(i + 1).toString()}]`,
                         )
@@ -294,7 +288,7 @@ export function OverviewSection() {
                   const somberSmithingStone =
                     i < 10
                       ? goodsByName.get(
-                          i == 9
+                          i === 9
                             ? 'Somber Ancient Dragon Smithing Stone'
                             : `Somber Smithing Stone [${(i + 1).toString()}]`,
                         )
@@ -302,7 +296,7 @@ export function OverviewSection() {
                   const ghostGlovewart =
                     i < 10
                       ? goodsByName.get(
-                          i == 9
+                          i === 9
                             ? 'Great Ghost Glovewort'
                             : `Ghost Glovewort [${(i + 1).toString()}]`,
                         )
@@ -310,7 +304,7 @@ export function OverviewSection() {
                   const graveGlovewart =
                     i < 10
                       ? goodsByName.get(
-                          i == 9
+                          i === 9
                             ? 'Great Grave Glovewort'
                             : `Grave Glovewort [${(i + 1).toString()}]`,
                         )
@@ -352,11 +346,11 @@ export function OverviewSection() {
 
                                         <span className='w-10 whitespace-nowrap'>
                                           {inventoryQuantityById.get(item.id) ?? 0}
-                                          {item.name == 'Ancient Dragon Smithing Stone' && ' / 13'}
-                                          {item.name == 'Somber Ancient Dragon Smithing Stone' &&
+                                          {item.name === 'Ancient Dragon Smithing Stone' && ' / 13'}
+                                          {item.name === 'Somber Ancient Dragon Smithing Stone' &&
                                             ' / 8'}
-                                          {item.name == 'Great Grave Glovewort' && ' / 6'}
-                                          {item.name == 'Great Ghost Glovewort' && ' / 4'}
+                                          {item.name === 'Great Grave Glovewort' && ' / 6'}
+                                          {item.name === 'Great Ghost Glovewort' && ' / 4'}
                                         </span>
                                       </>
                                     )}

@@ -28,7 +28,8 @@ await rm(tmp, { recursive: true, force: true });
 console.log(`cloning ${REPO} (sparse: ${SUBDIRS.join(', ')}) …`);
 await $`git clone --depth 1 --filter=blob:none --sparse ${REPO} ${tmp}`;
 await $`git -C ${tmp} sparse-checkout set ${SUBDIRS}`;
-const sha = (await $`git -C ${tmp} rev-parse HEAD`.text()).trim();
+const shaOutput = await $`git -C ${tmp} rev-parse HEAD`.text();
+const sha = shaOutput.trim();
 
 // Replace the vendored tree with the freshly-fetched subdirs.
 await rm(resolve(vendor, 'ER'), { recursive: true, force: true });
@@ -37,9 +38,8 @@ for (const sub of SUBDIRS) {
   await cp(resolve(tmp, sub), resolve(vendor, sub), { recursive: true });
 }
 
-const defs = (await readdir(resolve(vendor, 'ER', 'Defs'))).filter((f) =>
-  f.endsWith('.xml'),
-);
+const defFiles = await readdir(resolve(vendor, 'ER', 'Defs'));
+const defs = defFiles.filter((f) => f.endsWith('.xml'));
 const provenance = `# Vendored Paramdex (DO NOT EDIT BY HAND)
 
 These PARAMDEF field-layout definitions are **reverse-engineered community data**,

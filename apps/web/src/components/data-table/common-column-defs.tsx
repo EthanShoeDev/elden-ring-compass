@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { wikiPageUrl } from '@/lib/wiki';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableColumnDef, DataTableColumnHelper, DataTableRow } from './table-hook';
+import { Predicate } from 'effect';
 
 /**
  * The map-pin affordance that replaces the old select checkbox. A row's
@@ -76,7 +77,10 @@ export const commonPinColumnDef = <T extends RowData>(
       <Subscribe
         source={table.store}
         // The page-rows aggregate also shifts when filtering changes which rows exist.
-        selector={(s) => ({ rowSelection: s.rowSelection, columnFilters: s.columnFilters })}
+        selector={(s) => ({
+          rowSelection: s.rowSelection,
+          columnFilters: s.columnFilters,
+        })}
       >
         {() => {
           const all = table.getIsAllPageRowsSelected();
@@ -218,11 +222,11 @@ export const commonAccessorColumnDef = <T extends RowData>(
     cell: (cell) => {
       const value = cell.renderValue();
       const renderValue =
-        typeof value === 'string' || typeof value === 'number' ? (
+        Predicate.isString(value) || Predicate.isNumber(value) ? (
           value
-        ) : value == null ? (
+        ) : Predicate.isNullish(value) ? (
           'NA'
-        ) : typeof value == 'boolean' ? (
+        ) : Predicate.isBoolean(value) ? (
           value ? (
             <CheckIcon className='size-4 text-green-300' />
           ) : (

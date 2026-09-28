@@ -1,3 +1,4 @@
+// oxlint-disable-next-line effecttsgo/node-builtin-import -- Effect's Crypto has no PEM/KeyObject parsing; createPublicKey decodes the PKCS#1 key
 import { createPublicKey } from 'node:crypto';
 
 /**
@@ -12,7 +13,7 @@ import { createPublicKey } from 'node:crypto';
 
 function b64urlToBig(b64url: string): bigint {
   const bytes = Buffer.from(
-    b64url.replace(/-/g, '+').replace(/_/g, '/'),
+    b64url.replaceAll('-', '+').replaceAll('_', '/'),
     'base64',
   );
   let v = 0n;
@@ -22,11 +23,12 @@ function b64urlToBig(b64url: string): bigint {
 
 function modpow(base: bigint, exp: bigint, mod: bigint): bigint {
   let result = 1n;
-  base %= mod;
-  while (exp > 0n) {
-    if (exp & 1n) result = (result * base) % mod;
-    exp >>= 1n;
-    base = (base * base) % mod;
+  let b = base % mod;
+  let e = exp;
+  while (e > 0n) {
+    if (e & 1n) result = (result * b) % mod;
+    e >>= 1n;
+    b = (b * b) % mod;
   }
   return result;
 }

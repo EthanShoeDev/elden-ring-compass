@@ -1,4 +1,4 @@
-import { Effect, FileSystem, Path } from 'effect';
+import { Effect, FileSystem, Path, Predicate } from 'effect';
 
 import {
   decodeRow,
@@ -51,7 +51,7 @@ export interface RegionData {
 
 const num = (row: ReadonlyMap<string, RowValue>, key: string): number => {
   const v = row.get(key);
-  return typeof v === 'number' ? v : 0;
+  return Predicate.isNumber(v) ? v : 0;
 };
 
 export const loadRegions = (

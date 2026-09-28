@@ -46,15 +46,21 @@ describe('wikiNameForItem', () => {
   });
 
   it('strips the save-appended upgrade suffix', () => {
-    expect(wikiNameForItem({ name: 'Lhutel the Headless +7', weaponUpgradeLevel: 7 })).toBe(
-      'Lhutel the Headless',
-    );
+    expect(
+      wikiNameForItem({
+        name: 'Lhutel the Headless +7',
+        weaponUpgradeLevel: 7,
+      }),
+    ).toBe('Lhutel the Headless');
   });
 
   it('keeps catalog-level +N names (talismans have their own pages)', () => {
-    expect(wikiNameForItem({ name: 'Crimson Amber Medallion +1', weaponUpgradeLevel: 0 })).toBe(
-      'Crimson Amber Medallion +1',
-    );
+    expect(
+      wikiNameForItem({
+        name: 'Crimson Amber Medallion +1',
+        weaponUpgradeLevel: 0,
+      }),
+    ).toBe('Crimson Amber Medallion +1');
   });
 
   it('collapses flask upgrade tiers onto the base flask page', () => {

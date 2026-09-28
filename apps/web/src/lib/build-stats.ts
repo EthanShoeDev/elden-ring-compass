@@ -96,7 +96,7 @@ export const arAttrsFromAttrs8 = (a: Attrs8): Attributes => ({
 type Anchor = readonly [stat: number, value: number];
 function lerpCurve(anchors: ReadonlyArray<Anchor>, x: number): number {
   const first = anchors[0];
-  const last = anchors[anchors.length - 1];
+  const last = anchors.at(-1);
   if (!first || !last) return 0;
   if (x <= first[0]) return first[1];
   if (x >= last[0]) return last[1];

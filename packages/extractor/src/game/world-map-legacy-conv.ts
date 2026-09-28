@@ -1,4 +1,4 @@
-import { Data, Effect, FileSystem, Path } from 'effect';
+import { Data, Effect, FileSystem, Path, Predicate } from 'effect';
 
 import {
   decodeRow,
@@ -66,7 +66,7 @@ export interface LegacyConv {
 
 const num = (row: ReadonlyMap<string, RowValue>, key: string): number => {
   const v = row.get(key);
-  return typeof v === 'number' ? v : 0;
+  return Predicate.isNumber(v) ? v : 0;
 };
 
 const pad2 = (n: number): string => String(n).padStart(2, '0');

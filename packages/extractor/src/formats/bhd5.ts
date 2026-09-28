@@ -1,3 +1,4 @@
+// oxlint-disable-next-line effecttsgo/node-builtin-import -- Effect's Crypto has no AES cipher; FromSoft archives use raw AES (no Effect counterpart)
 import { createDecipheriv } from 'node:crypto';
 
 /**
@@ -26,7 +27,7 @@ export interface Bhd5FileHeader {
 // Minimal little-endian binary reader.
 class Reader {
   pos = 0;
-  private dv: DataView;
+  private readonly dv: DataView;
   constructor(public buf: Uint8Array) {
     this.dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
   }

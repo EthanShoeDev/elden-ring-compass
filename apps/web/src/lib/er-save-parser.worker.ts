@@ -19,11 +19,11 @@ self.addEventListener('message', (event: MessageEvent<ParseRequest>) => {
       ok: true,
       save: parseEldenRingData(buffer),
     } satisfies ParseResponse);
-  } catch (err) {
+  } catch (error) {
     self.postMessage({
       id,
       ok: false,
-      error: err instanceof Error ? err.message : String(err),
+      error: error instanceof Error ? error.message : String(error),
     } satisfies ParseResponse);
   }
 });

@@ -1,6 +1,6 @@
 import { Schema } from 'effect';
-import { Atom } from 'effect/unstable/reactivity';
-import * as AsyncResult from 'effect/unstable/reactivity/AsyncResult';
+import { Atom } from 'effect/reactivity';
+import * as AsyncResult from 'effect/reactivity/AsyncResult';
 import { useAtom, useAtomValue } from '@effect/atom-react';
 import { useEffect } from 'react';
 import { saveAtom, useEldenRingSave } from '@/lib/atoms/save';

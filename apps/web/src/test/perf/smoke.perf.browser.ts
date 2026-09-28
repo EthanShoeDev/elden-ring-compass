@@ -20,7 +20,7 @@ it('cdp can force GC and read JS heap', async () => {
   const before = await forceGcHeapUsedBytes();
   // Allocate ~live data, then drop it.
   let blob: number[] | null = Array.from({ length: 1_000_000 }, (_, i) => i);
-  expect(blob.length).toBe(1_000_000);
+  expect(blob).toHaveLength(1_000_000);
   blob = null;
   const after = await forceGcHeapUsedBytes();
   // We don't assert a delta (GC timing is non-deterministic); we only assert the metric is real.

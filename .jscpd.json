@@ -18,6 +18,7 @@
     "**/packages/elden-ring-save-parser/pkg/**",
     "**/packages/ER-Save-Editor/**",
     "**/packages/vendored-data/**",
+    "**/packages/config/oxlint-plugins/src/vendor/**",
     "**/map-tiles/**",
     "**/.agents/**",
     "**/.claude/**",

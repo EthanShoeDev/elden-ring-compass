@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { cn, delayMs } from './utils';
+import { describe, it, expect } from 'vitest';
+import { cn } from './utils';
 
 describe('cn (className utility)', () => {
   it('should merge class names', () => {
@@ -33,39 +33,5 @@ describe('cn (className utility)', () => {
   it('should handle empty input', () => {
     const result = cn();
     expect(result).toBe('');
-  });
-});
-
-describe('delayMs', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('should resolve after specified delay', async () => {
-    const promise = delayMs(1000);
-
-    // Should not resolve immediately
-    let resolved = false;
-    void promise.then(() => {
-      resolved = true;
-    });
-
-    expect(resolved).toBe(false);
-
-    // Advance timers
-    await vi.advanceTimersByTimeAsync(1000);
-
-    expect(resolved).toBe(true);
-  });
-
-  it('should resolve with undefined', async () => {
-    const promise = delayMs(100);
-    vi.advanceTimersByTime(100);
-    const result = await promise;
-    expect(result).toBeUndefined();
   });
 });

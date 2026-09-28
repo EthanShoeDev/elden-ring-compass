@@ -45,13 +45,12 @@ export function StoryBossSection() {
   // Toggle the boss's map pin (its row in the shared `bosses` store). No navigation,
   // so you can pin several bosses and review them on the map whenever you like.
   const togglePin = (flag: number) => {
-    setRowSelection('bosses')((prev) => {
-      const key = flag.toString();
-      const next = { ...prev };
-      if (next[key]) delete next[key];
-      else next[key] = true;
-      return next;
-    });
+    const key = flag.toString();
+    setRowSelection('bosses')((prev) =>
+      prev[key]
+        ? Object.fromEntries(Object.entries(prev).filter(([k]) => k !== key))
+        : { ...prev, [key]: true },
+    );
   };
 
   const killed = ALL_BOSSES.filter((b) => isDefeated(b.flag)).length;

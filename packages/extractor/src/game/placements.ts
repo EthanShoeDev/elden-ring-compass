@@ -1,4 +1,4 @@
-import { Effect, FileSystem, Path } from 'effect';
+import { Effect, FileSystem, Path, Predicate } from 'effect';
 
 import type { DcxError } from '../formats/dcx.ts';
 import type { EmedfError } from '../formats/emedf.ts';
@@ -60,7 +60,7 @@ export interface Placement {
 
 const num = (row: ReadonlyMap<string, RowValue>, key: string): number => {
   const v = row.get(key);
-  return typeof v === 'number' ? v : 0;
+  return Predicate.isNumber(v) ? v : 0;
 };
 
 /**
@@ -119,7 +119,7 @@ export const loadPlacements = (
           const lotId = num(row, field);
           return lotId > 0 ? [{ lotId, map }] : [];
         });
-        if (lots.length) lotsByNpc.set(r.id, lots);
+        if (lots.length > 0) lotsByNpc.set(r.id, lots);
       }
     }
     for (const m of markers) {

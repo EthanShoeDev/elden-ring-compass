@@ -29,6 +29,7 @@ function createRule(
       return {
         ImportDeclaration(node) {
           const source = node.source.value;
+          // oxlint-disable-next-line anti-slop/no-runtime-typeof -- ESTree Literal.value is a primitive union from the parser, and this plugin has no effect dependency for Predicate
           if (typeof source === 'string' && forbiddenModules.has(source)) {
             context.report({ node, messageId });
           }

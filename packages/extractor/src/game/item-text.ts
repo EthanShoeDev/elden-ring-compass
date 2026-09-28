@@ -54,7 +54,7 @@ const MSGBNDS = [
 const categoryOf = (entryName: string | null): string | null => {
   if (!entryName) return null;
   const base = entryName.split(/[\\/]/).pop() ?? '';
-  return base.match(/^([A-Za-z0-9]+?)(?:_dlc\d+)?\.fmg$/i)?.[1] ?? null;
+  return /^([A-Za-z0-9]+?)(?:_dlc\d+)?\.fmg$/i.exec(base)?.[1] ?? null;
 };
 
 export const loadItemText = (

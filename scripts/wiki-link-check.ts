@@ -29,17 +29,19 @@ import {
   Schedule,
   Schema,
 } from 'effect';
-import { FetchHttpClient, HttpClient } from 'effect/unstable/http';
-import { Command, Flag } from 'effect/unstable/cli';
+import { FetchHttpClient, HttpClient } from 'effect/http';
+import { Command, Flag } from 'effect/cli';
 
 import { BOSSES } from '@elden-ring-compass/data';
 
+// oxlint-disable import-boundaries/no-cross-package-relative-imports -- this script audits the web app's own wiki links, and apps/web publishes no package exports to import through
 import { CATALOG } from '../apps/web/src/lib/inventory-catalog-data';
 import {
   wikiNameForBoss,
   wikiNameForItem,
   wikiPageUrl,
 } from '../apps/web/src/lib/wiki';
+// oxlint-enable import-boundaries/no-cross-package-relative-imports
 
 const COMMAND_NAME = 'wiki-link-check';
 

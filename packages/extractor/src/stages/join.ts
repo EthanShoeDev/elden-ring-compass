@@ -1,4 +1,4 @@
-import { Effect, FileSystem, Path } from 'effect';
+import { Effect, FileSystem, Path, Predicate } from 'effect';
 
 import {
   decodeRow,
@@ -411,7 +411,7 @@ const GEM_MOUNT_CATEGORIES: readonly [string, string][] = [
 type Row = Map<string, RowValue>;
 const num = (row: Row, key: string): number => {
   const v = row.get(key);
-  return typeof v === 'number' ? v : 0;
+  return Predicate.isNumber(v) ? v : 0;
 };
 
 // ER rarity int → label (erdb GoodsRarity.from_id): 0/1 Common, 2 Rare, 3 Legendary.
@@ -494,7 +494,7 @@ const decodeParamMap = (
     const bytes = paramFiles.get(paramName);
     if (!bytes) {
       yield* Effect.logWarning(`no ${paramName} param; skipping`);
-      return new Map();
+      return new Map<number, Row>();
     }
     const param = yield* parseParam(bytes);
     const def = yield* loadParamdef(paramName);
@@ -690,9 +690,7 @@ export const join = (
           if (!rr) break;
           levels.push({
             attack: REINFORCE_ATTACK_RATES.map((k) => num(rr, k)),
-            scaling: SCALING_FIELDS.map(([, , rateField]) =>
-              num(rr, rateField),
-            ),
+            scaling: SCALING_FIELDS.map((field) => num(rr, field[2])),
           });
         }
         return { id: baseId, levels };
@@ -707,15 +705,14 @@ export const join = (
       .toSorted((a, b) => a - b)
       .map((id) => {
         const row = aecRows.get(id);
-        const correct: {
-          -readonly [K in DamageType]?: Partial<
-            Record<ScalingAttr, number | true>
-          >;
-        } = {};
+        const correct: Partial<
+          Record<DamageType, Partial<Record<ScalingAttr, number | true>>>
+        > = {};
         if (row) {
           for (const [dt, suffix] of AEC_DT_SUFFIX) {
             const entry: Partial<Record<ScalingAttr, number | true>> = {};
-            for (const [attr, , , namePart] of SCALING_FIELDS) {
+            for (const [attr, ...fieldNames] of SCALING_FIELDS) {
+              const namePart = fieldNames[2];
               if (num(row, `is${namePart}Correct_by${suffix}`) !== 1) continue;
               const overwrite = num(
                 row,
@@ -913,7 +910,7 @@ export const join = (
         ...coreFields(g, id, names.GoodsInfo, names.GoodsCaption),
         summonName: (names.GoodsInfo2.get(id) ?? '').trim(),
         fpCost: num(g, 'consumeMP'),
-        hpCost: hp < 0 ? 0 : hp,
+        hpCost: Math.max(0, hp),
         upgradeMaterial,
         upgradeCosts: chain.slice(1).flatMap((i) => {
           const row = goodsRows.get(i);

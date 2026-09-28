@@ -64,7 +64,7 @@ const MASK_RE = /<MapTileMask exists="(\d)" id="(\d+)" mask="(\d+)"\/>/g;
 const MAP_RE = /MENU_MapTile_(M\d{2})/;
 
 const baseName = (n: string | null): string => {
-  const norm = (n ?? '').replace(/\\/g, '/');
+  const norm = (n ?? '').replaceAll('\\', '/');
   return norm.slice(norm.lastIndexOf('/') + 1);
 };
 

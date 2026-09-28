@@ -1,5 +1,6 @@
 import { X as Cross2Icon } from 'lucide-react';
 import { ReactTable, RowData } from '@tanstack/react-table';
+import { Predicate } from 'effect';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +24,7 @@ export function DataTableToolbar<TData extends RowData>({ table }: DataTableTool
     <div className='flex items-center justify-between'>
       <div className='mr-10 flex flex-1 flex-wrap items-center gap-2'>
         <Input
-          placeholder={'Search'}
+          placeholder='Search'
           value={(table.getColumn('Name')?.getFilterValue() as string | undefined) ?? ''}
           onChange={(event) => table.getColumn('Name')?.setFilterValue(event.target.value)}
           className='h-8 w-[150px] lg:w-[250px]'
@@ -45,13 +46,16 @@ export function DataTableToolbar<TData extends RowData>({ table }: DataTableTool
             // aggregate count descending (most-common first). `getFacetedUniqueValues`
             // iterates in row-encounter order otherwise, which feels random.
             const entries = Array.from(column.getFacetedUniqueValues().entries());
-            const isNumeric = entries.length > 0 && entries.every(([v]) => typeof v === 'number');
+            const isNumeric = entries.length > 0 && entries.every(([v]) => Predicate.isNumber(v));
             entries.sort(([va, ca], [vb, cb]) =>
               isNumeric ? (va as number) - (vb as number) : cb - ca,
             );
             const options = entries.map(([value]) => ({
-              label:
-                typeof value != 'string' ? (value == null ? 'NA' : JSON.stringify(value)) : value,
+              label: Predicate.isString(value)
+                ? value
+                : Predicate.isNullish(value)
+                  ? 'NA'
+                  : JSON.stringify(value),
               value: value as unknown,
             }));
             return (

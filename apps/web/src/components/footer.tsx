@@ -1,5 +1,6 @@
 import { CircleDotIcon, StarIcon, SwordIcon } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
+import { Option, Predicate, Schema } from 'effect';
 import { useEffect, useState } from 'react';
 
 import { REPO_URL } from '@/components/shell/nav';
@@ -88,6 +89,10 @@ export function Footer() {
   );
 }
 
+/** The one field read from GitHub's `GET /repos/{owner}/{repo}` response. */
+const GithubRepo = Schema.Struct({ stargazers_count: Schema.Number });
+const decodeGithubRepo = Schema.decodeUnknownOption(GithubRepo);
+
 /**
  * Live GitHub star count for the repo, fetched client-side (unauthenticated, so
  * subject to GitHub's 60 req/hr/IP limit — fine for a footer). Returns null until
@@ -99,18 +104,42 @@ function useGithubStars(): number | null {
     // REPO_URL = https://github.com/<owner>/<repo>
     const slug = REPO_URL.replace(/^https?:\/\/github\.com\//, '');
     const controller = new AbortController();
+    // oxlint-disable-next-line effecttsgo/global-fetch -- one best-effort UI fetch inside a React effect; the web app has no HttpClient layer to route it through
     fetch(`https://api.github.com/repos/${slug}`, { signal: controller.signal })
-      .then((r) => (r.ok ? (r.json() as Promise<{ stargazers_count?: number }>) : null))
-      .then((data) => {
-        if (typeof data?.stargazers_count === 'number') setStars(data.stargazers_count);
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json: unknown) => {
+        const repo = decodeGithubRepo(json);
+        if (Option.isSome(repo)) setStars(repo.value.stargazers_count);
       })
-      .catch(() => {});
+      .catch(() => {
+        // Best-effort: on any failure (offline, rate limit, abort) the Star button omits the count.
+      });
     return () => {
       controller.abort();
     };
   }, []);
   return stars;
 }
+
+function uint8ArrayToBase64(uint8Array: Uint8Array) {
+  let binary = '';
+  for (const byte of uint8Array) {
+    binary += String.fromCodePoint(byte);
+  }
+  return btoa(binary);
+}
+
+function trimTrailingZeros(uint8Array: Readonly<Uint8Array>) {
+  let endIndex = uint8Array.length - 1;
+  while (endIndex >= 0 && uint8Array[endIndex] === 0) {
+    endIndex--;
+  }
+  return uint8Array.slice(0, endIndex + 1);
+}
+
+/** JSON.stringify replacer: the save's bigint fields (e.g. Steam ids) serialize as strings. */
+const bigintToString = (_key: string, value: unknown): unknown =>
+  Predicate.isBigInt(value) ? value.toString() : value;
 
 function CopySaveAsJsonButton() {
   const slot = useSelectedSlot();
@@ -129,22 +158,6 @@ function CopySaveAsJsonButton() {
       const regionsVm = regionsDbView(slot);
       const statsVm = statsDbView(slot);
 
-      function uint8ArrayToBase64(uint8Array: Uint8Array) {
-        let binary = '';
-        for (const byte of uint8Array) {
-          binary += String.fromCharCode(byte);
-        }
-        return btoa(binary);
-      }
-
-      function trimTrailingZeros(uint8Array: Readonly<Uint8Array>) {
-        let endIndex = uint8Array.length - 1;
-        while (endIndex >= 0 && uint8Array[endIndex] === 0) {
-          endIndex--;
-        }
-        return uint8Array.slice(0, endIndex + 1);
-      }
-
       const result = {
         stats: statsVm,
         regions: regionsVm[0],
@@ -156,19 +169,13 @@ function CopySaveAsJsonButton() {
         equipment: equipmentVm,
       };
 
-      await navigator.clipboard.writeText(
-        JSON.stringify(
-          result,
-          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
-          2,
-        ),
-      );
+      await navigator.clipboard.writeText(JSON.stringify(result, bigintToString, 2));
       setRecentSuccess(true);
       setTimeout(() => {
         setRecentSuccess(false);
       }, 2000);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
+    } catch (error) {
+      setError(error instanceof Error ? error : new Error(String(error)));
     } finally {
       setIsPending(false);
     }

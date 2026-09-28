@@ -138,6 +138,7 @@ function ExistenceTileLayer({
   useEffect(() => {
     // `.extend()` loses TileLayer's `(url, options)` constructor signature in
     // @types/leaflet, so re-assert it.
+    // oxlint-disable-next-line anti-slop/no-chained-type-assertions -- extend() result re-asserted to TileLayer's ctor type (see comment above)
     const ExistenceTL = LeafletTileLayer.extend({
       _isValidTile(coords: { x: number; y: number; z: number }) {
         // Our tile pyramids are SPARSE — the extractor's `skipBlanks` drops
@@ -149,9 +150,9 @@ function ExistenceTileLayer({
         // `GridLayer._isValidTile` applies the `bounds`/`noWrap` envelope; we add existence.
         // @types/leaflet doesn't expose GridLayer.prototype._isValidTile; reach
         // the private envelope check through a typed view of the prototype.
-        // oxlint-disable-next-line unknown-cast/forbidden -- see comment above
+        // oxlint-disable-next-line unknown-cast/forbidden, anti-slop/no-chained-type-assertions -- see comment above
         const gridProto = GridLayer.prototype as unknown as {
-          _isValidTile(c: { x: number; y: number; z: number }): boolean;
+          _isValidTile: (c: { x: number; y: number; z: number }) => boolean;
         };
         const inEnvelope = gridProto._isValidTile.call(this, coords);
         return inEnvelope && exists(coords.z, coords.x, coords.y);

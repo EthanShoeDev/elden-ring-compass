@@ -24,7 +24,9 @@ const columns = [
   commonPinColumnDef(helper),
   // The toolbar "Search" box filters the `Name` column; use a string-contains filter (not the
   // faceted default) so it does real work over every row.
-  commonAccessorColumnDef(helper, 'name', 'Name', { filterFn: 'includesString' }),
+  commonAccessorColumnDef(helper, 'name', 'Name', {
+    filterFn: 'includesString',
+  }),
   commonAccessorColumnDef(helper, 'category', 'Category'),
   commonAccessorColumnDef(helper, 'rarity', 'Rarity'),
 ];
@@ -56,7 +58,10 @@ it.effect('armaments table: mount + filter time and retained heap within bounds'
     // whole catalog → first page re-renders. Time until filtered rows are in the DOM.
     const input = screen.getByPlaceholderText('Search');
     const filterStart = performance.now();
-    yield* Effect.sync(() => fireEvent.change(input, { target: { value: 'sword' } }));
+    yield* Effect.sync(() =>
+      // oxlint-disable-next-line testing-library/prefer-user-event -- the benchmark times ONE filter recompute; userEvent.type fires a change per keystroke and would time five
+      fireEvent.change(input, { target: { value: 'sword' } }),
+    );
     yield* Effect.promise(() => screen.findAllByText(/sword/i));
     const filterMs = performance.now() - filterStart;
 

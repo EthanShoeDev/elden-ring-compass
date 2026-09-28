@@ -16,7 +16,7 @@ import {
   SchemaGetter,
   SchemaTransformation,
 } from 'effect';
-import { Command, Flag } from 'effect/unstable/cli';
+import { Command, Flag } from 'effect/cli';
 import type { SemVer } from 'semver';
 import { coerce, gt } from 'semver';
 import type { PackageJson as BasePackageJson } from 'type-fest';

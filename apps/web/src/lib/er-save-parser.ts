@@ -1,23 +1,11 @@
 import { parseSave } from '@elden-ring-compass/save-parser-ts';
-import { Effect } from 'effect';
+import { Effect, Predicate } from 'effect';
 
 import { clientRuntime } from './runtime/client';
 import type { WasmEldenRingSave } from './save-dto';
 
 export function fileToArrBuffer(file: File) {
-  return new Promise<ArrayBuffer>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.addEventListener('load', () => {
-      const buffer = reader.result;
-      if (buffer instanceof ArrayBuffer) {
-        resolve(buffer);
-      }
-    });
-    reader.addEventListener('error', () => {
-      reject(reader.error ?? new Error('Failed to read file'));
-    });
-    reader.readAsArrayBuffer(file);
-  });
+  return file.arrayBuffer();
 }
 
 // Parses a save into the lean web DTO via the pure-TS parser
@@ -34,7 +22,7 @@ export function parseEldenRingData(rawSaveData: ArrayBuffer): WasmEldenRingSave 
   return clientRuntime.runSync(
     parseSave(rawSaveData).pipe(
       Effect.mapError((e) =>
-        e._tag === 'save-parser/SaveMagicMismatchError'
+        Predicate.isTagged(e, 'save-parser/SaveMagicMismatchError')
           ? new Error(
               'Not a PC Elden Ring save (expected "BND4" magic). PS/Switch saves are not supported.',
             )

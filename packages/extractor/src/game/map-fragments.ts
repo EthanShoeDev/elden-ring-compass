@@ -1,4 +1,4 @@
-import { Effect, FileSystem, Path, PlatformError } from 'effect';
+import { Effect, FileSystem, Path, PlatformError, Predicate } from 'effect';
 
 import type { OodleError } from '../external/oodle.ts';
 import type { Bnd4Error } from '../formats/bnd4.ts';
@@ -50,7 +50,7 @@ type MapFragmentErrors =
 
 const num = (row: ReadonlyMap<string, RowValue>, key: string): number => {
   const v = row.get(key);
-  return typeof v === 'number' ? v : 0;
+  return Predicate.isNumber(v) ? v : 0;
 };
 
 export const loadMapFragments = (

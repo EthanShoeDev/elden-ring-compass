@@ -155,12 +155,10 @@ export const renderRegionsFile = (
   // Pack the matchmaking ids 12-per-line so the Set stays readable in diffs.
   const matchmakingLines: string[] = [];
   for (let i = 0; i < matchmakingIds.length; i += 12) {
-    matchmakingLines.push(
-      '  ' + matchmakingIds.slice(i, i + 12).join(', ') + ',',
-    );
+    matchmakingLines.push(`  ${matchmakingIds.slice(i, i + 12).join(', ')},`);
   }
   return (
-    renderDataset(
+    `${renderDataset(
       'Region',
       [
         'readonly id: number;',
@@ -171,12 +169,10 @@ export const renderRegionsFile = (
       ],
       'REGIONS',
       regions.map((r) => ({ ...r })),
-    ) +
-    '\n// areaNo==0 PlayRegionParam rowIds — multiplayer/invasion matchmaking siblings of placed\n' +
-    "// regions. The game activates these as the player moves, so they appear in the save's\n" +
-    '// unlocked_regions, but they have no name/placement and are NOT user-facing places.\n' +
-    'export const MATCHMAKING_REGION_IDS: ReadonlySet<number> = new Set([\n' +
-    `${matchmakingLines.join('\n')}\n]);\n`
+    )}\n// areaNo==0 PlayRegionParam rowIds — multiplayer/invasion matchmaking siblings of placed\n` +
+    `// regions. The game activates these as the player moves, so they appear in the save's\n` +
+    `// unlocked_regions, but they have no name/placement and are NOT user-facing places.\n` +
+    `export const MATCHMAKING_REGION_IDS: ReadonlySet<number> = new Set([\n${matchmakingLines.join('\n')}\n]);\n`
   );
 };
 
@@ -727,10 +723,9 @@ export const codegen = (input: CodegenInput) =>
       'event-flags',
       'game-meta',
     ];
-    const index =
-      HEADER +
-      modules.map((m) => `export * from './${m}.ts';`).join('\n') +
-      '\n';
+    const index = `${
+      HEADER + modules.map((m) => `export * from './${m}.ts';`).join('\n')
+    }\n`;
     yield* write('index.ts', index);
 
     yield* Effect.logInfo(

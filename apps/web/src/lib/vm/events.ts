@@ -4,12 +4,17 @@ import { Slot } from '../save-dto';
 import { bossFlagToPixel, graceFlagToPixel } from './map-pins';
 
 function get_bit(byte: number, bit_pos: number) {
-  return (byte & (1 << bit_pos)) != 0;
+  return (byte & (1 << bit_pos)) !== 0;
 }
 
 type EventType = 'grace' | 'boss';
 // `subtitle` is shown under the name in the map popup (a grace's region, etc.).
-type BaseEvent = { id: number; name: string; type: EventType; subtitle?: string };
+type BaseEvent = {
+  id: number;
+  name: string;
+  type: EventType;
+  subtitle?: string;
+};
 
 /**
  * Flag-driven world progress (Sites of Grace + bosses) — `on` is read from the save's

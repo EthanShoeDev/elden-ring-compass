@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router';
+import { Option, Schema } from 'effect';
 import { useEffect, useState } from 'react';
 import { decodeFromUrl } from '@/lib/share/decode';
 
@@ -8,7 +9,7 @@ type ShareSearchParams = {
 
 export const Route = createFileRoute('/share')({
   validateSearch: (search: Record<string, unknown>): ShareSearchParams => ({
-    d: typeof search.d === 'string' ? search.d : undefined,
+    d: Option.getOrUndefined(Schema.decodeUnknownOption(Schema.String)(search.d)),
   }),
   component: SharePage,
 });

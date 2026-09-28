@@ -1,14 +1,53 @@
 import { recommended as effectTsgoRecommended } from '@effect/tsgo/oxlint-presets';
+import antiSlop from '@elden-ring-compass/oxlint-plugins/vendor/anti-slop';
+import antiSlopEffect from '@elden-ring-compass/oxlint-plugins/vendor/anti-slop/effect';
+import playwright from 'eslint-plugin-playwright';
+import testingLibrary from 'eslint-plugin-testing-library';
 import { defineConfig } from 'oxlint';
 
+// Strictness model: every category at `error`, every third-party rule at
+// `error`, and each rule this codebase rejects turned off below WITH its reason
+// on the line above it.
+
 // Effect diagnostics are reported by oxlint (via the `effect-tsgo patch --oxlint`
-// prepare step), not by the language service, so the whole preset lands at
+// prepare step), not by the language service, so the whole rule set lands at
 // `error` like every other rule here. Deriving the map from the preset keeps new
 // rules enforced when @effect/tsgo is upgraded rather than silently landing at
-// the preset's `warn`. Per-rule opt-outs live in `rules` below.
+// the preset's `warn`.
 const effectTsgoRules = Object.fromEntries(
   Object.keys(effectTsgoRecommended.rules ?? {}).map((rule) => [rule, 'error']),
 );
+
+// jsPlugins rules are not covered by `categories`, so each third-party plugin's
+// full rule set is derived the same way: every rule at `error`, and the ones
+// we reject are turned off below with a reason.
+const everyRuleOf = (prefix: string, plugin: { rules?: object }) =>
+  Object.fromEntries(
+    Object.keys(plugin.rules ?? {}).map((rule) => [
+      `${prefix}/${rule}`,
+      'error' as const,
+    ]),
+  );
+const playwrightRules = everyRuleOf('playwright', playwright);
+const testingLibraryRules = everyRuleOf('testing-library', testingLibrary);
+const antiSlopRules = everyRuleOf('anti-slop', antiSlop);
+const antiSlopEffectRules = everyRuleOf('anti-slop-effect', antiSlopEffect);
+
+// @effect/vitest test blocks and their modifiers; vitest rules only know the
+// built-in `it`/`test`. Bare `it` is listed because `layer(…)('…', (it) => …)`
+// rebinds it as a parameter the rule cannot resolve.
+const effectVitestTestBlocks = [
+  'it',
+  'it.effect',
+  'it.live',
+  'it.scoped',
+  'it.scopedLive',
+].flatMap((block) => [
+  block,
+  ...['each', 'skip', 'skipIf', 'runIf', 'only', 'fails'].map(
+    (m) => `${block}.${m}`,
+  ),
+]);
 
 export default defineConfig({
   extends: [effectTsgoRecommended],
@@ -21,6 +60,7 @@ export default defineConfig({
     'jsdoc',
     'node',
     'promise',
+    'vitest',
     'react',
     'react-perf',
     'jsx-a11y',
@@ -31,14 +71,25 @@ export default defineConfig({
     '@elden-ring-compass/oxlint-plugins/require-disable-description',
     '@elden-ring-compass/oxlint-plugins/forbidden-unknown-cast',
     '@elden-ring-compass/oxlint-plugins/prefer-effect',
+    '@elden-ring-compass/oxlint-plugins/no-cross-package-relative-imports',
+    '@elden-ring-compass/oxlint-plugins/no-unexplained-dynamic-import',
+    '@elden-ring-compass/oxlint-plugins/no-render-time-match-route',
+    '@elden-ring-compass/oxlint-plugins/vendor/anti-slop',
+    '@elden-ring-compass/oxlint-plugins/vendor/anti-slop/effect',
+    'eslint-plugin-playwright',
+    'eslint-plugin-testing-library',
   ],
   env: {
     browser: true,
   },
+  // Every category at `error`: a rule is on unless an entry below turns it off.
   categories: {
     correctness: 'error',
     perf: 'error',
+    restriction: 'error',
     suspicious: 'error',
+    pedantic: 'error',
+    style: 'error',
   },
   ignorePatterns: [
     'docs/cloned-repos-as-docs/**',
@@ -57,184 +108,702 @@ export default defineConfig({
     'packages/data/src/generated/**',
     // shadcn/ui components are vendored from the registry; we don't hand-lint them.
     '**/components/ui/**',
+    // The vendored anti-slop plugin (packages/config/oxlint-plugins/src/vendor/anti-slop/UPSTREAM.md)
+    // is linted upstream; its own rules flag the patterns it is written with.
+    'packages/config/oxlint-plugins/src/vendor/**',
     // Rust/WASM build output and git submodule.
     'packages/elden-ring-save-parser/pkg/**',
     'packages/ER-Save-Editor/**',
     'CLAUDE.md',
+    // Agent skill bundles are not project code.
     '.agents/**',
-    '.claude/skills/**',
+    '.claude/**',
     '.cursor/**',
     '.opencode/**',
     '.github/skills/**',
   ],
-  /*
-   * When we deviate from a default, leave a comment explaining why.
-   * Do not add a rule without a comment.
-   */
+  // Every rule entry carries its reason on the line above it. Do not add a
+  // rule change without one, and do not delete the reasons.
   rules: {
-    // Effect.gen generators yield* as the final expression; oxlint reads that
-    // as a missing return. Off across the repo.
-    'typescript/consistent-return': 'off',
-    // oxfmt owns import ordering.
+    // ─── Owned by oxfmt ─────────────────────────────────────────────────
+    // oxfmt orders imports.
     'sort-imports': 'off',
-    // Default-exported configs/routes are idiomatic here (vite, tanstack).
-    'import/no-default-export': 'off',
-    // We use the automatic JSX runtime (jsx: 'react-jsx'), so React does not
-    // need to be imported into scope.
-    'react/react-in-jsx-scope': 'off',
-    // Rules of React enforcement for the React Compiler. oxlint has no
-    // `react-compiler` plugin (it doesn't exist), and `rules-of-hooks` is OFF by
-    // default — it is not part of the `correctness` category. The compiler
-    // silently bails out of any component that breaks the Rules of Hooks, so we
-    // promote it to an error to catch those at lint time rather than losing the
-    // optimization at build time. (`react/exhaustive-deps`, the other rule the
-    // compiler relies on, is already on via the `correctness` category.)
-    'react/rules-of-hooks': 'error',
-    // Type-aware assertions are used deliberately at JSON/ESLint-AST
-    // boundaries (catalog-check, the oxlint plugins). `unknown-cast/forbidden`
-    // already guards the dangerous `as unknown as` form with a required reason.
-    'typescript/no-unsafe-type-assertion': 'off',
-    // The non-null assertion (`!`) silently bypasses strict null checks. Narrow
-    // with Effect instead: `Option.fromNullable(x)` + `Option.match`/`getOrElse`,
-    // `Predicate.isNotNullable`, or `effect/Schema` for validated parsing. (The
-    // old `assertDefined` throwing helper is deprecated — don't reach for it.)
-    'typescript/no-non-null-assertion': 'error',
+    // oxfmt emits `import { type X }`, which this rule rewrites.
+    'typescript/consistent-type-imports': 'off',
+    // Same oxfmt conflict as consistent-type-imports.
+    'import/consistent-type-specifier-style': 'off',
+    // `import type` beside `import` from one module is the oxfmt-compatible split.
+    'no-duplicate-imports': 'off',
+    // oxfmt lowercases hex digits (0x7B → 0x7b).
+    'unicorn/number-literal-case': 'off',
 
-    // --- Rule deviations mirrored from the reference monorepos (fressh,
-    // listening-astro). These fire pervasively and were judged not worth
-    // enforcing there; we keep parity so the configs stay portable. ---
-    // Sequential `await` in a loop is frequently intentional here (ordered IO,
-    // backpressure in the archive unpackers) — not a perf bug. Disabled in
-    // listening-astro for the same reason.
+    // ─── Size and complexity budgets: judged in review, not counted ──────
+    // File length is not a defect.
+    'max-lines': 'off',
+    // Function length is judged in review.
+    'max-lines-per-function': 'off',
+    // Statement counts are judged in review.
+    'max-statements': 'off',
+    // Nesting depth is judged in review.
+    'max-depth': 'off',
+    // Parameter counts are judged in review.
+    'max-params': 'off',
+    // Co-located classes (a service and its errors) belong in one file.
+    'max-classes-per-file': 'off',
+    // Cyclomatic complexity is judged in review.
+    complexity: 'off',
+    // Short names (i, p, fn) are fine in callbacks.
+    'id-length': 'off',
+    // Import counts are not a defect.
+    'import/max-dependencies': 'off',
+    // JSX depth is judged in review.
+    'react/jsx-max-depth': 'off',
+    // Small helper components live beside their parent.
+    'react/no-multi-comp': 'off',
+    // pipe/compose chains nest by design.
+    'unicorn/max-nested-calls': 'off',
+
+    // ─── Style opinions this codebase rejects ───────────────────────────
+    // Ternaries are the expression-level conditional.
+    'no-ternary': 'off',
+    // Nested ternaries are sometimes the clearest option.
+    'no-nested-ternary': 'off',
+    // unicorn twin of no-nested-ternary.
+    'unicorn/no-nested-ternary': 'off',
+    // `if (!x)` is often clearer than an else branch.
+    'no-negated-condition': 'off',
+    // unicorn twin of no-negated-condition.
+    'unicorn/no-negated-condition': 'off',
+    // if/else is often clearer than a ternary in scripts.
+    'unicorn/prefer-ternary': 'off',
+    // Single-line guards read better without braces.
+    curly: 'off',
+    // Merged `const a = 1, b = 2` declarations hurt readability.
+    'one-var': 'off',
+    // Logical grouping beats alphabetical.
+    'sort-keys': 'off',
+    // lo/hi and similar pairs read in their conventional order.
+    'sort-vars': 'off',
+    // Comment casing is not a defect.
+    'capitalized-comments': 'off',
+    // Trailing comments are used sparingly and deliberately.
+    'no-inline-comments': 'off',
+    // TODO/FIXME are used deliberately.
+    'no-warning-comments': 'off',
+    // `continue` keeps loop bodies flat.
+    'no-continue': 'off',
+    // `i++` in loops.
+    'no-plusplus': 'off',
+    // `undefined` is a normal value here.
+    'no-undefined': 'off',
+    // Game data and JSON payloads carry null.
+    'unicorn/no-null': 'off',
+    // `let x;` assigned in branches is fine.
+    'init-declarations': 'off',
+    // Property access is often clearer than destructuring.
+    'prefer-destructuring': 'off',
+    // Declarations and expressions both used.
+    'func-style': 'off',
+    // Named function expressions are not worth the verbosity.
+    'func-names': 'off',
+    // `memo(function Name() {})` keeps the component name in devtools and
+    // stack traces; an arrow there is anonymous.
+    'prefer-arrow-callback': ['error', { allowNamedFunctions: true }],
+    // Binary-format offsets and game constants read fine as literals.
+    'no-magic-numbers': 'off',
+    // 1000 and 1_000 are both readable.
+    'unicorn/numeric-separators-style': 'off',
+    // String.raw reads worse than an escaped regex source.
+    'unicorn/prefer-string-raw': 'off',
+    // `!!x` is idiomatic.
+    'no-implicit-coercion': 'off',
+    // Save-file, BND/BHD archive, param and share-code parsing is bit-field
+    // work (flag bitmasks, gaitem handles, `>>> 0` unsigned coercion).
+    'no-bitwise': 'off',
+    // Sequential `await` in a loop is intentional here (ordered IO,
+    // backpressure in the archive unpackers) — not a perf bug.
     'no-await-in-loop': 'off',
-    // react-perf flags every inline handler/object/array prop. That is
-    // premature optimization; rely on the React Compiler / profiling instead.
-    'react-perf/jsx-no-new-function-as-prop': 'off',
-    'react-perf/jsx-no-new-object-as-prop': 'off',
-    'react-perf/jsx-no-new-array-as-prop': 'off',
-    'react-perf/jsx-no-jsx-as-prop': 'off',
-    // Shadowing an outer name in a nested scope (e.g. `state`) is readable here.
-    'no-shadow': 'off',
-    // Leading/trailing underscores mark intentionally-unused bindings.
-    'no-underscore-dangle': 'off',
-    // CSS and test-setup side-effect imports have no binding to assign.
-    'import/no-unassigned-import': 'off',
-    // Index keys are acceptable for the static, non-reordered lists used here.
-    'react/no-array-index-key': 'off',
-    // Small helper closures are fine where they are defined.
+    // False positives on block-scoped let/const in for...of; the rule targets var hoisting.
+    'no-loop-func': 'off',
+    // reduce is a valid functional pattern.
+    'unicorn/no-array-reduce': 'off',
+    // forEach is used where a for-of would be noise.
+    'unicorn/no-array-for-each': 'off',
+    // Passing a function reference to map/filter is the Effect style.
+    'unicorn/no-array-callback-reference': 'off',
+    // Hoisting to outer scope breaks closures we want.
     'unicorn/consistent-function-scoping': 'off',
+    // Naming varies by convention (components PascalCase).
+    'unicorn/filename-case': 'off',
+    // Per-module import style is not worth enforcing.
+    'unicorn/import-style': 'off',
+    // Array.from(iterable) is explicit about intent.
+    'unicorn/prefer-spread': 'off',
+    // `{ ...x, y }` inside map is the immutable idiom; the fix is in-place mutation.
+    'oxc/no-map-spread': 'off',
+    // Sequential push() calls read as steps in reports and scripts.
+    'unicorn/prefer-single-call': 'off',
+    // parseInt('12px') !== Number('12px'); the rewrite is not semantics-preserving.
+    'unicorn/prefer-number-coercion': 'off',
+    // The `u` flag changes escaping rules; not worth the churn.
+    'require-unicode-regexp': 'off',
+    // Named groups add verbosity to short regexes.
+    'prefer-named-capture-group': 'off',
+    // Short callback names (p, path, state) shadow deliberately.
+    'no-shadow': 'off',
+    // Helpers follow route/config declarations by convention.
+    'no-use-before-define': 'off',
+    // Effect service classes have methods without `this`.
+    'class-methods-use-this': 'off',
+    // useRef<T>(undefined) and explicit-undefined returns are intentional.
+    'unicorn/no-useless-undefined': 'off',
+    // Object-literal defaults are fine.
+    'unicorn/no-object-as-default-parameter': 'off',
+    // `window` is the SSR-vs-client discriminator; `self` is the worker global.
+    'unicorn/prefer-global-this': 'off',
+    // `void promise` is the fire-and-forget idiom.
+    'no-void': 'off',
+    // React Compiler does not support ||= / ??= yet (see react/todo).
+    'logical-assignment-operators': 'off',
     // Web Workers' postMessage takes a transfer list, not a targetOrigin. This
     // unicorn rule targets cross-window `window.postMessage` and is a false
     // positive for the save-parser worker (`self.postMessage`/`worker.postMessage`).
     'unicorn/require-post-message-target-origin': 'off',
-    // Spreading inside map() is idiomatic for the view-model builders.
-    'oxc/no-map-spread': 'off',
-    // Not every then() callback needs to return a value.
-    'promise/always-return': 'off',
-    // Memoizing every context value is not required for this app.
-    'react/jsx-no-constructed-context-values': 'off',
 
-    // --- Effect rules (@effect/tsgo oxlint preset), all elevated to error ---
+    // ─── TypeScript: inferred types and TS-native shapes ────────────────
+    // Inferred types.
+    'typescript/explicit-function-return-type': 'off',
+    // Same as explicit-function-return-type.
+    'typescript/explicit-module-boundary-types': 'off',
+    // Public by default is fine.
+    'typescript/explicit-member-accessibility': 'off',
+    // interface and type both used as appropriate.
+    'typescript/consistent-type-definitions': 'off',
+    // Array<T> and T[] both used as appropriate.
+    'typescript/array-type': 'off',
+    // Constructor parameter properties are a legitimate style.
+    'typescript/parameter-properties': 'off',
+    // `onClick={() => setState(x)}` and cleanup returns would all need braces.
+    'typescript/no-confusing-void-expression': 'off',
+    // Sibling of no-confusing-void-expression, off for the same reason.
+    'typescript/strict-void-return': 'off',
+    // Would require readonly-deep types on every parameter.
+    'typescript/prefer-readonly-parameter-types': 'off',
+    // Effect code returns promises from non-async wrappers.
+    'typescript/promise-function-async': 'off',
+    // Fights unicorn/prefer-logical-operator-over-ternary when || is intentional.
+    'typescript/prefer-nullish-coalescing': 'off',
+    // Type-aware assertions are used deliberately at JSON/ESLint-AST
+    // boundaries (catalog-check, the oxlint plugins). `unknown-cast/forbidden`
+    // already guards the dangerous `as unknown as` form with a required reason.
+    'typescript/no-unsafe-type-assertion': 'off',
+    // Empty interfaces are TypeScript module augmentation.
+    'typescript/no-empty-object-type': 'off',
+    // Superseded by no-empty-object-type, off for the same reason.
+    'typescript/no-empty-interface': 'off',
+    // `string & {}` preserves autocomplete while allowing any string.
+    'typescript/ban-types': 'off',
+    // `Effect<A | void>` and void-in-generic are valid Effect shapes.
+    'typescript/no-invalid-void-type': 'off',
+    // TanStack Router uses `throw redirect()` / `throw notFound()` as control flow.
+    'typescript/only-throw-error': 'off',
+    // Top-level `import type` is erased by bundlers; inline `import { type X }`
+    // leaves an empty import that still executes side effects.
+    'typescript/no-import-type-side-effects': 'error',
+    // typescript/switch-exhaustiveness-check owns switch completeness; a
+    // `default` on an exhaustive union switch would hide a new member from it.
+    'default-case': 'off',
+    // Async handlers in JSX attributes (onClick, onSubmit) are a normal React pattern.
+    'typescript/no-misused-promises': [
+      'error',
+      { checksVoidReturn: { attributes: false } },
+    ],
+    // The non-null assertion (`!`) silently bypasses strict null checks. Narrow
+    // with Effect instead: `Option.fromNullable(x)` + `Option.match`/`getOrElse`,
+    // `Predicate.isNotNullable`, or `effect/Schema` for validated parsing.
+    'typescript/no-non-null-assertion': 'error',
+
+    // ─── Effect-shaped code the generic rules misread ───────────────────
+    // Effect constructors are capitalized calls without `new` (Schema.Struct, Layer.succeed).
+    'new-cap': 'off',
+    // Fires on `extends Schema.TaggedError<X>()(…)` because the callee ends in Error.
+    'unicorn/throw-new-error': 'off',
+    // Data-first `Effect.flatMap(x, f)` looks like `arr.flatMap(f, thisArg)`.
+    'unicorn/no-array-method-this-argument': 'off',
+    // Effect errors are Schema/Data classes, not Error subclasses.
+    'unicorn/custom-error-definition': 'off',
+    // A trailing `yield*` in Effect.gen is the return value; oxc-project/oxc#21159 not planned.
+    'typescript/consistent-return': 'off',
+    // Effect's `_tag`; leading underscores mark intentionally-unused bindings.
+    'no-underscore-dangle': 'off',
+    // Option and nullable checks are the idiom.
+    'typescript/strict-boolean-expressions': 'off',
+    // TypeScript declaration merging (`export const X = Schema.Literals(…)` beside
+    // `export type X = typeof X.Type`); the rule has no ignoreDeclarationMerge option.
+    'no-redeclare': 'off',
+
+    // ─── Promises: boundary code only ───────────────────────────────────
+    // `.then` side-effect chains at the boundary need no return.
+    'promise/always-return': 'off',
+    // Wrapping a callback API is what new Promise is for.
+    'promise/avoid-new': 'off',
+    // Event handlers, workers and streams take callbacks.
+    'promise/prefer-await-to-callbacks': 'off',
+    // Promise chains at the boundary; Effect owns the rest.
+    'promise/prefer-await-to-then': 'off',
+    // React handlers, Playwright tests and scripts are async by nature.
+    'oxc/no-async-await': 'off',
+    // Every target supports optional chaining.
+    'oxc/no-optional-chaining': 'off',
+    // Every target supports object rest/spread.
+    'oxc/no-rest-spread-properties': 'off',
+
+    // ─── Modules and imports ────────────────────────────────────────────
+    // Route and config files export default by contract.
+    'import/no-default-export': 'off',
+    // Named exports are the convention.
+    'import/prefer-default-export': 'off',
+    // Named exports are the convention.
+    'import/no-named-export': 'off',
+    // Config files export anonymous objects by convention.
+    'import/no-anonymous-default-export': 'off',
+    // Exports sit beside their definitions.
+    'import/exports-last': 'off',
+    // Exports sit beside their definitions.
+    'import/group-exports': 'off',
+    // Effect modules are consumed as `import * as X`.
+    'import/no-namespace': 'off',
+    // In-package parent imports are normal; cross-package ones are caught by import-boundaries.
+    'import/no-relative-parent-imports': 'off',
+    // Tooling imports node builtins; prefer-effect/* and effecttsgo/node-builtin-import cover runtime code.
+    'import/no-nodejs-modules': 'off',
+    // Side-effect imports: CSS, test setup.
+    'import/no-unassigned-import': 'off',
+    // Package index barrels are the public surface of each workspace package.
+    'oxc/no-barrel-file': 'off',
+    // Scripts and build tooling use sync fs deliberately.
+    'node/no-sync': 'off',
+    // Scripts rely on top-level await.
+    'node/no-top-level-await': 'off',
+    // Legacy node callback style is not used.
+    'node/callback-return': 'off',
+    // CLI entry points exit with a status code.
+    'unicorn/no-process-exit': 'off',
+    // Build tooling and scripts read the environment directly; there is no env module.
+    'node/no-process-env': 'off',
+
+    // ─── JSDoc: TypeScript carries the types ────────────────────────────
+    // Parameter types and names come from the signature.
+    'jsdoc/require-param': 'off',
+    // Return types come from the signature.
+    'jsdoc/require-returns': 'off',
+    // TypeScript carries the parameter type.
+    'jsdoc/require-param-type': 'off',
+    // TypeScript carries the return type.
+    'jsdoc/require-returns-type': 'off',
+    // TypeScript carries the property type.
+    'jsdoc/require-property-type': 'off',
+    // TypeScript carries the thrown type.
+    'jsdoc/require-throws-type': 'off',
+    // `name - description` inline form is readable.
+    'jsdoc/require-param-description': 'off',
+    // `@elden-ring-compass/…` package names in comments read as tags.
+    'jsdoc/check-tag-names': 'off',
+
+    // ─── React ──────────────────────────────────────────────────────────
+    // Automatic JSX runtime (jsx: 'react-jsx').
+    'react/react-in-jsx-scope': 'off',
+    // TypeScript already confines JSX to .tsx.
+    'react/jsx-filename-extension': 'off',
+    // TanStack route files export the route beside the component.
+    'react/only-export-components': 'off',
+    // `{...props}` forwarding is how wrapper components work.
+    'react/jsx-props-no-spreading': 'off',
+    // UI copy is inline; there is no i18n layer.
+    'react/jsx-no-literals': 'off',
+    // className/style on components is the Tailwind idiom.
+    'react/forbid-component-props': 'off',
+    // Same reason as func-style.
+    'react/function-component-definition': 'off',
+    // `onClick={service.logout}` is cleaner than a wrapper.
+    'react/jsx-handler-names': 'off',
+    // Acronym components are all caps.
+    'react/jsx-pascal-case': 'off',
+    // Quotes in JSX text are rendered verbatim by React.
+    'react/no-unescaped-entities': 'off',
+    // Index keys are acceptable for the static, non-reordered lists used here.
+    'react/no-array-index-key': 'off',
+    // Render-prop `children` patterns.
+    'react/no-children-prop': 'off',
+    // `const [value] = useState(init)` and passing tuples as props are valid.
+    'react/hook-use-state': 'off',
+    // React Compiler memoizes context values.
+    'react/jsx-no-constructed-context-values': 'off',
+    // Upstream ships this off: it lists what the compiler skips (Effect.gen
+    // programs inside components, try/finally, ??=), not defects.
+    'react/todo': 'off',
+    // Upstream ships this off. It flags every capitalized call in a render
+    // body (Schema.Struct(), Option.some()) as a possible component, and oxlint
+    // exposes no allowlist for the non-components.
+    'react/capitalized-calls': 'off',
+    // Render props are called as functions by their consumers; a component prop is typed as one.
+    'react/no-unstable-nested-components': ['error', { allowAsProps: true }],
+    // React Compiler memoizes inline props.
+    'react-perf/jsx-no-new-function-as-prop': 'off',
+    // React Compiler memoizes inline props.
+    'react-perf/jsx-no-new-object-as-prop': 'off',
+    // React Compiler memoizes inline props.
+    'react-perf/jsx-no-new-array-as-prop': 'off',
+    // React Compiler memoizes inline props.
+    'react-perf/jsx-no-jsx-as-prop': 'off',
+    // Dialogs and sheets focus their first control deliberately.
+    'jsx-a11y/no-autofocus': 'off',
+    // Roles are needed on composed accessible components.
+    'jsx-a11y/prefer-tag-over-role': 'off',
+    // The Label component wraps controls; not a standalone label.
+    'jsx-a11y/label-has-associated-control': 'off',
+    // Default depth 2 cannot see label text through layout wrapper divs; 4 reaches real markup.
+    'jsx-a11y/control-has-associated-label': ['error', { depth: 4 }],
+    // oxlint's port ships no element→role map, so these are eslint-plugin-jsx-a11y's
+    // documented defaults; `<ul role="listbox">` with `role="option"` is the ARIA pattern.
+    'jsx-a11y/no-noninteractive-element-to-interactive-role': [
+      'error',
+      {
+        ul: [
+          'listbox',
+          'menu',
+          'menubar',
+          'radiogroup',
+          'tablist',
+          'tree',
+          'treegrid',
+        ],
+        ol: [
+          'listbox',
+          'menu',
+          'menubar',
+          'radiogroup',
+          'tablist',
+          'tree',
+          'treegrid',
+        ],
+        li: ['menuitem', 'option', 'row', 'tab', 'treeitem'],
+        table: ['grid'],
+        td: ['gridcell'],
+        fieldset: ['radiogroup', 'presentation'],
+      },
+    ],
+
+    // ─── Tests (vitest plugin) ──────────────────────────────────────────
+    // Vitest's `expect(actual, message)` takes two arguments.
+    'vitest/valid-expect': ['error', { maxArgs: 2 }],
+    // @effect/vitest blocks count as test blocks; see effectVitestTestBlocks.
+    'vitest/no-standalone-expect': [
+      'error',
+      { additionalTestBlockFunctions: effectVitestTestBlocks },
+    ],
+    // Every test would need expect.assertions(n).
+    'vitest/prefer-expect-assertions': 'off',
+    // vitest config owns the timeout.
+    'vitest/require-test-timeout': 'off',
+    // toEqual's structural comparison is what fixtures want.
+    'vitest/prefer-strict-equal': 'off',
+    // toBe(true) reads better than toBeTruthy() on a boolean.
+    'vitest/prefer-to-be-truthy': 'off',
+    // Same as prefer-to-be-truthy.
+    'vitest/prefer-to-be-falsy': 'off',
+    // toBeTruthy on a non-empty string or present object is the right matcher.
+    'vitest/prefer-strict-boolean-matchers': 'off',
+    // We import vitest APIs explicitly; vitest/prefer-importing-vitest-globals enforces that.
+    'vitest/no-importing-vitest-globals': 'off',
+    // Conflicts with vitest/prefer-called-once, which we keep.
+    'vitest/prefer-called-times': 'off',
+    // Arbitrary limit.
+    'vitest/max-expects': 'off',
+    // Top-level setup in test files is fine.
+    'vitest/require-hook': 'off',
+    // Conditionals drive parameterized behavior.
+    'vitest/no-conditional-in-test': 'off',
+    // Same as no-conditional-in-test.
+    'vitest/no-conditional-expect': 'off',
+    // String titles are the convention.
+    'vitest/prefer-describe-function-title': 'off',
+    // vi.fn() infers from its assignment.
+    'vitest/require-mock-type-parameters': 'off',
+    // The dynamic-import form conflicts with our vitest typings.
+    'vitest/prefer-import-in-mock': 'off',
+    // Not every test file needs a describe.
+    'vitest/require-top-level-describe': 'off',
+    // Titles are sentences and identifiers; casing is not a defect.
+    'vitest/prefer-lowercase-title': 'off',
+    // beforeEach/afterEach are a valid pattern.
+    'vitest/no-hooks': 'off',
+    // vitest files use `it`, Playwright specs use `test`; the rule cannot tell them apart.
+    'vitest/consistent-test-it': 'off',
+    // .test and .spec both used.
+    'vitest/consistent-test-filename': 'off',
+    // `expect(await x)` reads better beside Effect-aware tests.
+    'vitest/prefer-expect-resolves': 'off',
+    // for-of is clearer than it.each for parameterized tests with conditional logic.
+    'vitest/prefer-each': 'off',
+    // Benchmarks and no-throw tests assert implicitly.
+    'vitest/expect-expect': 'off',
+    // Dynamic titles for parameterized tests.
+    'vitest/valid-title': 'off',
+    // toThrow() alone asserts the throw.
+    'vitest/require-to-throw-message': 'off',
+    // Blank-line layout is not a lint concern.
+    'vitest/padding-around-test-blocks': 'off',
+    // Same as padding-around-test-blocks.
+    'vitest/padding-around-after-all-blocks': 'off',
+
+    // ─── Effect rules, all elevated from the preset's warn/error to error ─
+    // Offs must follow the spread; the preset re-enables anything above it.
     ...effectTsgoRules,
-    // The rules the Effect language service ships `off` stay off here too:
-    // enabling one is a deliberate opt-in, not a side effect of adopting the
-    // preset (which turns several of them on) or of the blanket `categories`
-    // severities above (which turn on every `effecttsgo` rule in those
-    // categories, preset or not). `prefer-schema-over-json` is the one this
-    // repo opted into (it was `error` in the old tsconfig plugin config), so it
-    // is absent from this list and stays at error.
-    'effecttsgo/any-unknown-in-error-context': 'off',
+    // Effect twin of oxc/no-async-await.
     'effecttsgo/async-function': 'off',
-    'effecttsgo/crypto-random-uuid': 'off',
-    'effecttsgo/crypto-random-uuid-in-effect': 'off',
-    'effecttsgo/deterministic-keys': 'off',
-    'effecttsgo/effect-do-notation': 'off',
-    'effecttsgo/extends-native-error': 'off',
-    'effecttsgo/global-console': 'off',
-    'effecttsgo/global-console-in-effect': 'off',
-    'effecttsgo/global-date': 'off',
-    'effecttsgo/global-date-in-effect': 'off',
-    'effecttsgo/global-fetch': 'off',
-    'effecttsgo/global-fetch-in-effect': 'off',
-    'effecttsgo/global-random': 'off',
-    'effecttsgo/global-random-in-effect': 'off',
-    'effecttsgo/global-timers': 'off',
-    'effecttsgo/global-timers-in-effect': 'off',
-    'effecttsgo/instance-of-schema': 'off',
-    'effecttsgo/missed-pipeable-opportunity': 'off',
-    'effecttsgo/missing-effect-service-dependency': 'off',
-    'effecttsgo/missing-pipeable-signature': 'off',
-    'effecttsgo/nested-effect-gen-yield': 'off',
+    // Effect twin of promise/avoid-new.
     'effecttsgo/new-promise': 'off',
-    'effecttsgo/new-schema-class': 'off',
-    'effecttsgo/node-builtin-import': 'off',
-    'effecttsgo/prefer-schema-type-property': 'off',
+    // Same as node/no-process-env.
     'effecttsgo/process-env': 'off',
+    // Same as node/no-process-env.
     'effecttsgo/process-env-in-effect': 'off',
-    'effecttsgo/schema-sync': 'off',
-    'effecttsgo/schema-union-of-literals': 'off',
-    'effecttsgo/service-not-as-class': 'off',
+    // Effect twin of typescript/strict-boolean-expressions.
     'effecttsgo/strict-boolean-expressions': 'off',
+    // Path-derived keys churn on every file move; keys are identity, not location.
+    'effecttsgo/deterministic-keys': 'off',
+    // React effects and handlers schedule UI timers natively; -in-effect covers Effect code.
+    'effecttsgo/global-timers': 'off',
+    // React components read the wall clock natively; -in-effect covers Effect
+    // code, where Clock/DateTime respect the TestClock.
+    'effecttsgo/global-date': 'off',
+    // Library-author rule for dual signatures.
+    'effecttsgo/missing-pipeable-signature': 'off',
+    // Tests and scripts provide layers per case.
     'effecttsgo/strict-effect-provide': 'off',
-    'effecttsgo/unnecessary-arrow-block': 'off',
-    'effecttsgo/unsafe-effect-type-assertion': 'off',
-    // Suggestion-level in the language service (never gated the old `tsc`
-    // typecheck). Every `Schema.Number` in the extractor/data/share schemas
-    // trips it (216 on adoption); switching them to `Schema.Finite` changes
-    // decode semantics (rejects NaN/±Infinity), so that is its own change.
+    // Codecs at sync boundaries (URL share params, localStorage, worker
+    // messages); Effect code already decodes with decodeUnknownEffect.
+    'effecttsgo/schema-sync': 'off',
+    // Every `Schema.Number` in the extractor/data/share schemas trips it (216);
+    // switching them to `Schema.Finite` changes decode semantics (rejects
+    // NaN/±Infinity), so that is its own change.
     'effecttsgo/schema-number': 'off',
 
-    // ─── Newly default at oxlint 1.82 ───────────────────────────────────
-    // React Compiler-derived rules the bump from 1.68 turned on by way of the
-    // blanket `categories` severities above. Held off so the toolchain bump
-    // stays behaviour-neutral; adopting any of them is its own change (the
-    // compiler already bails out of the flagged components at build time).
-    // Counts are the 1.82 first-run totals.
-    'react/set-state-in-effect': 'off', // 7 - theme/mobile/map/share sync-from-external-state effects
-    'react/preserve-manual-memoization': 'off', // 1 - leaflet-map useMemo
-    'react/incompatible-library': 'off', // 1 - data-table (TanStack Table row APIs)
+    // ─── React Compiler rules held off since the oxlint 1.82 bump ────────
+    // The compiler already bails out of the flagged components at build time;
+    // adopting each is its own change.
+    // Theme/mobile/map/share sync-from-external-state effects.
+    'react/set-state-in-effect': 'off',
+    // The leaflet-map useMemo.
+    'react/preserve-manual-memoization': 'off',
+    // data-table (TanStack Table row APIs).
+    'react/incompatible-library': 'off',
 
-    // --- Custom plugin rules ---
-    // Disable directives (eslint-disable / @ts-expect-error) must carry a reason.
+    // ─── Custom plugin rules ────────────────────────────────────────────
+    // effecttsgo/global-console and global-console-in-effect own console use;
+    // both rules on would report every call twice.
+    'no-console': 'off',
+    // `utf-8`, the form Bun and Node document.
+    'unicorn/text-encoding-identifier-case': ['error', { withDash: true }],
+    // Every disable directive carries a reason.
     'disable-comments/require-description': 'error',
     // `as unknown as` double-casts bypass the type system; opt in explicitly.
     'unknown-cast/forbidden': 'error',
-    // Prefer @effect/platform over raw node:fs / node:path.
+    // Prefer Effect's FileSystem/Path over raw node:fs / node:path.
     'prefer-effect/no-node-path': 'error',
     'prefer-effect/no-node-fs': 'error',
+    // Relative imports stay inside their package.
+    'import-boundaries/no-cross-package-relative-imports': 'error',
+    // A dynamic import() must carry a `dynamic-import -- reason` comment.
+    'dynamic-import/no-unexplained-dynamic-import': 'error',
+
+    // ─── anti-slop (jsPlugin) ───────────────────────────────────────────
+    // Vendored under packages/config/oxlint-plugins/src/vendor/anti-slop (see
+    // its UPSTREAM.md). Offs must follow the spreads.
+    ...antiSlopRules,
+    ...antiSlopEffectRules,
+    // Owned by oxfmt.
+    'anti-slop/require-readable-spacing': 'off',
+    // A SAFETY: comment before every assertion is ritual;
+    // no-chained-type-assertions gates the evidence-free form.
+    'anti-slop/require-safety-comment-for-type-assertion': 'off',
+    // `(error: unknown)` at Promise/defect boundaries and `(value: unknown)` on
+    // decoders and predicates is the honest type.
+    'anti-slop/no-unknown-parameters': 'off',
+    // Same boundary argument for JSON replacers and unwrap helpers.
+    'anti-slop/no-unknown-returns': 'off',
+    // `Record<string, unknown>` is the JSON-object contract; no finite key set to name.
+    'anti-slop/no-unsafe-dictionary-type': 'off',
+    // `...(x ? { x } : {})` omits a key rather than setting it to undefined;
+    // the rule's replacement is a mutable build-up.
+    'anti-slop/no-conditional-empty-object-spread': 'off',
+    // Flags Effect's own `Context.Service.Shape`.
+    'anti-slop/no-shape-in-symbol-names': 'off',
+    // Runtime-keyed lookup tables (game-data ids) are `Record<string, T>` on
+    // purpose; `satisfies` would push a `keyof` cast onto every lookup.
+    'anti-slop/no-known-value-widening': 'off',
+    // `filter().map()` on short arrays reads better than flatMap.
+    'anti-slop/no-array-filter-map': 'off',
+    // `make*` is an ordinary factory prefix here, not a service-constructor marker.
+    'anti-slop-effect/no-service-constructor-imports': 'off',
+    // Nested ternaries are accepted above; Match earns its weight on tagged
+    // unions (no-manual-tag-comparison), not on a two-branch string comparison.
+    'anti-slop-effect/prefer-effect-match': 'off',
   },
   overrides: [
     {
-      // Config files, scripts, and the oxlint plugins themselves legitimately
-      // touch the filesystem and use default exports.
+      files: ['**/*.d.ts'],
+      rules: {
+        // Ambient declaration files (vite-env.d.ts) are scripts by design: an
+        // `export {}` would turn their `declare module` blocks into augmentations
+        // and make their globals file-local.
+        'import/unambiguous': 'off',
+      },
+    },
+    {
+      // apps/web is compiled by babel-plugin-react-compiler, which is what
+      // freezes render-time matchRoute() results (TanStack/router#4499).
+      files: ['apps/web/**'],
+      rules: {
+        'route-active/no-render-time-match-route': 'error',
+      },
+    },
+    {
+      files: [
+        '**/test/**',
+        '**/e2e/**',
+        '**/perf/**',
+        '**/*.{test,spec,bench}.*',
+        '**/*.browser.*',
+        '**/__tests__/**',
+      ],
+      rules: {
+        // Mock callbacks are often empty.
+        'no-empty-function': 'off',
+        // Playwright's `use()` and other non-hook `use*` helpers.
+        'react/rules-of-hooks': 'off',
+        // Test doubles record what they render into module-level probes.
+        'react/globals': 'off',
+        // Same as react/globals.
+        'react/immutability': 'off',
+        // `await import()` after vi.mock is the standard load; the reason is always the same.
+        'dynamic-import/no-unexplained-dynamic-import': 'off',
+        // Unique fixture ids are not the behaviour under test.
+        'effecttsgo/crypto-random-uuid': 'off',
+        // Same as crypto-random-uuid.
+        'effecttsgo/crypto-random-uuid-in-effect': 'off',
+        // Same as crypto-random-uuid.
+        'effecttsgo/global-random': 'off',
+        // Playwright specs talk to the dev server directly.
+        'effecttsgo/global-fetch': 'off',
+        // Fixtures read save files and parity data off disk.
+        'effecttsgo/node-builtin-import': 'off',
+        // Fixture reads in tests are not runtime/library code.
+        'prefer-effect/no-node-path': 'off',
+        // Same as prefer-effect/no-node-path.
+        'prefer-effect/no-node-fs': 'off',
+        // Shared suites take any layer and fixtures mint arbitrary-error effects.
+        'effecttsgo/any-unknown-in-error-context': 'off',
+        // Harness, perf and spec output goes to the runner's console.
+        'effecttsgo/global-console': 'off',
+        // Fixtures are literal dates; timing assertions read the wall clock.
+        'effecttsgo/global-date-in-effect': 'off',
+        // Fixtures spell out tagged records structurally.
+        'anti-slop-effect/no-manual-tagged-construction': 'off',
+      },
+    },
+    {
+      // Playwright specs (apps/web/playwright.config.ts testDir).
+      files: ['apps/web/e2e/**'],
+      rules: {
+        // `test`/`expect` come from @playwright/test, not vitest.
+        'vitest/prefer-importing-vitest-globals': 'off',
+        ...playwrightRules,
+        // expect.soft everywhere would let a failed step keep driving the page.
+        'playwright/require-soft-assertions': 'off',
+        // Timeouts are tuned per call; a constant per value adds nothing.
+        'playwright/no-magic-timeouts': 'off',
+        // Suites are selected by project and testMatch, not tags.
+        'playwright/require-tags': 'off',
+        // Same as vitest/require-top-level-describe.
+        'playwright/require-top-level-describe': 'off',
+        // Same as vitest/max-expects.
+        'playwright/max-expects': 'off',
+        // Structural selectors have no role/text handle.
+        'playwright/no-raw-locators': 'off',
+        // `.first()`/`.nth()` address repeated rows and cards.
+        'playwright/no-nth-methods': 'off',
+        // Same as vitest/no-conditional-in-test.
+        'playwright/no-conditional-in-test': 'off',
+        // Same as vitest/no-conditional-expect.
+        'playwright/no-conditional-expect': 'off',
+        // Setup flows end in navigation or state, not an expect.
+        'playwright/prefer-ending-with-an-expect': 'off',
+        // `test.skip(condition, reason)` gates environment-dependent suites.
+        'playwright/no-skipped-test': 'off',
+        // `test.slow()` triples the timeout for the flows that need it.
+        'playwright/no-slowed-test': 'off',
+        // Same as vitest/prefer-lowercase-title.
+        'playwright/prefer-lowercase-title': 'off',
+        // Same as vitest/prefer-strict-equal.
+        'playwright/prefer-strict-equal': 'off',
+        // Same as vitest/expect-expect.
+        'playwright/expect-expect': 'off',
+        // Same as vitest/require-hook.
+        'playwright/require-hook': 'off',
+        // Same as vitest/no-hooks.
+        'playwright/no-hooks': 'off',
+        // Same as vitest/require-to-throw-message.
+        'playwright/require-to-throw-message': 'off',
+      },
+    },
+    {
+      // Testing Library is used by the web unit and browser-mode tests.
+      files: [
+        'apps/web/src/**/*.{test,spec}.*',
+        'apps/web/src/**/*.browser.*',
+        'apps/web/src/test/**',
+      ],
+      rules: {
+        ...testingLibraryRules,
+        // Perf harnesses measure the rendered DOM directly.
+        'testing-library/no-node-access': 'off',
+        // Same as no-node-access.
+        'testing-library/no-container': 'off',
+        // Conflicts with prefer-explicit-assert, which we keep.
+        'testing-library/prefer-implicit-assert': 'off',
+      },
+    },
+    {
+      // Build tooling and one-off scripts: no Effect runtime to reach (vite
+      // plugins hand Node streams to the dev server; oxlint plugin rules run
+      // synchronously inside the plugin host) and the terminal is the output.
       files: [
         'scripts/**',
+        '**/scripts/**',
+        '**/vite-plugins/**',
         'packages/config/oxlint-plugins/**',
         '**/*.config.{ts,js,mjs}',
         'oxlint.config.ts',
       ],
       rules: {
+        // Tooling touches the filesystem directly.
         'prefer-effect/no-node-path': 'off',
+        // Same as prefer-effect/no-node-path.
         'prefer-effect/no-node-fs': 'off',
-        'no-console': 'off',
-      },
-    },
-    {
-      // Tests, benchmarks, and build-time tooling (vite plugins, per-package
-      // maintenance scripts) legitimately read files with `node:fs`/`node:path`
-      // — `prefer-effect` targets runtime/library code, not a fixture read in a
-      // test or a one-shot script.
-      files: [
-        '**/*.test.ts',
-        '**/*.bench.ts',
-        '**/perf/**',
-        '**/vite-plugins/**',
-        '**/scripts/**',
-      ],
-      rules: {
-        'prefer-effect/no-node-path': 'off',
-        'prefer-effect/no-node-fs': 'off',
-        'no-console': 'off',
+        // Same as prefer-effect/no-node-path.
+        'effecttsgo/node-builtin-import': 'off',
+        // A CLI's report is its stdout.
+        'effecttsgo/global-console': 'off',
+        // Plain fetch outside Effect code in one-off scripts; Effect code
+        // still goes through HttpClient (global-fetch-in-effect).
+        'effecttsgo/global-fetch': 'off',
+        // Scripts load optional SDKs on demand; the reason is the same everywhere.
+        'dynamic-import/no-unexplained-dynamic-import': 'off',
+        // One-off scripts stamp reports with the wall clock; nothing replays them under a TestClock.
+        'effecttsgo/global-date-in-effect': 'off',
+        // Report rows are ad-hoc tagged literals.
+        'anti-slop-effect/no-manual-tagged-construction': 'off',
       },
     },
   ],

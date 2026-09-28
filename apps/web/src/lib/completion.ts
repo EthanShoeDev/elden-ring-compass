@@ -73,7 +73,7 @@ export function equippedHelmIconUrl(slot?: Readonly<Slot>): string | undefined {
   const headId = equipmentDbView(slot).head.id;
   if (!headId) return undefined;
   const icon = armorIconById.get(headId);
-  return icon != null ? (itemIconUrl(icon) ?? undefined) : undefined;
+  return icon !== undefined ? (itemIconUrl(icon) ?? undefined) : undefined;
 }
 
 // Curated "collect them all" sets — clean GOODS categories (counts verified 2026-06-07).
@@ -158,9 +158,10 @@ export function useCompletion(): CompletionModel {
     ];
 
     // Overall = equal-weight mean of category percentages (so weapons' large count doesn't dominate).
-    const overallPct = categories.length
-      ? Math.round(categories.reduce((s, c) => s + c.pct, 0) / categories.length)
-      : 0;
+    const overallPct =
+      categories.length > 0
+        ? Math.round(categories.reduce((s, c) => s + c.pct, 0) / categories.length)
+        : 0;
 
     const ownedIds = new Set<number>();
     if (slot)

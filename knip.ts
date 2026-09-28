@@ -6,7 +6,11 @@ import type { KnipConfig } from 'knip';
 const config: KnipConfig = {
   // shadcn Base UI components are vendored from the registry; their unused variants are
   // intentional and we don't hand-author them (matches oxlint's `**/components/ui/**` ignore).
-  ignore: ['**/components/ui/**'],
+  // The vendored anti-slop plugin keeps upstream's shape (internal exports, tests).
+  ignore: [
+    '**/components/ui/**',
+    'packages/config/oxlint-plugins/src/vendor/anti-slop/**',
+  ],
 
   // `node:assert` is aliased to the `assert` polyfill in vitest.config.browser.ts
   // (@effect/vitest needs it in browser mode) — there's no literal import for knip to see.

@@ -136,23 +136,31 @@ export const loadEmedf: Effect.Effect<
 
 const readValue = (dv: DataView, off: number, type: number): number => {
   switch (type) {
-    case 0:
+    case 0: {
       return dv.getUint8(off);
-    case 1:
+    }
+    case 1: {
       return dv.getUint16(off, true);
-    case 2:
+    }
+    case 2: {
       return dv.getUint32(off, true);
-    case 3:
+    }
+    case 3: {
       return dv.getInt8(off);
-    case 4:
+    }
+    case 4: {
       return dv.getInt16(off, true);
+    }
     case 5:
-    case 8:
+    case 8: {
       return dv.getInt32(off, true);
-    case 6:
+    }
+    case 6: {
       return dv.getFloat32(off, true);
-    default:
+    }
+    default: {
       return dv.getInt32(off, true);
+    }
   }
 };
 
