@@ -40,7 +40,7 @@ export const loadArchetypes = (
     const out: Archetype[] = [];
     for (let id = 0; id < ARCHETYPE_COUNT; id++) {
       const name = menu.get(ARCHETYPE_NAME_BASE + id);
-      if (name) out.push({ id, name });
+      if (name !== undefined && name !== '') out.push({ id, name });
     }
     return out;
   });

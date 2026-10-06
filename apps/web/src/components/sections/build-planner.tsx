@@ -7,7 +7,7 @@ import {
   TargetIcon,
   TrendingUpIcon,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { MAX_UPGRADE_LEVEL } from '@/lib/ar';
 import {
@@ -85,12 +85,16 @@ export function BuildPlannerSection() {
   const [rankContext, setRankContext] = useState<'target' | 'current'>('target');
 
   // Re-detect + reseed whenever the active save changes (connect / switch slot).
-  useEffect(() => {
-    if (!slot) return;
-    const k = detectArchetype(attrs8FromSlot(slot));
-    setArchetypeKey(k);
-    setTarget(buildArchetypeByKey.get(k)?.target ?? attrs8FromSlot(slot));
-  }, [slot]);
+  // Adjusted during render, not in an effect, so the reseed lands in the same paint.
+  const [seededSlot, setSeededSlot] = useState(slot);
+  if (slot !== seededSlot) {
+    setSeededSlot(slot);
+    if (slot) {
+      const k = detectArchetype(attrs8FromSlot(slot));
+      setArchetypeKey(k);
+      setTarget(buildArchetypeByKey.get(k)?.target ?? attrs8FromSlot(slot));
+    }
+  }
 
   const archetype: BuildArchetype | undefined =
     archetypeKey === 'custom' ? undefined : buildArchetypeByKey.get(archetypeKey);
@@ -524,11 +528,15 @@ function AdvisorLine({
   muted?: boolean;
 }) {
   return (
-    <p className={cn('text-sm', muted && 'text-muted-foreground')}>
-      <span className={cn(muted ? 'text-muted-foreground' : 'text-muted-foreground')}>{lead} </span>
+    <p className={cn('text-sm', muted === true && 'text-muted-foreground')}>
+      <span className={cn(muted === true ? 'text-muted-foreground' : 'text-muted-foreground')}>
+        {lead}{' '}
+      </span>
       <strong className='text-foreground'>{weapon.name}</strong>{' '}
       <span className='font-mono tabular-nums text-foreground'>{weapon.ar} AR</span>
-      {context && <span className='text-muted-foreground'> · {context}</span>}
+      {context !== undefined && context !== '' && (
+        <span className='text-muted-foreground'> · {context}</span>
+      )}
     </p>
   );
 }

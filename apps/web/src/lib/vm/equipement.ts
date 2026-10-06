@@ -100,8 +100,8 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
         gaitem_handle,
         id,
         equip_index,
-        name: id ? weaponName(id) : 'Empty',
-        ashOfWar: id ? ashOfWarFor(gaitem_handle) : noAsh,
+        name: id !== undefined && id !== 0 ? weaponName(id) : 'Empty',
+        ashOfWar: id !== undefined && id !== 0 ? ashOfWarFor(gaitem_handle) : noAsh,
       };
     });
 

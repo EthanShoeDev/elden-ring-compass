@@ -46,7 +46,7 @@ const renderCategoryCell = ({ row }: { row: DataTableRow<BossRow> }) => (
 const renderRewardCell = ({ row }: { row: DataTableRow<BossRow> }) =>
   row.original.reward ? (
     <div className='flex items-center gap-1.5'>
-      {row.original.rewardIcon && (
+      {row.original.rewardIcon !== undefined && row.original.rewardIcon !== '' && (
         <img src={row.original.rewardIcon} alt='' className='size-6 shrink-0' />
       )}
       <span className='text-xs'>{row.original.reward}</span>
@@ -85,7 +85,7 @@ export function BossesDataTable() {
     const seen = new Set<number>();
     const out: Array<BossRow> = [];
     for (const b of BOSSES) {
-      if (!b.name || seen.has(b.defeatFlagId)) continue;
+      if (b.name === null || b.name === '' || seen.has(b.defeatFlagId)) continue;
       seen.add(b.defeatFlagId);
       const badges = bossBadges(b.defeatFlagId, b.mapId);
       const reward = bossReward(b.defeatFlagId);
@@ -123,7 +123,7 @@ export function BossesDataTable() {
     return cols;
   }, [connected]);
 
-  const defeatedCount = rows.filter((r) => r.defeated).length;
+  const defeatedCount = rows.filter((r) => r.defeated === true).length;
 
   return (
     <Card className='w-full'>

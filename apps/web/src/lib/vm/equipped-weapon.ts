@@ -30,10 +30,12 @@ export function equippedWeaponInfo(slot: Readonly<Slot>): EquippedWeaponInfo | n
   const activeIdx = slot.active_weapon_slots.right_hand;
 
   // Prefer the active slot; fall back to the first non-empty armament.
-  const ordered = [arms[activeIdx], ...arms].filter((a) => a && a.id);
+  const ordered = [arms[activeIdx], ...arms].filter(
+    (a) => a !== undefined && a.id !== undefined && a.id !== 0,
+  );
   for (const arm of ordered) {
     const fullId = arm?.id;
-    if (!fullId) continue;
+    if (fullId === undefined || fullId === 0) continue;
     const upgradeLevel = fullId % 100;
     const paramId = fullId - upgradeLevel;
     const scaling = weaponScalingById.get(paramId);

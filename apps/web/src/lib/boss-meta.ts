@@ -152,7 +152,7 @@ const REGION_NAME_BY_BLOCK: ReadonlyMap<string, string> = (() => {
   }
   const mode = (xs: (string | null)[]): string | undefined => {
     const counts = new Map<string, number>();
-    for (const x of xs) if (x) counts.set(x, (counts.get(x) ?? 0) + 1);
+    for (const x of xs) if (x !== null && x !== '') counts.set(x, (counts.get(x) ?? 0) + 1);
     let best: string | undefined;
     let bestN = 0;
     for (const [k, n] of counts) {

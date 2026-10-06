@@ -106,12 +106,30 @@ const isBitType = (t: DefType): boolean =>
   t === 'dummy8';
 const isSignedBit = (t: DefType): boolean =>
   t === 's8' || t === 's16' || t === 's32';
-const bitLimitOf = (t: DefType): number =>
+const bitLimitOf = (t: DefType): 8 | 16 | 32 =>
   t === 's8' || t === 'u8' || t === 'dummy8'
     ? 8
     : t === 's16' || t === 'u16'
       ? 16
       : 32;
+
+/**
+ * Reads one backing unit of a packed bitfield run. An exhaustive switch rather than
+ * `Match`: this runs for every packed field of every row.
+ */
+const readBitUnit = (r: BinaryReader, limit: 8 | 16 | 32): number => {
+  switch (limit) {
+    case 8: {
+      return r.u8();
+    }
+    case 16: {
+      return r.u16();
+    }
+    case 32: {
+      return r.u32();
+    }
+  }
+};
 
 const BIT_VALUE_SIZE = 64n;
 
@@ -192,9 +210,7 @@ export const decodeRow = (
       ) {
         bitOffset = 0;
         bitLimit = limit;
-        bitValue = BigInt(
-          limit === 8 ? r.u8() : limit === 16 ? r.u16() : r.u32(),
-        );
+        bitValue = BigInt(readBitUnit(r, limit));
       }
       const bs = BigInt(bitSize);
       const leftShift = BIT_VALUE_SIZE - bs - BigInt(bitOffset);

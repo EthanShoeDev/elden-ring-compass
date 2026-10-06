@@ -8,6 +8,7 @@ import {
   opcodeKey,
 } from '../formats/emedf.ts';
 import { argInts, type EmevdError, parseEmevd } from '../formats/emevd.ts';
+import { globSorted } from '../external/glob.ts';
 import type { OodleError } from '../external/oodle.ts';
 
 /**
@@ -94,21 +95,13 @@ export const loadEventDropLocations = (
     const dir = `${gameRoot}/event`;
     // All EMEVD files EXCEPT `common_func.emevd.dcx` — that's the template library, whose
     // event bodies use unresolved param placeholders, not real lot/flag/entity ids. We DO
-    // include `common.emevd` (cross-map award wrappers like `Event_1100`). Bun.Glob (no
-    // effect equiv).
-    const glob = new Bun.Glob('*.emevd.dcx');
-    const paths = yield* Effect.tryPromise({
-      try: async () => {
-        const out: string[] = [];
-        for await (const p of glob.scan({ cwd: dir, absolute: true }))
-          out.push(p);
-        return out
-          .filter((p) => !p.endsWith('common_func.emevd.dcx'))
-          .toSorted();
-      },
-      catch: (cause) =>
+    // include `common.emevd` (cross-map award wrappers like `Event_1100`).
+    const paths = (yield* globSorted(
+      '*.emevd.dcx',
+      dir,
+      (cause) =>
         new EventDropError({ detail: `scanning ${dir}: ${String(cause)}` }),
-    });
+    )).filter((p) => !p.endsWith('common_func.emevd.dcx'));
 
     // Global (cross-file) indices. The award call and the flag-setting encounter event
     // routinely live in different EMEVD files, so everything is accumulated across all
@@ -168,7 +161,7 @@ export const loadEventDropLocations = (
           // real (10-digit) entity ids never collide with flags/other args; `id > 0` excludes
           // the ubiquitous 0 (and any unnamed entity-0 marker).
           for (const v of argInts(ins.argData)) {
-            if (v > 0 && markers.get(v)?.isCharacter) bodyChars.add(v);
+            if (v > 0 && markers.get(v)?.isCharacter === true) bodyChars.add(v);
           }
         }
         for (const flag of enabledFlags) {

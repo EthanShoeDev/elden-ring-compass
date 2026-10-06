@@ -30,6 +30,9 @@ import { Separator } from '../ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
+/** Upgrade-material table rows: tier `t` is the stone for the `+t+1` upgrade. */
+const UPGRADE_TIERS = Array.from({ length: 10 }, (_, tier) => tier);
+
 /** An at-a-glance stat tile (top row of the run dashboard). */
 function Tile({
   icon: Icon,
@@ -48,7 +51,7 @@ function Tile({
     <div
       className={cn(
         'flex flex-col gap-1 rounded-xl border border-border bg-card p-4',
-        locked && 'opacity-60',
+        locked === true && 'opacity-60',
       )}
     >
       <div className='flex items-center justify-between'>
@@ -60,7 +63,9 @@ function Tile({
       <div className='text-2xl font-semibold tabular-nums'>
         {Predicate.isNumber(value) ? value.toLocaleString() : value}
       </div>
-      {sub && <div className='text-[11.5px] text-muted-foreground'>{sub}</div>}
+      {sub !== undefined && sub !== '' && (
+        <div className='text-[11.5px] text-muted-foreground'>{sub}</div>
+      )}
     </div>
   );
 }
@@ -282,111 +287,116 @@ export function OverviewSection() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {Array.from({ length: 10 }).map((_, i) => {
+                {UPGRADE_TIERS.map((tier) => {
                   const smithingStone =
-                    i < 9
+                    tier < 9
                       ? goodsByName.get(
-                          i === 8
+                          tier === 8
                             ? 'Ancient Dragon Smithing Stone'
-                            : `Smithing Stone [${(i + 1).toString()}]`,
+                            : `Smithing Stone [${(tier + 1).toString()}]`,
                         )
                       : undefined;
                   const somberSmithingStone =
-                    i < 10
+                    tier < 10
                       ? goodsByName.get(
-                          i === 9
+                          tier === 9
                             ? 'Somber Ancient Dragon Smithing Stone'
-                            : `Somber Smithing Stone [${(i + 1).toString()}]`,
+                            : `Somber Smithing Stone [${(tier + 1).toString()}]`,
                         )
                       : undefined;
                   const ghostGlovewart =
-                    i < 10
+                    tier < 10
                       ? goodsByName.get(
-                          i === 9
+                          tier === 9
                             ? 'Great Ghost Glovewort'
-                            : `Ghost Glovewort [${(i + 1).toString()}]`,
+                            : `Ghost Glovewort [${(tier + 1).toString()}]`,
                         )
                       : undefined;
                   const graveGlovewart =
-                    i < 10
+                    tier < 10
                       ? goodsByName.get(
-                          i === 9
+                          tier === 9
                             ? 'Great Grave Glovewort'
-                            : `Grave Glovewort [${(i + 1).toString()}]`,
+                            : `Grave Glovewort [${(tier + 1).toString()}]`,
                         )
                       : undefined;
 
                   return (
-                    <TableRow key={i}>
-                      <TableCell>+{i + 1}</TableCell>
-                      {[smithingStone, somberSmithingStone, graveGlovewart, ghostGlovewart].map(
-                        (item, i) => {
-                          const bellBearingName =
-                            item && item.name in materialToBellBearings
-                              ? materialToBellBearings[
-                                  item.name as keyof typeof materialToBellBearings
-                                ]
-                              : undefined;
+                    <TableRow key={tier}>
+                      <TableCell>+{tier + 1}</TableCell>
+                      {(
+                        [
+                          ['smithing', smithingStone],
+                          ['somber', somberSmithingStone],
+                          ['grave', graveGlovewart],
+                          ['ghost', ghostGlovewart],
+                        ] as const
+                      ).map(([material, item]) => {
+                        const bellBearingName =
+                          item && item.name in materialToBellBearings
+                            ? materialToBellBearings[
+                                item.name as keyof typeof materialToBellBearings
+                              ]
+                            : undefined;
 
-                          const bellBearing = bellBearingName && goodsByName.get(bellBearingName);
+                        const bellBearing = bellBearingName && goodsByName.get(bellBearingName);
 
-                          const bellLocation = bellBearing && bellNameLocation[bellBearingName];
-                          const bellOwned =
-                            ((bellBearing && inventoryQuantityById.get(bellBearing.id)) ?? 0) > 0 ||
-                            (bellLocation && 'boss' in bellLocation && bellLocation.boss.killed);
+                        const bellLocation = bellBearing && bellNameLocation[bellBearingName];
+                        const bellOwned =
+                          ((bellBearing && inventoryQuantityById.get(bellBearing.id)) ?? 0) > 0 ||
+                          (bellLocation && 'boss' in bellLocation && bellLocation.boss.killed);
 
-                          const imgSrc = item && itemIconUrl(item.icon);
-                          return (
-                            <TableCell key={i} className={cn('p-2')}>
-                              <Tooltip>
-                                <TooltipTrigger
-                                  className={cn(
-                                    'flex items-center rounded-lg p-1',
-                                    bellOwned ? 'border border-green-300/50' : '',
-                                  )}
-                                >
-                                  <div className='flex flex-wrap items-center justify-center gap-1'>
-                                    {item && (
-                                      <>
-                                        <img className='size-8' src={imgSrc} alt={item.name} />
-
-                                        <span className='w-10 whitespace-nowrap'>
-                                          {inventoryQuantityById.get(item.id) ?? 0}
-                                          {item.name === 'Ancient Dragon Smithing Stone' && ' / 13'}
-                                          {item.name === 'Somber Ancient Dragon Smithing Stone' &&
-                                            ' / 8'}
-                                          {item.name === 'Great Grave Glovewort' && ' / 6'}
-                                          {item.name === 'Great Ghost Glovewort' && ' / 4'}
-                                        </span>
-                                      </>
-                                    )}
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent className='flex max-w-72 flex-col items-center'>
-                                  <img
-                                    loading='lazy'
-                                    src={imgSrc}
-                                    className='size-40'
-                                    alt={item?.name ?? ''}
-                                  />
-                                  <p className='text-lg'>{item?.name}</p>
-                                  {bellLocation && (
+                        const imgSrc = item && itemIconUrl(item.icon);
+                        return (
+                          <TableCell key={material} className={cn('p-2')}>
+                            <Tooltip>
+                              <TooltipTrigger
+                                className={cn(
+                                  'flex items-center rounded-lg p-1',
+                                  bellOwned === true ? 'border border-green-300/50' : '',
+                                )}
+                              >
+                                <div className='flex flex-wrap items-center justify-center gap-1'>
+                                  {item && (
                                     <>
-                                      <br />
-                                      <p className='w-full text-wrap text-center'>
-                                        Bell bearing found{' '}
-                                        {'boss' in bellLocation
-                                          ? `from boss ${bellLocation.boss.bossName}`
-                                          : `in ${bellLocation.location}`}
-                                      </p>
+                                      <img className='size-8' src={imgSrc} alt={item.name} />
+
+                                      <span className='w-10 whitespace-nowrap'>
+                                        {inventoryQuantityById.get(item.id) ?? 0}
+                                        {item.name === 'Ancient Dragon Smithing Stone' && ' / 13'}
+                                        {item.name === 'Somber Ancient Dragon Smithing Stone' &&
+                                          ' / 8'}
+                                        {item.name === 'Great Grave Glovewort' && ' / 6'}
+                                        {item.name === 'Great Ghost Glovewort' && ' / 4'}
+                                      </span>
                                     </>
                                   )}
-                                </TooltipContent>
-                              </Tooltip>
-                            </TableCell>
-                          );
-                        },
-                      )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className='flex max-w-72 flex-col items-center'>
+                                <img
+                                  loading='lazy'
+                                  src={imgSrc}
+                                  className='size-40'
+                                  alt={item?.name ?? ''}
+                                />
+                                <p className='text-lg'>{item?.name}</p>
+                                {bellLocation && (
+                                  <>
+                                    <br />
+                                    <p className='w-full text-wrap text-center'>
+                                      Bell bearing found{' '}
+                                      {'boss' in bellLocation
+                                        ? `from boss ${bellLocation.boss.bossName}`
+                                        : `in ${bellLocation.location}`}
+                                    </p>
+                                  </>
+                                )}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   );
                 })}

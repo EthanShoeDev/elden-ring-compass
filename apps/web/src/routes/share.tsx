@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router';
 import { Option, Schema } from 'effect';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { decodeFromUrl } from '@/lib/share/decode';
 
 type ShareSearchParams = {
@@ -17,26 +17,21 @@ export const Route = createFileRoute('/share')({
 function SharePage() {
   const { d } = useSearch({ from: '/share' });
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
+  const error =
+    d === undefined || d === ''
+      ? 'No share data provided'
+      : decodeFromUrl(d) === null
+        ? 'Invalid or corrupted share data'
+        : null;
 
   useEffect(() => {
-    if (!d) {
-      setError('No share data provided');
-      return;
-    }
-
-    const data = decodeFromUrl(d);
-    if (!data) {
-      setError('Invalid or corrupted share data');
-      return;
-    }
-
+    if (error !== null || d === undefined) return;
     // Back-compat: old links used /share?d=. The root route now owns the global
     // ?save= param and retains it across navigation.
     void navigate({ to: '/', search: { save: d } });
-  }, [d, navigate]);
+  }, [d, error, navigate]);
 
-  if (error) {
+  if (error !== null) {
     return (
       <div className='flex flex-1 flex-col items-center justify-center gap-4 p-8'>
         <div className='text-destructive text-lg font-semibold'>

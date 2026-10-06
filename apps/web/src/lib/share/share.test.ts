@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { it } from '@effect/vitest';
+import { describe, expect } from 'vitest';
 import { Effect } from 'effect';
 import { encodeToUrl } from './encode';
 import { decodeFromUrl, isValidShareData } from './decode';
@@ -36,28 +37,32 @@ describe('Share encode/decode', () => {
     ],
   };
 
-  it('should encode and decode data correctly (round-trip)', async () => {
-    const encoded = await Effect.runPromise(encodeToUrl(mockShareableData));
-    const decoded = decodeFromUrl(encoded);
+  it.effect('should encode and decode data correctly (round-trip)', () =>
+    Effect.gen(function* () {
+      const encoded = yield* encodeToUrl(mockShareableData);
+      const decoded = decodeFromUrl(encoded);
 
-    expect(decoded).not.toBeNull();
-    expect(decoded?.v).toBe(LEGACY_SHAREABLE_VERSION);
-    expect(decoded?.n).toBe('TestCharacter');
-    expect(decoded?.s.l).toBe(150);
-    expect(decoded?.ef).toEqual([100, 50, 75, 25]);
-    expect(decoded?.ur).toEqual([1, 2, 3, 4, 5]);
-  });
+      expect(decoded).not.toBeNull();
+      expect(decoded?.v).toBe(LEGACY_SHAREABLE_VERSION);
+      expect(decoded?.n).toBe('TestCharacter');
+      expect(decoded?.s.l).toBe(150);
+      expect(decoded?.ef).toEqual([100, 50, 75, 25]);
+      expect(decoded?.ur).toEqual([1, 2, 3, 4, 5]);
+    }),
+  );
 
-  it('should produce a URL-safe encoded string', async () => {
-    const encoded = await Effect.runPromise(encodeToUrl(mockShareableData));
+  it.effect('should produce a URL-safe encoded string', () =>
+    Effect.gen(function* () {
+      const encoded = yield* encodeToUrl(mockShareableData);
 
-    // Should not contain characters that need URL encoding
-    expect(encoded).not.toContain(' ');
-    expect(encoded).not.toContain('\n');
+      // Should not contain characters that need URL encoding
+      expect(encoded).not.toContain(' ');
+      expect(encoded).not.toContain('\n');
 
-    // Should be a non-empty string
-    expect(encoded.length).toBeGreaterThan(0);
-  });
+      // Should be a non-empty string
+      expect(encoded.length).toBeGreaterThan(0);
+    }),
+  );
 
   it('should return null for invalid encoded data', () => {
     const decoded = decodeFromUrl('invalid-data');

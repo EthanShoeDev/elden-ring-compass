@@ -29,35 +29,36 @@ const median = (xs: readonly number[]): number =>
 const loadSaveBuffer = HttpClient.get(SAVE_URL).pipe(
   Effect.flatMap((r) => r.arrayBuffer),
   Effect.orDie,
-  Effect.provide(FetchHttpClient.layer),
 );
 
-it.effect('parse TS (direct): median time + retained heap within bounds', () =>
-  Effect.gen(function* () {
-    // Pure-TS parser: no wasm init, no marshalling boundary — it builds the JS object graph
-    // directly. See `docs/projects/typescript-save-parser-port.md` (Performance).
-    const buffer = yield* loadSaveBuffer;
+it.layer(FetchHttpClient.layer)('save parser perf', (it) => {
+  it.effect('parse TS (direct): median time + retained heap within bounds', () =>
+    Effect.gen(function* () {
+      // Pure-TS parser: no wasm init, no marshalling boundary — it builds the JS object graph
+      // directly. See `docs/projects/typescript-save-parser-port.md` (Performance).
+      const buffer = yield* loadSaveBuffer;
 
-    for (let i = 0; i < WARMUP; i++) yield* parseSaveTs(buffer);
+      for (let i = 0; i < WARMUP; i++) yield* parseSaveTs(buffer);
 
-    const heapBefore = yield* Effect.promise(forceGcHeapUsedBytes);
-    const times: number[] = [];
-    let save: WasmEldenRingSave | undefined;
-    for (let i = 0; i < RUNS; i++) {
-      const start = performance.now();
-      save = yield* parseSaveTs(buffer);
-      times.push(performance.now() - start);
-    }
-    const heapAfter = yield* Effect.promise(forceGcHeapUsedBytes);
+      const heapBefore = yield* forceGcHeapUsedBytes;
+      const times: number[] = [];
+      let save: WasmEldenRingSave | undefined;
+      for (let i = 0; i < RUNS; i++) {
+        const start = performance.now();
+        save = yield* parseSaveTs(buffer);
+        times.push(performance.now() - start);
+      }
+      const heapAfter = yield* forceGcHeapUsedBytes;
 
-    const med = median(times);
-    const heapDeltaMb = mb(heapAfter - heapBefore);
-    yield* Effect.log(
-      `[perf][browser] ts    (direct): median ${med.toFixed(1)}ms (${RUNS} runs), retained +${heapDeltaMb}MB`,
-    );
+      const med = median(times);
+      const heapDeltaMb = mb(heapAfter - heapBefore);
+      yield* Effect.log(
+        `[perf][browser] ts    (direct): median ${med.toFixed(1)}ms (${RUNS} runs), retained +${heapDeltaMb}MB`,
+      );
 
-    expect(save?.slots.length ?? 0).toBeGreaterThan(0);
-    expect(med).toBeLessThan(PARSE_DIRECT_MS);
-    expect(heapDeltaMb).toBeLessThan(PARSE_HEAP_MB);
-  }),
-);
+      expect(save?.slots.length ?? 0).toBeGreaterThan(0);
+      expect(med).toBeLessThan(PARSE_DIRECT_MS);
+      expect(heapDeltaMb).toBeLessThan(PARSE_HEAP_MB);
+    }),
+  );
+});

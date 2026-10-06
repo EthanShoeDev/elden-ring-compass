@@ -74,7 +74,7 @@ export function erDataTiles(): Plugin {
       const prefix = `/map-tiles/${version}/`;
       server.middlewares.use((req, res, next) => {
         const url = req.url;
-        if (!url || !url.startsWith(prefix)) return next();
+        if (url === undefined || !url.startsWith(prefix)) return next();
         const pathname = url.split('?')[0] ?? url;
         // Synthetic index (no file on disk) — derived from the tile tree.
         if (pathname === prefix + INDEX_FILE) {

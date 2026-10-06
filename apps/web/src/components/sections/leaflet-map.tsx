@@ -1,3 +1,4 @@
+import { Match } from 'effect';
 /**
  * Client-only react-leaflet map over the extractor-generated tile pyramid.
  *
@@ -84,6 +85,29 @@ const BASE_LAYER = 'base';
 
 /** Pack a tile coord into one int key (x, y < 2^16 — far above any zoom's grid). */
 const tileKey = (x: number, y: number) => (x << 16) | y;
+
+/**
+ * Existence lookup for one map's tiles. No index (not loaded / fetch failed) →
+ * allow every tile, i.e. fall back to the request-and-maybe-404 behavior.
+ */
+function tileExistence(
+  tileIndex: TileIndex | undefined,
+  activeMapId: string,
+): (tz: number, tx: number, ty: number) => boolean {
+  const perZoom = tileIndex?.[activeMapId];
+  if (!perZoom) return () => true;
+  const sets = new Map<number, Set<number>>();
+  for (const [zoom, pairs] of Object.entries(perZoom)) {
+    const set = new Set<number>();
+    for (let i = 0; i + 1 < pairs.length; i += 2) {
+      const x = pairs[i];
+      const y = pairs[i + 1];
+      if (x !== undefined && y !== undefined) set.add(tileKey(x, y));
+    }
+    sets.set(Number(zoom), set);
+  }
+  return (tz: number, tx: number, ty: number) => sets.get(tz)?.has(tileKey(tx, ty)) ?? false;
+}
 
 /**
  * A `TileLayer` that won't even request tiles the extractor never wrote (the blank
@@ -244,7 +268,9 @@ function PinTooltipBody({ pin }: { pin: MapPin }) {
   return (
     <span>
       <strong>{pin.name}</strong>
-      {pin.status && <span className='opacity-70'> · {pin.status}</span>}
+      {pin.status !== undefined && pin.status !== '' && (
+        <span className='opacity-70'> · {pin.status}</span>
+      )}
     </span>
   );
 }
@@ -267,12 +293,11 @@ function PinPopupBody({ pin }: { pin: MapPin }) {
   // scripts/wiki-link-check.ts); graces often don't, and player/bloodstain
   // markers have nothing to look up. Item pins use the pre-resolved `wikiName`
   // (base weapon for variants; absent when the wiki has no page for the item).
-  const wikiName =
-    pin.kind === 'boss'
-      ? wikiNameForBoss(pin.name)
-      : pin.kind === 'item'
-        ? pin.wikiName
-        : undefined;
+  const wikiName = Match.value(pin.kind).pipe(
+    Match.when('boss', () => wikiNameForBoss(pin.name)),
+    Match.when('item', () => pin.wikiName),
+    Match.orElse(() => undefined),
+  );
   return (
     <div className='space-y-1 select-text'>
       <strong className='block'>{pin.name}</strong>
@@ -282,10 +307,10 @@ function PinPopupBody({ pin }: { pin: MapPin }) {
           {pin.badges && pin.badges.length > 0 && (
             <p className='text-[11px] opacity-70'>{pin.badges.join(' · ')}</p>
           )}
-          {pin.area && <p>{pin.area}</p>}
+          {pin.area !== undefined && pin.area !== '' && <p>{pin.area}</p>}
           {pin.reward && (
             <p className='flex items-center gap-1.5'>
-              {pin.reward.iconUrl && (
+              {pin.reward.iconUrl !== undefined && pin.reward.iconUrl !== '' && (
                 <img src={pin.reward.iconUrl} alt='' className='size-5 shrink-0' />
               )}
               <span>{pin.reward.name}</span>
@@ -297,13 +322,15 @@ function PinPopupBody({ pin }: { pin: MapPin }) {
       {pin.kind === 'grace' && (
         <>
           <p className='opacity-80'>Site of Grace</p>
-          {pin.area && <p>{pin.area}</p>}
+          {pin.area !== undefined && pin.area !== '' && <p>{pin.area}</p>}
         </>
       )}
 
       {pin.kind === 'item' && (
         <>
-          {pin.sourceLabel && <p className='opacity-80'>{pin.sourceLabel}</p>}
+          {pin.sourceLabel !== undefined && pin.sourceLabel !== '' && (
+            <p className='opacity-80'>{pin.sourceLabel}</p>
+          )}
           {pin.chancePct !== undefined && <p>{pin.chancePct}% drop</p>}
           {pin.quantity !== undefined && <p>Owned: {pin.quantity}</p>}
           {pin.locationCount !== undefined && pin.locationCount > 1 && (
@@ -314,11 +341,14 @@ function PinPopupBody({ pin }: { pin: MapPin }) {
 
       {pin.kind === 'player' && <p className='opacity-80'>Your current position</p>}
 
-      {pin.kind === 'bloodstain' && pin.description && <p>{pin.description}</p>}
-
-      {pin.status && pin.kind !== 'bloodstain' && pin.kind !== 'player' && (
-        <p className='text-[11px] font-medium opacity-80'>{pin.status}</p>
+      {pin.kind === 'bloodstain' && pin.description !== undefined && pin.description !== '' && (
+        <p>{pin.description}</p>
       )}
+
+      {pin.status !== undefined &&
+        pin.status !== '' &&
+        pin.kind !== 'bloodstain' &&
+        pin.kind !== 'player' && <p className='text-[11px] font-medium opacity-80'>{pin.status}</p>}
 
       {/* Link-only — the wiki forbids scraping its content. */}
       {wikiName !== undefined && (
@@ -342,9 +372,9 @@ function MarkerLayer({ pins, zoom }: { pins: MapPin[]; zoom: number }) {
   const map = useMap();
   return (
     <>
-      {pins.map((pin, i) => (
+      {pins.map((pin) => (
         <Marker
-          key={i}
+          key={`${pin.kind}:${pin.category}:${pin.name}:${pin.px.toString()}:${pin.py.toString()}`}
           position={map.unproject([pin.px, pin.py], zoom)}
           icon={pinIcon(pin.category, pin.discovered)}
         >
@@ -411,23 +441,7 @@ function MapBody({
   const map = useMap();
   const z = manifest.maxNativeZoom;
 
-  // Existence lookup for the active map. No index (not loaded / fetch failed) →
-  // allow every tile, i.e. fall back to the previous request-and-maybe-404 behavior.
-  const exists = useMemo(() => {
-    const perZoom = tileIndex?.[activeMapId];
-    if (!perZoom) return () => true;
-    const sets = new Map<number, Set<number>>();
-    for (const [zoom, pairs] of Object.entries(perZoom)) {
-      const set = new Set<number>();
-      for (let i = 0; i + 1 < pairs.length; i += 2) {
-        const x = pairs[i];
-        const y = pairs[i + 1];
-        if (x !== undefined && y !== undefined) set.add(tileKey(x, y));
-      }
-      sets.set(Number(zoom), set);
-    }
-    return (tz: number, tx: number, ty: number) => sets.get(tz)?.has(tileKey(tx, ty)) ?? false;
-  }, [tileIndex, activeMapId]);
+  const exists = tileExistence(tileIndex, activeMapId);
 
   // rastercoords getMaxBounds(): SW = unproject([0,h]), NE = unproject([w,0]).
   const bounds = useMemo(
@@ -436,7 +450,8 @@ function MapBody({
     [map, manifest.height, manifest.width, z],
   );
 
-  const [didInit, setDidInit] = useState(false);
+  // Fit once per map instance; later bounds changes only re-clamp zoom.
+  const didInit = useRef(false);
   useEffect(() => {
     map.setMaxBounds(bounds);
     // Clamp zoom-out to "the whole map just fits" — you can pull back until the
@@ -448,21 +463,26 @@ function MapBody({
     };
     applyMinZoom();
     map.on('resize', applyMinZoom);
-    if (!didInit) {
+    if (!didInit.current) {
       map.fitBounds(bounds);
-      setDidInit(true);
+      didInit.current = true;
     }
     return () => {
       map.off('resize', applyMinZoom);
     };
-  }, [map, bounds, didInit]);
+  }, [map, bounds]);
 
   // "Center on me" — fly to the player at a close, readable zoom. Guarded by a
   // ref so a save-poll that re-renders this component doesn't re-trigger a jump;
   // only an actual button press (a new token) recenters.
   const lastRecenter = useRef(0);
   useEffect(() => {
-    if (!recenterToken || recenterToken === lastRecenter.current) return;
+    if (
+      recenterToken === undefined ||
+      recenterToken === 0 ||
+      recenterToken === lastRecenter.current
+    )
+      return;
     lastRecenter.current = recenterToken;
     if (!playerPin || playerPin.master !== activeMapId) return;
     map.setView(map.unproject([playerPin.px, playerPin.py], z), z);

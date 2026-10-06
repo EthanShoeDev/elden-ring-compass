@@ -1,5 +1,6 @@
 import { dlopen, FFIType, ptr } from 'bun:ffi';
 import { Data, Effect } from 'effect';
+import { globSorted } from './glob.ts';
 
 export class OodleError extends Data.TaggedError('OodleError')<{
   readonly detail: string;
@@ -26,14 +27,19 @@ export class OodleError extends Data.TaggedError('OodleError')<{
 export const findOodleDll = (
   gameRoot: string,
 ): Effect.Effect<string, OodleError> =>
-  Effect.tryPromise({
-    try: async () => {
-      const glob = new Bun.Glob('oo2core_*_win64.dll');
-      for await (const rel of glob.scan(gameRoot)) return `${gameRoot}/${rel}`;
-      throw new Error(`no oo2core_*_win64.dll in ${gameRoot}`);
-    },
-    catch: (cause) =>
-      new OodleError({ detail: `locating Oodle DLL: ${String(cause)}` }),
+  Effect.gen(function* () {
+    const [dll] = yield* globSorted(
+      'oo2core_*_win64.dll',
+      gameRoot,
+      (cause) =>
+        new OodleError({ detail: `locating Oodle DLL: ${String(cause)}` }),
+    );
+    if (dll === undefined) {
+      return yield* new OodleError({
+        detail: `no oo2core_*_win64.dll in ${gameRoot}`,
+      });
+    }
+    return dll;
   });
 
 // Oodle enum values (oodle2.h), matching soulstruct's ctypes wrapper.

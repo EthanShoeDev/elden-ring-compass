@@ -1,4 +1,4 @@
-import { Data, Effect, FileSystem, PlatformError } from 'effect';
+import { Data, Effect, FileSystem, Match, PlatformError } from 'effect';
 import sharp, { type Sharp } from 'sharp';
 
 import type { ImageEncodeOptions } from './images.ts';
@@ -74,13 +74,16 @@ export interface DecodedTile {
 }
 
 const encodeMaster = (pipe: Sharp, opts: ImageEncodeOptions): Sharp =>
-  opts.format === 'png'
-    ? pipe.png()
-    : opts.format === 'jpeg'
-      ? pipe.jpeg({ quality: opts.quality }) // flattens alpha — base layer only
-      : opts.format === 'avif'
-        ? pipe.avif({ quality: opts.quality })
-        : pipe.webp({ quality: opts.quality, alphaQuality: 100 });
+  Match.value(opts.format).pipe(
+    Match.when('png', () => pipe.png()),
+    // jpeg flattens alpha — base layer only.
+    Match.when('jpeg', () => pipe.jpeg({ quality: opts.quality })),
+    Match.when('avif', () => pipe.avif({ quality: opts.quality })),
+    Match.when('webp', () =>
+      pipe.webp({ quality: opts.quality, alphaQuality: 100 }),
+    ),
+    Match.exhaustive,
+  );
 
 /**
  * Composite L0 `tiles` onto a transparent `MASTER_PX²` canvas and emit a
@@ -102,7 +105,7 @@ export const buildLayerPyramid = (
     // The sharp/libvips compose+tile is genuinely Promise-based native work, so it
     // stays in `tryPromise`; the surrounding file IO is effect `FileSystem`.
     yield* Effect.tryPromise({
-      try: async () => {
+      try: () => {
         const transparent = { r: 0, g: 0, b: 0, alpha: 0 };
         const canvas = sharp({
           create: {
@@ -127,7 +130,7 @@ export const buildLayerPyramid = (
             top: (GRID - 1 - t.row) * TILE_PX,
           })),
         );
-        await encodeMaster(canvas, opts)
+        return encodeMaster(canvas, opts)
           .tile({
             size: TILE_PX,
             layout: 'google',

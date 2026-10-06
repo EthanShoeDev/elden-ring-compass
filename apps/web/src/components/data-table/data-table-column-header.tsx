@@ -1,3 +1,4 @@
+import { Match } from 'effect';
 import {
   ArrowDown as ArrowDownIcon,
   ArrowLeft as ArrowLeftIcon,
@@ -64,12 +65,11 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                 }
               >
                 <span>{headerTitle}</span>
-                {column.getIsSorted() === 'desc' ? (
-                  <ArrowDownIcon className='ml-2 size-4' />
-                ) : column.getIsSorted() === 'asc' ? (
-                  <ArrowUpIcon className='ml-2 size-4' />
-                ) : (
-                  <CaretSortIcon className='ml-2 size-4' />
+                {Match.value(column.getIsSorted()).pipe(
+                  Match.when('desc', () => <ArrowDownIcon className='ml-2 size-4' />),
+                  Match.when('asc', () => <ArrowUpIcon className='ml-2 size-4' />),
+                  Match.when(false, () => <CaretSortIcon className='ml-2 size-4' />),
+                  Match.exhaustive,
                 )}
               </DropdownMenuTrigger>
               <DropdownMenuContent align='start'>

@@ -1,7 +1,7 @@
 import { PlusCircle as PlusCircledIcon } from 'lucide-react';
 import { RowData } from '@tanstack/react-table';
 import * as React from 'react';
-import { Predicate } from 'effect';
+import { Match, Predicate } from 'effect';
 
 import { DataTableColumn } from './table-hook';
 
@@ -61,12 +61,12 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
   // Numeric: 'owned' = every value > 0, 'missing' = the 0 bucket.
   const rawFilterValue = column?.getFilterValue();
   const numericValues = options.map((o) => o.value).filter(Predicate.isNumber);
-  const selectedValues =
-    rawFilterValue === 'owned'
-      ? new Set<unknown>(numericValues.filter((v) => v > 0))
-      : rawFilterValue === 'missing'
-        ? new Set<unknown>(numericValues.filter((v) => v === 0))
-        : new Set(Array.isArray(rawFilterValue) ? rawFilterValue : []);
+  const selectedValues = Match.value(rawFilterValue).pipe(
+    Match.when('owned', () => new Set<unknown>(numericValues.filter((v) => v > 0))),
+    Match.when('missing', () => new Set<unknown>(numericValues.filter((v) => v === 0))),
+    Match.when(Match.instanceOf(Array), (values) => new Set<unknown>(values)),
+    Match.orElse(() => new Set<unknown>()),
+  );
 
   const setSelected = (values: Array<unknown>) =>
     column?.setFilterValue(values.length > 0 ? values : undefined);
@@ -118,7 +118,7 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
   // the value, which is the count?). The pill + `count ×` affordance disambiguates.
   const optionCount = (option: FacetOption) => {
     const count = facets?.get(option.value);
-    return count ? (
+    return count !== undefined && count !== 0 ? (
       <span
         title={`${count} ${count === 1 ? 'item' : 'items'}`}
         className='ml-auto shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground tabular-nums'

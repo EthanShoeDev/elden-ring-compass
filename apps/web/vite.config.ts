@@ -10,9 +10,18 @@ import path from 'node:path';
 // which `mergeConfig` THIS config to inherit the plugins below. `defineConfig` from
 // `vitest/config` (a superset of Vite's) keeps it importable from those configs.
 import { defineConfig } from 'vitest/config';
+import { Config, Effect } from 'effect';
 import { erDataTiles } from './vite-plugins/er-data-tiles.ts';
 
-// Vitest sets this. The app-server plugins below (devtools/tanstackStart/nitro) are only needed for
+// Build env flags, read through Effect Config (absent = false).
+const env = Effect.runSync(
+  Config.all({
+    vitest: Config.Boolean('VITEST').pipe(Config.withDefault(false)),
+    vercel: Config.Boolean('VERCEL').pipe(Config.withDefault(false)),
+  }),
+);
+
+// Vitest sets VITEST. The app-server plugins below (devtools/tanstackStart/nitro) are only needed for
 // `vite dev`/`vite build`; under Vitest they break browser mode (`react: module is not defined`
 // during dep-scan) and leave the process hanging. Vitest always runs ROOT plugin hooks even for
 // standalone projects, so excluding them here — not just in the perf project — is what keeps the
@@ -21,7 +30,7 @@ import { erDataTiles } from './vite-plugins/er-data-tiles.ts';
 // the Build Output API to `.vercel/output` (NOT `.output`). In a monorepo Vercel only auto-detects
 // that dir at the REPO ROOT, but Nitro writes it relative to its cwd (apps/web) — so redirect the
 // output up two levels. Locally (no VERCEL) the default node-server preset + `.output` is untouched.
-const appOnlyPlugins = process.env.VITEST
+const appOnlyPlugins = env.vitest
   ? []
   : [
       devtools(),
@@ -38,7 +47,7 @@ const appOnlyPlugins = process.env.VITEST
             headers: { 'cache-control': 'public, max-age=31536000, immutable' },
           },
         },
-        ...(process.env.VERCEL
+        ...(env.vercel
           ? { output: { dir: path.resolve(import.meta.dirname, '../../.vercel/output') } }
           : {}),
       }),
@@ -48,9 +57,7 @@ const appOnlyPlugins = process.env.VITEST
 // @rolldown/plugin-babel). MUST come after viteReact() — the preset's rolldown filter only
 // applies it to the client environment and to files that look like components/hooks. Gated out of
 // VITEST for the same reason as appOnlyPlugins: tests run on the un-compiled source.
-const reactCompilerPlugins = process.env.VITEST
-  ? []
-  : [babel({ presets: [reactCompilerPreset()] })];
+const reactCompilerPlugins = env.vitest ? [] : [babel({ presets: [reactCompilerPreset()] })];
 
 export default defineConfig({
   server: {

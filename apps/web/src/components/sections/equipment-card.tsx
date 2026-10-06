@@ -35,7 +35,11 @@ export function EquipmentCard() {
   const slot = useSelectedSlot();
   const eq = equipmentDbView(slot);
 
-  const armaments = [...eq.right_hand_armaments, ...eq.left_hand_armaments].filter(isEquipped);
+  // Keyed by hand + slot position: the same weapon can be equipped in two slots.
+  const armaments = [
+    ...eq.right_hand_armaments.map((item, i) => ({ slot: `R${(i + 1).toString()}`, item })),
+    ...eq.left_hand_armaments.map((item, i) => ({ slot: `L${(i + 1).toString()}`, item })),
+  ].filter(({ item }) => isEquipped(item));
   const armor = [
     ['Head', eq.head],
     ['Chest', eq.chest],
@@ -54,7 +58,7 @@ export function EquipmentCard() {
         <div className='flex flex-col gap-1'>
           <div className='text-xs font-medium text-muted-foreground'>Armaments</div>
           {armaments.length > 0 ? (
-            armaments.map((item, i) => <ArmamentRow key={i} item={item} />)
+            armaments.map(({ slot: armSlot, item }) => <ArmamentRow key={armSlot} item={item} />)
           ) : (
             <span className='text-sm text-muted-foreground'>None equipped</span>
           )}
@@ -72,8 +76,8 @@ export function EquipmentCard() {
             Talismans ({talismans.length}/{eq.talisman_count})
           </div>
           {talismans.length > 0 ? (
-            talismans.map((item, i) => (
-              <span key={i} className='text-sm'>
+            talismans.map((item) => (
+              <span key={item.id} className='text-sm'>
                 {item.name}
               </span>
             ))

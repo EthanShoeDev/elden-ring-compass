@@ -41,7 +41,7 @@ export function inventoryDbView(slot: Readonly<Slot>) {
   // Wont need this function, its mostly for writing to save
   function getNextItemIndexes(slot: Readonly<Slot>) {
     // Handle empty ga_items (e.g., shared view data)
-    if (!slot.ga_items || slot.ga_items.length === 0) {
+    if (slot.ga_items.length === 0) {
       return {
         next_gaitem_handle: 0,
         part_gaitem_handle: 0,
@@ -80,7 +80,7 @@ export function inventoryDbView(slot: Readonly<Slot>) {
     };
   }
 
-  const gaItemMap = new Map<number, GaItem>((slot.ga_items || []).map((i) => [i.gaitem_handle, i]));
+  const gaItemMap = new Map<number, GaItem>(slot.ga_items.map((i) => [i.gaitem_handle, i]));
   // Both halves of an inventory: newer saves keep Crystal Tears, Great Runes and crafting tools
   // in the key-item list, so reading only `common_items` drops them. Key items take equip
   // indexes 0..0x17F; common items start at 0x180.

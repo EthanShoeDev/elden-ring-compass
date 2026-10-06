@@ -45,7 +45,7 @@ export function BossBadgePill({ kind, iconOnly }: { kind: BossBadge; iconOnly?: 
       )}
     >
       <Icon className='size-3' />
-      {!iconOnly && BADGE_LABEL[kind]}
+      {iconOnly !== true && BADGE_LABEL[kind]}
     </span>
   );
 }

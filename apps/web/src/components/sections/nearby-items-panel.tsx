@@ -33,7 +33,8 @@ import { useRowSelectionControls, useTableStateMap } from '../data-table/data-ta
 import { Slider } from '../ui/slider';
 import { Switch } from '../ui/switch';
 import type { MapPin } from './leaflet-map';
-import { OVERLAY_PANEL, PanelLabel } from './map-overlay-chrome';
+import { PanelLabel } from './map-overlay-chrome';
+import { OVERLAY_PANEL } from './map-overlay-styles';
 
 /** Search-radius slider bounds, in world-units (≈ meters; 1 master pixel = 1 world-unit). */
 const MIN_RADIUS = 50;
@@ -227,8 +228,8 @@ export function NearbyItemsPanel({
         </p>
       ) : !playerPin ? (
         <p className='text-xs text-muted-foreground'>
-          Your character is in an interior (dungeon/cave) we can't place on the world map, so
-          there's no position to search around.
+          Your character is in an interior (dungeon/cave) we can’t place on the world map, so
+          there’s no position to search around.
         </p>
       ) : entries.length === 0 ? (
         <p className='text-xs text-muted-foreground'>

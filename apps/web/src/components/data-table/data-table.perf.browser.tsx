@@ -37,7 +37,7 @@ const MOUNT_HEAP_MB = 200;
 
 it.effect('armaments table: mount + filter time and retained heap within bounds', () =>
   Effect.gen(function* () {
-    const heapBefore = yield* Effect.promise(forceGcHeapUsedBytes);
+    const heapBefore = yield* forceGcHeapUsedBytes;
 
     // Mount: render the real table + wait until the toolbar is interactive.
     const mountStart = performance.now();
@@ -51,7 +51,7 @@ it.effect('armaments table: mount + filter time and retained heap within bounds'
     yield* Effect.promise(() => screen.findByPlaceholderText('Search'));
     const mountMs = performance.now() - mountStart;
 
-    const heapAfter = yield* Effect.promise(forceGcHeapUsedBytes);
+    const heapAfter = yield* forceGcHeapUsedBytes;
     const heapDeltaMb = mb(heapAfter - heapBefore);
 
     // Filter: type into the Name search → react-table recomputes the filtered row model over the

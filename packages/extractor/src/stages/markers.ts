@@ -63,7 +63,7 @@ export const markers = (
         const nameId = num(row, 'nameId');
         if (nameId <= 0) continue;
         const name = npcName.get(nameId);
-        if (name && name.trim() && name !== '[ERROR]') {
+        if (name !== undefined && name.trim() !== '' && name !== '[ERROR]') {
           npcNameByParamId.set(r.id, name);
         }
       }

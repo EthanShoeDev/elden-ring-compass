@@ -1,5 +1,6 @@
 import { Data, Effect, FileSystem } from 'effect';
 
+import { globSorted } from '../external/glob.ts';
 import type { OodleError } from '../external/oodle.ts';
 import { type DcxError, dcxDecompress } from '../formats/dcx.ts';
 import {
@@ -55,18 +56,12 @@ export const loadMapMarkers = (
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const dir = `${gameRoot}/map/mapstudio`;
-    // glob has no effect-native equivalent (FileSystem only lists/watches); Bun.Glob stays.
-    const glob = new Bun.Glob('*.msb.dcx');
-    const paths = yield* Effect.tryPromise({
-      try: async () => {
-        const out: string[] = [];
-        for await (const p of glob.scan({ cwd: dir, absolute: true }))
-          out.push(p);
-        return out.toSorted();
-      },
-      catch: (cause) =>
+    const paths = yield* globSorted(
+      '*.msb.dcx',
+      dir,
+      (cause) =>
         new MapMarkersError({ detail: `scanning ${dir}: ${String(cause)}` }),
-    });
+    );
     if (paths.length === 0) {
       return yield* new MapMarkersError({
         detail: `no MSBs under ${dir} — run the unpack stage first`,

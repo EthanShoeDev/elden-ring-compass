@@ -74,7 +74,7 @@ export interface BinaryReaderApi {
 export class BinaryReader extends Context.Service<
   BinaryReader,
   BinaryReaderApi
->()('save-parser/BinaryReader') {}
+>()('@elden-ring-compass/save-parser-ts/binary-reader/BinaryReader') {}
 
 /** Builds a {@link BinaryReader} service value backed by a private, mutable cursor over `buffer`. */
 export const makeBinaryReader = (buffer: ArrayBuffer): BinaryReaderApi => {

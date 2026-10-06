@@ -28,9 +28,8 @@ const arrayBuffer = fixture.buffer.slice(
 describe('parse ER0000.sl2', () => {
   // Vitest 5: `bench` is a test-context fixture; each registration is run explicitly.
   // `throws: true` surfaces a failing bench instead of silently dropping it.
-  test('ts', async ({ bench }) => {
-    await bench('ts', () => {
+  test('ts', ({ bench }) =>
+    bench('ts', () => {
       Effect.runSync(parseSave(arrayBuffer));
-    }).run({ throws: true });
-  });
+    }).run({ throws: true }));
 });

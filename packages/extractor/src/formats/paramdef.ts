@@ -66,7 +66,7 @@ export const parseParamdefXml = (
 ): Effect.Effect<Paramdef, ParamdefError> =>
   Effect.gen(function* () {
     const paramType = /<ParamType>([^<]+)<\/ParamType>/.exec(xml)?.[1]?.trim();
-    if (!paramType) {
+    if (paramType === undefined || paramType === '') {
       return yield* new ParamdefError({ detail: 'no <ParamType> in def XML' });
     }
     const dataVersion = Number(

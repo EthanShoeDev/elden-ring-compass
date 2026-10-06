@@ -47,7 +47,7 @@ function checkSource(
   if (!path.isAbsolute(filename)) return;
   const fileDir = path.dirname(filename);
   const fileRoot = findPackageRoot(fileDir);
-  if (!fileRoot) return;
+  if (fileRoot === null) return;
 
   // Strip bundler query suffixes (`?raw`, `?react`, ...).
   const cleanSpec = spec.split('?')[0] ?? spec;

@@ -38,7 +38,7 @@ export function DataTableToolbar<TData extends RowData>({ table }: DataTableTool
                 col.getFilterFn() as DataTableFilterFn<TData> & {
                   [defaultFacetedFilterFnSymbol]?: boolean;
                 }
-              )[defaultFacetedFilterFnSymbol],
+              )[defaultFacetedFilterFnSymbol] === true,
           )
           .map((column) => {
             // [value, count] pairs. Numeric columns (e.g. Upgrade Level, Locations)

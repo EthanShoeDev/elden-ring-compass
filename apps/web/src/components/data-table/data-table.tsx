@@ -68,7 +68,7 @@ export function DataTable<TData extends { id: number; name: string }>({
       // A row is pinnable if it has an extracted overworld position: an event
       // pixel (graces / field bosses) or an item with overworld pickup locations.
       const r = row.original as { pixel?: unknown; hasCoords?: boolean };
-      return !!(r.pixel || r.hasCoords);
+      return (r.pixel !== undefined && r.pixel !== null) || r.hasCoords === true;
     },
     getRowId: (row) => row.id.toString(),
   });
@@ -173,6 +173,7 @@ function DataTableBody<TData extends { id: number; name: string }>({
   // render (the parent's callback ref sets it on mount) — all render zero virtual
   // items, so there's no hydration mismatch. The state update flips it to the
   // real element, which re-renders this body and lets the virtualizer measure.
+  // oxlint-disable-next-line react/incompatible-library -- this component is opted out of the compiler with 'use no memo' (see above)
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scrollEl,

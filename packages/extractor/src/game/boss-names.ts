@@ -8,6 +8,7 @@ import {
   type EmevdError,
   parseEmevd,
 } from '../formats/emevd.ts';
+import { globSorted } from '../external/glob.ts';
 import type { OodleError } from '../external/oodle.ts';
 import type { Bnd4Error } from '../formats/bnd4.ts';
 import type { FmgError } from '../formats/fmg.ts';
@@ -156,21 +157,14 @@ export const resolveBossNames = (
     );
 
     const eventDir = `${gameRoot}/event`;
-    const paths = yield* Effect.tryPromise({
-      try: async () => {
-        const out: string[] = [];
-        for await (const p of new Bun.Glob('*.emevd.dcx').scan({
-          cwd: eventDir,
-          absolute: true,
-        }))
-          out.push(p);
-        return out.toSorted();
-      },
-      catch: (cause) =>
+    const paths = yield* globSorted(
+      '*.emevd.dcx',
+      eventDir,
+      (cause) =>
         new BossNamesError({
           detail: `scanning ${eventDir}: ${String(cause)}`,
         }),
-    });
+    );
     if (paths.length === 0) {
       return yield* new BossNamesError({
         detail: `no EMEVDs under ${eventDir} — run unpack first`,
@@ -186,7 +180,7 @@ export const resolveBossNames = (
     // common_func is the template pool for RunCommonEvent targets.
     const commonPath = paths.find((p) => p.endsWith('common_func.emevd.dcx'));
     const commonFunc = new Map<number, EmevdEvent>();
-    if (commonPath) {
+    if (commonPath !== undefined) {
       for (const e of (yield* readEmevd(commonPath)).events)
         commonFunc.set(e.id, e);
     }
@@ -197,7 +191,7 @@ export const resolveBossNames = (
       const emevd = yield* readEmevd(path);
       for (const bar of resolveBars(emevd, commonFunc)) {
         const name = npcName.get(bar.nameId);
-        if (!name) continue;
+        if (name === undefined || name === '') continue;
         if (!byCharacter.has(bar.character))
           byCharacter.set(bar.character, name);
         for (const flag of bar.initFlags) {

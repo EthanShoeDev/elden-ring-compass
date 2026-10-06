@@ -1,4 +1,11 @@
-import { recommended as effectTsgoRecommended } from '@effect/tsgo/oxlint-presets';
+import {
+  antipattern as effectTsgoAntipattern,
+  correctness as effectTsgoCorrectness,
+  effectNative as effectTsgoEffectNative,
+  recommended as effectTsgoRecommended,
+  strict as effectTsgoStrict,
+  style as effectTsgoStyle,
+} from '@effect/tsgo/oxlint-presets';
 import antiSlop from '@elden-ring-compass/oxlint-plugins/vendor/anti-slop';
 import antiSlopEffect from '@elden-ring-compass/oxlint-plugins/vendor/anti-slop/effect';
 import playwright from 'eslint-plugin-playwright';
@@ -11,11 +18,22 @@ import { defineConfig } from 'oxlint';
 
 // Effect diagnostics are reported by oxlint (via the `effect-tsgo patch --oxlint`
 // prepare step), not by the language service, so the whole rule set lands at
-// `error` like every other rule here. Deriving the map from the preset keeps new
-// rules enforced when @effect/tsgo is upgraded rather than silently landing at
-// the preset's `warn`.
+// `error` like every other rule here. The map is the union of EVERY preset, not
+// just `recommended`: the effect-native (global-date, process-env, …), style,
+// antipattern and correctness rules are not in `recommended`, so deriving from
+// it alone left them silently off. Deriving it keeps new rules enforced when
+// @effect/tsgo is upgraded rather than landing at a preset's `warn`.
 const effectTsgoRules = Object.fromEntries(
-  Object.keys(effectTsgoRecommended.rules ?? {}).map((rule) => [rule, 'error']),
+  [
+    effectTsgoRecommended,
+    effectTsgoStrict,
+    effectTsgoEffectNative,
+    effectTsgoStyle,
+    effectTsgoAntipattern,
+    effectTsgoCorrectness,
+  ]
+    .flatMap((preset) => Object.keys(preset.rules ?? {}))
+    .map((rule) => [rule, 'error']),
 );
 
 // jsPlugins rules are not covered by `categories`, so each third-party plugin's
@@ -221,8 +239,6 @@ export default defineConfig({
     // Sequential `await` in a loop is intentional here (ordered IO,
     // backpressure in the archive unpackers) — not a perf bug.
     'no-await-in-loop': 'off',
-    // False positives on block-scoped let/const in for...of; the rule targets var hoisting.
-    'no-loop-func': 'off',
     // reduce is a valid functional pattern.
     'unicorn/no-array-reduce': 'off',
     // forEach is used where a for-of would be noise.
@@ -231,16 +247,12 @@ export default defineConfig({
     'unicorn/no-array-callback-reference': 'off',
     // Hoisting to outer scope breaks closures we want.
     'unicorn/consistent-function-scoping': 'off',
-    // Naming varies by convention (components PascalCase).
-    'unicorn/filename-case': 'off',
     // Per-module import style is not worth enforcing.
     'unicorn/import-style': 'off',
     // Array.from(iterable) is explicit about intent.
     'unicorn/prefer-spread': 'off',
     // `{ ...x, y }` inside map is the immutable idiom; the fix is in-place mutation.
     'oxc/no-map-spread': 'off',
-    // Sequential push() calls read as steps in reports and scripts.
-    'unicorn/prefer-single-call': 'off',
     // parseInt('12px') !== Number('12px'); the rewrite is not semantics-preserving.
     'unicorn/prefer-number-coercion': 'off',
     // The `u` flag changes escaping rules; not worth the churn.
@@ -255,8 +267,6 @@ export default defineConfig({
     'class-methods-use-this': 'off',
     // useRef<T>(undefined) and explicit-undefined returns are intentional.
     'unicorn/no-useless-undefined': 'off',
-    // Object-literal defaults are fine.
-    'unicorn/no-object-as-default-parameter': 'off',
     // `window` is the SSR-vs-client discriminator; `self` is the worker global.
     'unicorn/prefer-global-this': 'off',
     // `void promise` is the fire-and-forget idiom.
@@ -295,10 +305,6 @@ export default defineConfig({
     // boundaries (catalog-check, the oxlint plugins).
     // anti-slop/no-chained-type-assertions still gates the evidence-free `as unknown as` form.
     'typescript/no-unsafe-type-assertion': 'off',
-    // Empty interfaces are TypeScript module augmentation.
-    'typescript/no-empty-object-type': 'off',
-    // Superseded by no-empty-object-type, off for the same reason.
-    'typescript/no-empty-interface': 'off',
     // `string & {}` preserves autocomplete while allowing any string.
     'typescript/ban-types': 'off',
     // `Effect<A | void>` and void-in-generic are valid Effect shapes.
@@ -334,8 +340,6 @@ export default defineConfig({
     'typescript/consistent-return': 'off',
     // Effect's `_tag`; leading underscores mark intentionally-unused bindings.
     'no-underscore-dangle': 'off',
-    // Option and nullable checks are the idiom.
-    'typescript/strict-boolean-expressions': 'off',
     // TypeScript declaration merging (`export const X = Schema.Literals(…)` beside
     // `export type X = typeof X.Type`); the rule has no ignoreDeclarationMerge option.
     'no-redeclare': 'off',
@@ -343,13 +347,15 @@ export default defineConfig({
     // ─── Promises: boundary code only ───────────────────────────────────
     // `.then` side-effect chains at the boundary need no return.
     'promise/always-return': 'off',
-    // Wrapping a callback API is what new Promise is for.
+    // effecttsgo/new-promise owns this (pointing at Effect.callback); both on
+    // would report every call twice.
     'promise/avoid-new': 'off',
     // Event handlers, workers and streams take callbacks.
     'promise/prefer-await-to-callbacks': 'off',
     // Promise chains at the boundary; Effect owns the rest.
     'promise/prefer-await-to-then': 'off',
-    // React handlers, Playwright tests and scripts are async by nature.
+    // effecttsgo/async-function owns this (pointing at Effect.gen); both on
+    // would report every function twice.
     'oxc/no-async-await': 'off',
     // Every target supports optional chaining.
     'oxc/no-optional-chaining': 'off',
@@ -383,11 +389,8 @@ export default defineConfig({
     'node/no-sync': 'off',
     // Scripts rely on top-level await.
     'node/no-top-level-await': 'off',
-    // Legacy node callback style is not used.
-    'node/callback-return': 'off',
-    // CLI entry points exit with a status code.
-    'unicorn/no-process-exit': 'off',
-    // Build tooling and scripts read the environment directly; there is no env module.
+    // effecttsgo/process-env and process-env-in-effect own this (pointing at
+    // Effect Config); both on would report every read twice.
     'node/no-process-env': 'off',
 
     // ─── JSDoc: TypeScript carries the types ────────────────────────────
@@ -403,8 +406,6 @@ export default defineConfig({
     'jsdoc/require-property-type': 'off',
     // TypeScript carries the thrown type.
     'jsdoc/require-throws-type': 'off',
-    // `name - description` inline form is readable.
-    'jsdoc/require-param-description': 'off',
     // `@elden-ring-compass/…` package names in comments read as tags.
     'jsdoc/check-tag-names': 'off',
 
@@ -413,8 +414,6 @@ export default defineConfig({
     'react/react-in-jsx-scope': 'off',
     // TypeScript already confines JSX to .tsx.
     'react/jsx-filename-extension': 'off',
-    // TanStack route files export the route beside the component.
-    'react/only-export-components': 'off',
     // `{...props}` forwarding is how wrapper components work.
     'react/jsx-props-no-spreading': 'off',
     // UI copy is inline; there is no i18n layer.
@@ -425,16 +424,6 @@ export default defineConfig({
     'react/function-component-definition': 'off',
     // `onClick={service.logout}` is cleaner than a wrapper.
     'react/jsx-handler-names': 'off',
-    // Acronym components are all caps.
-    'react/jsx-pascal-case': 'off',
-    // Quotes in JSX text are rendered verbatim by React.
-    'react/no-unescaped-entities': 'off',
-    // Index keys are acceptable for the static, non-reordered lists used here.
-    'react/no-array-index-key': 'off',
-    // Render-prop `children` patterns.
-    'react/no-children-prop': 'off',
-    // `const [value] = useState(init)` and passing tuples as props are valid.
-    'react/hook-use-state': 'off',
     // React Compiler memoizes context values.
     'react/jsx-no-constructed-context-values': 'off',
     // Upstream ships this off: it lists what the compiler skips (Effect.gen
@@ -454,12 +443,6 @@ export default defineConfig({
     'react-perf/jsx-no-new-array-as-prop': 'off',
     // React Compiler memoizes inline props.
     'react-perf/jsx-no-jsx-as-prop': 'off',
-    // Dialogs and sheets focus their first control deliberately.
-    'jsx-a11y/no-autofocus': 'off',
-    // Roles are needed on composed accessible components.
-    'jsx-a11y/prefer-tag-over-role': 'off',
-    // The Label component wraps controls; not a standalone label.
-    'jsx-a11y/label-has-associated-control': 'off',
     // Default depth 2 cannot see label text through layout wrapper divs; 4 reaches real markup.
     'jsx-a11y/control-has-associated-label': ['error', { depth: 4 }],
     // oxlint's port ships no element→role map, so these are eslint-plugin-jsx-a11y's
@@ -558,44 +541,16 @@ export default defineConfig({
     // ─── Effect rules, all elevated from the preset's warn/error to error ─
     // Offs must follow the spread; the preset re-enables anything above it.
     ...effectTsgoRules,
-    // Effect twin of oxc/no-async-await.
-    'effecttsgo/async-function': 'off',
-    // Effect twin of promise/avoid-new.
-    'effecttsgo/new-promise': 'off',
-    // Same as node/no-process-env.
-    'effecttsgo/process-env': 'off',
-    // Same as node/no-process-env.
-    'effecttsgo/process-env-in-effect': 'off',
-    // Effect twin of typescript/strict-boolean-expressions.
+    // Stricter twin of typescript/strict-boolean-expressions (which is on): it
+    // also rejects `if (option)`-style nullable-object checks, the idiom here.
     'effecttsgo/strict-boolean-expressions': 'off',
-    // Path-derived keys churn on every file move; keys are identity, not location.
-    'effecttsgo/deterministic-keys': 'off',
-    // React effects and handlers schedule UI timers natively; -in-effect covers Effect code.
-    'effecttsgo/global-timers': 'off',
-    // React components read the wall clock natively; -in-effect covers Effect
-    // code, where Clock/DateTime respect the TestClock.
-    'effecttsgo/global-date': 'off',
-    // Library-author rule for dual signatures.
+    // Library-author rule: it wants a data-last overload on every exported
+    // function, including plain app helpers like `runesBetween(a, b)`.
     'effecttsgo/missing-pipeable-signature': 'off',
-    // Tests and scripts provide layers per case.
-    'effecttsgo/strict-effect-provide': 'off',
-    // Codecs at sync boundaries (URL share params, localStorage, worker
-    // messages); Effect code already decodes with decodeUnknownEffect.
-    'effecttsgo/schema-sync': 'off',
-    // Every `Schema.Number` in the extractor/data/share schemas trips it (216);
-    // switching them to `Schema.Finite` changes decode semantics (rejects
-    // NaN/±Infinity), so that is its own change.
+    // Adopting it means splitting ~225 `Schema.Number` fields into Int / Finite,
+    // and the save schemas carry raw f32s (coords, angles) where a NaN would
+    // reject the whole save under `Schema.Finite`. Not worth it yet.
     'effecttsgo/schema-number': 'off',
-
-    // ─── React Compiler rules held off since the oxlint 1.82 bump ────────
-    // The compiler already bails out of the flagged components at build time;
-    // adopting each is its own change.
-    // Theme/mobile/map/share sync-from-external-state effects.
-    'react/set-state-in-effect': 'off',
-    // The leaflet-map useMemo.
-    'react/preserve-manual-memoization': 'off',
-    // data-table (TanStack Table row APIs).
-    'react/incompatible-library': 'off',
 
     // ─── Custom plugin rules ────────────────────────────────────────────
     // effecttsgo/global-console and global-console-in-effect own console use;
@@ -639,9 +594,6 @@ export default defineConfig({
     'anti-slop/no-array-filter-map': 'off',
     // `make*` is an ordinary factory prefix here, not a service-constructor marker.
     'anti-slop-effect/no-service-constructor-imports': 'off',
-    // Nested ternaries are accepted above; Match earns its weight on tagged
-    // unions (no-manual-tag-comparison), not on a two-branch string comparison.
-    'anti-slop-effect/prefer-effect-match': 'off',
   },
   overrides: [
     {
@@ -659,6 +611,14 @@ export default defineConfig({
       files: ['apps/web/**'],
       rules: {
         'route-active/no-render-time-match-route': 'error',
+      },
+    },
+    {
+      files: ['apps/web/src/routes/**'],
+      rules: {
+        // TanStack file routes export `Route` beside their component by contract;
+        // the router plugin, not React Fast Refresh, owns their hot reload.
+        'react/only-export-components': 'off',
       },
     },
     {
@@ -707,6 +667,8 @@ export default defineConfig({
       rules: {
         // `test`/`expect` come from @playwright/test, not vitest.
         'vitest/prefer-importing-vitest-globals': 'off',
+        // Playwright test and `toPass` callbacks are Promise-based; there is no Effect runner.
+        'effecttsgo/async-function': 'off',
         ...playwrightRules,
         // expect.soft everywhere would let a failed step keep driving the page.
         'playwright/require-soft-assertions': 'off',
@@ -785,8 +747,6 @@ export default defineConfig({
         'effecttsgo/global-fetch': 'off',
         // Scripts load optional SDKs on demand; the reason is the same everywhere.
         'dynamic-import/no-unexplained-dynamic-import': 'off',
-        // One-off scripts stamp reports with the wall clock; nothing replays them under a TestClock.
-        'effecttsgo/global-date-in-effect': 'off',
         // Report rows are ad-hoc tagged literals.
         'anti-slop-effect/no-manual-tagged-construction': 'off',
       },

@@ -419,7 +419,7 @@ const rarityLabel = (r: number): string =>
   r >= 3 ? 'Legendary' : r === 2 ? 'Rare' : 'Common';
 
 const splitDescription = (text?: string): string[] =>
-  text && text.length > 0 ? text.split('\n') : [];
+  text !== undefined && text.length > 0 ? text.split('\n') : [];
 
 /**
  * Fields every item category shares, sourced identically: summary/description

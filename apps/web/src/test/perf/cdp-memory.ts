@@ -1,3 +1,4 @@
+import { Effect } from 'effect';
 import { cdp } from 'vitest/browser';
 
 // Vitest types its `cdp()` return as an empty `interface CDPSession {}`, but at runtime it IS the
@@ -23,18 +24,18 @@ let performanceEnabled = false;
  * makes memory numbers honest — otherwise you measure GC timing, not retention. This is the right
  * signal for "is the app holding too much live data" (and the thing IndexedDB would reduce).
  */
-export async function forceGcHeapUsedBytes(): Promise<number> {
+export const forceGcHeapUsedBytes: Effect.Effect<number> = Effect.gen(function* () {
   // oxlint-disable-next-line anti-slop/no-chained-type-assertions -- Playwright's CDPSession isn't typed with the send() shape we use
   const session = cdp() as unknown as CdpSend;
   if (!performanceEnabled) {
     // `Performance.getMetrics` returns nothing until the domain is enabled (idempotent).
-    await session.send('Performance.enable');
+    yield* Effect.promise(() => session.send('Performance.enable'));
     performanceEnabled = true;
   }
-  await session.send('HeapProfiler.collectGarbage');
-  const { metrics } = await session.send('Performance.getMetrics');
+  yield* Effect.promise(() => session.send('HeapProfiler.collectGarbage'));
+  const { metrics } = yield* Effect.promise(() => session.send('Performance.getMetrics'));
   return metrics.find((m) => m.name === 'JSHeapUsedSize')?.value ?? 0;
-}
+});
 
 /** Bytes → MB, rounded to 2 decimals, for readable log/threshold values. */
 export const mb = (bytes: number): number => Math.round((bytes / 1_048_576) * 100) / 100;

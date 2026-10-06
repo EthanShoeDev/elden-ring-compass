@@ -54,7 +54,7 @@ export function CompletionRing({
         />
       </svg>
       <div className='absolute inset-0 flex flex-col items-center justify-center gap-0.5'>
-        {centerIconUrl ? (
+        {centerIconUrl !== undefined && centerIconUrl !== '' ? (
           <>
             <img
               src={centerIconUrl}
@@ -67,7 +67,7 @@ export function CompletionRing({
         ) : (
           <>
             <span className='text-2xl font-bold tabular-nums leading-none'>{clamped}%</span>
-            {centerLabel && (
+            {centerLabel !== undefined && centerLabel !== '' && (
               <span className='text-[11px] font-medium tracking-wide text-muted-foreground uppercase'>
                 {centerLabel}
               </span>

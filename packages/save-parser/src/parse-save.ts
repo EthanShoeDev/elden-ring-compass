@@ -166,7 +166,7 @@ function walkSave(r: BinaryReaderApi): LeanSave {
   const slots: LeanSlot[] = [];
   const characterSteamIds: string[] = [];
   for (let i = 0; i < SLOT_COUNT; i++) {
-    if (!activeProfiles[i]) continue;
+    if (activeProfiles[i] !== true) continue;
     r.seek(SLOTS_START + SLOT_SIZE * i + SLOT_CHECKSUM);
     const slot = readSlot(r, secondsPlayed[i] ?? 0);
     slots.push(slot);

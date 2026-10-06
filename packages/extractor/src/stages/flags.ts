@@ -37,7 +37,7 @@ export const flags = (params: Map<string, Uint8Array>) =>
       );
 
     const bosses = yield* loadBosses(params, ctx.gameRoot, oo2core);
-    const named = bosses.filter((b) => b.name).length;
+    const named = bosses.filter((b) => b.name !== null && b.name !== '').length;
     yield* Effect.logInfo(
       `boss defeat flags — ${bosses.length} arenas (GameAreaParam), ${named} named via EMEVD`,
     );
@@ -62,7 +62,9 @@ export const flags = (params: Map<string, Uint8Array>) =>
     );
 
     const mapFragments = yield* loadMapFragments(params, ctx.gameRoot, oo2core);
-    const namedFragments = mapFragments.filter((m) => m.name).length;
+    const namedFragments = mapFragments.filter(
+      (m) => m.name !== null && m.name !== '',
+    ).length;
     yield* Effect.logInfo(
       `map fragments — ${mapFragments.length} pieces (WorldMapPieceParam), ` +
         `${namedFragments} with a coarse PlaceName`,

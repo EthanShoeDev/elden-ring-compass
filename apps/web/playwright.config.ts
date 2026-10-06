@@ -1,4 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
+import { Config, Effect } from 'effect';
+
+const ci = Effect.runSync(Config.Boolean('CI').pipe(Config.withDefault(false)));
 
 // Standalone Playwright E2E — separate from the Vitest perf project. Used for the few things Vitest
 // browser mode can't do: here, driving the REAL app's worker save-parse path (URL source → Comlink
@@ -7,7 +10,7 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
-  forbidOnly: !!process.env.CI,
+  forbidOnly: ci,
   retries: 0,
   reporter: 'list',
   use: {
@@ -18,7 +21,7 @@ export default defineConfig({
   webServer: {
     command: 'bun run dev',
     url: 'http://localhost:3005',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !ci,
     timeout: 120_000,
   },
 });

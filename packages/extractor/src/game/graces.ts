@@ -78,7 +78,7 @@ export const loadGraces = (
     for (const r of subParam.rows) {
       const f = decodeRow(subBytes, r.dataOffset, subDef, subParam.little);
       const region = grMenu.get(Number(f.get('textId')));
-      if (region) subRegion.set(r.id, region);
+      if (region !== undefined && region !== '') subRegion.set(r.id, region);
     }
 
     const bwp = yield* parseParam(bwpBytes);
@@ -89,7 +89,7 @@ export const loadGraces = (
       const f = decodeRow(bwpBytes, r.dataOffset, def, bwp.little);
       const flagId = Number(f.get('eventflagId'));
       const name = placeName.get(Number(f.get('textId1')));
-      if (!name || flagId <= 0) continue; // non-grace warp slots / blank rows
+      if (name === undefined || name === '' || flagId <= 0) continue; // non-grace warp slots / blank rows
       graces.push({
         flagId,
         name,

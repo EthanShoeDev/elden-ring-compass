@@ -170,9 +170,10 @@ export function createArCalculator(tables: ArTables): {
     // Two-handing adds 50% Strength (floored). Paired weapons and bows/ballistae
     // are exceptions the caller must handle (the AR dataset doesn't carry those
     // flags); for them, pass twoHanding: false / true respectively.
-    const attrs: Attributes = options?.twoHanding
-      ? { ...attributes, str: Math.floor(attributes.str * 1.5) }
-      : attributes;
+    const attrs: Attributes =
+      options?.twoHanding === true
+        ? { ...attributes, str: Math.floor(attributes.str * 1.5) }
+        : attributes;
 
     const ineffectiveAttrs = new Set<ScalingAttr>();
     for (const a of SCALING_ATTRS) {
@@ -186,13 +187,14 @@ export function createArCalculator(tables: ArTables): {
 
     for (const dt of DAMAGE_TYPES) {
       const base = weapon.baseAttack[dt];
-      if (!base) continue;
+      if (base === undefined || base === 0) continue;
       const baseUpgraded = base * (level.attack[DMG_IDX[dt]] ?? 0);
       const corr = aec.correct[dt] ?? {};
 
       let totalScaling = 1;
       const typeIneffective = SCALING_ATTRS.some(
-        (a) => corr[a] && ineffectiveAttrs.has(a),
+        (a) =>
+          corr[a] !== undefined && corr[a] !== 0 && ineffectiveAttrs.has(a),
       );
       if (typeIneffective) {
         totalScaling = 1 - INEFFECTIVE_PENALTY;
@@ -204,7 +206,8 @@ export function createArCalculator(tables: ArTables): {
         if (graph) {
           for (const a of SCALING_ATTRS) {
             const attributeCorrect = corr[a];
-            if (!attributeCorrect) continue;
+            if (attributeCorrect === undefined || attributeCorrect === 0)
+              continue;
             const baseScaling = weapon.scaling[a] ?? 0;
             const scalingUpgraded =
               baseScaling * (level.scaling[SCALE_IDX[a]] ?? 0);

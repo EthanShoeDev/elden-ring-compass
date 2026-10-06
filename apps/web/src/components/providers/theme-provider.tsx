@@ -1,5 +1,7 @@
 import { ScriptOnce } from '@tanstack/react-router';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
+
+import { type Theme, type ThemePreference, ThemeProviderContext } from './theme-context';
 
 /**
  * SSR-safe theme provider for TanStack Start, per the shadcn dark-mode guide
@@ -7,29 +9,14 @@ import { createContext, useContext, useEffect, useState } from 'react';
  *
  * `ScriptOnce` injects a tiny script that sets the `light`/`dark` class on
  * <html> BEFORE React hydrates — no flash of unstyled content, and no
- * `localStorage`-at-render crash during SSR (the old provider's bug). React
- * state starts at the default during SSR and reconciles from localStorage in an
- * effect on mount.
+ * `localStorage`-at-render crash during SSR (the old provider's bug). The stored
+ * preference and the OS color scheme are external stores read with
+ * `useSyncExternalStore`: the server snapshot is the default, and React swaps in
+ * the client snapshot right after hydration.
  *
  * API is kept compatible with existing consumers (`dark-mode-toggle.tsx`):
  * `useTheme()` → { themePreference, theme (resolved), setThemePreference }.
  */
-type ThemePreference = 'dark' | 'light' | 'system';
-type Theme = 'dark' | 'light';
-
-type ThemeProviderState = {
-  themePreference: ThemePreference;
-  theme: Theme; // resolved (system → dark|light)
-  setThemePreference: (theme: ThemePreference) => void;
-};
-
-const initialState: ThemeProviderState = {
-  themePreference: 'system',
-  theme: 'light',
-  setThemePreference: () => null,
-};
-
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 /** Pre-hydration script (string) that applies the theme class ASAP — no FOUC. */
 function getThemeScript(storageKey: string, defaultPref: ThemePreference) {
@@ -38,19 +25,28 @@ function getThemeScript(storageKey: string, defaultPref: ThemePreference) {
   return `(function(){try{var t=localStorage.getItem(${key});if(t!=='light'&&t!=='dark'&&t!=='system'){t=${fallback}}var d=matchMedia('(prefers-color-scheme: dark)').matches;var r=t==='system'?(d?'dark':'light'):t;var e=document.documentElement;e.classList.remove('light','dark');e.classList.add(r);e.style.colorScheme=r}catch(e){}})();`;
 }
 
-function applyTheme(pref: ThemePreference): Theme {
-  const resolved: Theme =
-    pref === 'system'
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light'
-      : pref;
-  const root = document.documentElement;
-  root.classList.remove('light', 'dark');
-  root.classList.add(resolved);
-  root.style.colorScheme = resolved;
-  return resolved;
+// `storage` only fires in OTHER tabs, so same-tab writes announce themselves with this event.
+const PREFERENCE_CHANGED = 'theme-preference-change';
+
+function subscribePreference(onChange: () => void) {
+  window.addEventListener('storage', onChange);
+  window.addEventListener(PREFERENCE_CHANGED, onChange);
+  return () => {
+    window.removeEventListener('storage', onChange);
+    window.removeEventListener(PREFERENCE_CHANGED, onChange);
+  };
 }
+
+const DARK_QUERY = '(prefers-color-scheme: dark)';
+
+function subscribeOsDark(onChange: () => void) {
+  const media = window.matchMedia(DARK_QUERY);
+  media.addEventListener('change', onChange);
+  return () => media.removeEventListener('change', onChange);
+}
+
+const readOsDark = () => window.matchMedia(DARK_QUERY).matches;
+const serverOsDark = () => false;
 
 export function ThemeProvider({
   children,
@@ -61,40 +57,30 @@ export function ThemeProvider({
   defaultThemePreference?: ThemePreference;
   storageKey?: string;
 }) {
-  const [themePreference, setThemePreferenceState] =
-    useState<ThemePreference>(defaultThemePreference);
-  const [theme, setTheme] = useState<Theme>('light');
-  const [mounted, setMounted] = useState(false);
-
-  // Reconcile from localStorage on mount (client only).
-  useEffect(() => {
-    const stored = localStorage.getItem(storageKey);
-    setThemePreferenceState(
-      stored === 'light' || stored === 'dark' || stored === 'system'
+  const themePreference = useSyncExternalStore(
+    subscribePreference,
+    (): ThemePreference => {
+      const stored = localStorage.getItem(storageKey);
+      return stored === 'light' || stored === 'dark' || stored === 'system'
         ? stored
-        : defaultThemePreference,
-    );
-    setMounted(true);
-  }, [defaultThemePreference, storageKey]);
+        : defaultThemePreference;
+    },
+    () => defaultThemePreference,
+  );
+  const osDark = useSyncExternalStore(subscribeOsDark, readOsDark, serverOsDark);
+  const theme: Theme = themePreference === 'system' ? (osDark ? 'dark' : 'light') : themePreference;
 
-  // Apply the class + track resolved theme whenever the preference changes.
+  // Mirror the resolved theme onto <html> (the pre-hydration script did the first paint).
   useEffect(() => {
-    if (!mounted) return;
-    setTheme(applyTheme(themePreference));
-  }, [themePreference, mounted]);
-
-  // Follow OS changes while in 'system' mode.
-  useEffect(() => {
-    if (!mounted || themePreference !== 'system') return;
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = () => setTheme(applyTheme('system'));
-    media.addEventListener('change', onChange);
-    return () => media.removeEventListener('change', onChange);
-  }, [themePreference, mounted]);
+    const root = document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+    root.style.colorScheme = theme;
+  }, [theme]);
 
   const setThemePreference = (pref: ThemePreference) => {
     localStorage.setItem(storageKey, pref);
-    setThemePreferenceState(pref);
+    window.dispatchEvent(new Event(PREFERENCE_CHANGED));
   };
 
   return (
@@ -103,8 +89,4 @@ export function ThemeProvider({
       {children}
     </ThemeProviderContext>
   );
-}
-
-export function useTheme() {
-  return useContext(ThemeProviderContext);
 }

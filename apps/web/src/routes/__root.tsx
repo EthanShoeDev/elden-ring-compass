@@ -92,7 +92,7 @@ function SharedSaveSource() {
 
   useEffect(() => {
     let cancelled = false;
-    if (!save) return;
+    if (save === undefined || save === '') return;
 
     const fiber = Effect.runFork(decodeFromUrlEffect(save));
     fiber.addObserver((exit) => {

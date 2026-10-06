@@ -30,4 +30,4 @@ export interface PipelineContextValue {
 export class PipelineContext extends Context.Service<
   PipelineContext,
   PipelineContextValue
->()('er-extractor/PipelineContext') {}
+>()('@elden-ring-compass/extractor/domain/context/PipelineContext') {}

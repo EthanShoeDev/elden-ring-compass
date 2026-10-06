@@ -147,7 +147,7 @@ const checkPackage = (
       }
 
       for (const [depName, version] of Object.entries(deps)) {
-        if (!version) continue;
+        if (version === undefined || version === '') continue;
         if (
           workspacePackages.has(depName) &&
           !version.startsWith('workspace:')
@@ -212,7 +212,8 @@ const fixViolations = (
       const catalogVersion = catalog[v.depName];
       if (
         v.expectedValue === 'catalog:' &&
-        catalogVersion &&
+        catalogVersion !== undefined &&
+        catalogVersion !== '' &&
         isNewerVersion(v.currentValue, catalogVersion)
       ) {
         yield* Console.log(
@@ -307,7 +308,7 @@ const addToCatalog = (
         if (!deps) continue;
 
         for (const [depName, version] of Object.entries(deps)) {
-          if (!version) continue;
+          if (version === undefined || version === '') continue;
           if (depsSet.has(depName) && version !== 'catalog:') {
             deps[depName] = 'catalog:';
             yield* Console.log(
@@ -477,4 +478,5 @@ const run = Command.run(command, {
   version: '0.0.1',
 });
 
+// oxlint-disable-next-line effecttsgo/strict-effect-provide -- the CLI entry point is where the app layer is provided
 run.pipe(Effect.provide(BunServices.layer), BunRuntime.runMain);

@@ -48,7 +48,12 @@ export const ddsToPng = (
         ptr(outLen),
       );
       const len = Number(outLen[0]);
-      if (!resultPtr || len === 0)
+      if (
+        resultPtr === null ||
+        resultPtr === 0 ||
+        resultPtr === 0n ||
+        len === 0
+      )
         throw new Error('decode returned empty (unsupported format?)');
       // Copy out of Rust-owned memory before freeing it.
       const png = new Uint8Array(toArrayBuffer(resultPtr, 0, len)).slice();

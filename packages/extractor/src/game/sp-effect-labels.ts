@@ -50,7 +50,7 @@ const num = (row: ReadonlyMap<string, RowValue>, key: string): number => {
 };
 
 const isName = (n: string | undefined): n is string =>
-  !!n && n.trim().length > 0 && n !== '[ERROR]';
+  n !== undefined && n.trim().length > 0 && n !== '[ERROR]';
 
 export const loadSpEffectLabels = (
   params: Map<string, Uint8Array>,

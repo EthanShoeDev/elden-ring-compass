@@ -13,7 +13,7 @@ import {
 import { useSelectedSlot, useSlotSelection } from '@/stores/slot-selection-store';
 import { useAtomSet, useAtomValue } from '@effect/atom-react';
 import { ClientOnly, useNavigate } from '@tanstack/react-router';
-import { Effect, Exit } from 'effect';
+import { Effect, Exit, Match } from 'effect';
 import {
   CheckIcon,
   ChevronsUpDownIcon,
@@ -82,7 +82,7 @@ export function ShareCharacterButton({
         url.hash = '';
         const nextUrl = url.toString();
         yield* Effect.sync(() => setShareUrl(nextUrl));
-        if (navigator.clipboard) {
+        if ('clipboard' in navigator) {
           yield* Effect.tryPromise({
             try: () => navigator.clipboard.writeText(nextUrl),
             catch: (cause) => ShareCodecError.make({ cause }),
@@ -102,18 +102,27 @@ export function ShareCharacterButton({
   return (
     <div className={cn('flex min-w-0 flex-col gap-2', className)}>
       <Button variant={variant} size={size} onClick={buildLink}>
-        {status === 'copied' ? (
-          <CheckIcon />
-        ) : status === 'building' ? (
-          <CopyIcon />
-        ) : (
-          <Share2Icon />
+        {Match.value(status).pipe(
+          Match.when('copied', () => (
+            <>
+              <CheckIcon />
+              Copied share link
+            </>
+          )),
+          Match.when('building', () => (
+            <>
+              <CopyIcon />
+              Building link
+            </>
+          )),
+          Match.whenOr('idle', 'error', () => (
+            <>
+              <Share2Icon />
+              Share this character
+            </>
+          )),
+          Match.exhaustive,
         )}
-        {status === 'building'
-          ? 'Building link'
-          : status === 'copied'
-            ? 'Copied share link'
-            : 'Share this character'}
       </Button>
       {shareUrl && (
         <Input
@@ -151,9 +160,9 @@ function ConnectSaveContent() {
   );
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = async (file: File) => {
-    setSaveFileSource({
-      file: { buffer: await fileToArrBuffer(file), name: file.name },
+  const handleFile = (file: File) => {
+    void fileToArrBuffer(file).then((buffer) => {
+      setSaveFileSource({ file: { buffer, name: file.name } });
     });
   };
 
@@ -184,7 +193,7 @@ function ConnectSaveContent() {
         value={[type]}
         onValueChange={(v) => {
           const next = v.at(-1);
-          if (next) setType(next as 'file' | 'url');
+          if (next !== undefined) setType(next as 'file' | 'url');
         }}
       >
         <ToggleGroupItem
@@ -237,7 +246,7 @@ function ConnectSaveContent() {
                   e.preventDefault();
                   setDrag(false);
                   const f = e.dataTransfer.files?.[0];
-                  if (f) void handleFile(f);
+                  if (f) handleFile(f);
                 }}
                 className={cn(
                   'flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-8 text-center transition-colors',
@@ -261,7 +270,7 @@ function ConnectSaveContent() {
                 className='hidden'
                 onChange={(e) => {
                   const f = e.target.files?.[0];
-                  if (f) void handleFile(f);
+                  if (f) handleFile(f);
                 }}
               />
             </>
@@ -467,6 +476,7 @@ export function SlotSwitcher() {
                 </DropdownMenuLabel>
                 {/* Keyed/valued by slot index — character names can repeat (#10). */}
                 {data.slots.map((s, i) => (
+                  // oxlint-disable-next-line react/no-array-index-key -- the slot index is the slot's identity; names can repeat (#10)
                   <DropdownMenuRadioItem key={i} value={i}>
                     <span className='flex min-w-0 flex-1 items-center justify-between gap-2'>
                       <span className='truncate'>

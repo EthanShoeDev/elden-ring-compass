@@ -22,6 +22,7 @@ import {
   Config,
   Console,
   Data,
+  DateTime,
   Duration,
   Effect,
   FileSystem,
@@ -69,7 +70,7 @@ interface LinkCheck {
 const collectLinks = (only?: string): LinkCheck[] => {
   const byUrl = new Map<string, LinkCheck>();
   for (const [table, rows] of Object.entries(SOURCES)) {
-    if (only && table !== only) continue;
+    if (only !== undefined && only !== '' && table !== only) continue;
     for (const row of rows) {
       // Same placeholder filter as the tables' join() — never rendered as rows.
       if (row.name.startsWith('[ERROR]')) continue;
@@ -228,7 +229,7 @@ const main = ({ concurrency, table, noCache, revalidate }: MainOptions) =>
           } else if (status === 200) {
             cache.set(link.url, {
               status,
-              checkedAt: new Date().toISOString(),
+              checkedAt: DateTime.formatIso(yield* DateTime.now),
             });
           } else {
             cache.delete(link.url);

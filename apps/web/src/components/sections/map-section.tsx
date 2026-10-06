@@ -27,7 +27,8 @@ import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
 import { useAtomValue } from '@effect/atom-react';
 import { Option } from 'effect';
 import * as AsyncResult from 'effect/reactivity/AsyncResult';
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { useHydrated } from '@tanstack/react-router';
+import { lazy, Suspense, useMemo, useState } from 'react';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDataTableData } from '@/lib/data-table-data';
@@ -49,7 +50,8 @@ import { Button } from '../ui/button';
 import { Switch } from '../ui/switch';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 import type { MapPin } from './leaflet-map';
-import { OVERLAY_BUTTON, OVERLAY_PANEL, PanelLabel } from './map-overlay-chrome';
+import { PanelLabel } from './map-overlay-chrome';
+import { OVERLAY_BUTTON, OVERLAY_PANEL } from './map-overlay-styles';
 import { NearbyItemsPanel } from './nearby-items-panel';
 
 // dynamic-import -- Leaflet touches `window` at import time, so the map is code-split and loaded client-only.
@@ -312,8 +314,11 @@ function MapFallback({ message }: { message: string }) {
 function bossEnrichment(flag: number, mapId: string | undefined, defeated: boolean | undefined) {
   const reward = bossReward(flag);
   return {
-    area: mapId ? bossMapName(mapId) : undefined,
-    badges: mapId ? bossBadges(flag, mapId).map((b) => BADGE_LABEL[b]) : undefined,
+    area: mapId !== undefined && mapId !== '' ? bossMapName(mapId) : undefined,
+    badges:
+      mapId !== undefined && mapId !== ''
+        ? bossBadges(flag, mapId).map((b) => BADGE_LABEL[b])
+        : undefined,
     reward: reward ? { name: reward.name, iconUrl: reward.iconUrl } : undefined,
     status: defeated === undefined ? undefined : defeated ? 'Defeated' : 'Remaining',
   };
@@ -476,7 +481,7 @@ function useBloodstainPin(): MapPin | null {
 }
 
 export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const manifestResult = useAtomValue(mapManifestAtom);
   const manifest = Option.getOrNull(AsyncResult.value(manifestResult));
   const error = Option.getOrNull(Option.map(AsyncResult.error(manifestResult), (e) => e.message));
@@ -526,17 +531,15 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
   const eventsItems = useDataTableData('events');
   const { setRowSelection, clearAllRowSelection: clearPins } = useRowSelectionControls();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   /**
    * Add all events of `type` matching `on` (that have a placeable position) to the
    * current pin selection. Additive, not replacing — clicking "Undiscovered Graces"
    * then "Incomplete Bosses" leaves both pinned; use "Clear pins" to reset.
    */
   const selectEvents = (type: 'grace' | 'boss', on: boolean) => {
-    const matches = eventsItems.filter((e) => e.type === type && e.on === on && e.pixel);
+    const matches = eventsItems.filter(
+      (e) => e.type === type && e.on === on && e.pixel !== undefined,
+    );
     setRowSelection('events')((prev) => {
       const next = { ...prev };
       for (const e of matches) next[e.id.toString()] = true;
@@ -552,7 +555,7 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
         // height they used to occupy below it goes to the map itself.
         style={{ height: embedded ? 'min(78vh, 860px)' : 720 }}
       >
-        {error ? (
+        {error !== null && error !== '' ? (
           <MapFallback message={`Failed to load map: ${error}`} />
         ) : mounted && manifest ? (
           <Suspense fallback={<MapFallback message='Loading map…' />}>
@@ -590,7 +593,7 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
                   // ToggleGroup is multi-select by default; take the last toggled
                   // value to get single-select (and ignore deselect-to-empty).
                   const next = v.at(-1);
-                  if (next) setActiveMapId(next);
+                  if (next !== undefined) setActiveMapId(next);
                 }}
               >
                 {manifest.maps

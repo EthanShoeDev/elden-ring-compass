@@ -17,7 +17,12 @@ function resolveSectionMeta(pathname: string): { title: string; sub: string } {
   const prefix = Object.keys(SECTION_META)
     .filter((k) => k !== '/' && pathname.startsWith(k))
     .toSorted((a, b) => b.length - a.length)[0];
-  return (prefix ? SECTION_META[prefix] : undefined) ?? { title: 'Elden Ring Compass', sub: '' };
+  return (
+    (prefix !== undefined ? SECTION_META[prefix] : undefined) ?? {
+      title: 'Elden Ring Compass',
+      sub: '',
+    }
+  );
 }
 
 export function AppTopBar() {

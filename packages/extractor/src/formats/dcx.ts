@@ -87,13 +87,14 @@ export const dcxDecompress = (
         );
       }
       case 'ZSTD': {
-        return yield* Effect.tryPromise({
-          try: async () => new Uint8Array(await Bun.zstdDecompress(compressed)),
+        const raw = yield* Effect.tryPromise({
+          try: () => Bun.zstdDecompress(compressed),
           catch: (cause) =>
             new DcxError({
               detail: `zstd decompress failed: ${String(cause)}`,
             }),
         });
+        return new Uint8Array(raw);
       }
       case 'DFLT': {
         // Bun has no async inflate (only `inflateSync`); DFLT is a cold path for

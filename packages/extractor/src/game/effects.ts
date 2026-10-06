@@ -426,7 +426,9 @@ const effectsFromRow = (
     const value = f.parser(raw, f.model);
     const conditions = [
       ...(f.conditions ?? []),
-      ...(addCondition ? [addCondition] : []),
+      ...(addCondition !== undefined && addCondition !== ''
+        ? [addCondition]
+        : []),
     ];
     out.push({
       attribute: f.attribute,

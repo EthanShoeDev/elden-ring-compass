@@ -66,19 +66,26 @@ const getWorker = (): Worker | null => {
   return worker;
 };
 
-const parseInWorker = (buffer: ArrayBuffer): Promise<WasmEldenRingSave> => {
-  const w = getWorker();
-  if (!w) return Promise.reject(new Error('Save parser unavailable'));
-  const id = nextRequestId++;
-  return new Promise<WasmEldenRingSave>((resolve, reject) => {
-    pending.set(id, { resolve, reject });
-    w.postMessage({ id, buffer } satisfies ParseRequest);
-  });
-};
-
 const toParseError = (cause: unknown) =>
   new SaveParseError({
     message: cause instanceof Error ? cause.message : String(cause),
+  });
+
+const parseInWorker = (buffer: ArrayBuffer): Effect.Effect<WasmEldenRingSave, SaveParseError> =>
+  Effect.callback<WasmEldenRingSave, SaveParseError>((resume) => {
+    const w = getWorker();
+    if (!w) {
+      resume(Effect.fail(new SaveParseError({ message: 'Save parser unavailable' })));
+      return;
+    }
+    const id = nextRequestId++;
+    pending.set(id, {
+      resolve: (save) => resume(Effect.succeed(save)),
+      reject: (err) => resume(Effect.fail(toParseError(err))),
+    });
+    w.postMessage({ id, buffer } satisfies ParseRequest);
+    // Interrupted (source changed mid-parse): drop the correlation so a late reply is ignored.
+    return Effect.sync(() => pending.delete(id));
   });
 
 // Counts how many times the parse atom executes, surfaced in the logs below so a re-parse storm
@@ -119,10 +126,7 @@ export const saveAtom = appRuntime.atom((get) =>
             Effect.mapError(toParseError),
           );
 
-    const save = yield* Effect.tryPromise({
-      try: () => parseInWorker(buffer),
-      catch: toParseError,
-    });
+    const save = yield* parseInWorker(buffer);
     yield* Effect.logInfo(`save parse #${parseRunCount}: success`).pipe(
       Effect.annotateLogs('slots', save.slots.length),
     );

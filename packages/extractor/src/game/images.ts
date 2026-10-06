@@ -11,6 +11,7 @@ import {
   Schema,
   SchemaGetter,
   SchemaTransformation,
+  Match,
 } from 'effect';
 
 import type { ImageFormat } from '../domain/context.ts';
@@ -83,15 +84,7 @@ const encodePng = (
   Effect.promise(() => {
     const img = new Bun.Image(png);
     const out = `${outBase}.${opts.format}`;
-    const pipe =
-      opts.format === 'png'
-        ? img.png()
-        : opts.format === 'jpeg'
-          ? img.jpeg({ quality: opts.quality })
-          : opts.format === 'avif'
-            ? img.avif({ quality: opts.quality })
-            : img.webp({ quality: opts.quality });
-    return pipe.write(out);
+    return encodeImage(img, opts).write(out);
   });
 
 // Item icons are full-res (100–160KB); the web app shows them at ~40px in data
@@ -109,15 +102,7 @@ const encodeThumb = (
       fit: 'inside',
     });
     const out = `${outBase}.${opts.format}`;
-    const pipe =
-      opts.format === 'png'
-        ? img.png()
-        : opts.format === 'jpeg'
-          ? img.jpeg({ quality: opts.quality })
-          : opts.format === 'avif'
-            ? img.avif({ quality: opts.quality })
-            : img.webp({ quality: opts.quality });
-    return pipe.write(out);
+    return encodeImage(img, opts).write(out);
   });
 
 const ICON_TPFS = [
@@ -207,7 +192,17 @@ const prettyJsonString = <S extends Schema.Top>(schema: S) =>
       ),
     ),
   );
-const encodeManifest = Schema.encodeSync(prettyJsonString(TileManifest));
+const encodeManifest = Schema.encodeEffect(prettyJsonString(TileManifest));
+
+/** Encode with the requested format; a new `ImageFormat` member is a type error here. */
+const encodeImage = (img: Bun.Image, opts: ImageEncodeOptions): Bun.Image =>
+  Match.value(opts.format).pipe(
+    Match.when('png', () => img.png()),
+    Match.when('jpeg', () => img.jpeg({ quality: opts.quality })),
+    Match.when('avif', () => img.avif({ quality: opts.quality })),
+    Match.when('webp', () => img.webp({ quality: opts.quality })),
+    Match.exhaustive,
+  );
 
 export interface ImageSummary {
   readonly tiles: number;
@@ -414,9 +409,11 @@ export const extractImages = (
         tileUrlTemplate: `{map}/${BASE_LAYER_ID}/{z}/{y}/{x}.${ext}`,
         maps: manifestMaps,
       };
+      // Built from typed values above, so an encode failure is a defect.
+      const manifestJson = yield* encodeManifest(manifest).pipe(Effect.orDie);
       yield* fs.writeFileString(
         `${tileDir}/manifest.json`,
-        `${encodeManifest(manifest)}\n`,
+        `${manifestJson}\n`,
       );
       yield* log(
         `map tiles: ${tiles} L0 composited, ${tilesSkipped} cached; ` +

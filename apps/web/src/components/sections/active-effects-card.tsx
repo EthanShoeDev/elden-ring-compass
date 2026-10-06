@@ -26,8 +26,8 @@ export function ActiveEffectsCard() {
       </CardHeader>
       <CardContent className='flex flex-col gap-1'>
         {labeled.length > 0 ? (
-          labeled.map((e, i) => (
-            <div key={i} className='flex items-center justify-between gap-6 text-sm'>
+          labeled.map((e) => (
+            <div key={e.id} className='flex items-center justify-between gap-6 text-sm'>
               <span>{e.label}</span>
               <span className='text-xs text-muted-foreground'>{fmtTime(e.remainingTime)}</span>
             </div>

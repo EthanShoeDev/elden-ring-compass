@@ -98,13 +98,13 @@ function CategoryRow({ c }: { c: CompletionCategory }) {
     </div>
   );
 
-  if (c.categorySlug)
+  if (c.categorySlug !== undefined && c.categorySlug !== '')
     return (
       <Link to='/inventory/$category' params={{ category: c.categorySlug }} className='block'>
         {body}
       </Link>
     );
-  if (c.to)
+  if (c.to !== undefined && c.to !== '')
     return (
       <Link to={c.to} className='block'>
         {body}

@@ -134,9 +134,8 @@ export function AppSidebar() {
           <SidebarMenu>
             {NAV.map((item) => {
               const Icon = item.icon;
-              const sectionActive = item.exact
-                ? pathname === item.to
-                : pathname.startsWith(item.to as string);
+              const sectionActive =
+                item.exact === true ? pathname === item.to : pathname.startsWith(item.to as string);
 
               // Collapsible group of sub-routes (e.g. Inventory → Items/Events/…).
               if (item.children) {
@@ -210,7 +209,7 @@ export function AppSidebar() {
                   >
                     <NavIcon icon={Icon} />
                     <span>{item.label}</span>
-                    {item.preview && (
+                    {item.preview === true && (
                       <span className='ml-auto text-[10px] font-semibold tracking-wide text-muted-foreground/80 uppercase group-data-[collapsible=icon]:hidden'>
                         Preview
                       </span>
@@ -257,12 +256,12 @@ export function AppSidebar() {
           <p
             className='px-2 pt-1.5 text-center text-[10.5px] text-muted-foreground/70 group-data-[collapsible=icon]:hidden'
             title={
-              GAME_VERSION
+              GAME_VERSION !== null && GAME_VERSION !== ''
                 ? `Game data extracted from eldenring.exe v${GAME_VERSION} (executable build version)`
                 : 'Game version could not be determined'
             }
           >
-            {GAME_VERSION
+            {GAME_VERSION !== null && GAME_VERSION !== ''
               ? `Game data · v${prettyVersion(GAME_VERSION)}`
               : 'Game data · version unknown'}
           </p>

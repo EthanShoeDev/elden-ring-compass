@@ -185,7 +185,7 @@ function Legend({ connected }: { connected?: boolean }) {
       <span className='flex items-center gap-1.5'>
         <MapPinGlyph className='size-3 text-amber-300' filled /> Pinned on map
       </span>
-      {connected && (
+      {connected === true && (
         <>
           <span className='flex items-center gap-1.5'>
             <span className='size-2.5 rounded-sm bg-green-400' /> Defeated
@@ -229,7 +229,7 @@ function BossCell({
           pinnable ? 'cursor-pointer' : 'cursor-default',
         )}
       >
-        {imgSrc ? (
+        {imgSrc !== undefined && imgSrc !== '' ? (
           <img
             src={imgSrc}
             alt={boss.name}
@@ -275,7 +275,7 @@ function BossCell({
           <span className='text-sm leading-tight font-semibold text-stone-50 [text-shadow:0_1px_4px_rgba(0,0,0,0.8)]'>
             {boss.name}
           </span>
-          {boss.note && (
+          {boss.note !== undefined && boss.note !== '' && (
             <span className='text-[11px] leading-tight text-stone-300/70'>{boss.note}</span>
           )}
         </div>

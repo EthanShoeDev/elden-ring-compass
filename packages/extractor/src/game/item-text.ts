@@ -52,7 +52,7 @@ const MSGBNDS = [
 // "…/WeaponName_dlc01.fmg" → "WeaponName" ('_' is not in the name char class,
 // so the lazy group stops before the optional "_dlcNN" suffix).
 const categoryOf = (entryName: string | null): string | null => {
-  if (!entryName) return null;
+  if (entryName === null) return null;
   const base = entryName.split(/[\\/]/).pop() ?? '';
   return /^([A-Za-z0-9]+?)(?:_dlc\d+)?\.fmg$/i.exec(base)?.[1] ?? null;
 };
@@ -79,7 +79,7 @@ export const loadItemText = (
       const entries = yield* parseBnd4(yield* dcxDecompress(dcx, oo2corePath));
       for (const entry of entries) {
         const category = categoryOf(entry.name);
-        if (!category || !wanted.has(category)) continue;
+        if (category === null || !wanted.has(category)) continue;
         const fmg = yield* parseFmg(entry.bytes);
         const target = result[category as ItemTextCategory];
         for (const [id, name] of fmg) target.set(id, name);
