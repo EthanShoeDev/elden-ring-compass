@@ -547,10 +547,6 @@ export default defineConfig({
     // Library-author rule: it wants a data-last overload on every exported
     // function, including plain app helpers like `runesBetween(a, b)`.
     'effecttsgo/missing-pipeable-signature': 'off',
-    // Adopting it means splitting ~225 `Schema.Number` fields into Int / Finite,
-    // and the save schemas carry raw f32s (coords, angles) where a NaN would
-    // reject the whole save under `Schema.Finite`. Not worth it yet.
-    'effecttsgo/schema-number': 'off',
 
     // ─── Custom plugin rules ────────────────────────────────────────────
     // effecttsgo/global-console and global-console-in-effect own console use;

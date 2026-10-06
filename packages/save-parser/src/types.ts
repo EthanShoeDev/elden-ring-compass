@@ -19,142 +19,133 @@
  */
 import { Schema } from 'effect';
 
+/**
+ * A raw IEEE-754 f32 read straight from the save (coords, angles, timers). Every
+ * other numeric field is an integer read (`Schema.Int`). NaN/±Infinity are
+ * representable here and deliberately allowed: the worker boundary should pass a
+ * bad coordinate through rather than reject the whole save.
+ */
+// oxlint-disable-next-line effecttsgo/schema-number -- raw save floats may be non-finite; see above
+const RawF32 = Schema.Number.annotate({
+  description: 'raw f32 from the save (may be non-finite)',
+});
+
 export const LeanStatusBuildup = Schema.Struct({
-  poison: Schema.Number,
-  rot: Schema.Number,
-  bleed: Schema.Number,
-  death: Schema.Number,
-  frost: Schema.Number,
-  sleep: Schema.Number,
-  madness: Schema.Number,
+  poison: Schema.Int,
+  rot: Schema.Int,
+  bleed: Schema.Int,
+  death: Schema.Int,
+  frost: Schema.Int,
+  sleep: Schema.Int,
+  madness: Schema.Int,
 });
 export type LeanStatusBuildup = typeof LeanStatusBuildup.Type;
 
 export const LeanPlayerGameData = Schema.Struct({
   character_name: Schema.String,
-  vigor: Schema.Number,
-  mind: Schema.Number,
-  endurance: Schema.Number,
-  strength: Schema.Number,
-  dexterity: Schema.Number,
-  intelligence: Schema.Number,
-  faith: Schema.Number,
-  arcane: Schema.Number,
-  level: Schema.Number,
+  vigor: Schema.Int,
+  mind: Schema.Int,
+  endurance: Schema.Int,
+  strength: Schema.Int,
+  dexterity: Schema.Int,
+  intelligence: Schema.Int,
+  faith: Schema.Int,
+  arcane: Schema.Int,
+  level: Schema.Int,
   /** Held runes (the site historically calls this `souls`). */
-  souls: Schema.Number,
+  souls: Schema.Int,
   /** Lifetime runes / rune memory (historically `soulsmemory`). */
-  soulsmemory: Schema.Number,
-  gender: Schema.Number,
+  soulsmemory: Schema.Int,
+  gender: Schema.Int,
   /** Starting class / archetype (historically `arche_type`). */
-  arche_type: Schema.Number,
-  match_making_wpn_lvl: Schema.Number,
+  arche_type: Schema.Int,
+  match_making_wpn_lvl: Schema.Int,
   /** Current / current-max / base-max HP. */
-  hp: Schema.Number,
-  max_hp: Schema.Number,
-  base_max_hp: Schema.Number,
+  hp: Schema.Int,
+  max_hp: Schema.Int,
+  base_max_hp: Schema.Int,
   /** Current / current-max / base-max FP. */
-  fp: Schema.Number,
-  max_fp: Schema.Number,
-  base_max_fp: Schema.Number,
+  fp: Schema.Int,
+  max_fp: Schema.Int,
+  base_max_fp: Schema.Int,
   /** Current / current-max / base-max stamina (the reference calls these `sp`). */
-  stamina: Schema.Number,
-  max_stamina: Schema.Number,
-  base_max_stamina: Schema.Number,
+  stamina: Schema.Int,
+  max_stamina: Schema.Int,
+  base_max_stamina: Schema.Int,
   /** Status-effect buildup meters on the player. */
   buildup: LeanStatusBuildup,
   /** Character-creation voice pitch / starting gift (Keepsake) ids. */
-  voice_type: Schema.Number,
-  gift: Schema.Number,
+  voice_type: Schema.Int,
+  gift: Schema.Int,
   /** Talisman pouch slots unlocked beyond the first (0–3). */
-  additional_talisman_slot_count: Schema.Number,
+  additional_talisman_slot_count: Schema.Int,
   /** Summon spirit (Mimic Tear / Spirit Ashes) level. */
-  summon_spirit_level: Schema.Number,
+  summon_spirit_level: Schema.Int,
   /** Co-op / invasion availability toggles. */
   furl_calling_finger_on: Schema.Boolean,
   white_cipher_ring_on: Schema.Boolean,
   blue_cipher_ring_on: Schema.Boolean,
   great_rune_on: Schema.Boolean,
   /** Max charges of the crimson (HP) and cerulean (FP) flasks. */
-  max_crimson_flask_count: Schema.Number,
-  max_cerulean_flask_count: Schema.Number,
+  max_crimson_flask_count: Schema.Int,
+  max_cerulean_flask_count: Schema.Int,
 });
 export type LeanPlayerGameData = typeof LeanPlayerGameData.Type;
 
 export const LeanActiveWeaponSlots = Schema.Struct({
-  arm_style: Schema.Number,
-  left_hand: Schema.Number,
-  right_hand: Schema.Number,
-  left_arrow: Schema.Number,
-  right_arrow: Schema.Number,
-  left_bolt: Schema.Number,
-  right_bolt: Schema.Number,
+  arm_style: Schema.Int,
+  left_hand: Schema.Int,
+  right_hand: Schema.Int,
+  left_arrow: Schema.Int,
+  right_arrow: Schema.Int,
+  left_bolt: Schema.Int,
+  right_bolt: Schema.Int,
 });
 export type LeanActiveWeaponSlots = typeof LeanActiveWeaponSlots.Type;
 
 export const LeanPlayerCoords = Schema.Struct({
-  player_coords: Schema.Tuple([Schema.Number, Schema.Number, Schema.Number]),
-  map_id: Schema.Tuple([
-    Schema.Number,
-    Schema.Number,
-    Schema.Number,
-    Schema.Number,
-  ]),
+  player_coords: Schema.Tuple([RawF32, RawF32, RawF32]),
+  map_id: Schema.Tuple([Schema.Int, Schema.Int, Schema.Int, Schema.Int]),
   /** Facing direction as a quaternion `[x, y, z, w]`. */
-  angle: Schema.Tuple([
-    Schema.Number,
-    Schema.Number,
-    Schema.Number,
-    Schema.Number,
-  ]),
+  angle: Schema.Tuple([RawF32, RawF32, RawF32, RawF32]),
 });
 export type LeanPlayerCoords = typeof LeanPlayerCoords.Type;
 
 export const LeanHorse = Schema.Struct({
-  coords: Schema.Tuple([Schema.Number, Schema.Number, Schema.Number]),
-  map_id: Schema.Tuple([
-    Schema.Number,
-    Schema.Number,
-    Schema.Number,
-    Schema.Number,
-  ]),
-  hp: Schema.Number,
+  coords: Schema.Tuple([RawF32, RawF32, RawF32]),
+  map_id: Schema.Tuple([Schema.Int, Schema.Int, Schema.Int, Schema.Int]),
+  hp: Schema.Int,
   /** Raw RideGameData state (0 = inactive, 3 = dead, 13 = active). */
-  state: Schema.Number,
+  state: Schema.Int,
 });
 export type LeanHorse = typeof LeanHorse.Type;
 
 export const LeanBloodStain = Schema.Struct({
-  coords: Schema.Tuple([Schema.Number, Schema.Number, Schema.Number]),
-  map_id: Schema.Tuple([
-    Schema.Number,
-    Schema.Number,
-    Schema.Number,
-    Schema.Number,
-  ]),
+  coords: Schema.Tuple([RawF32, RawF32, RawF32]),
+  map_id: Schema.Tuple([Schema.Int, Schema.Int, Schema.Int, Schema.Int]),
   /** Runes recoverable at the bloodstain. */
-  runes: Schema.Number,
+  runes: Schema.Int,
 });
 export type LeanBloodStain = typeof LeanBloodStain.Type;
 
 export const LeanWorldTime = Schema.Struct({
-  hour: Schema.Number,
-  minute: Schema.Number,
-  second: Schema.Number,
+  hour: Schema.Int,
+  minute: Schema.Int,
+  second: Schema.Int,
 });
 export type LeanWorldTime = typeof LeanWorldTime.Type;
 
 export const LeanWorldWeather = Schema.Struct({
-  area_id: Schema.Number,
-  weather_type: Schema.Number,
-  timer: Schema.Number,
+  area_id: Schema.Int,
+  weather_type: Schema.Int,
+  timer: Schema.Int,
 });
 export type LeanWorldWeather = typeof LeanWorldWeather.Type;
 
 export const LeanBaseVersion = Schema.Struct({
-  base_version: Schema.Number,
+  base_version: Schema.Int,
   /** Non-zero when the slot was written by the latest known game build. */
-  is_latest_version: Schema.Number,
+  is_latest_version: Schema.Int,
 });
 export type LeanBaseVersion = typeof LeanBaseVersion.Type;
 
@@ -167,8 +158,8 @@ export const LeanDlc = Schema.Struct({
 export type LeanDlc = typeof LeanDlc.Type;
 
 export const LeanRegions = Schema.Struct({
-  unlocked_regions_count: Schema.Number,
-  unlocked_regions: Schema.Array(Schema.Number),
+  unlocked_regions_count: Schema.Int,
+  unlocked_regions: Schema.Array(Schema.Int),
 });
 export type LeanRegions = typeof LeanRegions.Type;
 
@@ -179,63 +170,50 @@ export const LeanEventFlags = Schema.Struct({
 export type LeanEventFlags = typeof LeanEventFlags.Type;
 
 export const LeanGaItem = Schema.Struct({
-  gaitem_handle: Schema.Number,
-  item_id: Schema.Number,
+  gaitem_handle: Schema.Int,
+  item_id: Schema.Int,
   /** Weapon's attached Ash of War / gem gaitem handle (0 if none). */
-  gem_gaitem_handle: Schema.Number,
+  gem_gaitem_handle: Schema.Int,
 });
 export type LeanGaItem = typeof LeanGaItem.Type;
 
 export const LeanSpEffect = Schema.Struct({
-  sp_effect_id: Schema.Number,
-  remaining_time: Schema.Number,
+  sp_effect_id: Schema.Int,
+  remaining_time: RawF32,
 });
 export type LeanSpEffect = typeof LeanSpEffect.Type;
 
 export const LeanChrAsm = Schema.Struct({
-  left_hand_armaments: Schema.Tuple([
-    Schema.Number,
-    Schema.Number,
-    Schema.Number,
-  ]),
-  right_hand_armaments: Schema.Tuple([
-    Schema.Number,
-    Schema.Number,
-    Schema.Number,
-  ]),
-  arrows: Schema.Tuple([Schema.Number, Schema.Number]),
-  bolts: Schema.Tuple([Schema.Number, Schema.Number]),
-  head: Schema.Number,
-  chest: Schema.Number,
-  arms: Schema.Number,
-  legs: Schema.Number,
-  talismans: Schema.Tuple([
-    Schema.Number,
-    Schema.Number,
-    Schema.Number,
-    Schema.Number,
-  ]),
+  left_hand_armaments: Schema.Tuple([Schema.Int, Schema.Int, Schema.Int]),
+  right_hand_armaments: Schema.Tuple([Schema.Int, Schema.Int, Schema.Int]),
+  arrows: Schema.Tuple([Schema.Int, Schema.Int]),
+  bolts: Schema.Tuple([Schema.Int, Schema.Int]),
+  head: Schema.Int,
+  chest: Schema.Int,
+  arms: Schema.Int,
+  legs: Schema.Int,
+  talismans: Schema.Tuple([Schema.Int, Schema.Int, Schema.Int, Schema.Int]),
 });
 export type LeanChrAsm = typeof LeanChrAsm.Type;
 
 export const LeanInventoryItem = Schema.Struct({
-  ga_item_handle: Schema.Number,
-  quantity: Schema.Number,
-  inventory_index: Schema.Number,
+  ga_item_handle: Schema.Int,
+  quantity: Schema.Int,
+  inventory_index: Schema.Int,
 });
 export type LeanInventoryItem = typeof LeanInventoryItem.Type;
 
 export const LeanInventory = Schema.Struct({
-  common_inventory_items_distinct_count: Schema.Number,
+  common_inventory_items_distinct_count: Schema.Int,
   common_items: Schema.Array(LeanInventoryItem),
-  key_inventory_items_distinct_count: Schema.Number,
+  key_inventory_items_distinct_count: Schema.Int,
   key_items: Schema.Array(LeanInventoryItem),
 });
 export type LeanInventory = typeof LeanInventory.Type;
 
 export const LeanEquipItem = Schema.Struct({
   /** Item instance handle for a quick-slot / pouch entry (resolve via `ga_items`). */
-  item_id: Schema.Number,
+  item_id: Schema.Int,
 });
 export type LeanEquipItem = typeof LeanEquipItem.Type;
 
@@ -248,15 +226,10 @@ export type LeanEquipItemData = typeof LeanEquipItemData.Type;
 export const LeanSlot = Schema.Struct({
   steam_id: Schema.String,
   /** UserDataX format version for this slot. */
-  version: Schema.Number,
+  version: Schema.Int,
   /** Playtime in seconds (from UserData10's ProfileSummary for this slot). */
-  seconds_played: Schema.Number,
-  map_id: Schema.Tuple([
-    Schema.Number,
-    Schema.Number,
-    Schema.Number,
-    Schema.Number,
-  ]),
+  seconds_played: Schema.Int,
+  map_id: Schema.Tuple([Schema.Int, Schema.Int, Schema.Int, Schema.Int]),
   player_game_data: LeanPlayerGameData,
   player_coords: LeanPlayerCoords,
   regions: LeanRegions,
@@ -271,15 +244,15 @@ export const LeanSlot = Schema.Struct({
   storage_inventory_data: LeanInventory,
   equip_item_data: LeanEquipItemData,
   /** 14 memorized spell param ids (sorceries/incantations); 0 = empty slot. */
-  equipped_spells: Schema.Array(Schema.Number),
+  equipped_spells: Schema.Array(Schema.Int),
   /** 6 equipped gesture param ids (the quick-gesture wheel); 0 = empty slot. */
-  equipped_gestures: Schema.Array(Schema.Number),
+  equipped_gestures: Schema.Array(Schema.Int),
   /** Full 64-slot gesture table (the unlock list); 0 / 0xFFFFFFFE mark empty entries. */
-  gestures: Schema.Array(Schema.Number),
+  gestures: Schema.Array(Schema.Int),
   /** Equipped Wondrous Physick tear item ids `[slot1, slot2]` (0 = empty). */
-  equipped_physics: Schema.Tuple([Schema.Number, Schema.Number]),
+  equipped_physics: Schema.Tuple([Schema.Int, Schema.Int]),
   /** Acquired projectile (arrow/bolt/pot) param ids. */
-  acquired_projectiles: Schema.Array(Schema.Number),
+  acquired_projectiles: Schema.Array(Schema.Int),
   /** Active SpEffect buffs/statuses (empty/cleared slots filtered out). */
   sp_effects: Schema.Array(LeanSpEffect),
   /** Torrent state (position, hp, alive/dead). */
@@ -293,11 +266,11 @@ export const LeanSlot = Schema.Struct({
   /** Game build / patch version this slot was last written by. */
   base_version: LeanBaseVersion,
   /** Total deaths for this character. */
-  deaths: Schema.Number,
+  deaths: Schema.Int,
   /** Entity id of the grace last rested at. */
-  last_rested_grace: Schema.Number,
+  last_rested_grace: Schema.Int,
   /** Entity id of the current spawn point. */
-  spawn_point_entity_id: Schema.Number,
+  spawn_point_entity_id: Schema.Int,
   /** Shadow of the Erdtree DLC entry + pre-order gesture flags. */
   dlc: LeanDlc,
 });

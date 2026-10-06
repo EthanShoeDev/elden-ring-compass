@@ -102,7 +102,7 @@ interface Failure extends LinkCheck {
 const CACHE_VERSION = 1;
 
 const CacheEntrySchema = Schema.Struct({
-  status: Schema.Number,
+  status: Schema.Int,
   checkedAt: Schema.String,
 });
 type CacheEntry = typeof CacheEntrySchema.Type;
@@ -111,7 +111,7 @@ type CacheEntry = typeof CacheEntrySchema.Type;
 // outdated file just falls back to an empty cache), encode stringifies.
 const CacheFileSchema = Schema.fromJsonString(
   Schema.Struct({
-    version: Schema.Number,
+    version: Schema.Int,
     results: Schema.Record(Schema.String, CacheEntrySchema),
   }),
 );

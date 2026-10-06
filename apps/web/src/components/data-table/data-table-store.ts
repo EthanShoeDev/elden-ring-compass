@@ -65,7 +65,7 @@ const DataTableStateSchema = Schema.Struct({
   columnVisibility: Schema.Record(Schema.String, Schema.Boolean),
   columnFilters: Schema.Array(Schema.Struct({ id: Schema.String, value: Schema.Unknown })),
   sorting: Schema.Array(Schema.Struct({ id: Schema.String, desc: Schema.Boolean })),
-  columnSizing: Schema.Record(Schema.String, Schema.Number),
+  columnSizing: Schema.Record(Schema.String, Schema.Finite),
   columnOrder: Schema.Array(Schema.String),
 });
 

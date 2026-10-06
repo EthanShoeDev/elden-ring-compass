@@ -18,12 +18,12 @@ export type ParseRequest = {
 /** Worker → client: the parsed save (`ok: true`) or a human-readable error (`ok: false`). */
 export const ParseResponse = Schema.Union([
   Schema.Struct({
-    id: Schema.Number,
+    id: Schema.Int,
     ok: Schema.Literal(true),
     save: LeanSave,
   }),
   Schema.Struct({
-    id: Schema.Number,
+    id: Schema.Int,
     ok: Schema.Literal(false),
     error: Schema.String,
   }),

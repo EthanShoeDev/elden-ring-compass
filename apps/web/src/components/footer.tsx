@@ -94,7 +94,7 @@ export function Footer() {
 }
 
 /** The one field read from GitHub's `GET /repos/{owner}/{repo}` response. */
-const GithubRepo = Schema.Struct({ stargazers_count: Schema.Number });
+const GithubRepo = Schema.Struct({ stargazers_count: Schema.Int });
 
 // REPO_URL = https://github.com/<owner>/<repo>
 const REPO_SLUG = REPO_URL.replace(/^https?:\/\/github\.com\//, '');

@@ -20,9 +20,7 @@ class SaveParseError extends Data.TaggedError('SaveParseError')<{
 
 // Just the correlation id of a reply that failed the full protocol decode.
 const decodeReplyId = (data: unknown) =>
-  Schema.decodeUnknownOption(Schema.Struct({ id: Schema.Number }))(data).pipe(
-    Option.map((r) => r.id),
-  );
+  Schema.decodeUnknownOption(Schema.Struct({ id: Schema.Int }))(data).pipe(Option.map((r) => r.id));
 
 // Lazily-created parse worker + a request/response correlation map keyed by a monotonic id.
 let worker: Worker | null = null;

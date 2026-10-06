@@ -65,16 +65,16 @@ export const opcodeKey = (bank: number, id: number): string => `${bank},${id}`;
 // in `loadEmedf` so a malformed/renamed dictionary fails loudly, not silently.
 const EmedfArgJson = Schema.Struct({
   name: Schema.String,
-  type: Schema.Number,
+  type: Schema.Int,
   enum_name: Schema.NullOr(Schema.String),
 });
 const EmedfInstrJson = Schema.Struct({
   name: Schema.String,
-  index: Schema.Number,
+  index: Schema.Int,
   args: Schema.Array(EmedfArgJson),
 });
 const EmedfClassJson = Schema.Struct({
-  index: Schema.Number,
+  index: Schema.Int,
   instrs: Schema.Array(EmedfInstrJson),
 });
 const EmedfJson = Schema.Struct({

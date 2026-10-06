@@ -15,7 +15,7 @@ export const MAP_TILES_BASE: string = __ER_MAP_TILES_BASE__;
 const MapLayer = Schema.Struct({
   id: Schema.String,
   base: Schema.Boolean,
-  tileCount: Schema.Number,
+  tileCount: Schema.Int,
 });
 const MapEntry = Schema.Struct({
   id: Schema.String,
@@ -26,10 +26,10 @@ const MapEntry = Schema.Struct({
 
 /** `manifest.json`: tile geometry + the list of maps (masters) and their layers. */
 export const MapManifest = Schema.Struct({
-  tileSize: Schema.Number,
-  width: Schema.Number,
-  height: Schema.Number,
-  maxNativeZoom: Schema.Number,
+  tileSize: Schema.Int,
+  width: Schema.Int,
+  height: Schema.Int,
+  maxNativeZoom: Schema.Int,
   format: Schema.String,
   tileUrlTemplate: Schema.String,
   maps: Schema.Array(MapEntry),
@@ -43,7 +43,7 @@ export type MapManifest = typeof MapManifest.Type;
  */
 export const TileIndex = Schema.Record(
   Schema.String,
-  Schema.Record(Schema.String, Schema.Array(Schema.Number)),
+  Schema.Record(Schema.String, Schema.Array(Schema.Int)),
 );
 export type TileIndex = typeof TileIndex.Type;
 

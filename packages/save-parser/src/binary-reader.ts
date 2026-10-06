@@ -30,11 +30,11 @@ export class SaveTruncatedError extends Schema.TaggedError<SaveTruncatedError>()
   'save-parser/SaveTruncatedError',
   {
     /** Cursor position the read started at. */
-    at: Schema.Number,
+    at: Schema.Int,
     /** Number of bytes the read needed. */
-    need: Schema.Number,
+    need: Schema.Int,
     /** Total length of the save buffer. */
-    length: Schema.Number,
+    length: Schema.Int,
   },
 ) {}
 

@@ -149,7 +149,7 @@ const BASE_LAYER_ID = 'base';
 const LayerSummary = Schema.Struct({
   id: Schema.String,
   base: Schema.Boolean,
-  tileCount: Schema.Number, // L0 cells composited into the master
+  tileCount: Schema.Int, // L0 cells composited into the master
 });
 type LayerSummary = typeof LayerSummary.Type;
 
@@ -159,18 +159,18 @@ const MapSummary = Schema.Struct({
   /** world→pixel affine; calibrated during web integration (TODO). */
   worldToPixelAffine: Schema.Null,
   /** map-fragment reveal bits (the `variant` bitmask); drives the Phase-2 toggle. */
-  fragmentBits: Schema.Array(Schema.Number),
+  fragmentBits: Schema.Array(Schema.Int),
   /** world-event/state bits (e.g. the crater) excluded from the vanilla map. */
-  eventBits: Schema.Array(Schema.Number),
+  eventBits: Schema.Array(Schema.Int),
   layers: Schema.Array(LayerSummary),
 });
 type MapSummary = typeof MapSummary.Type;
 
 const TileManifest = Schema.Struct({
-  tileSize: Schema.Number,
-  width: Schema.Number,
-  height: Schema.Number,
-  maxNativeZoom: Schema.Number,
+  tileSize: Schema.Int,
+  width: Schema.Int,
+  height: Schema.Int,
+  maxNativeZoom: Schema.Int,
   format: Schema.String,
   tileUrlTemplate: Schema.String,
   maps: Schema.Array(MapSummary),

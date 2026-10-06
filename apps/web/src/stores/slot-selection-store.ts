@@ -17,7 +17,7 @@ const selectedSlotIndexAtom = Atom.make<number | undefined>(undefined);
 const slotMemoryAtom = Atom.kvs({
   runtime: appRuntime,
   key: 'selectedSlotIndexBySteamId',
-  schema: Schema.Record(Schema.String, Schema.Number),
+  schema: Schema.Record(Schema.String, Schema.Int),
   defaultValue: () => ({}),
 });
 
