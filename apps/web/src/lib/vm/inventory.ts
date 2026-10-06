@@ -81,11 +81,18 @@ export function inventoryDbView(slot: Readonly<Slot>) {
   }
 
   const gaItemMap = new Map<number, GaItem>((slot.ga_items || []).map((i) => [i.gaitem_handle, i]));
-  const fill_storage_type = (inventory_data: EquipInventoryData) =>
-    inventory_data.common_items
+  // Both halves of an inventory: newer saves keep Crystal Tears, Great Runes and crafting tools
+  // in the key-item list, so reading only `common_items` drops them. Key items take equip
+  // indexes 0..0x17F; common items start at 0x180.
+  const fill_storage_type = (inventory_data: EquipInventoryData) => [
+    ...resolve_items(inventory_data.common_items, 0x180),
+    ...resolve_items(inventory_data.key_items, 0),
+  ];
+  const resolve_items = (items: EquipInventoryData['common_items'], equip_index_base: number) =>
+    items
       .map((commonItem, idx) => {
         const itemType = itemTypeFromGaHandle(commonItem.ga_item_handle);
-        const equip_index = idx + 0x180;
+        const equip_index = idx + equip_index_base;
 
         const gaitem: GaItem | undefined = ['ACCESSORY', 'ITEM', 'EMPTY'].includes(itemType)
           ? {
@@ -145,4 +152,23 @@ export function inventoryDbView(slot: Readonly<Slot>) {
   };
 
   return userInventory;
+}
+
+export type InventoryItemType = keyof typeof InventoryGaItemTypeToOffset;
+
+/**
+ * Ownership key for an inventory item. Item ids are only unique WITHIN a type (talisman 1000 is
+ * Crimson Amber Medallion, goods 1000 is a Flask of Crimson Tears), so every ownership lookup
+ * must key on type + id — never the bare id.
+ */
+export const ownedItemKey = (type: InventoryItemType, id: number) => `${type}:${id.toString()}`;
+
+/** Goods (consumables, key items, tears, gestures...) held across inventory + storage: id -> total quantity. */
+export function goodsQuantityById(slot: Readonly<Slot>): Map<number, number> {
+  const quantities = new Map<number, number>();
+  for (const item of inventoryDbView(slot).items) {
+    if (item.type !== 'ITEM') continue;
+    quantities.set(item.item_id, (quantities.get(item.item_id) ?? 0) + item.quantity);
+  }
+  return quantities;
 }

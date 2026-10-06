@@ -6,9 +6,9 @@
 // layer (`lib/atoms/*`) wraps the same datasets for reactive table rendering.
 //
 // Name lookups are kept PER ITEM TYPE (matching the legacy `*_NAME` tables) because weapon
-// and armor id spaces can overlap numerically; `inventoryDbView` knows the item type from
-// the ga-handle and picks the right map. `nameById` is the union of all five (matching the
-// legacy merged `inventoryIdMap`) for `equipmentDbView`, which looks up by de-offset id.
+// and armor id spaces can overlap numerically; `inventoryDbView` and `equipmentDbView` know
+// the item type from the ga-handle and pick the right map. (There is deliberately no merged
+// id -> name map: talisman 1000 and goods 1000 are different items.)
 import {
   ARCHETYPES,
   ARMOR,
@@ -32,15 +32,6 @@ export const accessoryNameById = nameMap(TALISMANS);
 export const itemNameById = nameMap(GOODS);
 /** Ash-of-war id → name (was `AOW_NAME`). */
 export const aowNameById = nameMap(ASHES_OF_WAR);
-
-/** Union of all five name maps, keyed by id (was `CLEAN_ELDEN_RING_DB.inventoryIdMap`). */
-export const nameById: ReadonlyMap<number, string> = new Map<number, string>([
-  ...itemNameById,
-  ...accessoryNameById,
-  ...aowNameById,
-  ...armorNameById,
-  ...weaponNameById,
-]);
 
 /** Starting-class archetype id → label (was `ARCHE_TYPE`). */
 export const archetypeNameById: ReadonlyMap<number, string> = new Map(

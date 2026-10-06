@@ -1,9 +1,35 @@
-import { aowNameById, nameById } from '../game-data';
+import {
+  accessoryNameById,
+  aowNameById,
+  armorNameById,
+  itemNameById,
+  weaponNameById,
+} from '../game-data';
 import { Slot } from '../save-dto';
 import { InventoryGaItemTypeToOffset, InventoryItemTypeToOffset } from './inventory';
 /** No Ash of War attached (the gem handle on a weapon reads 0). */
 const noAsh = { id: 0, name: 'None' } as const;
 export type EquippedAsh = { id: number; name: string };
+
+/**
+ * Armament name for a gaitem item id. The id carries the upgrade level in its last two digits
+ * (Dagger +5 = 1000005), but the WEAPONS dataset is keyed by the un-upgraded id.
+ */
+function weaponName(id: number): string {
+  const upgradeLevel = id % 100;
+  const name = weaponNameById.get(id - upgradeLevel);
+  if (name === undefined) return 'Unknown';
+  return upgradeLevel > 0 ? `${name} +${upgradeLevel.toString()}` : name;
+}
+
+/**
+ * Talismans and goods have no gaitem entry — their inventory handle IS the item id plus a type
+ * nibble (0xA… talisman, 0xB… goods). Returns 0 for an empty slot or a handle of another type.
+ */
+function idFromHandle(handle: number, typeOffset: number): number {
+  if (handle === 0 || (handle & 0xf0000000) >>> 0 !== typeOffset) return 0;
+  return (handle ^ typeOffset) >>> 0;
+}
 const empty = {
   gaitem_handle: 0,
   id: 0,
@@ -74,7 +100,7 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
         gaitem_handle,
         id,
         equip_index,
-        name: id ? (nameById.get(id) ?? 'Unknown') : 'Empty',
+        name: id ? weaponName(id) : 'Empty',
         ashOfWar: id ? ashOfWarFor(gaitem_handle) : noAsh,
       };
     });
@@ -90,7 +116,7 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
       gaitem_handle,
       id,
       equip_index,
-      name: id ? (nameById.get(id) ?? 'Unknown') : 'Empty',
+      name: id ? weaponName(id) : 'Empty',
     };
   });
 
@@ -102,7 +128,7 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
       ga_handle,
       id: armor_id,
       equip_index,
-      name: armor_id ? (nameById.get(armor_id) ?? 'Unknown') : 'Empty',
+      name: armor_id ? (armorNameById.get(armor_id) ?? 'Unknown') : 'Empty',
     };
   };
 
@@ -113,26 +139,24 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
 
   const talismans = Array.from({ length: 4 }, (_, i) => {
     const gaitem_handle = slot.chr_asm2.talismans[i] ?? 0;
-    const item_id = gaHandleToGaItemId.get(gaitem_handle) ?? 0;
-    const talisman_id = item_id !== 0 ? item_id ^ InventoryGaItemTypeToOffset.ACCESSORY : 0;
+    const talisman_id = idFromHandle(gaitem_handle, InventoryGaItemTypeToOffset.ACCESSORY);
     const equip_index = equip_index_from_ga_handle(gaitem_handle);
     return {
       gaitem_handle,
       id: talisman_id,
       equip_index,
-      name: talisman_id ? (nameById.get(talisman_id) ?? 'Unknown') : 'Empty',
+      name: talisman_id ? (accessoryNameById.get(talisman_id) ?? 'Unknown') : 'Empty',
     };
   });
 
   const itemFn = (gaitem_handle: Readonly<number>) => {
-    const item_id = gaHandleToGaItemId.get(gaitem_handle) ?? 0;
-    const id = item_id !== 0 ? item_id ^ InventoryGaItemTypeToOffset.ITEM : 0;
+    const id = idFromHandle(gaitem_handle, InventoryGaItemTypeToOffset.ITEM);
     const equip_index = equip_index_from_ga_handle(gaitem_handle);
     return {
       gaitem_handle,
       id,
       equip_index,
-      name: id ? (nameById.get(id) ?? 'Unknown') : 'Empty',
+      name: id ? (itemNameById.get(id) ?? 'Unknown') : 'Empty',
     };
   };
 

@@ -17,7 +17,7 @@ import { type InventoryRow, useInventoryTables } from './inventory-catalog';
 import { Slot } from './save-dto';
 import { eventsDbView } from './vm/events';
 import { equipmentDbView } from './vm/equipement';
-import { inventoryDbView } from './vm/inventory';
+import { goodsQuantityById } from './vm/inventory';
 
 /** One progress row in the breakdown. `categorySlug` deep-links into the matching inventory table. */
 export type CompletionCategory = {
@@ -103,12 +103,6 @@ export function useCompletion(): CompletionModel {
     // Armor: collapse "(Altered)" tailor variants by base name.
     const armor = collapse(tables.armor.items, (r) => r.name.replace(/\s*\(Altered\)\s*$/, ''));
 
-    // Gestures aren't inventory items (no quantity) — they live in the save's 64-slot gesture
-    // unlock table (`0` / `0xFFFFFFFE` mark empty slots), so count distinct learned gestures there.
-    const ownedGestures = slot
-      ? new Set(slot.gestures.filter((g) => g !== 0 && g !== 0xfffffffe)).size
-      : 0;
-
     const cat = (
       key: string,
       label: string,
@@ -152,7 +146,8 @@ export function useCompletion(): CompletionModel {
       cat('ashes', 'Ashes of War', tables.ashes.ownedCount, tables.ashes.items.length, {
         categorySlug: 'ashes-of-war',
       }),
-      cat('gestures', 'Gestures', ownedGestures, tables.gestures.items.length, {
+      // Gestures are owned when unlocked in the save's gesture table (joined in `inventoryTables`).
+      cat('gestures', 'Gestures', tables.gestures.ownedCount, tables.gestures.items.length, {
         categorySlug: 'gestures',
       }),
     ];
@@ -163,16 +158,14 @@ export function useCompletion(): CompletionModel {
         ? Math.round(categories.reduce((s, c) => s + c.pct, 0) / categories.length)
         : 0;
 
-    const ownedIds = new Set<number>();
-    if (slot)
-      for (const it of inventoryDbView(slot).items) if (it.quantity > 0) ownedIds.add(it.item_id);
+    const goodsQuantities = slot ? goodsQuantityById(slot) : new Map<number, number>();
     const milestones: Milestone[] = MILESTONE_SETS.map(({ key, label, category }) => {
       const set = GOODS.filter((g) => g.category === category && !g.name.startsWith('[ERROR]'));
       return {
         key,
         label,
         total: set.length,
-        owned: set.filter((g) => ownedIds.has(g.id)).length,
+        owned: set.filter((g) => (goodsQuantities.get(g.id) ?? 0) > 0).length,
       };
     });
 

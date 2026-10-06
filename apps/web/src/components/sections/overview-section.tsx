@@ -14,7 +14,8 @@ import {
 import { goodsByName } from '@/lib/game-data';
 import { cn } from '@/lib/utils';
 import { eventsDbView } from '@/lib/vm/events';
-import { inventoryDbView } from '@/lib/vm/inventory';
+import { flasksView, MAX_FLASK_CHARGES } from '@/lib/vm/flasks';
+import { goodsQuantityById } from '@/lib/vm/inventory';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { ActiveEffectsCard } from './active-effects-card';
 import { CompletionBreakdown, CompletionHero } from './completion-overview';
@@ -101,10 +102,10 @@ export function OverviewSection() {
 
   if (!slot) return <OverviewEmpty />;
 
-  const inventoryQuantityById = new Map(
-    slot ? inventoryDbView(slot).items.map((item) => [item.item_id, item.quantity]) : [],
-  );
-  const events = slot ? eventsDbView(slot) : [];
+  // Everything this page looks up by id (materials, bell bearings, seeds, tears) is a good —
+  // and goods ids collide with talisman/armor/weapon ids, so never use an all-types id map.
+  const inventoryQuantityById = goodsQuantityById(slot);
+  const events = eventsDbView(slot);
 
   const materialToBellBearings = {
     'Somber Smithing Stone [1]': `Somberstone Miner's Bell Bearing [1]`,
@@ -210,17 +211,9 @@ export function OverviewSection() {
     ownedByName('Great Ghost Glovewort') +
     ownedByName('Great Grave Glovewort');
 
-  const baseFlaskName = 'Flask of Crimson Tears';
-  const baseFlaskItem = goodsByName.get(baseFlaskName);
-
-  const usersFlask =
-    Array.from({ length: 12 })
-      .map((_, i) => goodsByName.get(`${baseFlaskName}${i === 0 ? '' : ` +${(i + 1).toString()}`}`))
-      .filter((flask) => flask !== undefined)
-      .toReversed()
-      .find((flask) => (inventoryQuantityById.get(flask.id) ?? 0) > 0) ?? baseFlaskItem;
-
-  const ceruleanFlask = goodsByName.get('Flask of Cerulean Tears');
+  const flasks = flasksView(slot);
+  const goldenSeed = goodsByName.get('Golden Seed');
+  const sacredTear = goodsByName.get('Sacred Tear');
 
   return (
     <>
@@ -239,17 +232,30 @@ export function OverviewSection() {
         <CardHeader>
           <CardTitle>Flasks</CardTitle>
           <CardDescription>
-            Flask charges, seeds, sacred tears &amp; physick crystal tears
+            {flasks.totalCharges} / {MAX_FLASK_CHARGES} flask charges · seeds, sacred tears &amp;
+            physick crystal tears
           </CardDescription>
         </CardHeader>
         <CardContent className='flex flex-col gap-1'>
-          <FlaskItem item={usersFlask} max={14} />
+          <FlaskItem
+            item={flasks.crimson.item}
+            detail={`${flasks.crimson.charges.toString()} charges`}
+          />
           <Separator />
-          <FlaskItem item={ceruleanFlask} max={14} />
+          <FlaskItem
+            item={flasks.cerulean.item}
+            detail={`${flasks.cerulean.charges.toString()} charges`}
+          />
           <Separator />
-          <FlaskItem item={goodsByName.get('Golden Seed')} max={30} />
+          <FlaskItem
+            item={goldenSeed}
+            detail={`${(inventoryQuantityById.get(goldenSeed?.id ?? -1) ?? 0).toString()} / 30`}
+          />
           <Separator />
-          <FlaskItem item={goodsByName.get('Sacred Tear')} max={12} />
+          <FlaskItem
+            item={sacredTear}
+            detail={`${(inventoryQuantityById.get(sacredTear?.id ?? -1) ?? 0).toString()} / 12`}
+          />
           <Separator />
           <WondrousPhysick />
         </CardContent>
@@ -405,9 +411,7 @@ export function OverviewSection() {
  */
 function WondrousPhysick() {
   const slot = useSelectedSlot();
-  const quantityById = new Map(
-    slot ? inventoryDbView(slot).items.map((item) => [item.item_id, item.quantity]) : [],
-  );
+  const quantityById = slot ? goodsQuantityById(slot) : new Map<number, number>();
   const tears = GOODS.filter((g) => g.category === 'Crystal Tear' && !g.name.startsWith('[ERROR]'));
   const ownedCount = tears.filter((t) => (quantityById.get(t.id) ?? 0) > 0).length;
   const physick = goodsByName.get('Flask of Wondrous Physick');
@@ -453,16 +457,11 @@ function WondrousPhysick() {
 
 function FlaskItem({
   item,
-  max,
+  detail,
 }: {
   item: { id: number; name: string; icon: number } | undefined;
-  max: number;
+  detail: string;
 }) {
-  const slot = useSelectedSlot();
-  const inventoryQuantityById = new Map(
-    slot ? inventoryDbView(slot).items.map((item) => [item.item_id, item.quantity]) : [],
-  );
-
   if (!item) return null;
   const imgSrc = itemIconUrl(item.icon) ?? '';
   return (
@@ -470,9 +469,7 @@ function FlaskItem({
       <TooltipImg imgSrc={imgSrc} thumbSrc={itemIconThumbUrl(item.icon)} />
       <div className='flex flex-col items-end p-2'>
         <p>{item.name}</p>
-        <p className='text-sm text-muted-foreground'>
-          {inventoryQuantityById.get(item.id) ?? 0} / {max}
-        </p>
+        <p className='text-sm text-muted-foreground'>{detail}</p>
       </div>
     </div>
   );
