@@ -547,6 +547,15 @@ export default defineConfig({
     // Library-author rule: it wants a data-last overload on every exported
     // function, including plain app helpers like `runesBetween(a, b)`.
     'effecttsgo/missing-pipeable-signature': 'off',
+    // New in @effect/tsgo 0.50 with effect 4.0 stable: flags every use of a
+    // module still tagged unstable (effect/reactivity Atom + AsyncResult — the
+    // whole web data layer — plus effect/cli, effect/http, effect/persistence).
+    // None has a stable replacement, so this is adopted knowingly. First run:
+    // unstable-api-usage ×87, api-stability-leak ×44.
+    'effecttsgo/unstable-api-usage': 'off',
+    // Companion to unstable-api-usage: reports exports whose types expose
+    // those same unstable modules (every exported Atom, the extractor CLI).
+    'effecttsgo/api-stability-leak': 'off',
 
     // ─── Custom plugin rules ────────────────────────────────────────────
     // effecttsgo/global-console and global-console-in-effect own console use;

@@ -26,6 +26,7 @@ import {
 } from '@tanstack/react-table';
 import type {
   AppCellContext,
+  AppColumnHelper,
   CellData,
   Column,
   ColumnDef,
@@ -101,10 +102,19 @@ export type DataTableColumn<TData extends RowData, TValue extends CellData = Cel
   TValue
 >;
 // Cell overrides on helper-built columns receive the hook-enhanced context (the
-// `cell` carries pre-bound components), not the core `CellContext`. No components
-// are registered here, so the last generic stays at its library constraint.
+// `cell` carries pre-bound components), not the core `CellContext`. The component
+// map is read off the hook's column helper so it tracks `createTableHook`.
+type DataTableCellComponents =
+  DataTableColumnHelper<RowData> extends AppColumnHelper<
+    DataTableFeatures,
+    RowData,
+    infer TCellComponents,
+    infer _THeaderComponents
+  >
+    ? TCellComponents
+    : never;
 export type DataTableCellContext<
   TData extends RowData,
   TValue extends CellData = CellData,
-> = AppCellContext<DataTableFeatures, TData, TValue, Record<never, never>>;
+> = AppCellContext<DataTableFeatures, TData, TValue, DataTableCellComponents>;
 export type DataTableFilterFn<TData extends RowData> = FilterFn<DataTableFeatures, TData>;

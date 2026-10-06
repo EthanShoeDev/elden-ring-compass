@@ -230,7 +230,7 @@ single stage — which is _why_ people reach for scratch scripts. Fix:
   range), default = full run. e.g. `bun src/bin.ts extract --only codegen` re-emits data files
   from cached upstream artifacts in seconds.
 - Stage names are already stable (`unpack, params, text, join, flags, markers, placements,
-sp-effects, images, codegen` — see `pipeline.ts`); expose them as the `--only`/`--from`/`--to`
+  sp-effects, images, codegen` — see `pipeline.ts`); expose them as the `--only`/`--from`/`--to`
   choices.
 
 This is the durable fix: with single-stage runs + inspectable artifacts, there's **no reason to

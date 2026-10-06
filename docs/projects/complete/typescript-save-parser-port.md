@@ -45,7 +45,7 @@ Two facts discovered during the review make a TS port look cheap where it previo
    **character slots** (`UserDataX` — everything our DTO reads: stats, inventory, event
    flags, equipment) are **plain uncompressed little-endian structs**.
 2. **There's now a full byte-layout spec on disk**: `er-save-manager/docs/technical/
-save-file-structure.md` (parser-sourced offsets for every struct). A port is
+   save-file-structure.md` (parser-sourced offsets for every struct). A port is
    transcription against a written spec + a working reference impl, not RE.
 
 ## Wait — isn't part of the save zstd-compressed? (the nuance)
@@ -107,7 +107,7 @@ packages/
 
 - **Emit the identical lean DTO** the web app already reads (`player_game_data.*`,
   `event_flags.flags`, `ga_items`, `chr_asm2`, `regions`, …). Then `apps/web/src/lib/
-wasm-wrapper.ts` and every `vm/*` stays byte-for-byte the same — this is a backend swap,
+  wasm-wrapper.ts` and every `vm/*` stays byte-for-byte the same — this is a backend swap,
   not a feature change.
 - **Read-only first.** We only parse. MD5 checksums are needed for _writing_ saves; a
   read-only parser can skip `hashlib` entirely. (If we ever add save-editing, MD5 is a
@@ -300,7 +300,7 @@ and a verified parser beats an elegant one.
 ## Resources
 
 - `docs/cloned-repos-as-docs/er-save-manager/` — the Python reference parser (`src/
-er_save_manager/parser/`) + the byte-layout spec (`docs/technical/save-file-structure.md`).
+  er_save_manager/parser/`) + the byte-layout spec (`docs/technical/save-file-structure.md`).
 - Current WASM parser: `wasm-save-parser-rewrite.md`; perf: `testing.md` + memory
   `perf-testing-setup`; the intrinsic-dependency framing: `dlc-support.md` §7.
   </content>

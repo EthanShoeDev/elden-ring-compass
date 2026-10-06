@@ -29,7 +29,7 @@ const reinforceLevelCountById = new Map(REINFORCE_TYPES.map((r) => [r.id, r.leve
  * Max upgrade level (+N) for a weapon = its reinforce chain length − 1
  * (10 for Somber stones, 25 for regular). Falls back to 0 if unknown.
  */
-export const maxUpgradeFor = (w: WeaponScaling): number =>
+const maxUpgradeFor = (w: WeaponScaling): number =>
   Math.max(0, (reinforceLevelCountById.get(w.reinforceTypeId) ?? 1) - 1);
 
 /** The largest +N any armament reaches (25) — the upgrade slider's ceiling. */

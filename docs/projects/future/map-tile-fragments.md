@@ -6,7 +6,7 @@
 > per-cell mask, the map renders north-up and colourful, and the marker affine is calibrated
 > (see [[map-tile-variants]] and `complete/tiled-map-image-viewer-interactive.md`). **Phase 2**
 > (save-driven "collected maps" toggle — composite `base + Σ overlays for the fragments the
-player owns`) is **unstarted**: it needs per-fragment delta-overlay pyramids, a ~31-entry
+> player owns`) is **unstarted**: it needs per-fragment delta-overlay pyramids, a ~31-entry
 > bit→"Map: <region>" item table, and world-event toggles. That's net-new feature work, so this
 > doc lives in `future/` until it's picked up — nothing in-progress remains.
 

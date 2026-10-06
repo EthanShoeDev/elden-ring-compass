@@ -233,7 +233,7 @@ Derived per save:
 ## Resources
 
 - **Quest-flag dataset (curated, the unblock):** `docs/cloned-repos-as-docs/er-save-manager/
-src/er_save_manager/data/quest_flags_db.py` — 36 NPC questlines, absolute flag ids, MIT.
+  src/er_save_manager/data/quest_flags_db.py` — 36 NPC questlines, absolute flag ids, MIT.
   Also `parser/event_flags.py` (`CorruptionDetector`/`FixFlags`) for missable/softlock logic,
   and `data/event_flags_db.py` (1,295 named flags) + `data/boss_data.py` (208 bosses w/ flags).
 - Event-flag dictionary (named): `docs/cloned-repos-as-docs/dlc-data-sources/elden-ring-eventparam/index.md`

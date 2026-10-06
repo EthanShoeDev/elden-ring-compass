@@ -173,7 +173,7 @@ structs **we already parse**, so re-adding them is a pure DTO change (no new str
 - [x] Commit the parent monorepo (submodule gitlink + `.gitmodules` + wrapper + web changes + this doc) — landed in `b045fdb4` alongside the tiled-map + Base UI work.
 - [x] **Equipped Ash of War** display (via `gem_gaitem_handle`) — `equipmentDbView` resolves each
       armament's gem handle → AoW id → name; surfaced in the new **Equipment card** (`components/sections/
-equipment-card.tsx`) in the Overview (no equipment panel existed before — the VM had been dormant).
+  equipment-card.tsx`) in the Overview (no equipment panel existed before — the VM had been dormant).
 - [x] **Active effects** display (via `sp_effects`) — new install-derived `SP_EFFECT_LABELS` dataset
       (`er-extractor/src/game/sp-effect-labels.ts`, 1,626 labels) inverts item→SpEffect refs
       (consumable `refId_default`, talisman/spell `refId`, gear `residentSpEffectId*`) so a save's active

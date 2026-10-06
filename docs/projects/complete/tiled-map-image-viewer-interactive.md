@@ -145,7 +145,7 @@ Per `(map, layer)`, for **L0 only** (the game's L1–L4 are discarded and regene
    base map / crater / DLC all align pixel-for-pixel. (composite, not `join` — it handles
    sparse layers and non-zero origins without placeholder tiles.)
 3. **Tile** — `…webp({quality, alphaQuality:100}).tile({ size:256, layout:'google',
-background:{alpha:0}, skipBlanks:0 })` → emits `images/map-tiles/{map}/{layer}/{z}/{y}/{x}.webp`.
+   background:{alpha:0}, skipBlanks:0 })` → emits `images/map-tiles/{map}/{layer}/{z}/{y}/{x}.webp`.
    **`layout:'google'` names leaves `{z}/{y}/{x}`** (subdir = row, file = col — verified
    empirically), so the Leaflet URL template is `…/{z}/{y}/{x}.webp`. `skipBlanks:0` drops
    transparent tiles, so sparse overlays (the crater, M11) cost almost nothing. The `blank.png`
@@ -215,7 +215,7 @@ run against the game archive (DLL built, sharp installed) — produces a large d
    `scripts/map-calibrate.ts` + `apps/web/src/lib/map-affine.ts`. The MENU*MapTile
    master grid IS the m60 small-tile grid (256 px == 256 world-units), so extracted
    overworld coords project EXACTLY: `masterPx = worldX − 8448`, `masterPy =
-16896 − worldZ` (1 px = 1 world-unit), where `worldX = col*size + size/2 + localX`,
+   16896 − worldZ` (1 px = 1 world-unit), where `worldX = col*size + size/2 + localX`,
    `size = 256*2^tier`. Proven by a 154/154 grace-on-existing-tile occupancy match +
    correct N/S/E/W extremes + isotropy. The **DLC (M10)** uses the SAME transform — the
    occupancy grid-search finds the same offset (−33,−25) for `m61`→M10 (59/59 DLC graces

@@ -10,7 +10,7 @@ Link-only integration with the Fextralife wiki — nothing is fetched or embedde
 - **Map pin popups** (`leaflet-map.tsx` → `PinPopupBody`): "Elden Ring Wiki ↗" for
   **boss** and **item** pins. The link lives in the click popup rather than the
   hover tooltip because Leaflet tooltips are non-interactive (`pointer-events:
-none`) — a link there couldn't be clicked.
+  none`) — a link there couldn't be clicked.
 - **Every inventory data table** (all 13 tabs), the **All Bosses** table, and the
   **Weapon AR calculator**: a per-row "Wiki" icon column
   (`commonWikiColumnDef` in `common-column-defs.tsx`).
