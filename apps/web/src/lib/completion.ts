@@ -13,9 +13,10 @@ import { ARMOR, GOODS } from '@elden-ring-compass/data';
 import { itemIconUrl } from '@elden-ring-compass/data/images';
 
 import { useSelectedSlot } from '@/stores/slot-selection-store';
+import { rewardBossFlags } from './boss-meta';
 import { type InventoryRow, useInventoryTables } from './inventory-catalog';
 import { Slot } from './save-dto';
-import { eventsDbView } from './vm/events';
+import { eventsDbView, isEventFlagOn } from './vm/events';
 import { equipmentDbView } from './vm/equipement';
 import { goodsQuantityById } from './vm/inventory';
 
@@ -76,15 +77,52 @@ export function equippedHelmIconUrl(slot?: Readonly<Slot>): string | undefined {
   return icon !== undefined ? (itemIconUrl(icon) ?? undefined) : undefined;
 }
 
+type Good = (typeof GOODS)[number];
+
+// A Great Rune is held in one of two forms: unrestored (a "Key Item" of the same name,
+// 8148–8153) until it's restored at its Divine Tower (the "Great Rune" category, 191–196).
+const unrestoredGreatRuneIdByName = new Map(
+  GOODS.filter((g) => g.category === 'Key Item').map((g) => [g.name, g.id]),
+);
+
 // Curated "collect them all" sets — clean GOODS categories (counts verified 2026-06-07).
+// `collected` decides one good given what's held; the default is "held at all".
 const MILESTONE_SETS: ReadonlyArray<{
   key: string;
   label: string;
   category: string;
+  collected: (good: Good, held: (id: number) => boolean, slot: Readonly<Slot>) => boolean;
 }> = [
-  { key: 'greatRunes', label: 'Great Runes', category: 'Great Rune' },
-  { key: 'remembrances', label: 'Remembrances', category: 'Remembrance' },
+  {
+    key: 'greatRunes',
+    label: 'Great Runes',
+    category: 'Great Rune',
+    collected: (g, held) => held(g.id) || held(unrestoredGreatRuneIdByName.get(g.name) ?? -1),
+  },
+  {
+    key: 'remembrances',
+    label: 'Remembrances',
+    category: 'Remembrance',
+    // Traded-in Remembrances leave the inventory; the boss kill still proves collection.
+    collected: (g, held, slot) =>
+      held(g.id) || rewardBossFlags(g.id).some((flag) => isEventFlagOn(slot, flag)),
+  },
 ];
+
+/** Great Rune / Remembrance trophy progress for a save slot (0 owned without one). */
+export function completionMilestones(slot: Readonly<Slot> | undefined): Milestone[] {
+  const goodsQuantities = slot ? goodsQuantityById(slot) : new Map<number, number>();
+  const held = (id: number) => (goodsQuantities.get(id) ?? 0) > 0;
+  return MILESTONE_SETS.map(({ key, label, category, collected }) => {
+    const set = GOODS.filter((g) => g.category === category && !g.name.startsWith('[ERROR]'));
+    return {
+      key,
+      label,
+      total: set.length,
+      owned: slot ? set.filter((g) => collected(g, held, slot)).length : 0,
+    };
+  });
+}
 
 export function useCompletion(): CompletionModel {
   const slot = useSelectedSlot();
@@ -158,17 +196,6 @@ export function useCompletion(): CompletionModel {
         ? Math.round(categories.reduce((s, c) => s + c.pct, 0) / categories.length)
         : 0;
 
-    const goodsQuantities = slot ? goodsQuantityById(slot) : new Map<number, number>();
-    const milestones: Milestone[] = MILESTONE_SETS.map(({ key, label, category }) => {
-      const set = GOODS.filter((g) => g.category === category && !g.name.startsWith('[ERROR]'));
-      return {
-        key,
-        label,
-        total: set.length,
-        owned: set.filter((g) => (goodsQuantities.get(g.id) ?? 0) > 0).length,
-      };
-    });
-
-    return { hasSave: !!slot, overallPct, categories, milestones };
+    return { hasSave: !!slot, overallPct, categories, milestones: completionMilestones(slot) };
   }, [slot, tables]);
 }

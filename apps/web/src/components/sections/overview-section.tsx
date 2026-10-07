@@ -14,7 +14,7 @@ import {
 import { goodsByName } from '@/lib/game-data';
 import { cn } from '@/lib/utils';
 import { eventsDbView } from '@/lib/vm/events';
-import { flasksView, MAX_FLASK_CHARGES } from '@/lib/vm/flasks';
+import { flasksView, MAX_FLASK_CHARGES, mixedPhysickTearIds } from '@/lib/vm/flasks';
 import { goodsQuantityById } from '@/lib/vm/inventory';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { ActiveEffectsCard } from './active-effects-card';
@@ -422,6 +422,7 @@ export function OverviewSection() {
 function WondrousPhysick() {
   const slot = useSelectedSlot();
   const quantityById = slot ? goodsQuantityById(slot) : new Map<number, number>();
+  const mixed = new Set(slot ? mixedPhysickTearIds(slot) : []);
   const tears = GOODS.filter((g) => g.category === 'Crystal Tear' && !g.name.startsWith('[ERROR]'));
   const ownedCount = tears.filter((t) => (quantityById.get(t.id) ?? 0) > 0).length;
   const physick = goodsByName.get('Flask of Wondrous Physick');
@@ -440,12 +441,17 @@ function WondrousPhysick() {
       <div className='flex flex-wrap gap-1.5'>
         {tears.map((tear) => {
           const owned = (quantityById.get(tear.id) ?? 0) > 0;
+          const inFlask = mixed.has(tear.id);
           return (
             <Tooltip key={tear.id}>
               <TooltipTrigger
                 className={cn(
                   'rounded-md p-0.5 transition-opacity',
-                  owned ? 'border border-green-300/50' : 'opacity-30 grayscale',
+                  inFlask
+                    ? 'border-2 border-amber-400'
+                    : owned
+                      ? 'border border-green-300/50'
+                      : 'opacity-30 grayscale',
                 )}
               >
                 <img src={itemIconUrl(tear.icon) ?? ''} alt={tear.name} className='size-8' />
@@ -454,7 +460,7 @@ function WondrousPhysick() {
                 <img loading='lazy' src={itemIconUrl(tear.icon) ?? ''} alt='' className='size-28' />
                 <p className='text-center'>{tear.name}</p>
                 <p className='text-xs text-muted-foreground'>
-                  {owned ? 'Collected' : 'Not collected'}
+                  {inFlask ? 'Mixed into the flask' : owned ? 'Collected' : 'Not collected'}
                 </p>
               </TooltipContent>
             </Tooltip>

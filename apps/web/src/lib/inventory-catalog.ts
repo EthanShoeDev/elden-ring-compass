@@ -15,7 +15,12 @@ export { CATALOG, TABLE_PLACEMENT_TYPE, type InventoryTableType } from './invent
 
 /** A catalog row joined with the active save's ownership. */
 export type WithOwnership<T> = T & {
+  /** Total owned: `heldQuantity + storedQuantity`. */
   quantity: number;
+  /** Carried by the character. */
+  heldQuantity: number;
+  /** Left in the Sorting Chest (storage box at a grace). */
+  storedQuantity: number;
   weaponUpgradeLevel: number;
   // Whether the item has any extracted overworld pickup location (drives map
   // pinning via `enableRowSelection`). The actual pins live in `itemIdToPins`.
@@ -65,18 +70,21 @@ const TABLE_ITEM_TYPE: Record<InventoryTableType, InventoryItemType> = {
 export function inventoryTables(
   slot: Readonly<Slot> | undefined,
 ): Record<InventoryTableType, InventoryTableResult> {
-  const owned = new Map<string, { quantity: number; upgradeLevel: number }>();
+  const owned = new Map<string, { held: number; stored: number; upgradeLevel: number }>();
   if (slot) {
     for (const item of inventoryDbView(slot).items) {
       const key = ownedItemKey(item.type, item.item_id);
       const cur = owned.get(key);
+      const held = (cur?.held ?? 0) + (item.location === 'held' ? item.quantity : 0);
+      const stored = (cur?.stored ?? 0) + (item.location === 'storage' ? item.quantity : 0);
       owned.set(key, {
-        quantity: (cur?.quantity ?? 0) + item.quantity,
+        held,
+        stored,
         upgradeLevel: Math.max(cur?.upgradeLevel ?? 0, item.upgrade_level),
       });
     }
     for (const id of unlockedGestureGoodsIds(slot))
-      owned.set(ownedItemKey('ITEM', id), { quantity: 1, upgradeLevel: 0 });
+      owned.set(ownedItemKey('ITEM', id), { held: 1, stored: 0, upgradeLevel: 0 });
   }
 
   const join = (
@@ -97,9 +105,13 @@ export function inventoryTables(
         const o = owned.get(ownedItemKey(itemType, row.id));
         const weaponUpgradeLevel = o?.upgradeLevel ?? 0;
         const locationCount = itemPins(placementType, row.id).length;
+        const heldQuantity = o?.held ?? 0;
+        const storedQuantity = o?.stored ?? 0;
         return {
           ...row,
-          quantity: o?.quantity ?? 0,
+          quantity: heldQuantity + storedQuantity,
+          heldQuantity,
+          storedQuantity,
           weaponUpgradeLevel,
           name: weaponUpgradeLevel > 0 ? `${row.name} +${weaponUpgradeLevel.toString()}` : row.name,
           hasCoords: locationCount > 0,

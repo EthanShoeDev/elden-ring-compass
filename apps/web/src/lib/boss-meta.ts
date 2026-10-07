@@ -84,6 +84,15 @@ const SHARDBEARER_FLAGS: ReadonlySet<number> = new Set([
 
 const goodById = new Map(GOODS.map((g) => [g.id, g]));
 
+/**
+ * The defeat flags of the boss(es) that award a Remembrance (or other boss reward) good.
+ * Remembrances are consumed when traded at Enia's Roundtable Hold, so "collected" must
+ * also count a defeated boss, not just a held item.
+ */
+export function rewardBossFlags(goodId: number): number[] {
+  return [...BOSS_REWARD_GOOD_BY_FLAG].filter(([, id]) => id === goodId).map(([flag]) => flag);
+}
+
 /** The Remembrance/Legend reward a boss drops (name + icon), or undefined. */
 export function bossReward(
   flag: number,

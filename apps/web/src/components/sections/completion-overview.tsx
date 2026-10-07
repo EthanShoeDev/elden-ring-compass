@@ -7,6 +7,7 @@ import {
   type CompletionCategory,
   type Milestone,
 } from '@/lib/completion';
+import { derivedStatsView } from '@/lib/vm/derived-stats';
 import { statsDbView } from '@/lib/vm/stats';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { CompletionRing } from './completion-ring';
@@ -37,6 +38,36 @@ export function CompletionHero() {
     ['Intelligence', stats.stats.intelligence],
     ['Faith', stats.stats.faith],
     ['Arcane', stats.stats.arcane],
+  ];
+
+  const d = derivedStatsView(slot);
+  // HP/FP/stamina come straight from the save; `base` differs when gear or buffs modify it.
+  const pool = (label: string, s: { max: number; base: number }) => ({
+    label,
+    value: s.max.toLocaleString(),
+    sub: s.max !== s.base ? `base ${s.base.toLocaleString()}` : undefined,
+    hint: `Max ${label} as saved (base ${s.base.toLocaleString()} before equipment and buffs)`,
+  });
+  const derived: ReadonlyArray<{ label: string; value: string; sub?: string; hint: string }> = [
+    pool('HP', d.hp),
+    pool('FP', d.fp),
+    pool('Stamina', d.stamina),
+    {
+      label: 'Equip Load',
+      value: `${d.equipLoad.current.toFixed(1)} / ${d.equipLoad.max.toFixed(1)}`,
+      sub: `${d.equipLoad.roll} load`,
+      hint: 'Equipped weight / max equip load. Max is estimated from Endurance and equipped talismans.',
+    },
+    {
+      label: 'Poise',
+      value: d.poise.toString(),
+      hint: "Equipped armor poise (including Bull-Goat's Talisman)",
+    },
+    {
+      label: 'Discovery',
+      value: d.discovery.toString(),
+      hint: '100 + Arcane, plus item-discovery talismans',
+    },
   ];
 
   return (
@@ -71,6 +102,19 @@ export function CompletionHero() {
                 {label.slice(0, 3)}
               </span>
               <span className='text-lg font-semibold tabular-nums'>{value}</span>
+            </div>
+          ))}
+        </div>
+        <div className='grid grid-cols-3 gap-3 border-t border-border pt-4 sm:grid-cols-6'>
+          {derived.map(({ label, value, sub, hint }) => (
+            <div key={label} className='flex flex-col items-center gap-0.5' title={hint}>
+              <span className='text-[10.5px] font-medium tracking-wide text-muted-foreground uppercase'>
+                {label}
+              </span>
+              <span className='text-lg font-semibold tabular-nums'>{value}</span>
+              {sub !== undefined && (
+                <span className='text-[11px] text-muted-foreground tabular-nums'>{sub}</span>
+              )}
             </div>
           ))}
         </div>

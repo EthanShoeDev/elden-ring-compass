@@ -61,13 +61,16 @@ export function defaultEventRowSelection(): Record<string, boolean> {
   return selection;
 }
 
+/** Whether event flag `flagId` is set in the save's flag bitfield (false if unaddressable). */
+export function isEventFlagOn(slot: Readonly<Slot> | undefined, flagId: number): boolean {
+  if (!slot) return false;
+  const offset = eventFlagOffset(flagId);
+  if (!offset) return false;
+  return get_bit(slot.event_flags.flags[offset[0]] ?? 0, offset[1]);
+}
+
 export function eventsDbView(slot?: Readonly<Slot>) {
-  const isFlagOn = (flagId: number) => {
-    if (!slot) return false;
-    const offset = eventFlagOffset(flagId);
-    if (!offset) return false;
-    return get_bit(slot.event_flags.flags[offset[0]] ?? 0, offset[1]);
-  };
+  const isFlagOn = (flagId: number) => isEventFlagOn(slot, flagId);
 
   // Install-derived overworld pixel (graces / field bosses), keyed by flag id.
   // `undefined` for dungeon markers (need WorldMapLegacyConvParam).

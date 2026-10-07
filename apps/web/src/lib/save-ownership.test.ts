@@ -5,11 +5,13 @@ import { it } from '@effect/vitest';
 import { Effect, FileSystem } from 'effect';
 import { expect } from 'vitest';
 import { GOODS } from '@elden-ring-compass/data';
+import { completionMilestones } from './completion';
 import { parseEldenRingData } from './er-save-parser';
 import { inventoryTables } from './inventory-catalog';
 import type { Slot } from './save-dto';
+import { derivedStatsView } from './vm/derived-stats';
 import { equipmentDbView } from './vm/equipement';
-import { flasksView } from './vm/flasks';
+import { flasksView, mixedPhysickTearIds } from './vm/flasks';
 import { inventoryDbView } from './vm/inventory';
 
 // Regression tests for issue #11 ("Incorrect data imported from save file"): the save parsed
@@ -156,6 +158,67 @@ it.layer(NodeServices.layer)('save ownership view-models (issue #11)', (it) => {
 
       // A +1 flask (the old lookup skipped +1 entirely).
       expect(flasksView(byName('shoe')).crimson.item?.name).toBe('Flask of Crimson Tears +1');
+    }),
+  );
+
+  it.effect('the Wondrous Physick reports the two tears mixed into it', () =>
+    Effect.gen(function* () {
+      const { byName } = yield* loadSlots;
+      // Opaline Bubbletear + Magic-Shrouding Cracked Tear; mixed tears stay in the inventory.
+      expect(mixedPhysickTearIds(byName('sam'))).toEqual([11029, 11008]);
+      expect(mixedPhysickTearIds(byName('shoe'))).toEqual([]);
+    }),
+  );
+
+  it.effect('owned quantities split into held and Sorting Chest storage', () =>
+    Effect.gen(function* () {
+      const { slots, byName } = yield* loadSlots;
+      for (const slot of slots)
+        for (const table of Object.values(inventoryTables(slot)))
+          for (const row of table.items)
+            expect(row.quantity).toBe(row.heldQuantity + row.storedQuantity);
+
+      const yager = inventoryTables(byName('Yager'));
+      const daggers = yager.tools.items.find((r) => r.name === 'Throwing Dagger');
+      expect([daggers?.heldQuantity, daggers?.storedQuantity]).toEqual([40, 600]);
+      const rollo = yager.spirits.items.find((r) => r.name === 'Omenkiller Rollo');
+      expect([rollo?.heldQuantity, rollo?.storedQuantity]).toEqual([1, 1]);
+    }),
+  );
+
+  it.effect('derived stats: save HP/FP/stamina, equipped weight, poise and discovery', () =>
+    Effect.gen(function* () {
+      const { byName } = yield* loadSlots;
+      const sam = derivedStatsView(byName('sam'));
+      expect(sam.hp).toEqual({ max: 1402, base: 1402 });
+      expect(sam.fp).toEqual({ max: 109, base: 100 });
+      // END 20, no load talismans: 45 + 27·(20−8)/17 = 64.06.
+      expect(sam.equipLoad.max).toBe(64.1);
+      // 2× Sword of Night and Flame, Longbow, Sentry's Torch, Zamor set, Imp Head, 4 talismans
+      // (equipped arrows don't count: ammo is weightless).
+      expect(sam.equipLoad.current).toBe(44.7);
+      expect(sam.equipLoad.roll).toBe('Medium');
+      expect(sam.discovery).toBe(108); // 100 + 8 Arcane
+
+      // Bull-Goat + Maliketh armor; Erdtree's Favor +2 raises max load ×1.08.
+      const yager = derivedStatsView(byName('Yager'));
+      expect(yager.poise).toBe(63);
+      expect(yager.equipLoad.max).toBe(92.3);
+      expect(yager.discovery).toBe(144); // 100 + 44 Arcane
+    }),
+  );
+
+  it.effect('Great Runes count unrestored copies; Remembrances count defeated bosses', () =>
+    Effect.gen(function* () {
+      const { byName } = yield* loadSlots;
+      const milestone = (name: string, key: string) =>
+        completionMilestones(byName(name)).find((m) => m.key === key)?.owned;
+      // sam holds 1 restored Great Rune + 3 not yet restored at their Divine Towers.
+      expect(milestone('sam', 'greatRunes')).toBe(4);
+      expect(milestone('sam', 'remembrances')).toBe(6);
+      expect(milestone('Yager', 'greatRunes')).toBe(3);
+      expect(milestone('Yager', 'remembrances')).toBe(11);
+      expect(milestone('vagbond dlc prep', 'remembrances')).toBe(0);
     }),
   );
 });

@@ -26,6 +26,9 @@ export const InventoryGaItemTypeToOffset = {
   AOW: 0xc0000000,
 } as const;
 
+/** Where an inventory stack lives: carried by the character, or in the Sorting Chest at a grace. */
+export type InventoryLocation = 'held' | 'storage';
+
 export function inventoryDbView(slot: Readonly<Slot>) {
   function itemTypeFromGaHandle(gaHandle: number): keyof typeof InventoryGaItemTypeToOffset {
     const itemType = (gaHandle & 0xf0000000) >>> 0;
@@ -84,11 +87,15 @@ export function inventoryDbView(slot: Readonly<Slot>) {
   // Both halves of an inventory: newer saves keep Crystal Tears, Great Runes and crafting tools
   // in the key-item list, so reading only `common_items` drops them. Key items take equip
   // indexes 0..0x17F; common items start at 0x180.
-  const fill_storage_type = (inventory_data: EquipInventoryData) => [
-    ...resolve_items(inventory_data.common_items, 0x180),
-    ...resolve_items(inventory_data.key_items, 0),
+  const fill_storage_type = (inventory_data: EquipInventoryData, location: InventoryLocation) => [
+    ...resolve_items(inventory_data.common_items, 0x180, location),
+    ...resolve_items(inventory_data.key_items, 0, location),
   ];
-  const resolve_items = (items: EquipInventoryData['common_items'], equip_index_base: number) =>
+  const resolve_items = (
+    items: EquipInventoryData['common_items'],
+    equip_index_base: number,
+    location: InventoryLocation,
+  ) =>
     items
       .map((commonItem, idx) => {
         const itemType = itemTypeFromGaHandle(commonItem.ga_item_handle);
@@ -139,12 +146,13 @@ export function inventoryDbView(slot: Readonly<Slot>) {
           equip_index,
           type: itemType,
           upgrade_level,
+          location,
         };
       })
       .filter((i): i is NonNullable<typeof i> => i !== null && i.item_id !== -1 && i.item_id !== 0);
 
-  const equip_inventory = fill_storage_type(slot.equip_inventory_data);
-  const storage_inventory = fill_storage_type(slot.storage_inventory_data);
+  const equip_inventory = fill_storage_type(slot.equip_inventory_data, 'held');
+  const storage_inventory = fill_storage_type(slot.storage_inventory_data, 'storage');
 
   const userInventory = {
     ...getNextItemIndexes(slot),

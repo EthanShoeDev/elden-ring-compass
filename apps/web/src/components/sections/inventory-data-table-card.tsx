@@ -188,19 +188,29 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
   // filter (it writes the `'owned'`/`'missing'` presets that `quantityFilterFn`
   // reads, the facet writes exact values) — one shared source of truth, so the two
   // controls can't drift out of sync.
+  // Held / Storage likewise write the Location column's facet (see `LOCATION_PRESETS`), so
+  // "what's in my Sorting Chest" is the same filter as ticking those Location boxes.
   const [qtyFilter, setQtyFilter] = useColumnFilterValue(table, 'Quantity');
-  // The toggle reflects the shared Quantity filter: its presets light up, an
-  // explicit value-facet selection (e.g. `[2]`) lights up nothing (null), and a
-  // cleared filter is "all". So picking exact quantities in the facet doesn't
-  // falsely highlight "All".
-  const ownerFilter: 'all' | 'owned' | 'missing' | null =
-    qtyFilter === 'owned'
-      ? 'owned'
-      : qtyFilter === 'missing'
-        ? 'missing'
-        : Predicate.isNullish(qtyFilter)
-          ? 'all'
-          : null;
+  const [locFilter, setLocFilter] = useColumnFilterValue(table, 'Location');
+  // The toggle reflects the shared Quantity + Location filters: their presets light
+  // up, an explicit value-facet selection (e.g. `[2]`) lights up nothing (null), and
+  // both cleared is "all". So picking exact quantities in the facet doesn't falsely
+  // highlight "All".
+  const ownerFilter = ((): OwnerFilter | null => {
+    if (Predicate.isNullish(locFilter)) {
+      if (Predicate.isNullish(qtyFilter)) return 'all';
+      if (qtyFilter === 'owned' || qtyFilter === 'missing') return qtyFilter;
+      return null;
+    }
+    if (!Predicate.isNullish(qtyFilter)) return null;
+    if (sameValues(locFilter, LOCATION_PRESETS.held)) return 'held';
+    if (sameValues(locFilter, LOCATION_PRESETS.storage)) return 'storage';
+    return null;
+  })();
+  const setOwnerFilter = (key: OwnerFilter) => {
+    setQtyFilter(key === 'owned' || key === 'missing' ? key : undefined);
+    setLocFilter(key === 'held' || key === 'storage' ? [...LOCATION_PRESETS[key]] : undefined);
+  };
 
   // Full-bleed: the table *is* the route now (no Card chrome, no page padding —
   // see the `/inventory/$category` route's `fullBleed` staticData). A slim header
@@ -220,12 +230,12 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
         </div>
         <div className='flex flex-wrap items-center gap-3'>
           <div className='inline-flex rounded-lg border border-border p-0.5'>
-            {(['all', 'owned', 'missing'] as const).map((key) => (
+            {OWNER_FILTERS.map((key) => (
               <button
                 key={key}
                 type='button'
                 onClick={() => {
-                  setQtyFilter(key === 'all' ? undefined : key);
+                  setOwnerFilter(key);
                 }}
                 className={cn(
                   'rounded-md px-3 py-1 text-sm capitalize transition-colors',
@@ -257,6 +267,31 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
     </div>
   );
 }
+
+const OWNER_FILTERS = ['all', 'owned', 'held', 'storage', 'missing'] as const;
+type OwnerFilter = (typeof OWNER_FILTERS)[number];
+
+/** Location column values: where the owned copies of an item are. */
+type ItemLocation = 'Held' | 'Storage' | 'Held + Storage' | 'Not owned';
+const itemLocation = (row: { heldQuantity: number; storedQuantity: number }): ItemLocation =>
+  row.heldQuantity > 0
+    ? row.storedQuantity > 0
+      ? 'Held + Storage'
+      : 'Held'
+    : row.storedQuantity > 0
+      ? 'Storage'
+      : 'Not owned';
+
+/** The Location facet values the Held / Storage toggle presets select. */
+const LOCATION_PRESETS: Record<'held' | 'storage', readonly ItemLocation[]> = {
+  held: ['Held', 'Held + Storage'],
+  storage: ['Storage', 'Held + Storage'],
+};
+
+const sameValues = (value: unknown, preset: readonly ItemLocation[]) =>
+  Array.isArray(value) &&
+  value.length === preset.length &&
+  preset.every((v) => (value as unknown[]).includes(v));
 
 // Row element types per category, joined with save ownership.
 type Row<K extends InventoryTableType> = WithOwnership<(typeof CATALOG)[K][number]>;
@@ -336,6 +371,22 @@ function defaultColumns<T extends BaseRow>(
     // `quantityFilterFn`; both stay in sync because it's a single column filter.
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity', {
       filterFn: quantityFilterFn,
+    }),
+    // Held (carried) vs Storage (Sorting Chest). Faceted, and driven by the toggle's
+    // Held / Storage presets; a split stack shows both counts.
+    commonAccessorColumnDef(columnHelper, itemLocation, 'Location', {
+      size: 150,
+      cell: (cell: DataTableCellContext<BaseRow>) => {
+        const row = cell.row.original;
+        const location = cell.getValue<ItemLocation>();
+        if (location === 'Not owned') return <span className='text-muted-foreground/40'>—</span>;
+        if (location !== 'Held + Storage') return <span>{location}</span>;
+        return (
+          <span>
+            {row.heldQuantity} held · {row.storedQuantity} stored
+          </span>
+        );
+      },
     }),
     commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
     // How many map pins selecting this row drops (supersedes the old boolean

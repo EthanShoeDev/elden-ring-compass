@@ -31,6 +31,17 @@ function flaskInfo(quantities: Map<number, number>, baseId: number, charges: num
   return { item: goodsById.get(baseId + 2 * level + 1), level, charges };
 }
 
+/**
+ * Goods ids of the Crystal Tears mixed into the Flask of Wondrous Physick. The save stores
+ * them with the goods param-type nibble (`0x4…` + id); an empty slot reads `0xFFFFFFFF`.
+ * Mixed tears stay in the inventory, so this is extra detail, not ownership.
+ */
+export function mixedPhysickTearIds(slot: Readonly<Slot>): number[] {
+  return slot.equipped_physics
+    .filter((v) => (v & 0xf0000000) >>> 0 === 0x40000000)
+    .map((v) => (v & 0x0fffffff) >>> 0);
+}
+
 /** Crimson/Cerulean flask upgrade levels and charge allocation for a save slot. */
 export function flasksView(slot: Readonly<Slot>) {
   const quantities = goodsQuantityById(slot);

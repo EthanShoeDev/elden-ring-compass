@@ -141,11 +141,18 @@ const ST_C: ReadonlyArray<Anchor> = [
   [50, 155],
   [99, 170],
 ];
+// Flat 45 up to END 8, linear to 25 and from 60, curved in between — so the 25–60 stretch
+// carries extra anchors (https://eldenring.wiki.gg/wiki/Equip_Load) to stay within ~0.2.
 const EQ_C: ReadonlyArray<Anchor> = [
   [1, 45],
-  [8, 52],
+  [8, 45],
   [25, 72],
-  [30, 79],
+  [30, 77.6],
+  [35, 84.1],
+  [40, 90.9],
+  [45, 97.9],
+  [50, 105.2],
+  [55, 112.5],
   [60, 120],
   [99, 160],
 ];
