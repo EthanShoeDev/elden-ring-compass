@@ -190,6 +190,8 @@ export const ARTS: readonly WeaponArt[] = [
   {"id":1197,"name":"Contagious Fury"},
   {"id":1198,"name":"Ordovis's Vortex"},
   {"id":1199,"name":"Spinning Weapon"},
+  {"id":1200,"name":"Muleta"},
+  {"id":1201,"name":"Causality's Wrath"},
   {"id":2000,"name":"Dryleaf Whirlwind"},
   {"id":2001,"name":"Aspects of the Crucible: Wings"},
   {"id":4000,"name":"Spinning Gravity Thrust"},

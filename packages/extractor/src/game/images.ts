@@ -52,7 +52,8 @@ import {
  *
  * Rust (`er-image-codec`) decodes BCn → a lossless PNG; for map tiles `sharp`
  * stitches + re-tiles, for icons `Bun.Image` re-encodes to the configured format.
- * Skip-if-exists (per map/layer for tiles) makes reruns cheap.
+ * Reruns are cheap and patch-safe: each output is re-rendered only when the hash
+ * of its source bytes (recorded in `images/source-hashes.json`) changes.
  */
 
 export class ImagesError extends Data.TaggedError('ImagesError')<{
@@ -194,6 +195,24 @@ const prettyJsonString = <S extends Schema.Top>(schema: S) =>
   );
 const encodeManifest = Schema.encodeEffect(prettyJsonString(TileManifest));
 
+// Source-hash cache (`images/source-hashes.json`, committed with the outputs):
+// output key → hash of the game bytes it was rendered from plus the encode
+// settings. Reruns re-render an output only when that hash changes, so a patch
+// that redraws an existing icon or map tile is picked up while unchanged outputs
+// are left byte-for-byte alone. A missing file just means "re-render everything".
+const SOURCE_HASHES_FILE = 'source-hashes.json';
+const SourceHashesJson = prettyJsonString(
+  Schema.Record(Schema.String, Schema.String),
+);
+const decodeSourceHashes = Schema.decodeEffect(SourceHashesJson);
+const encodeSourceHashes = Schema.encodeEffect(SourceHashesJson);
+
+const hashSource = (...parts: readonly (string | Uint8Array)[]) => {
+  const hasher = new Bun.CryptoHasher('sha1');
+  for (const part of parts) hasher.update(part);
+  return hasher.digest('hex');
+};
+
 /** Encode with the requested format; a new `ImageFormat` member is a type error here. */
 const encodeImage = (img: Bun.Image, opts: ImageEncodeOptions): Bun.Image =>
   Match.value(opts.format).pipe(
@@ -226,6 +245,24 @@ export const extractImages = (
     const iconDir = `${outDir}/images/icons`;
     yield* fs.makeDirectory(tileDir, { recursive: true });
     yield* fs.makeDirectory(iconDir, { recursive: true });
+
+    const hashesPath = `${outDir}/images/${SOURCE_HASHES_FILE}`;
+    const sourceHashes = new Map(
+      Object.entries(
+        (yield* fs.exists(hashesPath))
+          ? yield* decodeSourceHashes(
+              yield* fs.readFileString(hashesPath),
+            ).pipe(
+              Effect.mapError(
+                (cause) =>
+                  new ImagesError({
+                    detail: `reading ${hashesPath}: ${String(cause)}`,
+                  }),
+              ),
+            )
+          : {},
+      ),
+    );
 
     // --- Map tiles → per-map vanilla (all-fragments) pyramid + manifest ---
     // Each tile name ends in a 32-bit `variant` bitmask (collected fragments /
@@ -343,13 +380,7 @@ export const extractImages = (
           layers: [{ id: BASE_LAYER_ID, base: true, tileCount }],
         });
 
-        if (yield* dirHasEntries(outBaseDir)) {
-          tilesSkipped += cells.size;
-          manifestMaps.push(mkSummary(cells.size));
-          continue;
-        }
-
-        // Pick + decode the fully-revealed tile for each cell. Authoritative:
+        // Pick the fully-revealed tile for each cell. Authoritative:
         // the on-disk variant whose `code === cellMask` (the mtmsk full mask).
         // Cells with no mask are void (map edge/ocean) and cells whose mask
         // carries an event bit (the crater) are out-of-bounds — both skipped, so
@@ -358,7 +389,7 @@ export const extractImages = (
         // heuristic across every cell.
         const cellMasks = maskInfo?.cellMasks;
         const useMasks = cellMasks !== undefined && cellMasks.size > 0;
-        const decoded: { col: number; row: number; png: Uint8Array }[] = [];
+        const picked: { col: number; row: number; slice: Uint8Array }[] = [];
         for (const [key, vs] of cells) {
           let pick: (typeof vs)[number] | undefined;
           if (useMasks) {
@@ -381,17 +412,39 @@ export const extractImages = (
                 .arrayBuffer(),
             ),
           );
+          picked.push({ col: pick.col, row: pick.row, slice });
+        }
+
+        // Skip the (expensive) decode + re-tile when every picked source tile is
+        // unchanged since the pyramid on disk was built.
+        const hashKey = `map-tiles/${map}/${BASE_LAYER_ID}`;
+        const sourceHash = hashSource(
+          `${ext}:q${opts.quality}:${TILE_PX}:${MASTER_PX}:${MAX_NATIVE_ZOOM}`,
+          ...picked.flatMap((p) => [`${p.col}_${p.row}`, p.slice]),
+        );
+        if (
+          sourceHashes.get(hashKey) === sourceHash &&
+          (yield* dirHasEntries(outBaseDir))
+        ) {
+          tilesSkipped += picked.length;
+          manifestMaps.push(mkSummary(picked.length));
+          continue;
+        }
+
+        const decoded: { col: number; row: number; png: Uint8Array }[] = [];
+        for (const { col, row, slice } of picked) {
           const textures = yield* tpfTextures(slice, oo2corePath);
           const [firstTexture] = textures;
           if (firstTexture === undefined) continue;
           const png = yield* ddsToPng(firstTexture.dds);
-          decoded.push({ col: pick.col, row: pick.row, png });
+          decoded.push({ col, row, png });
         }
         const { tileCount } = yield* buildLayerPyramid(
           decoded,
           outBaseDir,
           opts,
         );
+        sourceHashes.set(hashKey, sourceHash);
         tiles += tileCount;
         manifestMaps.push(mkSummary(tileCount));
         yield* log(
@@ -432,16 +485,22 @@ export const extractImages = (
       const bytes = new Uint8Array(
         yield* Effect.promise(() => Bun.file(path).arrayBuffer()),
       );
+      // A changed sheet re-renders every texture in it (overwriting); an
+      // unchanged one only backfills missing outputs.
+      const hashKey = `icons/${sheet}`;
+      const sourceHash = hashSource(`${ext}:q${opts.quality}`, bytes);
+      const sheetChanged = sourceHashes.get(hashKey) !== sourceHash;
       const textures = yield* tpfTextures(bytes, oo2corePath);
       yield* fs.makeDirectory(`${iconDir}/${sheet}`, { recursive: true });
       for (const [i, t] of textures.entries()) {
         const safe = (t.name || `tex_${i}`).replaceAll(/[^\w.-]/g, '_');
         const outBase = `${iconDir}/${sheet}/${i}_${safe}`;
-        if (yield* fileExists(`${outBase}.${ext}`)) continue;
+        if (!sheetChanged && (yield* fileExists(`${outBase}.${ext}`))) continue;
         const png = yield* ddsToPng(t.dds);
         yield* encodePng(png, outBase, opts);
         icons++;
       }
+      sourceHashes.set(hashKey, sourceHash);
     }
     yield* log(`icons: ${icons} written`);
 
@@ -473,15 +532,6 @@ export const extractImages = (
         const iconId = Number.parseInt(idStr, 10);
         const outBase = `${itemIconDir}/${iconId}`;
         const thumbBase = `${itemThumbDir}/${iconId}`;
-        const haveFull = yield* fileExists(`${outBase}.${ext}`);
-        const haveThumb = yield* fileExists(`${thumbBase}.${ext}`);
-        // Both present → skip the (expensive) slice+decode entirely. Otherwise
-        // decode once and write whichever output(s) are missing, so reruns
-        // backfill thumbnails for icons extracted before this stage emitted them.
-        if (haveFull && haveThumb) {
-          itemIconsSkipped++;
-          continue;
-        }
         const slice = new Uint8Array(
           yield* Effect.promise(() =>
             Bun.file(soloBdt)
@@ -489,15 +539,30 @@ export const extractImages = (
               .arrayBuffer(),
           ),
         );
+        // Source unchanged and both outputs present → skip the (expensive)
+        // decode + encode. Otherwise (re)write both, so a patched icon replaces
+        // the old one and a missing thumbnail is backfilled.
+        const hashKey = `items/${iconId}`;
+        const sourceHash = hashSource(
+          `${ext}:q${opts.quality}:thumb${ITEM_THUMB_PX}`,
+          slice,
+        );
+        if (
+          sourceHashes.get(hashKey) === sourceHash &&
+          (yield* fileExists(`${outBase}.${ext}`)) &&
+          (yield* fileExists(`${thumbBase}.${ext}`))
+        ) {
+          itemIconsSkipped++;
+          continue;
+        }
         const textures = yield* tpfTextures(slice, oo2corePath);
         const [firstTexture] = textures;
         if (firstTexture === undefined) continue;
         const png = yield* ddsToPng(firstTexture.dds);
-        if (!haveFull) {
-          yield* encodePng(png, outBase, opts);
-          itemIcons++;
-        }
-        if (!haveThumb) yield* encodeThumb(png, thumbBase, opts);
+        yield* encodePng(png, outBase, opts);
+        yield* encodeThumb(png, thumbBase, opts);
+        sourceHashes.set(hashKey, sourceHash);
+        itemIcons++;
       }
       yield* log(
         `item icons: ${itemIcons} written (+${itemIconsSkipped} cached)`,
@@ -505,6 +570,14 @@ export const extractImages = (
     } else {
       yield* log('no menu/hi/00_solo.tpfbhd; skipping item icons');
     }
+
+    // Sorted so the committed file diffs cleanly between runs.
+    const hashesJson = yield* encodeSourceHashes(
+      Object.fromEntries(
+        [...sourceHashes].toSorted(([a], [b]) => a.localeCompare(b)),
+      ),
+    ).pipe(Effect.orDie);
+    yield* fs.writeFileString(hashesPath, `${hashesJson}\n`);
 
     return { tiles, tilesSkipped, icons, itemIcons, itemIconsSkipped };
   });

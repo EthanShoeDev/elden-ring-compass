@@ -17,8 +17,8 @@ const DATA_PACKAGE_DIR = Bun.fileURLToPath(
  * (`er-image-codec`, via bun:ffi) does the BCn decode → lossless PNG. Map tiles
  * are then stitched + re-tiled by `sharp` into a clean power-of-2 `{z}/{y}/{x}`
  * pyramid per map/layer (see `game/map-pyramid.ts`); icons go through `Bun.Image`.
- * Output under `packages/data/images/` (tiles + `manifest.json`);
- * skip-if-exists makes reruns cheap.
+ * Output under `packages/data/images/` (tiles + `manifest.json`); a source-hash
+ * cache (`source-hashes.json`) re-renders only what a game patch changed.
  */
 export const images = Effect.gen(function* () {
   const ctx = yield* PipelineContext;

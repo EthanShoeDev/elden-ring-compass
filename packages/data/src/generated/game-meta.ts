@@ -3,4 +3,4 @@
 
 /** Elden Ring version this dataset was extracted from (PE FileVersion of
  * eldenring.exe), or null if it couldn't be read. */
-export const GAME_VERSION: string | null = '2.6.2.0';
+export const GAME_VERSION: string | null = '2.7.1.0';

@@ -15,6 +15,7 @@ export const ATTACK_ELEMENT_CORRECTS: readonly AttackElementCorrect[] = [
   {"id":12000,"correct":{"physical":{"str":true,"dex":true,"fai":true},"magic":{"int":true},"fire":{"fai":true},"lightning":{"dex":true},"holy":{"fai":true}}},
   {"id":12005,"correct":{"physical":{"str":true,"dex":true,"fai":true},"magic":{"int":true},"fire":{"str":true},"lightning":{"dex":true},"holy":{"fai":true}}},
   {"id":15000,"correct":{"physical":{"str":true,"dex":true,"fai":true,"arc":true},"magic":{"int":true},"fire":{"fai":true},"lightning":{"dex":true},"holy":{"fai":true}}},
+  {"id":19000,"correct":{"physical":{"str":true,"dex":true},"magic":{"int":true},"fire":{"fai":true},"lightning":{"dex":true},"holy":{"int":true,"fai":true}}},
   {"id":20000,"correct":{"physical":{"int":true},"magic":{"int":true},"fire":{"int":true},"lightning":{"int":true},"holy":{"int":true}}},
   {"id":20010,"correct":{"physical":{"int":true,"fai":true},"magic":{"int":true,"fai":true},"fire":{"int":true,"fai":true},"lightning":{"int":true,"fai":true},"holy":{"int":true,"fai":true}}},
   {"id":20020,"correct":{"physical":{"fai":true},"magic":{"fai":true},"fire":{"fai":true},"lightning":{"fai":true},"holy":{"fai":true}}},
@@ -38,4 +39,5 @@ export const ATTACK_ELEMENT_CORRECTS: readonly AttackElementCorrect[] = [
   {"id":20010600,"correct":{"physical":{"str":true,"dex":true,"fai":true,"arc":true},"magic":{"int":true},"fire":{"fai":true},"lightning":{"dex":true},"holy":{"fai":true}}},
   {"id":20010601,"correct":{"physical":{"str":true,"dex":true,"fai":true,"arc":true},"magic":{"int":true},"fire":{"str":true},"lightning":{"dex":true},"holy":{"fai":true}}},
   {"id":20010700,"correct":{"physical":{"str":true,"dex":true},"magic":{"int":true,"fai":true},"fire":{"fai":true},"lightning":{"dex":true},"holy":{"fai":true}}},
+  {"id":20010800,"correct":{"physical":{"str":true,"dex":true,"int":true},"magic":{"int":true},"fire":{"int":true,"fai":true},"lightning":{"dex":true,"int":true},"holy":{"int":true,"fai":true}}},
 ];

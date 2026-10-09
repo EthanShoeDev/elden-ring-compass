@@ -6,7 +6,7 @@
 // — effect `FileSystem` has no ranged-read API and loading the whole file would be
 // the real regression — wrapped in `Effect.promise`. `Bun.write` is likewise kept
 // (not a lint concern; `node:fs`/`node:path` are).
-import { Data, Effect, FileSystem, Path } from 'effect';
+import { Data, Effect, FileSystem, Option, Path } from 'effect';
 
 import {
   ER_ARCHIVE_KEYS,
@@ -83,18 +83,55 @@ const loadDictionary = Effect.gen(function* () {
   return map;
 });
 
+/**
+ * A backup is stale when a game patch rewrote the live originals after we backed
+ * them up (Steam patches the `sd/` archives in place): some live file differs in
+ * size from, or is newer than, its backed-up copy. Restoring a stale backup would
+ * roll the install back to pre-patch archives.
+ */
+const isStaleBackup = (backup: string, live: string) =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    for (const name of yield* fs.readDirectory(backup)) {
+      const liveFile = `${live}/${name}`;
+      if (!(yield* fs.exists(liveFile))) continue;
+      const saved = yield* fs.stat(`${backup}/${name}`);
+      const current = yield* fs.stat(liveFile);
+      if (saved.size !== current.size) return true;
+      if (
+        Option.isSome(saved.mtime) &&
+        Option.isSome(current.mtime) &&
+        current.mtime.value.getTime() > saved.mtime.value.getTime()
+      ) {
+        return true;
+      }
+    }
+    return false;
+  });
+
 /** `--clean`: restore backed-up dirs and remove previously-unpacked dirs. */
-const cleanInstall = (gameRoot: string) =>
+export const cleanInstall = (gameRoot: string) =>
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     for (const dir of ER_GAME_INFO.backupDirs) {
       const backup = `${gameRoot}/_backup/${dir}`;
-      if (yield* fs.exists(backup)) {
-        yield* fs.remove(`${gameRoot}/${dir}`, {
-          recursive: true,
-          force: true,
-        });
-        yield* fs.rename(backup, `${gameRoot}/${dir}`);
+      const live = `${gameRoot}/${dir}`;
+      if (!(yield* fs.exists(backup))) continue;
+      if (yield* isStaleBackup(backup, live)) {
+        // Keep the patched originals (every name the backup holds) and drop only
+        // the loose files unpacked alongside them; the backup itself is discarded
+        // below and re-taken from the patched dir by `backupDirs`.
+        const originals = new Set(yield* fs.readDirectory(backup));
+        for (const name of yield* fs.readDirectory(live)) {
+          if (originals.has(name)) continue;
+          yield* fs.remove(`${live}/${name}`, { recursive: true, force: true });
+        }
+        yield* Effect.logWarning(
+          `  _backup/${dir}/ predates a game patch — kept the patched ${dir}/ originals instead of restoring it`,
+        );
+      } else {
+        yield* fs.remove(live, { recursive: true, force: true });
+        yield* fs.rename(backup, live);
         yield* Effect.logInfo(`  restored ${dir}/ from _backup/`);
       }
     }

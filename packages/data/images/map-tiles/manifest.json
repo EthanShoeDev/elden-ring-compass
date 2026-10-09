@@ -39,7 +39,7 @@
         {
           "id": "base",
           "base": true,
-          "tileCount": 1681
+          "tileCount": 1368
         }
       ]
     },
@@ -59,7 +59,7 @@
         {
           "id": "base",
           "base": true,
-          "tileCount": 1681
+          "tileCount": 418
         }
       ]
     },
@@ -79,7 +79,7 @@
         {
           "id": "base",
           "base": true,
-          "tileCount": 1681
+          "tileCount": 480
         }
       ]
     },

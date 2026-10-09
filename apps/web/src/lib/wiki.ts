@@ -30,6 +30,10 @@ const NO_WIKI_PAGE = new Set([
   // Real items the wiki simply has no page for.
   'Phantom Recusant Finger',
   'Erdtree Prayerbook',
+  // Patch 2.7.1 Torrent skins — no wiki pages yet (checked 2026-10-09).
+  'Spectral Steed Regalia: Tree Sentinel',
+  'Spectral Steed Regalia: Carian Silver',
+  'Spectral Steed Regalia: Funereal Night',
 ]);
 
 /** Names whose wiki page is titled irregularly (no derivable rule). */
@@ -41,6 +45,10 @@ const WIKI_NAME_OVERRIDES = new Map([
   ['Depraved Perfumer Carmaan', 'Depraved Perfumer Carmaan Ashes'],
   ['Redmane Knight Ogha', 'Redmane Knight Ogha Ashes'],
   ["Zorayas's Letter", "Zorayas' Letter"],
+  // Patch 2.7.1 altered pieces with no page of their own yet (checked
+  // 2026-10-09) — link the base piece's page instead.
+  ["Leontiel's Hat (Altered)", "Leontiel's Hat"],
+  ['Silver Grooved Armor (Altered)', 'Silver Grooved Armor'],
 ]);
 
 /**
