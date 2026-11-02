@@ -10,12 +10,20 @@ import {
 import { derivedStatsView } from '@/lib/vm/derived-stats';
 import { statsDbView } from '@/lib/vm/stats';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
-import { CompletionRing } from './completion-ring';
-import { Badge } from '../ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Separator } from '../ui/separator';
 
-const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+import { Badge } from '../ui/badge';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
+import { Separator } from '../ui/separator';
+import { CompletionRing } from './completion-ring';
+
+const capitalize = (s: string) =>
+  s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 
 /** The single character card: completion ring + identity + attribute stats. */
 export function CompletionHero() {
@@ -48,7 +56,12 @@ export function CompletionHero() {
     sub: s.max !== s.base ? `base ${s.base.toLocaleString()}` : undefined,
     hint: `Max ${label} as saved (base ${s.base.toLocaleString()} before equipment and buffs)`,
   });
-  const derived: ReadonlyArray<{ label: string; value: string; sub?: string; hint: string }> = [
+  const derived: ReadonlyArray<{
+    label: string;
+    value: string;
+    sub?: string | undefined;
+    hint: string;
+  }> = [
     pool('HP', d.hp),
     pool('FP', d.fp),
     pool('Stamina', d.stamina),
@@ -101,19 +114,29 @@ export function CompletionHero() {
               <span className='text-[10.5px] font-medium tracking-wide text-muted-foreground uppercase'>
                 {label.slice(0, 3)}
               </span>
-              <span className='text-lg font-semibold tabular-nums'>{value}</span>
+              <span className='text-lg font-semibold tabular-nums'>
+                {value}
+              </span>
             </div>
           ))}
         </div>
         <div className='grid grid-cols-3 gap-3 border-t border-border pt-4 sm:grid-cols-6'>
           {derived.map(({ label, value, sub, hint }) => (
-            <div key={label} className='flex flex-col items-center gap-0.5' title={hint}>
+            <div
+              key={label}
+              className='flex flex-col items-center gap-0.5'
+              title={hint}
+            >
               <span className='text-[10.5px] font-medium tracking-wide text-muted-foreground uppercase'>
                 {label}
               </span>
-              <span className='text-lg font-semibold tabular-nums'>{value}</span>
+              <span className='text-lg font-semibold tabular-nums'>
+                {value}
+              </span>
               {sub !== undefined && (
-                <span className='text-[11px] text-muted-foreground tabular-nums'>{sub}</span>
+                <span className='text-[11px] text-muted-foreground tabular-nums'>
+                  {sub}
+                </span>
               )}
             </div>
           ))}
@@ -144,7 +167,11 @@ function CategoryRow({ c }: { c: CompletionCategory }) {
 
   if (c.categorySlug !== undefined && c.categorySlug !== '')
     return (
-      <Link to='/inventory/$category' params={{ category: c.categorySlug }} className='block'>
+      <Link
+        to='/inventory/$category'
+        params={{ category: c.categorySlug }}
+        className='block'
+      >
         {body}
       </Link>
     );
@@ -190,7 +217,11 @@ function MilestoneChips({ milestones }: { milestones: Milestone[] }) {
         {milestones.map((m) => {
           const done = m.total > 0 && m.owned >= m.total;
           return (
-            <Badge key={m.key} variant={done ? 'default' : 'secondary'} className='gap-1'>
+            <Badge
+              key={m.key}
+              variant={done ? 'default' : 'secondary'}
+              className='gap-1'
+            >
               {done && <CheckIcon className='size-3' />}
               {m.label} {m.owned}/{m.total}
             </Badge>

@@ -14,21 +14,42 @@ import {
 import { goodsByName } from '@/lib/game-data';
 import { cn } from '@/lib/utils';
 import { eventsDbView } from '@/lib/vm/events';
-import { flasksView, MAX_FLASK_CHARGES, mixedPhysickTearIds } from '@/lib/vm/flasks';
+import {
+  flasksView,
+  MAX_FLASK_CHARGES,
+  mixedPhysickTearIds,
+} from '@/lib/vm/flasks';
 import { goodsQuantityById } from '@/lib/vm/inventory';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
+
+import {
+  ConnectSaveButton,
+  ShareCharacterButton,
+} from '../misc/save-file-source-selector';
+import { TooltipImg } from '../misc/tooltip-img';
+import { Button } from '../ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
+import { ScrollArea, ScrollBar } from '../ui/scroll-area';
+import { Separator } from '../ui/separator';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../ui/table';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { ActiveEffectsCard } from './active-effects-card';
 import { CompletionBreakdown, CompletionHero } from './completion-overview';
 import { EquipmentCard } from './equipment-card';
 import { RegionsDataTable } from './regions-data-table';
-import { ConnectSaveButton, ShareCharacterButton } from '../misc/save-file-source-selector';
-import { TooltipImg } from '../misc/tooltip-img';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { ScrollArea, ScrollBar } from '../ui/scroll-area';
-import { Separator } from '../ui/separator';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 /** Upgrade-material table rows: tier `t` is the stone for the `+t+1` upgrade. */
 const UPGRADE_TIERS = Array.from({ length: 10 }, (_, tier) => tier);
@@ -78,25 +99,55 @@ function OverviewEmpty() {
         <span className='flex size-14 items-center justify-center rounded-xl border border-border bg-muted'>
           <SwordIcon className='size-7' />
         </span>
-        <h3 className='text-xl font-semibold tracking-tight'>Track your journey</h3>
+        <h3 className='text-xl font-semibold tracking-tight'>
+          Track your journey
+        </h3>
         <p className='max-w-xl text-sm leading-relaxed text-muted-foreground'>
-          Connect a save file and this becomes your personal run dashboard — bosses defeated, items
-          collected, equipped loadout, active effects, character stats, and discovered map
-          locations, all updating live as you play. No save? Explore the world map and full item
-          catalog freely.
+          Connect a save file and this becomes your personal run dashboard —
+          bosses defeated, items collected, equipped loadout, active effects,
+          character stats, and discovered map locations, all updating live as
+          you play. No save? Explore the world map and full item catalog freely.
         </p>
         <div className='flex flex-wrap justify-center gap-2'>
           <ConnectSaveButton />
-          <Button variant='outline' render={<Link to='/' />} nativeButton={false}>
+          <Button
+            variant='outline'
+            render={<Link to='/' />}
+            nativeButton={false}
+          >
             <MapIcon /> Explore the map
           </Button>
         </div>
       </div>
       <div className='grid grid-cols-2 gap-4 lg:grid-cols-4'>
-        <Tile locked icon={SkullIcon} label='Bosses Defeated' value='—' sub='Connect to track' />
-        <Tile locked icon={SwordIcon} label='Rune Level' value='—' sub='Connect to track' />
-        <Tile locked icon={PackageIcon} label='Items Collected' value='—' sub='Connect to track' />
-        <Tile locked icon={CoinsIcon} label='Runes Held' value='—' sub='Connect to track' />
+        <Tile
+          locked
+          icon={SkullIcon}
+          label='Bosses Defeated'
+          value='—'
+          sub='Connect to track'
+        />
+        <Tile
+          locked
+          icon={SwordIcon}
+          label='Rune Level'
+          value='—'
+          sub='Connect to track'
+        />
+        <Tile
+          locked
+          icon={PackageIcon}
+          label='Items Collected'
+          value='—'
+          sub='Connect to track'
+        />
+        <Tile
+          locked
+          icon={CoinsIcon}
+          label='Runes Held'
+          value='—'
+          sub='Connect to track'
+        />
       </div>
     </>
   );
@@ -237,8 +288,8 @@ export function OverviewSection() {
         <CardHeader>
           <CardTitle>Flasks</CardTitle>
           <CardDescription>
-            {flasks.totalCharges} / {MAX_FLASK_CHARGES} flask charges · seeds, sacred tears &amp;
-            physick crystal tears
+            {flasks.totalCharges} / {MAX_FLASK_CHARGES} flask charges · seeds,
+            sacred tears &amp; physick crystal tears
           </CardDescription>
         </CardHeader>
         <CardContent className='flex flex-col gap-1'>
@@ -270,8 +321,9 @@ export function OverviewSection() {
         <CardHeader>
           <CardTitle>Upgrade Materials</CardTitle>
           <CardDescription>
-            {maxPowerMaterialOwned} / 31 - ({Math.round((maxPowerMaterialOwned / 31) * 100)}%) Max
-            Power Materials
+            {maxPowerMaterialOwned} / 31 - (
+            {Math.round((maxPowerMaterialOwned / 31) * 100)}%) Max Power
+            Materials
           </CardDescription>
         </CardHeader>
         <CardContent className='max-w-full overflow-hidden'>
@@ -339,12 +391,18 @@ export function OverviewSection() {
                               ]
                             : undefined;
 
-                        const bellBearing = bellBearingName && goodsByName.get(bellBearingName);
+                        const bellBearing =
+                          bellBearingName && goodsByName.get(bellBearingName);
 
-                        const bellLocation = bellBearing && bellNameLocation[bellBearingName];
+                        const bellLocation =
+                          bellBearing && bellNameLocation[bellBearingName];
                         const bellOwned =
-                          ((bellBearing && inventoryQuantityById.get(bellBearing.id)) ?? 0) > 0 ||
-                          (bellLocation && 'boss' in bellLocation && bellLocation.boss.killed);
+                          ((bellBearing &&
+                            inventoryQuantityById.get(bellBearing.id)) ??
+                            0) > 0 ||
+                          (bellLocation &&
+                            'boss' in bellLocation &&
+                            bellLocation.boss.killed);
 
                         const imgSrc = item && itemIconUrl(item.icon);
                         return (
@@ -353,21 +411,33 @@ export function OverviewSection() {
                               <TooltipTrigger
                                 className={cn(
                                   'flex items-center rounded-lg p-1',
-                                  bellOwned === true ? 'border border-green-300/50' : '',
+                                  bellOwned === true
+                                    ? 'border border-green-300/50'
+                                    : '',
                                 )}
                               >
                                 <div className='flex flex-wrap items-center justify-center gap-1'>
                                   {item && (
                                     <>
-                                      <img className='size-8' src={imgSrc} alt={item.name} />
+                                      <img
+                                        className='size-8'
+                                        src={imgSrc}
+                                        alt={item.name}
+                                      />
 
                                       <span className='w-10 whitespace-nowrap'>
-                                        {inventoryQuantityById.get(item.id) ?? 0}
-                                        {item.name === 'Ancient Dragon Smithing Stone' && ' / 13'}
-                                        {item.name === 'Somber Ancient Dragon Smithing Stone' &&
+                                        {inventoryQuantityById.get(item.id) ??
+                                          0}
+                                        {item.name ===
+                                          'Ancient Dragon Smithing Stone' &&
+                                          ' / 13'}
+                                        {item.name ===
+                                          'Somber Ancient Dragon Smithing Stone' &&
                                           ' / 8'}
-                                        {item.name === 'Great Grave Glovewort' && ' / 6'}
-                                        {item.name === 'Great Ghost Glovewort' && ' / 4'}
+                                        {item.name ===
+                                          'Great Grave Glovewort' && ' / 6'}
+                                        {item.name ===
+                                          'Great Ghost Glovewort' && ' / 4'}
                                       </span>
                                     </>
                                   )}
@@ -384,7 +454,7 @@ export function OverviewSection() {
                                 {bellLocation && (
                                   <>
                                     <br />
-                                    <p className='w-full text-wrap text-center'>
+                                    <p className='w-full text-center text-wrap'>
                                       Bell bearing found{' '}
                                       {'boss' in bellLocation
                                         ? `from boss ${bellLocation.boss.bossName}`
@@ -421,17 +491,29 @@ export function OverviewSection() {
  */
 function WondrousPhysick() {
   const slot = useSelectedSlot();
-  const quantityById = slot ? goodsQuantityById(slot) : new Map<number, number>();
+  const quantityById = slot
+    ? goodsQuantityById(slot)
+    : new Map<number, number>();
   const mixed = new Set(slot ? mixedPhysickTearIds(slot) : []);
-  const tears = GOODS.filter((g) => g.category === 'Crystal Tear' && !g.name.startsWith('[ERROR]'));
-  const ownedCount = tears.filter((t) => (quantityById.get(t.id) ?? 0) > 0).length;
+  const tears = GOODS.filter(
+    (g) => g.category === 'Crystal Tear' && !g.name.startsWith('[ERROR]'),
+  );
+  const ownedCount = tears.filter(
+    (t) => (quantityById.get(t.id) ?? 0) > 0,
+  ).length;
   const physick = goodsByName.get('Flask of Wondrous Physick');
 
   return (
     <div className='flex flex-col gap-2 pt-1'>
       <div className='flex items-center justify-between gap-2'>
         <div className='flex items-center gap-2'>
-          {physick && <img src={itemIconUrl(physick.icon) ?? ''} alt='' className='size-8' />}
+          {physick && (
+            <img
+              src={itemIconUrl(physick.icon) ?? ''}
+              alt=''
+              className='size-8'
+            />
+          )}
           <span className='text-sm font-medium'>Flask of Wondrous Physick</span>
         </div>
         <span className='text-sm text-muted-foreground tabular-nums'>
@@ -454,13 +536,26 @@ function WondrousPhysick() {
                       : 'opacity-30 grayscale',
                 )}
               >
-                <img src={itemIconUrl(tear.icon) ?? ''} alt={tear.name} className='size-8' />
+                <img
+                  src={itemIconUrl(tear.icon) ?? ''}
+                  alt={tear.name}
+                  className='size-8'
+                />
               </TooltipTrigger>
               <TooltipContent className='flex max-w-60 flex-col items-center gap-1'>
-                <img loading='lazy' src={itemIconUrl(tear.icon) ?? ''} alt='' className='size-28' />
+                <img
+                  loading='lazy'
+                  src={itemIconUrl(tear.icon) ?? ''}
+                  alt=''
+                  className='size-28'
+                />
                 <p className='text-center'>{tear.name}</p>
                 <p className='text-xs text-muted-foreground'>
-                  {inFlask ? 'Mixed into the flask' : owned ? 'Collected' : 'Not collected'}
+                  {inFlask
+                    ? 'Mixed into the flask'
+                    : owned
+                      ? 'Collected'
+                      : 'Not collected'}
                 </p>
               </TooltipContent>
             </Tooltip>

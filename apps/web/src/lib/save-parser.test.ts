@@ -1,10 +1,12 @@
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+
 import { NodeServices } from '@effect/platform-node';
 import { it } from '@effect/vitest';
+import { MATCHMAKING_REGION_IDS, REGIONS } from '@elden-ring-compass/data';
 import { Data, Effect, FileSystem } from 'effect';
 import { expect } from 'vitest';
-import { MATCHMAKING_REGION_IDS, REGIONS } from '@elden-ring-compass/data';
+
 import { parseEldenRingData } from './er-save-parser';
 import type { Slot, WasmEldenRingSave } from './save-dto';
 
@@ -42,7 +44,14 @@ const REPO_ROOT = (() => {
 const savePaths = Effect.sync(() => ({
   // A committed base-game save shipped in public/. (DLC fixtures can join this list once a
   // committed `.sl2` lives in the repo.)
-  baseSave: join(REPO_ROOT, 'packages', 'save-parser', 'test', 'fixtures', 'ER0000.sl2'),
+  baseSave: join(
+    REPO_ROOT,
+    'packages',
+    'save-parser',
+    'test',
+    'fixtures',
+    'ER0000.sl2',
+  ),
 }));
 
 /** Read a save fixture and parse it into the lean DTO, as a typed-failure Effect. */
@@ -57,7 +66,8 @@ const parseFixture = (absPath: string) =>
     ) as ArrayBuffer;
     return yield* Effect.try({
       try: () => parseEldenRingData(buffer),
-      catch: (cause) => new SaveParseError({ message: 'TS parse failed', cause }),
+      catch: (cause) =>
+        new SaveParseError({ message: 'TS parse failed', cause }),
     });
   });
 
@@ -79,64 +89,70 @@ it.layer(NodeServices.layer)('TS save parser — lean DTO (ER0000.sl2)', (it) =>
     }),
   );
 
-  it.effect('player_game_data: name + stats are sane for every occupied slot', () =>
-    Effect.gen(function* () {
-      const { baseSave } = yield* savePaths;
-      const save = yield* parseFixture(baseSave);
-      for (const slot of occupiedSlots(save)) {
-        const p = slot.player_game_data;
-        expect(p.character_name.length).toBeGreaterThan(0);
-        expect(p.level).toBeGreaterThanOrEqual(1);
-        expect(p.level).toBeLessThanOrEqual(999);
-        const stats = [
-          p.vigor,
-          p.mind,
-          p.endurance,
-          p.strength,
-          p.dexterity,
-          p.intelligence,
-          p.faith,
-          p.arcane,
-        ];
-        for (const stat of stats) {
-          expect(stat).toBeGreaterThanOrEqual(1);
-          expect(stat).toBeLessThanOrEqual(99);
+  it.effect(
+    'player_game_data: name + stats are sane for every occupied slot',
+    () =>
+      Effect.gen(function* () {
+        const { baseSave } = yield* savePaths;
+        const save = yield* parseFixture(baseSave);
+        for (const slot of occupiedSlots(save)) {
+          const p = slot.player_game_data;
+          expect(p.character_name.length).toBeGreaterThan(0);
+          expect(p.level).toBeGreaterThanOrEqual(1);
+          expect(p.level).toBeLessThanOrEqual(999);
+          const stats = [
+            p.vigor,
+            p.mind,
+            p.endurance,
+            p.strength,
+            p.dexterity,
+            p.intelligence,
+            p.faith,
+            p.arcane,
+          ];
+          for (const stat of stats) {
+            expect(stat).toBeGreaterThanOrEqual(1);
+            expect(stat).toBeLessThanOrEqual(99);
+          }
+          // Level can't exceed the summed attributes (each level buys exactly one attribute point).
+          const statSum = stats.reduce((a, b) => a + b, 0);
+          expect(statSum).toBeGreaterThanOrEqual(p.level);
+          expect(p.souls).toBeGreaterThanOrEqual(0);
+          expect(p.soulsmemory).toBeGreaterThanOrEqual(p.souls);
         }
-        // Level can't exceed the summed attributes (each level buys exactly one attribute point).
-        const statSum = stats.reduce((a, b) => a + b, 0);
-        expect(statSum).toBeGreaterThanOrEqual(p.level);
-        expect(p.souls).toBeGreaterThanOrEqual(0);
-        expect(p.soulsmemory).toBeGreaterThanOrEqual(p.souls);
-      }
-    }),
+      }),
   );
 
-  it.effect('event_flags: ships the trailing-trimmed bitfield (large, byte-addressable)', () =>
-    Effect.gen(function* () {
-      const { baseSave } = yield* savePaths;
-      const save = yield* parseFixture(baseSave);
-      const slot = occupiedSlots(save)[0];
-      if (slot === undefined) throw new Error('expected an occupied slot');
-      const flags = slot.event_flags.flags;
-      // ~1.77 MB region minus trailing zeros; far larger than any accidental small buffer.
-      expect(flags.length).toBeGreaterThan(100_000);
-    }),
+  it.effect(
+    'event_flags: ships the trailing-trimmed bitfield (large, byte-addressable)',
+    () =>
+      Effect.gen(function* () {
+        const { baseSave } = yield* savePaths;
+        const save = yield* parseFixture(baseSave);
+        const slot = occupiedSlots(save)[0];
+        if (slot === undefined) throw new Error('expected an occupied slot');
+        const flags = slot.event_flags.flags;
+        // ~1.77 MB region minus trailing zeros; far larger than any accidental small buffer.
+        expect(flags.length).toBeGreaterThan(100_000);
+      }),
   );
 
-  it.effect('ga_items: non-empty entries carry numeric instance handle + item id', () =>
-    Effect.gen(function* () {
-      const { baseSave } = yield* savePaths;
-      const save = yield* parseFixture(baseSave);
-      const slot = occupiedSlots(save)[0];
-      if (slot === undefined) throw new Error('expected an occupied slot');
-      const items = slot.ga_items;
-      expect(items.length).toBeGreaterThan(0);
-      for (const gaItem of items) {
-        expect(Number.isInteger(gaItem.gaitem_handle)).toBe(true);
-        expect(Number.isInteger(gaItem.item_id)).toBe(true);
-        expect(Number.isInteger(gaItem.gem_gaitem_handle)).toBe(true);
-      }
-    }),
+  it.effect(
+    'ga_items: non-empty entries carry numeric instance handle + item id',
+    () =>
+      Effect.gen(function* () {
+        const { baseSave } = yield* savePaths;
+        const save = yield* parseFixture(baseSave);
+        const slot = occupiedSlots(save)[0];
+        if (slot === undefined) throw new Error('expected an occupied slot');
+        const items = slot.ga_items;
+        expect(items.length).toBeGreaterThan(0);
+        for (const gaItem of items) {
+          expect(Number.isInteger(gaItem.gaitem_handle)).toBe(true);
+          expect(Number.isInteger(gaItem.item_id)).toBe(true);
+          expect(Number.isInteger(gaItem.gem_gaitem_handle)).toBe(true);
+        }
+      }),
   );
 
   it.effect('chr_asm2: equipped-handle block is present', () =>

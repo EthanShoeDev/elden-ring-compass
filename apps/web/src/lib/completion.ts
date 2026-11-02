@@ -1,3 +1,5 @@
+import { ARMOR, GOODS } from '@elden-ring-compass/data';
+import { itemIconUrl } from '@elden-ring-compass/data/images';
 // Completion model — the data behind the Overview "how close am I to 100%?" tracker.
 //
 // The denominator is CURATED, not the raw catalog (see docs/projects/overview-completion-tracker.md):
@@ -9,15 +11,13 @@
 // (inventory-catalog.ts), so the counts here are clean.
 import { useMemo } from 'react';
 
-import { ARMOR, GOODS } from '@elden-ring-compass/data';
-import { itemIconUrl } from '@elden-ring-compass/data/images';
-
 import { useSelectedSlot } from '@/stores/slot-selection-store';
+
 import { rewardBossFlags } from './boss-meta';
 import { type InventoryRow, useInventoryTables } from './inventory-catalog';
-import { Slot } from './save-dto';
-import { eventsDbView, isEventFlagOn } from './vm/events';
+import type { Slot } from './save-dto';
 import { equipmentDbView } from './vm/equipement';
+import { eventsDbView, isEventFlagOn } from './vm/events';
 import { goodsQuantityById } from './vm/inventory';
 
 /** One progress row in the breakdown. `categorySlug` deep-links into the matching inventory table. */
@@ -48,7 +48,8 @@ export type CompletionModel = {
   milestones: Milestone[];
 };
 
-const pct = (owned: number, total: number) => (total > 0 ? Math.round((owned / total) * 100) : 0);
+const pct = (owned: number, total: number) =>
+  total > 0 ? Math.round((owned / total) * 100) : 0;
 
 /** Group rows where several catalog rows are transforms of one collectible (weapons, armor). */
 function collapse(
@@ -91,13 +92,18 @@ const MILESTONE_SETS: ReadonlyArray<{
   key: string;
   label: string;
   category: string;
-  collected: (good: Good, held: (id: number) => boolean, slot: Readonly<Slot>) => boolean;
+  collected: (
+    good: Good,
+    held: (id: number) => boolean,
+    slot: Readonly<Slot>,
+  ) => boolean;
 }> = [
   {
     key: 'greatRunes',
     label: 'Great Runes',
     category: 'Great Rune',
-    collected: (g, held) => held(g.id) || held(unrestoredGreatRuneIdByName.get(g.name) ?? -1),
+    collected: (g, held) =>
+      held(g.id) || held(unrestoredGreatRuneIdByName.get(g.name) ?? -1),
   },
   {
     key: 'remembrances',
@@ -105,16 +111,23 @@ const MILESTONE_SETS: ReadonlyArray<{
     category: 'Remembrance',
     // Traded-in Remembrances leave the inventory; the boss kill still proves collection.
     collected: (g, held, slot) =>
-      held(g.id) || rewardBossFlags(g.id).some((flag) => isEventFlagOn(slot, flag)),
+      held(g.id) ||
+      rewardBossFlags(g.id).some((flag) => isEventFlagOn(slot, flag)),
   },
 ];
 
 /** Great Rune / Remembrance trophy progress for a save slot (0 owned without one). */
-export function completionMilestones(slot: Readonly<Slot> | undefined): Milestone[] {
-  const goodsQuantities = slot ? goodsQuantityById(slot) : new Map<number, number>();
+export function completionMilestones(
+  slot: Readonly<Slot> | undefined,
+): Milestone[] {
+  const goodsQuantities = slot
+    ? goodsQuantityById(slot)
+    : new Map<number, number>();
   const held = (id: number) => (goodsQuantities.get(id) ?? 0) > 0;
   return MILESTONE_SETS.map(({ key, label, category, collected }) => {
-    const set = GOODS.filter((g) => g.category === category && !g.name.startsWith('[ERROR]'));
+    const set = GOODS.filter(
+      (g) => g.category === category && !g.name.startsWith('[ERROR]'),
+    );
     return {
       key,
       label,
@@ -139,7 +152,9 @@ export function useCompletion(): CompletionModel {
       (r) => (r as { baseId?: number }).baseId ?? r.id,
     );
     // Armor: collapse "(Altered)" tailor variants by base name.
-    const armor = collapse(tables.armor.items, (r) => r.name.replace(/\s*\(Altered\)\s*$/, ''));
+    const armor = collapse(tables.armor.items, (r) =>
+      r.name.replace(/\s*\(Altered\)\s*$/, ''),
+    );
 
     const cat = (
       key: string,
@@ -158,17 +173,34 @@ export function useCompletion(): CompletionModel {
 
     // `ownedCount` on the inventory tables already counts distinct rows with quantity > 0.
     const categories: CompletionCategory[] = [
-      cat('bosses', 'Bosses', bosses.filter((e) => e.on).length, bosses.length, { to: '/bosses' }),
-      cat('graces', 'Sites of Grace', graces.filter((e) => e.on).length, graces.length),
+      cat(
+        'bosses',
+        'Bosses',
+        bosses.filter((e) => e.on).length,
+        bosses.length,
+        { to: '/bosses' },
+      ),
+      cat(
+        'graces',
+        'Sites of Grace',
+        graces.filter((e) => e.on).length,
+        graces.length,
+      ),
       cat('weapons', 'Weapons', weapons.owned, weapons.total, {
         categorySlug: 'weapons-shields',
       }),
       cat('armor', 'Armor', armor.owned, armor.total, {
         categorySlug: 'armor',
       }),
-      cat('talismans', 'Talismans', tables.talismans.ownedCount, tables.talismans.items.length, {
-        categorySlug: 'talismans',
-      }),
+      cat(
+        'talismans',
+        'Talismans',
+        tables.talismans.ownedCount,
+        tables.talismans.items.length,
+        {
+          categorySlug: 'talismans',
+        },
+      ),
       cat(
         'spells',
         'Sorceries & Incantations',
@@ -178,24 +210,49 @@ export function useCompletion(): CompletionModel {
           categorySlug: 'spells',
         },
       ),
-      cat('spirits', 'Spirit Ashes', tables.spirits.ownedCount, tables.spirits.items.length, {
-        categorySlug: 'spirit-ashes',
-      }),
-      cat('ashes', 'Ashes of War', tables.ashes.ownedCount, tables.ashes.items.length, {
-        categorySlug: 'ashes-of-war',
-      }),
+      cat(
+        'spirits',
+        'Spirit Ashes',
+        tables.spirits.ownedCount,
+        tables.spirits.items.length,
+        {
+          categorySlug: 'spirit-ashes',
+        },
+      ),
+      cat(
+        'ashes',
+        'Ashes of War',
+        tables.ashes.ownedCount,
+        tables.ashes.items.length,
+        {
+          categorySlug: 'ashes-of-war',
+        },
+      ),
       // Gestures are owned when unlocked in the save's gesture table (joined in `inventoryTables`).
-      cat('gestures', 'Gestures', tables.gestures.ownedCount, tables.gestures.items.length, {
-        categorySlug: 'gestures',
-      }),
+      cat(
+        'gestures',
+        'Gestures',
+        tables.gestures.ownedCount,
+        tables.gestures.items.length,
+        {
+          categorySlug: 'gestures',
+        },
+      ),
     ];
 
     // Overall = equal-weight mean of category percentages (so weapons' large count doesn't dominate).
     const overallPct =
       categories.length > 0
-        ? Math.round(categories.reduce((s, c) => s + c.pct, 0) / categories.length)
+        ? Math.round(
+            categories.reduce((s, c) => s + c.pct, 0) / categories.length,
+          )
         : 0;
 
-    return { hasSave: !!slot, overallPct, categories, milestones: completionMilestones(slot) };
+    return {
+      hasSave: !!slot,
+      overallPct,
+      categories,
+      milestones: completionMilestones(slot),
+    };
   }, [slot, tables]);
 }

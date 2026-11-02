@@ -31,7 +31,7 @@ export function AppTopBar() {
   const connected = !!useSelectedSlot();
 
   return (
-    <div className='sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-background/85 px-4 py-3 backdrop-blur md:px-7 md:py-4'>
+    <div className='sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-background px-4 py-3 md:px-7 md:py-4'>
       {/* Collapses the icon rail on desktop; opens the off-canvas sidebar Sheet
           on mobile (the sidebar is the single source of nav + connection now). */}
       <SidebarTrigger className='-ml-1 shrink-0' />
@@ -41,7 +41,9 @@ export function AppTopBar() {
         <h2 className='truncate text-lg font-semibold tracking-tight md:text-[22px]'>
           {meta.title}
         </h2>
-        <div className='truncate text-[13px] text-muted-foreground'>{meta.sub}</div>
+        <div className='truncate text-[13px] text-muted-foreground'>
+          {meta.sub}
+        </div>
       </div>
 
       {/* Quick mobile actions. Full controls live in the sidebar Sheet (open via

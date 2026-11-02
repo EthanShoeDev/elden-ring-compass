@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
 import { WEAPONS } from '@elden-ring-compass/data';
+import { describe, it, expect } from 'vitest';
+
 import { affinityIndexOf, baseIdOf, enrichWeapon } from './weapons';
 
 // Affinity collapsing (Option A/B in docs/projects/future/coalesce-items-with-affinities.md)

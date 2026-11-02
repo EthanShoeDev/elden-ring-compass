@@ -71,7 +71,11 @@ export const BUILD_ARCHETYPES: readonly BuildArchetype[] = [
     primary: ['strength'],
     scaleAttrs: ['str'],
     target: base({ strength: 60, endurance: 30, dexterity: 14 }),
-    exemplars: ['Giant-Crusher', 'Greatsword', 'Ancient Meteoric Ore Greatsword'],
+    exemplars: [
+      'Giant-Crusher',
+      'Greatsword',
+      'Ancient Meteoric Ore Greatsword',
+    ],
   },
   {
     key: 'dexterity',
@@ -121,7 +125,11 @@ export const BUILD_ARCHETYPES: readonly BuildArchetype[] = [
     primary: ['arcane', 'dexterity'],
     scaleAttrs: ['arc'],
     target: base({ arcane: 60, dexterity: 40, endurance: 25 }),
-    exemplars: ["Mohgwyn's Sacred Spear", "Bloodfiend's Arm", "Eleonora's Poleblade"],
+    exemplars: [
+      "Mohgwyn's Sacred Spear",
+      "Bloodfiend's Arm",
+      "Eleonora's Poleblade",
+    ],
   },
   {
     key: 'intFaith',
@@ -155,9 +163,10 @@ export const BUILD_ARCHETYPES: readonly BuildArchetype[] = [
   },
 ];
 
-export const buildArchetypeByKey: ReadonlyMap<BuildArchetypeKey, BuildArchetype> = new Map(
-  BUILD_ARCHETYPES.map((a) => [a.key, a]),
-);
+export const buildArchetypeByKey: ReadonlyMap<
+  BuildArchetypeKey,
+  BuildArchetype
+> = new Map(BUILD_ARCHETYPES.map((a) => [a.key, a]));
 
 /** Pure archetype for the single dominant offensive stat (detectArchetype's fallback). */
 const TOP_STAT_ARCHETYPE = {
@@ -213,9 +222,15 @@ export function detectArchetype(attrs: Attrs8): BuildArchetypeKey {
  * every Dex weapon in the game; Quality wants Str *and* Dex; Int/Faith wants both.
  * Single-stat archetypes (Strength, Sorcery…) are unaffected.
  */
-export function weaponScalesWith(weapon: WeaponScaling, arche: BuildArchetype): boolean {
+export function weaponScalesWith(
+  weapon: WeaponScaling,
+  arche: BuildArchetype,
+): boolean {
   return arche.scaleAttrs.every((s) => (weapon.scaling[s] ?? 0) > 0);
 }
 
 /** Status-driven builds whose AR-only ranking is knowingly incomplete (bleed/rot not modelled yet). */
-export const STATUS_ARCHETYPES: ReadonlySet<BuildArchetypeKey> = new Set(['arcane', 'bleed']);
+export const STATUS_ARCHETYPES: ReadonlySet<BuildArchetypeKey> = new Set([
+  'arcane',
+  'bleed',
+]);

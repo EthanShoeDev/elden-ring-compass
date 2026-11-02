@@ -13,46 +13,46 @@
     // === Base package tasks (inherited by every workspace package) ===
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".output/**", ".nitro/**", "pkg/**"],
+      "outputs": ["dist/**", ".output/**", ".nitro/**", "pkg/**"]
     },
     "dev": {
       "cache": false,
       "persistent": true,
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build"]
     },
     "typecheck": {
-      "dependsOn": ["^build", "//#typecheck"],
+      "dependsOn": ["^build", "//#typecheck"]
     },
     "test": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build"]
     },
     "test:run": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build"]
     },
     "test:coverage": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"],
+      "outputs": ["coverage/**"]
     },
     "clean": {
       "cache": false,
-      "dependsOn": ["^clean"],
+      "dependsOn": ["^clean"]
     },
     // Live-checks outbound wiki URLs (apps/web/scripts/wiki-link-check.ts). Manages
     // its own result cache under node_modules/.cache/wiki-link-check (verified URLs
     // are skipped), so turbo must re-run it rather than replay a cached success.
     "wiki:check": {
-      "cache": false,
+      "cache": false
     },
 
     // `lint` runs the full local pipeline for a package: typecheck plus the
     // root-only checks (oxfmt, jscpd, oxlint, catalog).
     "lint": {
       "dependsOn": ["^build"],
-      "with": ["typecheck", "wiki:check", "//#lint:root"],
+      "with": ["typecheck", "wiki:check", "//#lint:root"]
     },
     "lint:check": {
       "dependsOn": ["^build"],
-      "with": ["typecheck", "wiki:check", "//#lint:check:root"],
+      "with": ["typecheck", "wiki:check", "//#lint:check:root"]
     },
 
     // === Root-only tasks (the bodies live in root package.json scripts) ===
@@ -63,8 +63,8 @@
         "//#jscpd:check",
         "//#oxlint:fix",
         "//#knip:fix:danger",
-        "//#catalog:fix",
-      ],
+        "//#catalog:fix"
+      ]
     },
     "//#lint:check:root": {
       "with": [
@@ -73,9 +73,12 @@
         "//#oxlint:check",
         "//#knip:check",
         "//#catalog:check",
-      ],
+        "//#effect-versions:check"
+      ]
     },
-    "//#oxfmt:fix": {},
+    // Fix tasks are never cached: a hit on the pre-fix hash would replay the
+    // old run and leave the files unfixed.
+    "//#oxfmt:fix": { "cache": false },
     "//#oxfmt:check": {},
     "//#jscpd:check": {},
     // knip reports unused deps/exports/files; every issue type fails the gate
@@ -83,15 +86,11 @@
     // auto-removes dead exports/deps — "danger" because a missing entry point in
     // knip.ts would make it delete live code; review its diff like a codemod.
     "//#knip:check": {},
-    "//#knip:fix:danger": {},
-    "//#catalog:fix": {},
+    "//#knip:fix:danger": { "cache": false },
+    "//#catalog:fix": { "cache": false },
     "//#catalog:check": {},
-    // oxlint must wait for the custom plugins to be compiled.
-    "//#oxlint:fix": {
-      "dependsOn": ["@elden-ring-compass/oxlint-plugins#build"],
-    },
-    "//#oxlint:check": {
-      "dependsOn": ["@elden-ring-compass/oxlint-plugins#build"],
-    },
-  },
+    "//#effect-versions:check": {},
+    "//#oxlint:fix": { "cache": false },
+    "//#oxlint:check": {}
+  }
 }

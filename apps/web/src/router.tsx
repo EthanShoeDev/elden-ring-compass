@@ -1,4 +1,5 @@
 import { createRouter } from '@tanstack/react-router';
+
 import { NotFound } from './components/shell/not-found';
 import { RoutePending } from './components/shell/route-pending';
 import { routeTree } from './routeTree.gen';

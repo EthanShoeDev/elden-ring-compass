@@ -1,6 +1,7 @@
 import { it } from '@effect/vitest';
 import { Effect } from 'effect';
 import { expect } from 'vitest';
+
 import { forceGcHeapUsedBytes } from './cdp-memory';
 
 // Smoke test for the perf project's risky bits, validated before the real tests rely on them:

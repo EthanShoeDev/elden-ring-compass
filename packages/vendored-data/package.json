@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@elden-ring-compass/typescript-config": "workspace:*"
+    "shoemaker-typescript-config": "catalog:"
   },
   "peerDependencies": {
     "typescript": "catalog:"

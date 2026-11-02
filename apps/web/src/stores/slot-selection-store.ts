@@ -1,10 +1,11 @@
+import { useAtom, useAtomValue } from '@effect/atom-react';
 import { Schema } from 'effect';
 import { Atom } from 'effect/reactivity';
 import * as AsyncResult from 'effect/reactivity/AsyncResult';
-import { useAtom, useAtomValue } from '@effect/atom-react';
 import { useEffect } from 'react';
-import { saveAtom, useEldenRingSave } from '@/lib/atoms/save';
+
 import { appRuntime } from '@/lib/atoms/runtime';
+import { saveAtom, useEldenRingSave } from '@/lib/atoms/save';
 import { saveFileSourceAtom } from '@/stores/save-file-source-store';
 
 // In-session selected slot, as an index into `save.slots` (effect-atom; replaced
@@ -23,13 +24,17 @@ const slotMemoryAtom = Atom.kvs({
 
 export const useSlotSelection = () => {
   const { data } = useEldenRingSave();
-  const [selectedSlotIndex, setSelectedSlotIndex] = useAtom(selectedSlotIndexAtom);
+  const [selectedSlotIndex, setSelectedSlotIndex] = useAtom(
+    selectedSlotIndexAtom,
+  );
   const [slotMemory, setSlotMemory] = useAtom(slotMemoryAtom);
 
   useEffect(() => {
     if (selectedSlotIndex === undefined && data && data.slots.length > 0) {
       const cached = slotMemory[data.global_steam_id];
-      setSelectedSlotIndex(cached !== undefined && cached < data.slots.length ? cached : 0);
+      setSelectedSlotIndex(
+        cached !== undefined && cached < data.slots.length ? cached : 0,
+      );
     }
   }, [data, selectedSlotIndex, slotMemory, setSelectedSlotIndex]);
 

@@ -1,15 +1,15 @@
 import { Effect } from 'effect';
 
 import { PipelineContext } from './domain/context.ts';
+import { loadGameVersion } from './game/game-version.ts';
+import { loadPlacements } from './game/placements.ts';
+import { loadSpEffectLabels } from './game/sp-effect-labels.ts';
+import { loadLegacyConv } from './game/world-map-legacy-conv.ts';
 import { codegen } from './stages/codegen.ts';
 import { flags } from './stages/flags.ts';
 import { images } from './stages/images.ts';
 import { join } from './stages/join.ts';
 import { markers } from './stages/markers.ts';
-import { loadGameVersion } from './game/game-version.ts';
-import { loadLegacyConv } from './game/world-map-legacy-conv.ts';
-import { loadPlacements } from './game/placements.ts';
-import { loadSpEffectLabels } from './game/sp-effect-labels.ts';
 import { params } from './stages/params.ts';
 import { text } from './stages/text.ts';
 import { unpack } from './stages/unpack.ts';

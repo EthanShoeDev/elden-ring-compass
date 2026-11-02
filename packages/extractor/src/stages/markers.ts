@@ -6,11 +6,11 @@ import { decodeRow, parseParam, type RowValue } from '../formats/param.ts';
 import { loadParamdef } from '../formats/paramdef.ts';
 import { ITEM_MSGBNDS, loadFmgTable } from '../game/fmg-tables.ts';
 import type { Grace } from '../game/graces.ts';
+import { loadMapMarkers } from '../game/map-markers.ts';
 import {
   classifyMarker,
   type ClassifiedMarker,
 } from '../game/marker-classify.ts';
-import { loadMapMarkers } from '../game/map-markers.ts';
 
 /**
  * Stage 6 — markers (MSB). Parses every `map/mapstudio/*.msb.dcx` (legacy

@@ -26,10 +26,12 @@ export function NotFound() {
         <span className='text-xs font-semibold tracking-[0.3em] text-muted-foreground uppercase'>
           Error 404
         </span>
-        <h1 className='text-3xl font-bold tracking-tight md:text-4xl'>Lost in the Lands Between</h1>
+        <h1 className='text-3xl font-bold tracking-tight md:text-4xl'>
+          Lost in the Lands Between
+        </h1>
         <p className='max-w-md text-sm leading-relaxed text-muted-foreground md:text-base'>
-          This path isn&apos;t on the map — it may have been moved, renamed, or never marked by a
-          grace. Let&apos;s get you back to familiar ground.
+          This path isn&apos;t on the map — it may have been moved, renamed, or
+          never marked by a grace. Let&apos;s get you back to familiar ground.
         </p>
         {pathname && pathname !== '/' && (
           <code className='mt-1 rounded-md border border-border bg-muted px-2 py-1 text-xs text-muted-foreground'>

@@ -34,9 +34,14 @@ function AppLayout() {
   //    and scrolls internally; the footer is dropped so the table owns the frame.
   //    `fullBleed` additionally drops the page padding for an edge-to-edge table.
   const fill = useMatches({
-    select: (m) => m.some((r) => r.staticData.fill === true || r.staticData.fullBleed === true),
+    select: (m) =>
+      m.some(
+        (r) => r.staticData.fill === true || r.staticData.fullBleed === true,
+      ),
   });
-  const fullBleed = useMatches({ select: (m) => m.some((r) => r.staticData.fullBleed === true) });
+  const fullBleed = useMatches({
+    select: (m) => m.some((r) => r.staticData.fullBleed === true),
+  });
   return (
     <SidebarProvider className='h-svh overflow-hidden'>
       <AppSidebar />

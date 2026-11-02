@@ -8,9 +8,16 @@ import {
   REINFORCE_TYPES,
   WEAPON_SCALING,
 } from '@elden-ring-compass/data';
-import { createArCalculator, type WeaponScaling } from '@elden-ring-compass/data/ar';
+import {
+  createArCalculator,
+  type WeaponScaling,
+} from '@elden-ring-compass/data/ar';
 
-export type { Attributes, ScalingAttr, WeaponScaling } from '@elden-ring-compass/data/ar';
+export type {
+  Attributes,
+  ScalingAttr,
+  WeaponScaling,
+} from '@elden-ring-compass/data/ar';
 
 export const arCalculator = createArCalculator({
   reinforceTypes: REINFORCE_TYPES,
@@ -23,7 +30,9 @@ export const weaponScalingById = new Map<number, WeaponScaling>(
   WEAPON_SCALING.map((w) => [w.id, w]),
 );
 
-const reinforceLevelCountById = new Map(REINFORCE_TYPES.map((r) => [r.id, r.levels.length]));
+const reinforceLevelCountById = new Map(
+  REINFORCE_TYPES.map((r) => [r.id, r.levels.length]),
+);
 
 /**
  * Max upgrade level (+N) for a weapon = its reinforce chain length − 1
@@ -46,7 +55,10 @@ export const MAX_UPGRADE_LEVEL = Math.max(
  * (+25 regular ≡ +10 somber) keeps both chains at the same point in their
  * progression, matching the community calculators.
  */
-export const upgradeLevelFor = (w: WeaponScaling, sliderLevel: number): number => {
+export const upgradeLevelFor = (
+  w: WeaponScaling,
+  sliderLevel: number,
+): number => {
   const max = maxUpgradeFor(w);
   if (max >= MAX_UPGRADE_LEVEL) return Math.min(sliderLevel, max);
   return scaleUpgradeLevel(sliderLevel, max);

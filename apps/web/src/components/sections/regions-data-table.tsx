@@ -1,9 +1,17 @@
 import { useDataTableData } from '@/lib/data-table-data';
-import { regionsDbView } from '@/lib/vm/regions';
+import type { regionsDbView } from '@/lib/vm/regions';
+
 import { commonAccessorColumnDef } from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
-import { createAppColumnHelper, DataTableColumnDef } from '../data-table/table-hook';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import type { DataTableColumnDef } from '../data-table/table-hook';
+import { createAppColumnHelper } from '../data-table/table-hook';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
 
 type Region = ReturnType<typeof regionsDbView>[0];
 
@@ -22,7 +30,12 @@ export function RegionsDataTable() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable tableId='regions' className='' columns={columns} data={items} />
+        <DataTable
+          tableId='regions'
+          className=''
+          columns={columns}
+          data={items}
+        />
       </CardContent>
     </Card>
   );

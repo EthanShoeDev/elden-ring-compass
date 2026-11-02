@@ -1,16 +1,18 @@
+import path from 'node:path';
+
 import babel from '@rolldown/plugin-babel';
+import tailwindcss from '@tailwindcss/vite';
 import { devtools } from '@tanstack/devtools-vite';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
-import tailwindcss from '@tailwindcss/vite';
 import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react';
+import { Config, Effect } from 'effect';
 import { nitro } from 'nitro/vite';
-import path from 'node:path';
 // Pure Vite build/plugins config for the app (`vite dev`/`vite build`). The Vitest test
 // PROJECTS live in the root `vitest.config.ts` + `apps/web/vitest.config{,.browser}.ts`,
 // which `mergeConfig` THIS config to inherit the plugins below. `defineConfig` from
 // `vitest/config` (a superset of Vite's) keeps it importable from those configs.
 import { defineConfig } from 'vitest/config';
-import { Config, Effect } from 'effect';
+
 import { erDataTiles } from './vite-plugins/er-data-tiles.ts';
 
 // Build env flags, read through Effect Config (absent = false).
@@ -48,7 +50,11 @@ const appOnlyPlugins = env.vitest
           },
         },
         ...(env.vercel
-          ? { output: { dir: path.resolve(import.meta.dirname, '../../.vercel/output') } }
+          ? {
+              output: {
+                dir: path.resolve(import.meta.dirname, '../../.vercel/output'),
+              },
+            }
           : {}),
       }),
     ];
@@ -57,7 +63,9 @@ const appOnlyPlugins = env.vitest
 // @rolldown/plugin-babel). MUST come after viteReact() — the preset's rolldown filter only
 // applies it to the client environment and to files that look like components/hooks. Gated out of
 // VITEST for the same reason as appOnlyPlugins: tests run on the un-compiled source.
-const reactCompilerPlugins = env.vitest ? [] : [babel({ presets: [reactCompilerPreset()] })];
+const reactCompilerPlugins = env.vitest
+  ? []
+  : [babel({ presets: [reactCompilerPreset()] })];
 
 export default defineConfig({
   server: {
@@ -76,7 +84,13 @@ export default defineConfig({
   // `viteReact()` MUST come after `tanstackStart()` — the TanStack Router plugin (inside
   // tanstackStart/appOnlyPlugins) has to run before the JSX transform. Under VITEST appOnlyPlugins
   // is empty, so react ends up last either way.
-  plugins: [erDataTiles(), tailwindcss(), ...appOnlyPlugins, viteReact(), ...reactCompilerPlugins],
+  plugins: [
+    erDataTiles(),
+    tailwindcss(),
+    ...appOnlyPlugins,
+    viteReact(),
+    ...reactCompilerPlugins,
+  ],
   resolve: {
     tsconfigPaths: true,
     alias: {

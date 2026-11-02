@@ -29,9 +29,9 @@
   "devDependencies": {
     "@effect/platform-node": "catalog:",
     "@effect/vitest": "catalog:",
-    "@elden-ring-compass/typescript-config": "workspace:*",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
+    "shoemaker-typescript-config": "catalog:",
     "vitest": "catalog:"
   },
   "peerDependencies": {

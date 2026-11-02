@@ -1,15 +1,22 @@
-import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  useNavigate,
+  useSearch,
+} from '@tanstack/react-router';
 import { Option, Schema } from 'effect';
 import { useEffect } from 'react';
+
 import { decodeFromUrl } from '@/lib/share/decode';
 
 type ShareSearchParams = {
-  d?: string;
+  d?: string | undefined;
 };
 
 export const Route = createFileRoute('/share')({
   validateSearch: (search: Record<string, unknown>): ShareSearchParams => ({
-    d: Option.getOrUndefined(Schema.decodeUnknownOption(Schema.String)(search.d)),
+    d: Option.getOrUndefined(
+      Schema.decodeUnknownOption(Schema.String)(search.d),
+    ),
   }),
   component: SharePage,
 });
@@ -34,14 +41,14 @@ function SharePage() {
   if (error !== null) {
     return (
       <div className='flex flex-1 flex-col items-center justify-center gap-4 p-8'>
-        <div className='text-destructive text-lg font-semibold'>
+        <div className='text-lg font-semibold text-destructive'>
           Failed to load shared progression
         </div>
         <p className='text-muted-foreground'>{error}</p>
         <button
           type='button'
           onClick={() => navigate({ to: '/' })}
-          className='bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2'
+          className='rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90'
         >
           Go to Home
         </button>

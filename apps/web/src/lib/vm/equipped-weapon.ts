@@ -1,10 +1,11 @@
+import { WEAPONS, type Weapon } from '@elden-ring-compass/data';
+
 // Resolve the player's *active* right-hand armament from a save slot into the AR
 // scaling row, so the Build Doctor can reason about "the weapon you're actually
 // wielding" (respec mismatch, current AR). See docs/projects/calculator.md §0b.
 import { type WeaponScaling, weaponScalingById } from '@/lib/ar';
 import { enrichWeapon } from '@/lib/atoms/weapons';
 import type { Slot } from '@/lib/save-dto';
-import { WEAPONS, type Weapon } from '@elden-ring-compass/data';
 
 import { equipmentDbView } from './equipement';
 
@@ -24,7 +25,9 @@ export interface EquippedWeaponInfo {
  * The active right-hand weapon (the one the player swings), or null when nothing
  * usable is equipped / its AR row is unknown (e.g. a torch or bare fists).
  */
-export function equippedWeaponInfo(slot: Readonly<Slot>): EquippedWeaponInfo | null {
+export function equippedWeaponInfo(
+  slot: Readonly<Slot>,
+): EquippedWeaponInfo | null {
   const equip = equipmentDbView(slot);
   const arms = equip.right_hand_armaments;
   const activeIdx = slot.active_weapon_slots.right_hand;

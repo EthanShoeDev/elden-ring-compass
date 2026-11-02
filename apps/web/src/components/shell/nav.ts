@@ -21,7 +21,7 @@ import { INVENTORY_TABLES } from '@/lib/inventory-tables';
  */
 /** A nested nav entry — rendered as a `SidebarMenuSub` link under its parent. */
 type NavChild = {
-  to: LinkProps['to'];
+  to: NonNullable<LinkProps['to']>;
   /** Route params, for dynamic child routes (e.g. `/inventory/$category`). */
   params?: Record<string, string>;
   label: string;
@@ -31,7 +31,7 @@ type NavChild = {
 
 export type NavItem = {
   /** Route path under the `_app` layout. Typed against the generated route tree. */
-  to: LinkProps['to'];
+  to: NonNullable<LinkProps['to']>;
   label: string;
   icon: LucideIcon;
   /** Match this route exactly (only the index/map route needs it). */

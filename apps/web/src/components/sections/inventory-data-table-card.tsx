@@ -1,6 +1,7 @@
+import { useAtom } from '@effect/atom-react';
 import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
 import { useNavigate } from '@tanstack/react-router';
-import { useAtom } from '@effect/atom-react';
+import { Predicate } from 'effect';
 import {
   ChevronsUpDownIcon,
   FileCheckIcon,
@@ -16,7 +17,6 @@ import {
   WrenchIcon,
   type LucideIcon,
 } from 'lucide-react';
-import { Predicate } from 'effect';
 import { useState } from 'react';
 
 import {
@@ -27,21 +27,25 @@ import {
 } from '@/components/data-table/common-column-defs';
 import { DataTable } from '@/components/data-table/data-table';
 import { useColumnFilterValue } from '@/components/data-table/data-table-store';
-import {
-  createAppColumnHelper,
+import type {
   DataTableCellContext,
   DataTableColumnDef,
   DataTableColumnHelper,
 } from '@/components/data-table/table-hook';
+import { createAppColumnHelper } from '@/components/data-table/table-hook';
 import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
 import { TooltipImg } from '@/components/misc/tooltip-img';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { showAffinityVariantsAtom } from '@/lib/atoms/weapons';
 import { useDataTableData } from '@/lib/data-table-data';
 import {
-  CATALOG,
+  type CATALOG,
   useInventoryTables,
   type WithOwnership,
   type InventoryTableType,
@@ -81,7 +85,14 @@ const INV_GROUPS: ReadonlyArray<{
   { label: 'Magic', keys: ['spells', 'spirits'] },
   {
     label: 'Items',
-    keys: ['tools', 'craftingMaterials', 'upgradeMaterials', 'keyItems', 'infoItems', 'gestures'],
+    keys: [
+      'tools',
+      'craftingMaterials',
+      'upgradeMaterials',
+      'keyItems',
+      'infoItems',
+      'gestures',
+    ],
   },
 ];
 
@@ -145,7 +156,8 @@ function CategoryPicker({
                     <Icon className='size-[15px] shrink-0 opacity-70' />
                     <span className='flex-1 text-left'>{TABLE_LABEL[key]}</span>
                     <span className='font-mono text-[11px] text-muted-foreground'>
-                      {owned}/{total} ({total > 0 ? Math.round((owned / total) * 100) : 0}%)
+                      {owned}/{total} (
+                      {total > 0 ? Math.round((owned / total) * 100) : 0}%)
                     </span>
                   </button>
                 );
@@ -158,7 +170,11 @@ function CategoryPicker({
   );
 }
 
-export function InventoryDataTableCard({ table }: { table: InventoryTableType }) {
+export function InventoryDataTableCard({
+  table,
+}: {
+  table: InventoryTableType;
+}) {
   // Category selection is the URL now (route param) — the picker navigates between
   // the per-category routes rather than writing a persisted atom.
   const navigate = useNavigate();
@@ -177,7 +193,9 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
   const collapsible = table === 'armaments';
   const items =
     collapsible && !showVariants
-      ? allItems.filter((i) => (i as { affinityIndex?: number }).affinityIndex === 0)
+      ? allItems.filter(
+          (i) => (i as { affinityIndex?: number }).affinityIndex === 0,
+        )
       : allItems;
   const hiddenVariantCount = collapsible ? allItems.length - items.length : 0;
   const ownedCount = items.filter((i) => i.quantity > 0).length;
@@ -209,7 +227,11 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
   })();
   const setOwnerFilter = (key: OwnerFilter) => {
     setQtyFilter(key === 'owned' || key === 'missing' ? key : undefined);
-    setLocFilter(key === 'held' || key === 'storage' ? [...LOCATION_PRESETS[key]] : undefined);
+    setLocFilter(
+      key === 'held' || key === 'storage'
+        ? [...LOCATION_PRESETS[key]]
+        : undefined,
+    );
   };
 
   // Full-bleed: the table *is* the route now (no Card chrome, no page padding —
@@ -220,9 +242,14 @@ export function InventoryDataTableCard({ table }: { table: InventoryTableType })
     <div className='flex min-h-0 w-full flex-1 flex-col'>
       <div className='flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b px-4 py-3'>
         <div className='flex flex-wrap items-baseline gap-x-3 gap-y-1'>
-          <CategoryPicker table={table} onSelect={setTableType} allTables={allTables} />
+          <CategoryPicker
+            table={table}
+            onSelect={setTableType}
+            allTables={allTables}
+          />
           <span className='text-sm text-muted-foreground'>
-            {ownedCount} / {items.length} ({((ownedCount / items.length) * 100).toFixed(0)}% owned)
+            {ownedCount} / {items.length} (
+            {((ownedCount / items.length) * 100).toFixed(0)}% owned)
             {collapsible && !showVariants && hiddenVariantCount > 0 && (
               <> · {hiddenVariantCount} affinity variants hidden</>
             )}
@@ -273,7 +300,10 @@ type OwnerFilter = (typeof OWNER_FILTERS)[number];
 
 /** Location column values: where the owned copies of an item are. */
 type ItemLocation = 'Held' | 'Storage' | 'Held + Storage' | 'Not owned';
-const itemLocation = (row: { heldQuantity: number; storedQuantity: number }): ItemLocation =>
+const itemLocation = (row: {
+  heldQuantity: number;
+  storedQuantity: number;
+}): ItemLocation =>
   row.heldQuantity > 0
     ? row.storedQuantity > 0
       ? 'Held + Storage'
@@ -294,7 +324,9 @@ const sameValues = (value: unknown, preset: readonly ItemLocation[]) =>
   preset.every((v) => (value as unknown[]).includes(v));
 
 // Row element types per category, joined with save ownership.
-type Row<K extends InventoryTableType> = WithOwnership<(typeof CATALOG)[K][number]>;
+type Row<K extends InventoryTableType> = WithOwnership<
+  (typeof CATALOG)[K][number]
+>;
 type BaseRow = WithOwnership<{
   id: number;
   name: string;
@@ -328,7 +360,9 @@ const effectsText = (effects: readonly Effect[]) =>
             ? '-'
             : '* -';
       const conditions =
-        e.conditions && e.conditions.length > 0 ? ` ${e.conditions.join(',')}` : '';
+        e.conditions && e.conditions.length > 0
+          ? ` ${e.conditions.join(',')}`
+          : '';
       return `${e.attribute} ${sign}${e.value.toString()}${conditions}`;
     })
     .join('\n');
@@ -337,8 +371,9 @@ const effectsText = (effects: readonly Effect[]) =>
 function defaultColumns<T extends BaseRow>(
   columnHelperT: DataTableColumnHelper<T>,
 ): Array<DataTableColumnDef<T>> {
-  // oxlint-disable-next-line anti-slop/no-chained-type-assertions -- TanStack ColumnHelper is invariant in its row type; we reuse one helper across the shared BaseRow shape
-  const columnHelper = columnHelperT as unknown as DataTableColumnHelper<BaseRow>;
+  const columnHelper =
+    // oxlint-disable-next-line anti-slop/no-chained-type-assertions -- TanStack ColumnHelper is invariant in its row type; we reuse one helper across the shared BaseRow shape
+    columnHelperT as unknown as DataTableColumnHelper<BaseRow>;
   // oxlint-disable-next-line anti-slop/no-chained-type-assertions -- columns built against BaseRow are structurally valid for the caller's narrower T (the `as unknown as` closing this array)
   return [
     commonPinColumnDef(columnHelper),
@@ -379,7 +414,8 @@ function defaultColumns<T extends BaseRow>(
       cell: (cell: DataTableCellContext<BaseRow>) => {
         const row = cell.row.original;
         const location = cell.getValue<ItemLocation>();
-        if (location === 'Not owned') return <span className='text-muted-foreground/40'>—</span>;
+        if (location === 'Not owned')
+          return <span className='text-muted-foreground/40'>—</span>;
         if (location !== 'Held + Storage') return <span>{location}</span>;
         return (
           <span>
@@ -466,7 +502,11 @@ const ashesColumns = (() => {
   const h = createAppColumnHelper<Row<'ashes'>>();
   return [
     ...defaultColumns(h),
-    commonAccessorColumnDef(h, (row) => row.armamentCategories.join(', '), 'Armament Categories'),
+    commonAccessorColumnDef(
+      h,
+      (row) => row.armamentCategories.join(', '),
+      'Armament Categories',
+    ),
     commonAccessorColumnDef(h, 'defaultAffinity', 'Default Affinity'),
   ];
 })();
@@ -499,13 +539,18 @@ const spiritColumns = (() => {
 
 const goodsColumns = (() => {
   const h = createAppColumnHelper<BaseRow & { maxHeld: number }>();
-  return [...defaultColumns(h), commonAccessorColumnDef(h, 'maxHeld', 'Max Held')];
+  return [
+    ...defaultColumns(h),
+    commonAccessorColumnDef(h, 'maxHeld', 'Max Held'),
+  ];
 })();
 
 // Tools / Key Items each union several dataset categories — add a Category column so the
 // sub-types (Cookbook, Crystal Tear, Remembrance, Great Rune, …) stay distinguishable.
 const mixedGoodsColumns = (() => {
-  const h = createAppColumnHelper<BaseRow & { category: string; maxHeld: number }>();
+  const h = createAppColumnHelper<
+    BaseRow & { category: string; maxHeld: number }
+  >();
   return [
     ...defaultColumns(h),
     commonAccessorColumnDef(h, 'category', 'Category'),

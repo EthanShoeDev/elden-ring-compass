@@ -1,17 +1,5 @@
-import { itemIconUrl } from '@elden-ring-compass/data/images';
-import { useEldenRingSave } from '@/lib/atoms/save';
-import { fileToArrBuffer } from '@/lib/er-save-parser';
-import { encodeToUrl, slotToShareableProgression } from '@/lib/share/encode';
-import { ShareCodecError } from '@/lib/share/types';
-import { cn } from '@/lib/utils';
-import { statsDbView } from '@/lib/vm/stats';
-import {
-  isSharedSource,
-  SAMPLE_SAVE_URL,
-  saveFileSourceAtom,
-} from '@/stores/save-file-source-store';
-import { useSelectedSlot, useSlotSelection } from '@/stores/slot-selection-store';
 import { useAtomSet, useAtomValue } from '@effect/atom-react';
+import { itemIconUrl } from '@elden-ring-compass/data/images';
 import { ClientOnly, useNavigate } from '@tanstack/react-router';
 import { Effect, Exit, Match } from 'effect';
 import {
@@ -28,16 +16,24 @@ import {
   UploadCloudIcon,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { CodeSnippet } from './code-snippet';
-import { Button } from '../ui/button';
+
+import { useEldenRingSave } from '@/lib/atoms/save';
+import { fileToArrBuffer } from '@/lib/er-save-parser';
+import { encodeToUrl, slotToShareableProgression } from '@/lib/share/encode';
+import { ShareCodecError } from '@/lib/share/types';
+import { cn } from '@/lib/utils';
+import { statsDbView } from '@/lib/vm/stats';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
+  isSharedSource,
+  SAMPLE_SAVE_URL,
+  saveFileSourceAtom,
+} from '@/stores/save-file-source-store';
+import {
+  useSelectedSlot,
+  useSlotSelection,
+} from '@/stores/slot-selection-store';
+
+import { Button } from '../ui/button';
 import {
   Dialog,
   DialogClose,
@@ -47,9 +43,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
 import { Input } from '../ui/input';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '../ui/sidebar';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
+import { CodeSnippet } from './code-snippet';
 
 const DEFAULT_LOCAL_URL = 'http://localhost:8080/ER0000.sl2';
 
@@ -61,10 +66,15 @@ export function ShareCharacterButton({
   className,
   variant = 'outline',
   size = 'sm',
-}: Pick<React.ComponentProps<typeof Button>, 'className' | 'variant' | 'size'>) {
+}: Pick<
+  React.ComponentProps<typeof Button>,
+  'className' | 'variant' | 'size'
+>) {
   const slot = useSelectedSlot();
   const [shareUrl, setShareUrl] = useState('');
-  const [status, setStatus] = useState<'idle' | 'building' | 'copied' | 'error'>('idle');
+  const [status, setStatus] = useState<
+    'idle' | 'building' | 'copied' | 'error'
+  >('idle');
 
   if (!slot) return null;
 
@@ -74,7 +84,9 @@ export function ShareCharacterButton({
       Effect.gen(function* () {
         const encoded = yield* encodeToUrl(slotToShareableProgression(slot));
         const url = new URL(
-          typeof window === 'undefined' ? 'http://localhost/' : window.location.href,
+          typeof window === 'undefined'
+            ? 'http://localhost/'
+            : window.location.href,
         );
         url.pathname = '/';
         url.search = '';
@@ -133,7 +145,9 @@ export function ShareCharacterButton({
         />
       )}
       {status === 'error' && (
-        <div className='text-[12.5px] text-destructive'>Could not create share link.</div>
+        <div className='text-[12.5px] text-destructive'>
+          Could not create share link.
+        </div>
       )}
     </div>
   );
@@ -156,7 +170,9 @@ function ConnectSaveContent() {
   );
   const [drag, setDrag] = useState(false);
   const [urlInput, setUrlInput] = useState(() =>
-    saveFileSource && 'url' in saveFileSource ? saveFileSource.url : DEFAULT_LOCAL_URL,
+    saveFileSource && 'url' in saveFileSource
+      ? saveFileSource.url
+      : DEFAULT_LOCAL_URL,
   );
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -183,8 +199,9 @@ function ConnectSaveContent() {
           Connect your save
         </DialogTitle>
         <DialogDescription className='leading-relaxed'>
-          Personalize the Compass — boss progression, owned items, character stats, and which graces
-          you’ve discovered. It’s read-only and stays on your device.
+          Personalize the Compass — boss progression, owned items, character
+          stats, and which graces you’ve discovered. It’s read-only and stays on
+          your device.
         </DialogDescription>
       </DialogHeader>
 
@@ -261,7 +278,9 @@ function ConnectSaveContent() {
                 <span className='text-[15px] font-semibold'>
                   Drop your save here, or click to browse
                 </span>
-                <span className='font-mono text-xs text-muted-foreground'>ER0000.sl2</span>
+                <span className='font-mono text-xs text-muted-foreground'>
+                  ER0000.sl2
+                </span>
               </button>
               <input
                 ref={fileRef}
@@ -324,14 +343,18 @@ function ConnectSaveContent() {
 
       <ConnectStatusLine />
 
-      {save.data && <ShareCharacterButton className='rounded-lg border border-border p-3' />}
+      {save.data && (
+        <ShareCharacterButton className='rounded-lg border border-border p-3' />
+      )}
 
       <div className='flex flex-wrap gap-x-4 gap-y-1.5 text-[12.5px] text-muted-foreground'>
         <span className='flex items-center gap-1.5'>
-          <CheckIcon className='size-3.5 text-green-500' /> Read-only — never writes your save
+          <CheckIcon className='size-3.5 text-green-500' /> Read-only — never
+          writes your save
         </span>
         <span className='flex items-center gap-1.5'>
-          <CheckIcon className='size-3.5 text-green-500' /> Parsed locally · can’t get you banned
+          <CheckIcon className='size-3.5 text-green-500' /> Parsed locally ·
+          can’t get you banned
         </span>
       </div>
 
@@ -346,7 +369,11 @@ function ConnectSaveContent() {
         >
           Use a sample save →
         </DialogClose>
-        <DialogClose render={<Button variant={save.data ? 'default' : 'ghost'} size='sm' />}>
+        <DialogClose
+          render={
+            <Button variant={save.data ? 'default' : 'ghost'} size='sm' />
+          }
+        >
           {save.data ? 'Done' : 'Maybe later'}
         </DialogClose>
       </div>
@@ -362,7 +389,8 @@ function ConnectStatusLine() {
         <div className='text-[13px] text-muted-foreground'>Loading…</div>
       ) : save.isError ? (
         <div className='flex items-center gap-1.5 text-[13px] text-destructive'>
-          <Link2OffIcon className='size-4' /> {save.error?.message ?? 'Failed to read save'}
+          <Link2OffIcon className='size-4' />{' '}
+          {save.error?.message ?? 'Failed to read save'}
         </div>
       ) : save.isSuccess ? (
         <div className='flex items-center gap-1.5 text-[13px] text-green-500'>
@@ -395,7 +423,10 @@ export function ConnectSaveButton({
 }
 
 /** Disconnect the active save (clears the source). */
-export function DisconnectButton({ className, ...props }: React.ComponentProps<typeof Button>) {
+export function DisconnectButton({
+  className,
+  ...props
+}: React.ComponentProps<typeof Button>) {
   const setSaveFileSource = useAtomSet(saveFileSourceAtom);
   const saveFileSource = useAtomValue(saveFileSourceAtom);
   const navigate = useNavigate();
@@ -408,7 +439,10 @@ export function DisconnectButton({ className, ...props }: React.ComponentProps<t
         setSaveFileSource(undefined);
         if (isSharedSource(saveFileSource)) {
           void navigate({
-            search: ((prev: { readonly save?: string }) => ({ ...prev, save: undefined })) as never,
+            search: ((prev: { readonly save?: string }) => ({
+              ...prev,
+              save: undefined,
+            })) as never,
             replace: true,
           });
         }
@@ -449,7 +483,7 @@ export function SlotSwitcher() {
               <SidebarMenuButton
                 size='lg'
                 aria-label='Switch save slot'
-                className='data-open:bg-sidebar-accent data-open:text-sidebar-accent-foreground data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground data-disabled:opacity-100'
+                className='data-disabled:opacity-100 data-open:bg-sidebar-accent data-open:text-sidebar-accent-foreground data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground'
               />
             }
           >
@@ -467,8 +501,16 @@ export function SlotSwitcher() {
             )}
           </DropdownMenuTrigger>
           {multiple && (
-            <DropdownMenuContent align='start' side='right' sideOffset={4} className='w-56'>
-              <DropdownMenuRadioGroup value={slotIndex} onValueChange={setSlotIndex}>
+            <DropdownMenuContent
+              align='start'
+              side='right'
+              sideOffset={4}
+              className='w-56'
+            >
+              <DropdownMenuRadioGroup
+                value={slotIndex}
+                onValueChange={setSlotIndex}
+              >
                 {/* Label must live inside a group/radio-group — Base UI's
                     MenuGroupContext requirement. */}
                 <DropdownMenuLabel className='text-xs text-muted-foreground'>

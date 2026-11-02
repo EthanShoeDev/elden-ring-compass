@@ -1,13 +1,21 @@
-import LZString from 'lz-string';
 import { eventFlagOffset } from '@elden-ring-compass/data';
 import { Effect, Option, Schema } from 'effect';
+import LZString from 'lz-string';
+
 import { logError, logWarning } from '@/lib/runtime/log';
 import type { Slot } from '@/lib/save-dto';
+
 import { GZIP_PREFIX } from './encode';
 import { MAX_EVENT_BYTE_OFFSET } from './shareable-events';
-import { ShareCodecError, type ShareableProgression, ShareableProgressionSchema } from './types';
+import {
+  ShareCodecError,
+  type ShareableProgression,
+  ShareableProgressionSchema,
+} from './types';
 
-const ShareableProgressionJson = Schema.fromJsonString(ShareableProgressionSchema);
+const ShareableProgressionJson = Schema.fromJsonString(
+  ShareableProgressionSchema,
+);
 
 function base64UrlToBytes(encoded: string): Uint8Array {
   const base64 = encoded.replaceAll('-', '+').replaceAll('_', '/');
@@ -15,12 +23,19 @@ function base64UrlToBytes(encoded: string): Uint8Array {
   return Uint8Array.from(atob(padded), (char) => char.codePointAt(0) ?? 0);
 }
 
-function parseShareableProgressionJson(json: string): ShareableProgression | null {
-  return Schema.decodeOption(ShareableProgressionJson)(json).pipe(Option.getOrNull);
+function parseShareableProgressionJson(
+  json: string,
+): ShareableProgression | null {
+  return Schema.decodeOption(ShareableProgressionJson)(json).pipe(
+    Option.getOrNull,
+  );
 }
 
 const gunzip = Effect.fn('gunzip')(function* (bytes: Uint8Array) {
-  if (typeof DecompressionStream === 'undefined' || !('stream' in Blob.prototype)) {
+  if (
+    typeof DecompressionStream === 'undefined' ||
+    !('stream' in Blob.prototype)
+  ) {
     return bytes;
   }
   const stream = new Blob([bytes.buffer as ArrayBuffer])
@@ -53,7 +68,9 @@ export function decodeFromUrl(encoded: string): ShareableProgression | null {
   }
 }
 
-export const decodeFromUrlEffect = Effect.fn('decodeFromUrlEffect')(function* (encoded: string) {
+export const decodeFromUrlEffect = Effect.fn('decodeFromUrlEffect')(function* (
+  encoded: string,
+) {
   if (!encoded) return null;
   if (!encoded.startsWith(GZIP_PREFIX)) return decodeFromUrl(encoded);
 
@@ -80,7 +97,9 @@ export function reconstructSlot(data: ShareableProgression): Partial<Slot> {
   }
 
   if (data.v === 2) {
-    const inventory = (items: ReadonlyArray<readonly [number, number, number]>) =>
+    const inventory = (
+      items: ReadonlyArray<readonly [number, number, number]>,
+    ) =>
       items.map(([handle, quantity, inventoryIndex]) => ({
         ga_item_handle: handle,
         quantity,

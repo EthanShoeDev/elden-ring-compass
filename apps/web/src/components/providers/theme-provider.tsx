@@ -1,7 +1,11 @@
 import { ScriptOnce } from '@tanstack/react-router';
 import { useEffect, useSyncExternalStore } from 'react';
 
-import { type Theme, type ThemePreference, ThemeProviderContext } from './theme-context';
+import {
+  type Theme,
+  type ThemePreference,
+  ThemeProviderContext,
+} from './theme-context';
 
 /**
  * SSR-safe theme provider for TanStack Start, per the shadcn dark-mode guide
@@ -67,8 +71,17 @@ export function ThemeProvider({
     },
     () => defaultThemePreference,
   );
-  const osDark = useSyncExternalStore(subscribeOsDark, readOsDark, serverOsDark);
-  const theme: Theme = themePreference === 'system' ? (osDark ? 'dark' : 'light') : themePreference;
+  const osDark = useSyncExternalStore(
+    subscribeOsDark,
+    readOsDark,
+    serverOsDark,
+  );
+  const theme: Theme =
+    themePreference === 'system'
+      ? osDark
+        ? 'dark'
+        : 'light'
+      : themePreference;
 
   // Mirror the resolved theme onto <html> (the pre-hydration script did the first paint).
   useEffect(() => {
@@ -84,8 +97,12 @@ export function ThemeProvider({
   };
 
   return (
-    <ThemeProviderContext value={{ themePreference, theme, setThemePreference }}>
-      <ScriptOnce>{getThemeScript(storageKey, defaultThemePreference)}</ScriptOnce>
+    <ThemeProviderContext
+      value={{ themePreference, theme, setThemePreference }}
+    >
+      <ScriptOnce>
+        {getThemeScript(storageKey, defaultThemePreference)}
+      </ScriptOnce>
       {children}
     </ThemeProviderContext>
   );

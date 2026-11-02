@@ -1,4 +1,5 @@
 import { Predicate } from 'effect';
+
 import type { RowValue } from '../formats/param.ts';
 
 /**

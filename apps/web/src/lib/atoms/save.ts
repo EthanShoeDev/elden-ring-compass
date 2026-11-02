@@ -1,12 +1,19 @@
+import { useAtomRefresh, useAtomValue } from '@effect/atom-react';
 import { Cause, Data, Effect, Exit, Option, Schema } from 'effect';
 import { HttpClient } from 'effect/http';
 import * as AsyncResult from 'effect/reactivity/AsyncResult';
-import { useAtomRefresh, useAtomValue } from '@effect/atom-react';
+
 import { appRuntime } from '@/lib/atoms/runtime';
-import { reconstructSlot } from '@/lib/share/decode';
-import { ParseResponse, type ParseRequest } from '@/lib/er-save-parser.protocol';
-import { isSharedSource, saveFileSourceAtom } from '@/stores/save-file-source-store';
+import {
+  ParseResponse,
+  type ParseRequest,
+} from '@/lib/er-save-parser.protocol';
 import type { WasmEldenRingSave } from '@/lib/save-dto';
+import { reconstructSlot } from '@/lib/share/decode';
+import {
+  isSharedSource,
+  saveFileSourceAtom,
+} from '@/stores/save-file-source-store';
 
 // Effect-atom replacement for the old React Query save hook. The Worker → pure-TS parse is
 // wrapped as an Effect and exposed as an async Atom (`AsyncResult`), deriving from
@@ -20,7 +27,9 @@ class SaveParseError extends Data.TaggedError('SaveParseError')<{
 
 // Just the correlation id of a reply that failed the full protocol decode.
 const decodeReplyId = (data: unknown) =>
-  Schema.decodeUnknownOption(Schema.Struct({ id: Schema.Int }))(data).pipe(Option.map((r) => r.id));
+  Schema.decodeUnknownOption(Schema.Struct({ id: Schema.Int }))(data).pipe(
+    Option.map((r) => r.id),
+  );
 
 // Lazily-created parse worker + a request/response correlation map keyed by a monotonic id.
 let worker: Worker | null = null;
@@ -33,10 +42,13 @@ const pending = new Map<
 const getWorker = (): Worker | null => {
   if (typeof window === 'undefined') return null;
   if (!worker) {
-    worker = new Worker(new URL('../er-save-parser.worker.ts', import.meta.url), {
-      name: 'EldenRingSaveParser',
-      type: 'module',
-    });
+    worker = new Worker(
+      new URL('../er-save-parser.worker.ts', import.meta.url),
+      {
+        name: 'EldenRingSaveParser',
+        type: 'module',
+      },
+    );
     worker.addEventListener('message', (event: MessageEvent<unknown>) => {
       // postMessage erases types: validate the reply against the protocol schema before
       // trusting it (runs once per save load — see er-save-parser.protocol.ts).
@@ -69,11 +81,15 @@ const toParseError = (cause: unknown) =>
     message: cause instanceof Error ? cause.message : String(cause),
   });
 
-const parseInWorker = (buffer: ArrayBuffer): Effect.Effect<WasmEldenRingSave, SaveParseError> =>
+const parseInWorker = (
+  buffer: ArrayBuffer,
+): Effect.Effect<WasmEldenRingSave, SaveParseError> =>
   Effect.callback<WasmEldenRingSave, SaveParseError>((resume) => {
     const w = getWorker();
     if (!w) {
-      resume(Effect.fail(new SaveParseError({ message: 'Save parser unavailable' })));
+      resume(
+        Effect.fail(new SaveParseError({ message: 'Save parser unavailable' })),
+      );
       return;
     }
     const id = nextRequestId++;
@@ -96,7 +112,11 @@ export const saveAtom = appRuntime.atom((get) =>
     const src = get(saveFileSourceAtom);
     if (!src) return yield* new NoSaveSourceError();
 
-    const sourceKind = isSharedSource(src) ? 'shared' : 'file' in src ? 'file' : 'url';
+    const sourceKind = isSharedSource(src)
+      ? 'shared'
+      : 'file' in src
+        ? 'file'
+        : 'url';
     parseRunCount += 1;
     yield* Effect.logInfo(`save parse #${parseRunCount}: start`).pipe(
       Effect.annotateLogs('source', sourceKind),
@@ -114,7 +134,8 @@ export const saveAtom = appRuntime.atom((get) =>
       } satisfies WasmEldenRingSave;
     }
 
-    if (!getWorker()) return yield* new SaveParseError({ message: 'Save parser unavailable' });
+    if (!getWorker())
+      return yield* new SaveParseError({ message: 'Save parser unavailable' });
 
     const buffer =
       'file' in src
@@ -154,7 +175,10 @@ export function useEldenRingSave() {
     isError,
     error,
     isSuccess: AsyncResult.isSuccess(result),
-    isLoading: hasSource && AsyncResult.isWaiting(result) && !AsyncResult.isSuccess(result),
+    isLoading:
+      hasSource &&
+      AsyncResult.isWaiting(result) &&
+      !AsyncResult.isSuccess(result),
     isFetching: hasSource && AsyncResult.isWaiting(result),
     dataUpdatedAt: AsyncResult.isSuccess(result) ? result.timestamp : undefined,
     refresh,

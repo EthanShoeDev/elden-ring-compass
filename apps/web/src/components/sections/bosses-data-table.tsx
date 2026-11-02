@@ -1,12 +1,17 @@
 import { BOSSES, eventFlagOffset } from '@elden-ring-compass/data';
 import { useMemo } from 'react';
 
-import { type BossBadge, BADGE_LABEL, bossBadges, bossMapName, bossReward } from '@/lib/boss-meta';
+import {
+  type BossBadge,
+  BADGE_LABEL,
+  bossBadges,
+  bossMapName,
+  bossReward,
+} from '@/lib/boss-meta';
 import type { MasterPixel } from '@/lib/map-affine';
 import { bossFlagToPixel } from '@/lib/vm/map-pins';
-import { useSelectedSlot } from '@/stores/slot-selection-store';
-
 import { wikiNameForBoss } from '@/lib/wiki';
+import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 import {
   commonAccessorColumnDef,
@@ -14,8 +19,18 @@ import {
   commonWikiColumnDef,
 } from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
-import { createAppColumnHelper, DataTableColumnDef, DataTableRow } from '../data-table/table-hook';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import type {
+  DataTableColumnDef,
+  DataTableRow,
+} from '../data-table/table-hook';
+import { createAppColumnHelper } from '../data-table/table-hook';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
 import { BossBadges } from './boss-badge';
 
 type BossRow = {
@@ -29,11 +44,11 @@ type BossRow = {
   badges: BossBadge[];
   // Remembrance (or Heart of Bayle) reward, blank for the ~85% that drop neither.
   reward: string;
-  rewardIcon?: string;
+  rewardIcon?: string | undefined;
   runes: number;
   // Present only for bosses with an extracted overworld position — those rows are
   // pinnable; the rest render a muted dash in the pin column.
-  pixel?: MasterPixel;
+  pixel?: MasterPixel | undefined;
   defeated: boolean | null;
 };
 
@@ -46,9 +61,14 @@ const renderCategoryCell = ({ row }: { row: DataTableRow<BossRow> }) => (
 const renderRewardCell = ({ row }: { row: DataTableRow<BossRow> }) =>
   row.original.reward ? (
     <div className='flex items-center gap-1.5'>
-      {row.original.rewardIcon !== undefined && row.original.rewardIcon !== '' && (
-        <img src={row.original.rewardIcon} alt='' className='size-6 shrink-0' />
-      )}
+      {row.original.rewardIcon !== undefined &&
+        row.original.rewardIcon !== '' && (
+          <img
+            src={row.original.rewardIcon}
+            alt=''
+            className='size-6 shrink-0'
+          />
+        )}
       <span className='text-xs'>{row.original.reward}</span>
     </div>
   ) : (
@@ -79,13 +99,16 @@ export function BossesDataTable() {
       if (!slot) return false;
       const offset = eventFlagOffset(flagId);
       if (!offset) return false;
-      return ((slot.event_flags.flags[offset[0]] ?? 0) & (1 << offset[1])) !== 0;
+      return (
+        ((slot.event_flags.flags[offset[0]] ?? 0) & (1 << offset[1])) !== 0
+      );
     };
 
     const seen = new Set<number>();
     const out: Array<BossRow> = [];
     for (const b of BOSSES) {
-      if (b.name === null || b.name === '' || seen.has(b.defeatFlagId)) continue;
+      if (b.name === null || b.name === '' || seen.has(b.defeatFlagId))
+        continue;
       seen.add(b.defeatFlagId);
       const badges = bossBadges(b.defeatFlagId, b.mapId);
       const reward = bossReward(b.defeatFlagId);
@@ -109,17 +132,26 @@ export function BossesDataTable() {
     const helper = createAppColumnHelper<BossRow>();
     const cols: Array<DataTableColumnDef<BossRow>> = [
       commonPinColumnDef(helper),
-      commonAccessorColumnDef(helper, 'name', 'Name', { filterFn: 'includesString' }),
+      commonAccessorColumnDef(helper, 'name', 'Name', {
+        filterFn: 'includesString',
+      }),
       commonWikiColumnDef(helper, (r) => wikiNameForBoss(r.name)),
-      commonAccessorColumnDef(helper, 'mapName', 'Map', { filterFn: 'includesString' }),
-      commonAccessorColumnDef(helper, 'category', 'Category', { cell: renderCategoryCell }),
-      commonAccessorColumnDef(helper, 'reward', 'Reward', { cell: renderRewardCell }),
+      commonAccessorColumnDef(helper, 'mapName', 'Map', {
+        filterFn: 'includesString',
+      }),
+      commonAccessorColumnDef(helper, 'category', 'Category', {
+        cell: renderCategoryCell,
+      }),
+      commonAccessorColumnDef(helper, 'reward', 'Reward', {
+        cell: renderRewardCell,
+      }),
       commonAccessorColumnDef(helper, 'runes', 'Runes', {
         enableColumnFilter: false,
         cell: renderRunesCell,
       }),
     ];
-    if (connected) cols.push(commonAccessorColumnDef(helper, 'defeated', 'Defeated'));
+    if (connected)
+      cols.push(commonAccessorColumnDef(helper, 'defeated', 'Defeated'));
     return cols;
   }, [connected]);
 
@@ -133,8 +165,8 @@ export function BossesDataTable() {
           {connected
             ? `${defeatedCount} / ${rows.length} - (${Math.round((defeatedCount / rows.length) * 100)}% defeated)`
             : `${rows.length} bosses in the game`}
-          {' · '}filter by name, map, category or reward, then tap the pin to drop a boss on the
-          map.
+          {' · '}filter by name, map, category or reward, then tap the pin to
+          drop a boss on the map.
         </CardDescription>
       </CardHeader>
       <CardContent>

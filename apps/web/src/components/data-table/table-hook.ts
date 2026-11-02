@@ -95,12 +95,14 @@ export type DataTableColumnHelper<TData extends RowData> = ReturnType<
   typeof createAppColumnHelper<TData>
 >;
 export type DataTableRow<TData extends RowData> = Row<DataTableFeatures, TData>;
-export type DataTableInstance<TData extends RowData> = Table<DataTableFeatures, TData>;
-export type DataTableColumn<TData extends RowData, TValue extends CellData = CellData> = Column<
+export type DataTableInstance<TData extends RowData> = Table<
   DataTableFeatures,
-  TData,
-  TValue
+  TData
 >;
+export type DataTableColumn<
+  TData extends RowData,
+  TValue extends CellData = CellData,
+> = Column<DataTableFeatures, TData, TValue>;
 // Cell overrides on helper-built columns receive the hook-enhanced context (the
 // `cell` carries pre-bound components), not the core `CellContext`. The component
 // map is read off the hook's column helper so it tracks `createTableHook`.
@@ -117,4 +119,7 @@ export type DataTableCellContext<
   TData extends RowData,
   TValue extends CellData = CellData,
 > = AppCellContext<DataTableFeatures, TData, TValue, DataTableCellComponents>;
-export type DataTableFilterFn<TData extends RowData> = FilterFn<DataTableFeatures, TData>;
+export type DataTableFilterFn<TData extends RowData> = FilterFn<
+  DataTableFeatures,
+  TData
+>;

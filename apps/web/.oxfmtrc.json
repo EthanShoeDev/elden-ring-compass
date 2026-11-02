@@ -1,6 +1,0 @@
-{
-  "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "singleQuote": true,
-  "jsxSingleQuote": true,
-  "ignorePatterns": ["src/assets/**", "node_modules/**"]
-}

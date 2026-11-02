@@ -30,7 +30,13 @@ export function TooltipImg({
       <TooltipContent>
         {/* Mounts only when the tooltip opens, so `loading='lazy'` would just add
             latency — fetch eagerly + decode async instead. */}
-        <img decoding='async' fetchPriority='high' className='size-64' src={imgSrc} alt={alt} />
+        <img
+          decoding='async'
+          fetchPriority='high'
+          className='size-64'
+          src={imgSrc}
+          alt={alt}
+        />
       </TooltipContent>
     </Tooltip>
   );

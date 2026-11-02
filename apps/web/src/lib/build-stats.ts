@@ -165,7 +165,8 @@ export const EQUIP_LOAD_MAX = 160;
 export const hp = (v: number) => Math.round(lerpCurve(HP_C, v));
 export const fp = (v: number) => Math.round(lerpCurve(FP_C, v));
 export const stamina = (v: number) => Math.round(lerpCurve(ST_C, v));
-export const equipLoad = (v: number) => Math.round(lerpCurve(EQ_C, v) * 10) / 10;
+export const equipLoad = (v: number) =>
+  Math.round(lerpCurve(EQ_C, v) * 10) / 10;
 
 // --- Rune / level math -------------------------------------------------------
 

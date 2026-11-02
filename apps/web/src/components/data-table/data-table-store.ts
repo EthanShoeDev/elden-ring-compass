@@ -1,22 +1,24 @@
-import {
+import { useAtomSet, useAtomValue } from '@effect/atom-react';
+import { useHydrated } from '@tanstack/react-router';
+import type {
   ColumnFiltersState,
   ColumnOrderState,
   ColumnSizingState,
   ColumnVisibilityState,
-  functionalUpdate,
   OnChangeFn,
   RowData,
   RowSelectionState,
   SortingState,
 } from '@tanstack/react-table';
+import { functionalUpdate } from '@tanstack/react-table';
 import { Predicate, Schema } from 'effect';
 import { Atom } from 'effect/reactivity';
-import { useAtomSet, useAtomValue } from '@effect/atom-react';
-import { useHydrated } from '@tanstack/react-router';
 import { useEffect } from 'react';
+
 import { appRuntime } from '@/lib/atoms/runtime';
-import { defaultEventRowSelection } from '@/lib/vm/events';
 import type { InventoryTableType } from '@/lib/inventory-catalog-data';
+import { defaultEventRowSelection } from '@/lib/vm/events';
+
 import type { DataTableInstance } from './table-hook';
 
 export type TableId =
@@ -63,8 +65,12 @@ const DataTableStateSchema = Schema.Struct({
   tableId: Schema.String,
   rowSelection: Schema.Record(Schema.String, Schema.Boolean),
   columnVisibility: Schema.Record(Schema.String, Schema.Boolean),
-  columnFilters: Schema.Array(Schema.Struct({ id: Schema.String, value: Schema.Unknown })),
-  sorting: Schema.Array(Schema.Struct({ id: Schema.String, desc: Schema.Boolean })),
+  columnFilters: Schema.Array(
+    Schema.Struct({ id: Schema.String, value: Schema.Unknown }),
+  ),
+  sorting: Schema.Array(
+    Schema.Struct({ id: Schema.String, desc: Schema.Boolean }),
+  ),
   columnSizing: Schema.Record(Schema.String, Schema.Finite),
   columnOrder: Schema.Array(Schema.String),
 });
@@ -151,7 +157,10 @@ export const useDataTableStateSync = <TData extends RowData>(
   // indexing `atoms` by the key union collapses `subscribe` to an uncallable
   // overload union.
   useEffect(() => {
-    const mirror = <K extends PersistedKey>(key: K, value: DataTableState[K]) => {
+    const mirror = <K extends PersistedKey>(
+      key: K,
+      value: DataTableState[K],
+    ) => {
       setTableState((prev) => {
         const prevState = prev[tableId] ?? defaultTableState({ tableId });
         if (prevState[key] === value) return prev;
@@ -160,13 +169,21 @@ export const useDataTableStateSync = <TData extends RowData>(
     };
     const subscriptions = [
       atoms.sorting.subscribe(() => mirror('sorting', atoms.sorting.get())),
-      atoms.columnFilters.subscribe(() => mirror('columnFilters', atoms.columnFilters.get())),
+      atoms.columnFilters.subscribe(() =>
+        mirror('columnFilters', atoms.columnFilters.get()),
+      ),
       atoms.columnVisibility.subscribe(() =>
         mirror('columnVisibility', atoms.columnVisibility.get()),
       ),
-      atoms.columnSizing.subscribe(() => mirror('columnSizing', atoms.columnSizing.get())),
-      atoms.columnOrder.subscribe(() => mirror('columnOrder', atoms.columnOrder.get())),
-      atoms.rowSelection.subscribe(() => mirror('rowSelection', atoms.rowSelection.get())),
+      atoms.columnSizing.subscribe(() =>
+        mirror('columnSizing', atoms.columnSizing.get()),
+      ),
+      atoms.columnOrder.subscribe(() =>
+        mirror('columnOrder', atoms.columnOrder.get()),
+      ),
+      atoms.rowSelection.subscribe(() =>
+        mirror('rowSelection', atoms.rowSelection.get()),
+      ),
     ];
     return () => {
       for (const s of subscriptions) s.unsubscribe();
@@ -182,9 +199,12 @@ export const useDataTableStateSync = <TData extends RowData>(
       table.setColumnFilters(slice.columnFilters);
     if (slice.columnVisibility !== atoms.columnVisibility.get())
       table.setColumnVisibility(slice.columnVisibility);
-    if (slice.columnSizing !== atoms.columnSizing.get()) table.setColumnSizing(slice.columnSizing);
-    if (slice.columnOrder !== atoms.columnOrder.get()) table.setColumnOrder(slice.columnOrder);
-    if (slice.rowSelection !== atoms.rowSelection.get()) table.setRowSelection(slice.rowSelection);
+    if (slice.columnSizing !== atoms.columnSizing.get())
+      table.setColumnSizing(slice.columnSizing);
+    if (slice.columnOrder !== atoms.columnOrder.get())
+      table.setColumnOrder(slice.columnOrder);
+    if (slice.rowSelection !== atoms.rowSelection.get())
+      table.setRowSelection(slice.rowSelection);
   }, [hydrated, slice, atoms, table]);
 };
 
@@ -200,7 +220,9 @@ export const useColumnFilterValue = (tableId: TableId, columnId: string) => {
   const hydrated = useHydrated();
   const slice = useAtomValue(tableStateSliceFamily(tableId));
   const setTableState = useAtomSet(tableStateAtom);
-  const value = hydrated ? slice?.columnFilters.find((f) => f.id === columnId)?.value : undefined;
+  const value = hydrated
+    ? slice?.columnFilters.find((f) => f.id === columnId)?.value
+    : undefined;
   const setValue = (next: unknown) => {
     setTableState((prev) => {
       const prevState = prev[tableId] ?? defaultTableState({ tableId });
@@ -216,7 +238,8 @@ export const useColumnFilterValue = (tableId: TableId, columnId: string) => {
 };
 
 /** The full per-table state map (e.g. to derive selected map markers). */
-export const useTableStateMap = (): TableStateMap => useAtomValue(tableStateAtom);
+export const useTableStateMap = (): TableStateMap =>
+  useAtomValue(tableStateAtom);
 
 /** Row-selection controls used outside a single table (e.g. the map section). */
 export const useRowSelectionControls = () => {

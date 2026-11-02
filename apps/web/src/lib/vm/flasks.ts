@@ -1,6 +1,7 @@
 import { GOODS } from '@elden-ring-compass/data';
 
 import type { Slot } from '@/lib/save-dto';
+
 import { goodsQuantityById } from './inventory';
 
 /** Golden Seeds raise the shared crimson + cerulean allocation from 4 up to 14 charges. */
@@ -22,11 +23,19 @@ export type FlaskInfo = {
   charges: number;
 };
 
-function flaskInfo(quantities: Map<number, number>, baseId: number, charges: number): FlaskInfo {
+function flaskInfo(
+  quantities: Map<number, number>,
+  baseId: number,
+  charges: number,
+): FlaskInfo {
   let level = 0;
   for (let l = 0; l <= MAX_FLASK_LEVEL; l++) {
     const empty = baseId + 2 * l;
-    if ((quantities.get(empty) ?? 0) > 0 || (quantities.get(empty + 1) ?? 0) > 0) level = l;
+    if (
+      (quantities.get(empty) ?? 0) > 0 ||
+      (quantities.get(empty + 1) ?? 0) > 0
+    )
+      level = l;
   }
   return { item: goodsById.get(baseId + 2 * level + 1), level, charges };
 }
@@ -55,5 +64,9 @@ export function flasksView(slot: Readonly<Slot>) {
     CERULEAN_BASE_ID,
     slot.player_game_data.max_cerulean_flask_count,
   );
-  return { crimson, cerulean, totalCharges: crimson.charges + cerulean.charges };
+  return {
+    crimson,
+    cerulean,
+    totalCharges: crimson.charges + cerulean.charges,
+  };
 }

@@ -1,5 +1,7 @@
 import { Data, Effect, FileSystem, Path, Predicate } from 'effect';
 
+import { globSorted } from '../external/glob.ts';
+import type { OodleError } from '../external/oodle.ts';
 import { type DcxError, dcxDecompress } from '../formats/dcx.ts';
 import {
   decodeInstruction,
@@ -8,8 +10,6 @@ import {
   opcodeKey,
 } from '../formats/emedf.ts';
 import { argInts, type EmevdError, parseEmevd } from '../formats/emevd.ts';
-import { globSorted } from '../external/glob.ts';
-import type { OodleError } from '../external/oodle.ts';
 
 /**
  * Exact coordinates for event-awarded item lots (invader / boss / NPC drops that
@@ -96,12 +96,13 @@ export const loadEventDropLocations = (
     // All EMEVD files EXCEPT `common_func.emevd.dcx` — that's the template library, whose
     // event bodies use unresolved param placeholders, not real lot/flag/entity ids. We DO
     // include `common.emevd` (cross-map award wrappers like `Event_1100`).
-    const paths = (yield* globSorted(
+    const paths = yield* globSorted(
       '*.emevd.dcx',
       dir,
       (cause) =>
         new EventDropError({ detail: `scanning ${dir}: ${String(cause)}` }),
-    )).filter((p) => !p.endsWith('common_func.emevd.dcx'));
+      { exclude: ['common_func.emevd.dcx'] },
+    );
 
     // Global (cross-file) indices. The award call and the flag-setting encounter event
     // routinely live in different EMEVD files, so everything is accumulated across all

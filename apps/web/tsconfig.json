@@ -1,5 +1,5 @@
 {
-  "extends": "@elden-ring-compass/typescript-config/tsconfig.base.json",
+  "extends": "shoemaker-typescript-config/tsconfig.react.json",
   "compilerOptions": {
     "noEmit": true,
     "allowImportingTsExtensions": true,
@@ -12,5 +12,11 @@
   "include": ["src", "scripts", "vite.config.ts", "vite-plugins"],
   // The worker entry runs in a Web Worker, not the DOM — it's excluded here and typechecked under
   // the WebWorker lib by `tsconfig.worker.json`. `tsconfig.typecheck.json` builds both in one pass.
-  "exclude": ["node_modules", "dist", ".output", ".nitro", "src/lib/er-save-parser.worker.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".output",
+    ".nitro",
+    "src/lib/er-save-parser.worker.ts"
+  ]
 }

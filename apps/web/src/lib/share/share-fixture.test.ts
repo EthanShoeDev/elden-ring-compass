@@ -1,9 +1,11 @@
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+
 import { NodeServices } from '@effect/platform-node';
 import { it } from '@effect/vitest';
 import { Effect, FileSystem } from 'effect';
 import { expect } from 'vitest';
+
 import { parseEldenRingData } from '../er-save-parser';
 import { decodeFromUrl } from './decode';
 import { encodeToUrl, slotToShareableProgression } from './encode';
@@ -28,16 +30,28 @@ it.layer(NodeServices.layer)('share links from real saves', (it) => {
     Effect.gen(function* () {
       const fs = yield* FileSystem.FileSystem;
       const bytes = yield* fs.readFile(
-        join(REPO_ROOT, 'packages', 'save-parser', 'test', 'fixtures', 'ER0000.sl2'),
+        join(
+          REPO_ROOT,
+          'packages',
+          'save-parser',
+          'test',
+          'fixtures',
+          'ER0000.sl2',
+        ),
       );
       const save = parseEldenRingData(
-        bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer,
+        bytes.buffer.slice(
+          bytes.byteOffset,
+          bytes.byteOffset + bytes.byteLength,
+        ) as ArrayBuffer,
       );
       expect(save.slots).toHaveLength(5);
       for (const slot of save.slots) {
         const progression = slotToShareableProgression(slot);
         const decoded = decodeFromUrl(yield* encodeToUrl(progression));
-        expect(decoded, slot.player_game_data.character_name).toStrictEqual(progression);
+        expect(decoded, slot.player_game_data.character_name).toStrictEqual(
+          progression,
+        );
       }
     }),
   );

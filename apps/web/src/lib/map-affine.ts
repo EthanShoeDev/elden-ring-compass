@@ -22,7 +22,10 @@
  * `WorldMapLegacyConvParam` — a pure translation, no rotation), then reuse the exact
  * overworld affine. See `packages/extractor/src/game/world-map-legacy-conv.ts`.
  */
-import { type LegacyConv, WORLD_MAP_LEGACY_CONV } from '@elden-ring-compass/data';
+import {
+  type LegacyConv,
+  WORLD_MAP_LEGACY_CONV,
+} from '@elden-ring-compass/data';
 
 /**
  * Absolute world→master-pixel offsets: `px = worldX + OFFSET_X`, `py = OFFSET_Y − worldZ`.
@@ -51,7 +54,11 @@ export interface MasterPixel {
 }
 
 /** Absolute overworld world coords → master pixel (the exact 1px = 1 world-unit affine). */
-function worldToMasterPixel(master: MasterId, worldX: number, worldZ: number): MasterPixel {
+function worldToMasterPixel(
+  master: MasterId,
+  worldX: number,
+  worldZ: number,
+): MasterPixel {
   return { master, px: worldX + OFFSET_X, py: OFFSET_Y - worldZ };
 }
 
@@ -78,7 +85,11 @@ function dungeonBlock(mapId: string): string | null {
  * dungeons have one; large multi-zone dungeons have several, approximating a warped
  * mapping piecewise), then projected as an overworld point.
  */
-function dungeonMarkerToMasterPixel(mapId: string, x: number, z: number): MasterPixel | null {
+function dungeonMarkerToMasterPixel(
+  mapId: string,
+  x: number,
+  z: number,
+): MasterPixel | null {
   const block = dungeonBlock(mapId);
   if (block === null) return null;
   const points = legacyConvByBlock.get(block);
@@ -147,7 +158,15 @@ export function playerToMasterPixel(
   const [x, , z] = coords as readonly [number, number, number];
   const pad = (n: number) => n.toString().padStart(2, '0');
   return (
-    overworldMarkerToMasterPixel(`m${pad(a)}_${pad(b)}_${pad(c)}_${pad(d)}`, x, z) ??
-    overworldMarkerToMasterPixel(`m${pad(d)}_${pad(c)}_${pad(b)}_${pad(a)}`, x, z)
+    overworldMarkerToMasterPixel(
+      `m${pad(a)}_${pad(b)}_${pad(c)}_${pad(d)}`,
+      x,
+      z,
+    ) ??
+    overworldMarkerToMasterPixel(
+      `m${pad(d)}_${pad(c)}_${pad(b)}_${pad(a)}`,
+      x,
+      z,
+    )
   );
 }

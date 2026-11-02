@@ -9,8 +9,9 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import type { Plugin } from 'vite';
 
 /**
@@ -46,16 +47,21 @@ export function erDataTiles(): Plugin {
     '.xml': 'application/xml',
     '.json': 'application/json',
   };
-  const pkgJson = fileURLToPath(import.meta.resolve('@elden-ring-compass/data/package.json'));
+  const pkgJson = fileURLToPath(
+    import.meta.resolve('@elden-ring-compass/data/package.json'),
+  );
   const src = path.join(path.dirname(pkgJson), 'images', 'map-tiles');
-  const publicRoot = fileURLToPath(new URL('../public/map-tiles', import.meta.url));
+  const publicRoot = fileURLToPath(
+    new URL('../public/map-tiles', import.meta.url),
+  );
   const INDEX_FILE = 'tile-index.json';
   let isBuild = false;
   let version = '';
   let indexJson: string | null = null;
 
   /** Lazily build (and cache) the JSON existence index from the on-disk pyramid. */
-  const getIndexJson = (): string => (indexJson ??= JSON.stringify(buildTileIndex(src)));
+  const getIndexJson = (): string =>
+    (indexJson ??= JSON.stringify(buildTileIndex(src)));
 
   return {
     name: 'er-data-tiles',
@@ -68,7 +74,11 @@ export function erDataTiles(): Plugin {
         );
       }
       version = hashTileTree(src);
-      return { define: { __ER_MAP_TILES_BASE__: JSON.stringify(`/map-tiles/${version}`) } };
+      return {
+        define: {
+          __ER_MAP_TILES_BASE__: JSON.stringify(`/map-tiles/${version}`),
+        },
+      };
     },
     configureServer(server) {
       const prefix = `/map-tiles/${version}/`;
@@ -83,12 +93,21 @@ export function erDataTiles(): Plugin {
           res.end(getIndexJson());
           return;
         }
-        const rel = path.normalize(decodeURIComponent(pathname)).slice(prefix.length);
+        const rel = path
+          .normalize(decodeURIComponent(pathname))
+          .slice(prefix.length);
         const file = path.join(src, rel);
-        if (!file.startsWith(src) || !existsSync(file) || !statSync(file).isFile()) {
+        if (
+          !file.startsWith(src) ||
+          !existsSync(file) ||
+          !statSync(file).isFile()
+        ) {
           return next();
         }
-        res.setHeader('Content-Type', MIME[path.extname(file)] ?? 'application/octet-stream');
+        res.setHeader(
+          'Content-Type',
+          MIME[path.extname(file)] ?? 'application/octet-stream',
+        );
         // Not `immutable` in dev: the version is computed once at startup, so tiles regenerated
         // mid-session would otherwise stay stale in the browser until the URL changes.
         res.setHeader('Cache-Control', 'no-cache');
@@ -144,9 +163,13 @@ function hashTileTree(srcDir: string): string {
  * `{ [mapId]: { [zoom]: [x0, y0, x1, y1, …] } }` (flattened `x,y` pairs — the URL
  * template is `{z}/{y}/{x}`, so `y` is the sub-directory and `x` the filename).
  */
-function buildTileIndex(srcDir: string): Record<string, Record<string, number[]>> {
+function buildTileIndex(
+  srcDir: string,
+): Record<string, Record<string, number[]>> {
   const dirs = (p: string): string[] =>
-    existsSync(p) ? readdirSync(p).filter((e) => statSync(path.join(p, e)).isDirectory()) : [];
+    existsSync(p)
+      ? readdirSync(p).filter((e) => statSync(path.join(p, e)).isDirectory())
+      : [];
   const index: Record<string, Record<string, number[]>> = {};
   for (const map of dirs(srcDir)) {
     const baseDir = path.join(srcDir, map, 'base');

@@ -1,5 +1,8 @@
 import { Data, Effect, FileSystem, PlatformError } from 'effect';
 
+import { globSorted } from '../external/glob.ts';
+import type { OodleError } from '../external/oodle.ts';
+import type { Bnd4Error } from '../formats/bnd4.ts';
 import { type DcxError, dcxDecompress } from '../formats/dcx.ts';
 import {
   argInts,
@@ -8,9 +11,6 @@ import {
   type EmevdError,
   parseEmevd,
 } from '../formats/emevd.ts';
-import { globSorted } from '../external/glob.ts';
-import type { OodleError } from '../external/oodle.ts';
-import type { Bnd4Error } from '../formats/bnd4.ts';
 import type { FmgError } from '../formats/fmg.ts';
 import { ITEM_MSGBNDS, loadFmgTable } from './fmg-tables.ts';
 

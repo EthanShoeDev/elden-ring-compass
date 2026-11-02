@@ -1,9 +1,14 @@
 import { it } from '@effect/vitest';
-import { describe, expect } from 'vitest';
 import { Effect } from 'effect';
-import { encodeToUrl } from './encode';
+import { describe, expect } from 'vitest';
+
 import { decodeFromUrl, isValidShareData } from './decode';
-import { LEGACY_SHAREABLE_VERSION, type ShareableProgression, SHAREABLE_VERSION } from './types';
+import { encodeToUrl } from './encode';
+import {
+  LEGACY_SHAREABLE_VERSION,
+  type ShareableProgression,
+  SHAREABLE_VERSION,
+} from './types';
 
 describe('Share encode/decode', () => {
   const mockShareableData: ShareableProgression = {

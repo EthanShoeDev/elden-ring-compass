@@ -1,6 +1,13 @@
 import { activeEffectsDbView } from '@/lib/vm/active-effects';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
 
 /** Format a buff's remaining time; permanent/resident effects (≤0) show "—". */
 const fmtTime = (t: number) => (t > 0 ? `${Math.round(t)}s` : '—');
@@ -21,15 +28,21 @@ export function ActiveEffectsCard() {
       <CardHeader>
         <CardTitle>Active Effects</CardTitle>
         <CardDescription>
-          {effects.length} active{unlabeled > 0 ? ` · ${unlabeled} unlabeled` : ''}
+          {effects.length} active
+          {unlabeled > 0 ? ` · ${unlabeled} unlabeled` : ''}
         </CardDescription>
       </CardHeader>
       <CardContent className='flex flex-col gap-1'>
         {labeled.length > 0 ? (
           labeled.map((e) => (
-            <div key={e.id} className='flex items-center justify-between gap-6 text-sm'>
+            <div
+              key={e.id}
+              className='flex items-center justify-between gap-6 text-sm'
+            >
               <span>{e.label}</span>
-              <span className='text-xs text-muted-foreground'>{fmtTime(e.remainingTime)}</span>
+              <span className='text-xs text-muted-foreground'>
+                {fmtTime(e.remainingTime)}
+              </span>
             </div>
           ))
         ) : (

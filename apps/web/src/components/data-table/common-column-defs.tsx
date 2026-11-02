@@ -1,10 +1,17 @@
-import { RowData, Subscribe } from '@tanstack/react-table';
+import type { RowData } from '@tanstack/react-table';
+import { Subscribe } from '@tanstack/react-table';
+import { Predicate } from 'effect';
 import { CheckIcon, ExternalLinkIcon, XIcon } from 'lucide-react';
+
 import { wikiPageUrl } from '@/lib/wiki';
+
 import { DataTableColumnHeader } from './data-table-column-header';
 import { PinToggle, PinUnavailable } from './pin-toggle';
-import { DataTableColumnDef, DataTableColumnHelper, DataTableRow } from './table-hook';
-import { Predicate } from 'effect';
+import type {
+  DataTableColumnDef,
+  DataTableColumnHelper,
+  DataTableRow,
+} from './table-hook';
 
 /**
  * Pin column for the data tables. Pinning a row = placing it on the map, so the
@@ -61,7 +68,10 @@ export const commonPinColumnDef = <T extends RowData>(
       return (
         // Per-row atom subscription: only this row's pin re-renders on selection
         // changes, and the read is compiler-visible (see header comment).
-        <Subscribe source={table.atoms.rowSelection} selector={(s) => !!s[row.id]}>
+        <Subscribe
+          source={table.atoms.rowSelection}
+          selector={(s) => !!s[row.id]}
+        >
           {(on) => (
             <div className='flex justify-center'>
               <PinToggle
@@ -153,7 +163,8 @@ export function quantityFilterFn<T extends RowData>(
   const qty = row.getValue<number>(columnId);
   if (filterVal === 'owned') return qty > 0;
   if (filterVal === 'missing') return qty === 0;
-  if (Array.isArray(filterVal)) return filterVal.length === 0 || filterVal.includes(qty);
+  if (Array.isArray(filterVal))
+    return filterVal.length === 0 || filterVal.includes(qty);
   return true;
 }
 quantityFilterFn[defaultFacetedFilterFnSymbol] = true;
@@ -166,7 +177,9 @@ export const commonAccessorColumnDef = <T extends RowData>(
 ): DataTableColumnDef<T> =>
   columnHelper.accessor(accessor, {
     id: label,
-    header: ({ column, table }) => <DataTableColumnHeader table={table} column={column} />,
+    header: ({ column, table }) => (
+      <DataTableColumnHeader table={table} column={column} />
+    ),
     cell: (cell) => {
       const value = cell.renderValue();
       const renderValue =

@@ -54,7 +54,9 @@ export const enrichWeapon = (w: Weapon): EnrichedWeapon => {
   return {
     ...w,
     affinityIndex: isVariant ? rawAffinity : 0,
-    affinity: isVariant ? (AFFINITY_LABELS[rawAffinity] ?? 'Special') : 'Standard',
+    affinity: isVariant
+      ? (AFFINITY_LABELS[rawAffinity] ?? 'Special')
+      : 'Standard',
     baseId: isVariant ? baseId : w.id,
     baseName: isVariant ? baseName : w.name,
   };

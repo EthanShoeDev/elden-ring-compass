@@ -5,7 +5,7 @@ import {
   itemNameById,
   weaponNameById,
 } from '../game-data';
-import { EquipInventoryData, GaItem, Slot } from '../save-dto';
+import type { EquipInventoryData, GaItem, Slot } from '../save-dto';
 
 // For converting gaitem.item_id to item
 export const InventoryItemTypeToOffset = {
@@ -30,7 +30,9 @@ export const InventoryGaItemTypeToOffset = {
 export type InventoryLocation = 'held' | 'storage';
 
 export function inventoryDbView(slot: Readonly<Slot>) {
-  function itemTypeFromGaHandle(gaHandle: number): keyof typeof InventoryGaItemTypeToOffset {
+  function itemTypeFromGaHandle(
+    gaHandle: number,
+  ): keyof typeof InventoryGaItemTypeToOffset {
     const itemType = (gaHandle & 0xf0000000) >>> 0;
 
     if (itemType === -1) return 'EMPTY';
@@ -83,11 +85,16 @@ export function inventoryDbView(slot: Readonly<Slot>) {
     };
   }
 
-  const gaItemMap = new Map<number, GaItem>(slot.ga_items.map((i) => [i.gaitem_handle, i]));
+  const gaItemMap = new Map<number, GaItem>(
+    slot.ga_items.map((i) => [i.gaitem_handle, i]),
+  );
   // Both halves of an inventory: newer saves keep Crystal Tears, Great Runes and crafting tools
   // in the key-item list, so reading only `common_items` drops them. Key items take equip
   // indexes 0..0x17F; common items start at 0x180.
-  const fill_storage_type = (inventory_data: EquipInventoryData, location: InventoryLocation) => [
+  const fill_storage_type = (
+    inventory_data: EquipInventoryData,
+    location: InventoryLocation,
+  ) => [
     ...resolve_items(inventory_data.common_items, 0x180, location),
     ...resolve_items(inventory_data.key_items, 0, location),
   ];
@@ -101,7 +108,11 @@ export function inventoryDbView(slot: Readonly<Slot>) {
         const itemType = itemTypeFromGaHandle(commonItem.ga_item_handle);
         const equip_index = idx + equip_index_base;
 
-        const gaitem: GaItem | undefined = ['ACCESSORY', 'ITEM', 'EMPTY'].includes(itemType)
+        const gaitem: GaItem | undefined = [
+          'ACCESSORY',
+          'ITEM',
+          'EMPTY',
+        ].includes(itemType)
           ? {
               gaitem_handle: 0,
               item_id: 0,
@@ -122,13 +133,18 @@ export function inventoryDbView(slot: Readonly<Slot>) {
         const itemName = (() => {
           if (itemType === 'WEAPON') {
             const baseId = itemId - upgrade_level;
-            const weaponName = weaponNameById.get(baseId) ?? `[UNKOWN_${baseId.toString()}]`;
+            const weaponName =
+              weaponNameById.get(baseId) ?? `[UNKOWN_${baseId.toString()}]`;
 
-            return upgrade_level > 0 ? `${weaponName} +${upgrade_level.toString()}` : weaponName;
+            return upgrade_level > 0
+              ? `${weaponName} +${upgrade_level.toString()}`
+              : weaponName;
           } else if (itemType === 'ARMOR') {
             return armorNameById.get(itemId) ?? `[UNKOWN_${itemId.toString()}]`;
           } else if (itemType === 'ACCESSORY') {
-            return accessoryNameById.get(itemId) ?? `[UNKOWN_${itemId.toString()}]`;
+            return (
+              accessoryNameById.get(itemId) ?? `[UNKOWN_${itemId.toString()}]`
+            );
           } else if (itemType === 'ITEM') {
             return itemNameById.get(itemId) ?? `[UNKOWN_${itemId.toString()}]`;
           } else if (itemType === 'AOW') {
@@ -149,10 +165,16 @@ export function inventoryDbView(slot: Readonly<Slot>) {
           location,
         };
       })
-      .filter((i): i is NonNullable<typeof i> => i !== null && i.item_id !== -1 && i.item_id !== 0);
+      .filter(
+        (i): i is NonNullable<typeof i> =>
+          i !== null && i.item_id !== -1 && i.item_id !== 0,
+      );
 
   const equip_inventory = fill_storage_type(slot.equip_inventory_data, 'held');
-  const storage_inventory = fill_storage_type(slot.storage_inventory_data, 'storage');
+  const storage_inventory = fill_storage_type(
+    slot.storage_inventory_data,
+    'storage',
+  );
 
   const userInventory = {
     ...getNextItemIndexes(slot),
@@ -169,14 +191,18 @@ export type InventoryItemType = keyof typeof InventoryGaItemTypeToOffset;
  * Crimson Amber Medallion, goods 1000 is a Flask of Crimson Tears), so every ownership lookup
  * must key on type + id — never the bare id.
  */
-export const ownedItemKey = (type: InventoryItemType, id: number) => `${type}:${id.toString()}`;
+export const ownedItemKey = (type: InventoryItemType, id: number) =>
+  `${type}:${id.toString()}`;
 
 /** Goods (consumables, key items, tears, gestures...) held across inventory + storage: id -> total quantity. */
 export function goodsQuantityById(slot: Readonly<Slot>): Map<number, number> {
   const quantities = new Map<number, number>();
   for (const item of inventoryDbView(slot).items) {
     if (item.type !== 'ITEM') continue;
-    quantities.set(item.item_id, (quantities.get(item.item_id) ?? 0) + item.quantity);
+    quantities.set(
+      item.item_id,
+      (quantities.get(item.item_id) ?? 0) + item.quantity,
+    );
   }
   return quantities;
 }

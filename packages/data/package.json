@@ -20,7 +20,7 @@
     "test:run": "vitest run"
   },
   "devDependencies": {
-    "@elden-ring-compass/typescript-config": "workspace:*",
+    "shoemaker-typescript-config": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"
   },

@@ -18,6 +18,7 @@
  *          [--concurrency N] [--table <type>] [--no-cache] [--revalidate N]
  */
 import { BunRuntime, BunServices } from '@effect/platform-bun';
+import { BOSSES } from '@elden-ring-compass/data';
 import {
   Config,
   Console,
@@ -31,10 +32,8 @@ import {
   Schedule,
   Schema,
 } from 'effect';
-import { FetchHttpClient, HttpClient } from 'effect/http';
 import { Command, Flag } from 'effect/cli';
-
-import { BOSSES } from '@elden-ring-compass/data';
+import { FetchHttpClient, HttpClient } from 'effect/http';
 
 import { CATALOG } from '../src/lib/inventory-catalog-data';
 import { wikiNameForBoss, wikiNameForItem, wikiPageUrl } from '../src/lib/wiki';
@@ -57,7 +56,9 @@ const SOURCES: Record<
   ReadonlyArray<{ name: string; baseName?: string; category?: string }>
 > = {
   ...CATALOG,
-  bosses: BOSSES.flatMap((b) => (b.name === null ? [] : [{ name: wikiNameForBoss(b.name) }])),
+  bosses: BOSSES.flatMap((b) =>
+    b.name === null ? [] : [{ name: wikiNameForBoss(b.name) }],
+  ),
 };
 
 interface LinkCheck {
@@ -118,18 +119,27 @@ const CacheFileSchema = Schema.fromJsonString(
 
 const cacheFilePath = Effect.gen(function* () {
   const path = yield* Path.Path;
-  return path.join(process.cwd(), 'node_modules', '.cache', 'wiki-link-check', 'results.json');
+  return path.join(
+    process.cwd(),
+    'node_modules',
+    '.cache',
+    'wiki-link-check',
+    'results.json',
+  );
 });
 
 const readCache = Effect.gen(function* () {
   const fs = yield* FileSystem.FileSystem;
   const file = yield* cacheFilePath;
-  const raw = yield* fs.readFileString(file).pipe(Effect.orElseSucceed(() => null));
+  const raw = yield* fs
+    .readFileString(file)
+    .pipe(Effect.orElseSucceed(() => null));
   if (raw === null) return new Map<string, CacheEntry>();
   const parsed = yield* Schema.decodeEffect(CacheFileSchema)(raw).pipe(
     Effect.orElseSucceed(() => null),
   );
-  if (parsed === null || parsed.version !== CACHE_VERSION) return new Map<string, CacheEntry>();
+  if (parsed === null || parsed.version !== CACHE_VERSION)
+    return new Map<string, CacheEntry>();
   return new Map(Object.entries(parsed.results));
 });
 
@@ -191,7 +201,9 @@ const main = ({ concurrency, table, noCache, revalidate }: MainOptions) =>
     // (the node_modules cache isn't shared there). This check is a local gate.
     const ci = yield* Config.Boolean('CI').pipe(Config.withDefault(false));
     if (ci) {
-      yield* Console.log('CI detected — skipping wiki link check (local-only gate).');
+      yield* Console.log(
+        'CI detected — skipping wiki link check (local-only gate).',
+      );
       return;
     }
 
@@ -235,7 +247,8 @@ const main = ({ concurrency, table, noCache, revalidate }: MainOptions) =>
             cache.delete(link.url);
             failures.push({ ...link, status });
           }
-          if (done % 100 === 0) yield* Console.log(`  ${done}/${toCheck.length} checked…`);
+          if (done % 100 === 0)
+            yield* Console.log(`  ${done}/${toCheck.length} checked…`);
         }),
       { concurrency },
     );
@@ -271,7 +284,9 @@ const main = ({ concurrency, table, noCache, revalidate }: MainOptions) =>
     }
 
     yield* Console.log(`\n${failures.length}/${links.length} links failed:\n`);
-    for (const [t, fs] of [...perTable.entries()].toSorted((a, b) => b[1].length - a[1].length)) {
+    for (const [t, fs] of [...perTable.entries()].toSorted(
+      (a, b) => b[1].length - a[1].length,
+    )) {
       const total = collectLinks(t).length;
       yield* Console.log(`  ${t} — ${fs.length}/${total} broken:`);
       for (const f of fs.toSorted((a, b) => a.name.localeCompare(b.name))) {
@@ -288,19 +303,27 @@ const command = Command.make(
   {
     concurrency: Flag.Int('concurrency').pipe(
       Flag.withDefault(8),
-      Flag.withDescription('Parallel requests (be polite — this hits the live wiki)'),
+      Flag.withDescription(
+        'Parallel requests (be polite — this hits the live wiki)',
+      ),
     ),
     table: Flag.String('table').pipe(
       Flag.optional,
-      Flag.withDescription('Only check one inventory table type (e.g. talismans)'),
+      Flag.withDescription(
+        'Only check one inventory table type (e.g. talismans)',
+      ),
     ),
     noCache: Flag.Boolean('no-cache').pipe(
       Flag.withDefault(false),
-      Flag.withDescription('Ignore the node_modules/.cache result cache and re-check everything'),
+      Flag.withDescription(
+        'Ignore the node_modules/.cache result cache and re-check everything',
+      ),
     ),
     revalidate: Flag.Int('revalidate').pipe(
       Flag.withDefault(10),
-      Flag.withDescription('Re-check the N oldest cached entries per run (catches deleted pages)'),
+      Flag.withDescription(
+        'Re-check the N oldest cached entries per run (catches deleted pages)',
+      ),
     ),
   },
   ({ concurrency, table, noCache, revalidate }) =>
@@ -314,4 +337,7 @@ const command = Command.make(
 
 const run = Command.run(command, { version: '0.0.1' });
 
-run.pipe(Effect.provide([FetchHttpClient.layer, BunServices.layer]), BunRuntime.runMain);
+run.pipe(
+  Effect.provide([FetchHttpClient.layer, BunServices.layer]),
+  BunRuntime.runMain,
+);

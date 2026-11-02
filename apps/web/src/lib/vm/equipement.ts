@@ -5,8 +5,11 @@ import {
   itemNameById,
   weaponNameById,
 } from '../game-data';
-import { Slot } from '../save-dto';
-import { InventoryGaItemTypeToOffset, InventoryItemTypeToOffset } from './inventory';
+import type { Slot } from '../save-dto';
+import {
+  InventoryGaItemTypeToOffset,
+  InventoryItemTypeToOffset,
+} from './inventory';
 /** No Ash of War attached (the gem handle on a weapon reads 0). */
 const noAsh = { id: 0, name: 'None' } as const;
 export type EquippedAsh = { id: number; name: string };
@@ -52,7 +55,9 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
       talisman_count: 0,
       talismans: [empty, empty, empty, empty],
     };
-  const gaHandleToGaItemId = new Map(slot.ga_items.map((g) => [g.gaitem_handle, g.item_id]));
+  const gaHandleToGaItemId = new Map(
+    slot.ga_items.map((g) => [g.gaitem_handle, g.item_id]),
+  );
   // handle -> the full ga_item, so a weapon can resolve its attached Ash of War
   // (gem) by following `gem_gaitem_handle` to another ga_item.
   const gaByHandle = new Map(slot.ga_items.map((g) => [g.gaitem_handle, g]));
@@ -70,10 +75,17 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
 
   const talisman_count = (() => {
     let count = 1;
-    for (let i = 0; i < slot.equip_inventory_data.key_inventory_items_distinct_count; i++) {
+    for (
+      let i = 0;
+      i < slot.equip_inventory_data.key_inventory_items_distinct_count;
+      i++
+    ) {
       const key_item = slot.equip_inventory_data.key_items[i];
       if (!key_item) continue;
-      if ((key_item.ga_item_handle ^ InventoryGaItemTypeToOffset.ITEM) === 10040) {
+      if (
+        (key_item.ga_item_handle ^ InventoryGaItemTypeToOffset.ITEM) ===
+        10040
+      ) {
         count = Math.min(1 + key_item.quantity, 4);
       }
     }
@@ -101,7 +113,8 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
         id,
         equip_index,
         name: id !== undefined && id !== 0 ? weaponName(id) : 'Empty',
-        ashOfWar: id !== undefined && id !== 0 ? ashOfWarFor(gaitem_handle) : noAsh,
+        ashOfWar:
+          id !== undefined && id !== 0 ? ashOfWarFor(gaitem_handle) : noAsh,
       };
     });
 
@@ -122,7 +135,8 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
 
   const armor_fn = (ga_handle: Readonly<number>) => {
     const item_id = gaHandleToGaItemId.get(ga_handle) ?? 0;
-    const armor_id = item_id !== 0 ? item_id ^ InventoryItemTypeToOffset.ARMOR : 0;
+    const armor_id =
+      item_id !== 0 ? item_id ^ InventoryItemTypeToOffset.ARMOR : 0;
     const equip_index = equip_index_from_ga_handle(ga_handle);
     return {
       ga_handle,
@@ -139,13 +153,18 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
 
   const talismans = Array.from({ length: 4 }, (_, i) => {
     const gaitem_handle = slot.chr_asm2.talismans[i] ?? 0;
-    const talisman_id = idFromHandle(gaitem_handle, InventoryGaItemTypeToOffset.ACCESSORY);
+    const talisman_id = idFromHandle(
+      gaitem_handle,
+      InventoryGaItemTypeToOffset.ACCESSORY,
+    );
     const equip_index = equip_index_from_ga_handle(gaitem_handle);
     return {
       gaitem_handle,
       id: talisman_id,
       equip_index,
-      name: talisman_id ? (accessoryNameById.get(talisman_id) ?? 'Unknown') : 'Empty',
+      name: talisman_id
+        ? (accessoryNameById.get(talisman_id) ?? 'Unknown')
+        : 'Empty',
     };
   });
 
@@ -162,7 +181,8 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
 
   const quickslots = Array.from({ length: 10 }, (_, i) => {
     // An absent/empty quick slot reads as handle 0, which itemFn renders as 'Empty'.
-    const gaitem_handle = slot.equip_item_data.quick_slot_items[i]?.item_id ?? 0;
+    const gaitem_handle =
+      slot.equip_item_data.quick_slot_items[i]?.item_id ?? 0;
 
     return itemFn(gaitem_handle);
   });

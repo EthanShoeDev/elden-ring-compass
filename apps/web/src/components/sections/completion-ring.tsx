@@ -16,7 +16,7 @@ export function CompletionRing({
   pct: number;
   size?: number;
   stroke?: number;
-  centerIconUrl?: string;
+  centerIconUrl?: string | undefined;
   /** Shown in the center when there's no helm icon (e.g. the big % itself, or a class initial). */
   centerLabel?: string;
   className?: string;
@@ -27,7 +27,10 @@ export function CompletionRing({
   const dashOffset = circumference * (1 - clamped / 100);
 
   return (
-    <div className={cn('relative shrink-0', className)} style={{ width: size, height: size }}>
+    <div
+      className={cn('relative shrink-0', className)}
+      style={{ width: size, height: size }}
+    >
       <svg
         width={size}
         height={size}
@@ -62,11 +65,15 @@ export function CompletionRing({
               className='size-1/2 object-contain drop-shadow'
               loading='lazy'
             />
-            <span className='text-sm font-semibold tabular-nums'>{clamped}%</span>
+            <span className='text-sm font-semibold tabular-nums'>
+              {clamped}%
+            </span>
           </>
         ) : (
           <>
-            <span className='text-2xl font-bold tabular-nums leading-none'>{clamped}%</span>
+            <span className='text-2xl leading-none font-bold tabular-nums'>
+              {clamped}%
+            </span>
             {centerLabel !== undefined && centerLabel !== '' && (
               <span className='text-[11px] font-medium tracking-wide text-muted-foreground uppercase'>
                 {centerLabel}

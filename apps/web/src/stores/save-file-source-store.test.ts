@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest';
+
+import { LEGACY_SHAREABLE_VERSION } from '@/lib/share/types';
+
 import {
   isFileSource,
   isUrlSource,
@@ -7,7 +10,6 @@ import {
   SAMPLE_SAVE_URL,
   type SaveFileSource,
 } from './save-file-source-store';
-import { LEGACY_SHAREABLE_VERSION } from '@/lib/share/types';
 
 describe('SaveFileSource type guards', () => {
   describe('isFileSource', () => {
@@ -31,7 +33,19 @@ describe('SaveFileSource type guards', () => {
         sharedData: {
           v: LEGACY_SHAREABLE_VERSION,
           n: 'Test',
-          s: { l: 1, v: 1, m: 1, e: 1, st: 1, d: 1, i: 1, f: 1, a: 1, r: 0, rm: 0 },
+          s: {
+            l: 1,
+            v: 1,
+            m: 1,
+            e: 1,
+            st: 1,
+            d: 1,
+            i: 1,
+            f: 1,
+            a: 1,
+            r: 0,
+            rm: 0,
+          },
           g: 0,
           at: 0,
           wl: 0,
@@ -51,7 +65,9 @@ describe('SaveFileSource type guards', () => {
 
   describe('isUrlSource', () => {
     it('should return true for url source', () => {
-      const source: SaveFileSource = { url: 'http://localhost:8080/ER0000.sl2' };
+      const source: SaveFileSource = {
+        url: 'http://localhost:8080/ER0000.sl2',
+      };
       expect(isUrlSource(source)).toBe(true);
     });
 
@@ -76,7 +92,19 @@ describe('SaveFileSource type guards', () => {
         sharedData: {
           v: LEGACY_SHAREABLE_VERSION,
           n: 'Test',
-          s: { l: 1, v: 1, m: 1, e: 1, st: 1, d: 1, i: 1, f: 1, a: 1, r: 0, rm: 0 },
+          s: {
+            l: 1,
+            v: 1,
+            m: 1,
+            e: 1,
+            st: 1,
+            d: 1,
+            i: 1,
+            f: 1,
+            a: 1,
+            r: 0,
+            rm: 0,
+          },
           g: 0,
           at: 0,
           wl: 0,
@@ -116,7 +144,9 @@ describe('normalizePersistedUrl', () => {
   });
 
   it('re-points a stale fingerprinted sample url at the current one', () => {
-    expect(normalizePersistedUrl('/assets/ER0000-Cabc123_.sl2')).toBe(SAMPLE_SAVE_URL);
+    expect(normalizePersistedUrl('/assets/ER0000-Cabc123_.sl2')).toBe(
+      SAMPLE_SAVE_URL,
+    );
   });
 
   it('is a no-op for the current sample url', () => {

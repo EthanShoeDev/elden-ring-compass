@@ -7,7 +7,10 @@ export const Route = createFileRoute('/_app/inventory/$category')({
   // Unknown category slug → bounce to the default category.
   beforeLoad: ({ params }) => {
     if (!SLUG_TO_TYPE[params.category]) {
-      throw redirect({ to: '/inventory/$category', params: { category: DEFAULT_INVENTORY_SLUG } });
+      throw redirect({
+        to: '/inventory/$category',
+        params: { category: DEFAULT_INVENTORY_SLUG },
+      });
     }
   },
   // The category table is the whole route — render it edge-to-edge (no shell

@@ -1,19 +1,21 @@
-import { Effect, Stream } from 'effect';
+import { Effect, FileSystem } from 'effect';
+import type { PlatformError } from 'effect';
 
 /**
- * Absolute paths under `cwd` matching `pattern`, sorted. Effect `FileSystem`
- * only lists and watches directories, so the scan stays on `Bun.Glob`; its
- * async iterator is lifted into a Stream rather than an `async` loop.
+ * Paths under `root` matching `pattern` (effect `FileSystem.glob`), joined back
+ * onto `root` so callers get openable paths. `glob` visits each directory's
+ * entries sorted by name, so single-directory patterns come back sorted.
  */
 export const globSorted = <E>(
   pattern: string,
-  cwd: string,
-  onError: (cause: unknown) => E,
-): Effect.Effect<string[], E> =>
-  Stream.fromAsyncIterable(
-    new Bun.Glob(pattern).scan({ cwd, absolute: true }),
-    onError,
-  ).pipe(
-    Stream.runCollect,
-    Effect.map((paths) => paths.toSorted()),
-  );
+  root: string,
+  onError: (cause: PlatformError.PlatformError) => E,
+  options: { readonly exclude?: ReadonlyArray<string> } = {},
+): Effect.Effect<Array<string>, E, FileSystem.FileSystem> =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    const paths = yield* fs
+      .glob(pattern, { root, exclude: options.exclude })
+      .pipe(Effect.mapError(onError));
+    return paths.map((path) => `${root}/${path}`);
+  });

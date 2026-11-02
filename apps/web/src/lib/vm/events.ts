@@ -1,6 +1,6 @@
 import { BOSSES, eventFlagOffset, GRACES } from '@elden-ring-compass/data';
 
-import { Slot } from '../save-dto';
+import type { Slot } from '../save-dto';
 import { bossFlagToPixel, graceFlagToPixel } from './map-pins';
 
 function get_bit(byte: number, bit_pos: number) {
@@ -13,7 +13,7 @@ type BaseEvent = {
   id: number;
   name: string;
   type: EventType;
-  subtitle?: string;
+  subtitle?: string | undefined;
 };
 
 /**
@@ -35,7 +35,9 @@ const FLAG_EVENTS: ReadonlyArray<BaseEvent & { flagId: number }> = [
         type: 'grace' as const,
         subtitle: g.region ?? undefined,
       })),
-      ...BOSSES.filter((b): b is typeof b & { name: string } => b.name !== null).map((b) => ({
+      ...BOSSES.filter(
+        (b): b is typeof b & { name: string } => b.name !== null,
+      ).map((b) => ({
         id: b.defeatFlagId,
         name: b.name,
         type: 'boss' as const,
@@ -62,7 +64,10 @@ export function defaultEventRowSelection(): Record<string, boolean> {
 }
 
 /** Whether event flag `flagId` is set in the save's flag bitfield (false if unaddressable). */
-export function isEventFlagOn(slot: Readonly<Slot> | undefined, flagId: number): boolean {
+export function isEventFlagOn(
+  slot: Readonly<Slot> | undefined,
+  flagId: number,
+): boolean {
   if (!slot) return false;
   const offset = eventFlagOffset(flagId);
   if (!offset) return false;
@@ -75,7 +80,9 @@ export function eventsDbView(slot?: Readonly<Slot>) {
   // Install-derived overworld pixel (graces / field bosses), keyed by flag id.
   // `undefined` for dungeon markers (need WorldMapLegacyConvParam).
   const pixelFor = (e: BaseEvent, flagId: number) =>
-    e.type === 'grace' ? graceFlagToPixel.get(flagId) : bossFlagToPixel.get(flagId);
+    e.type === 'grace'
+      ? graceFlagToPixel.get(flagId)
+      : bossFlagToPixel.get(flagId);
 
   return FLAG_EVENTS.map(({ flagId, ...e }) => ({
     ...e,

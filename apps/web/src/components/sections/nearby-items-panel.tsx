@@ -29,7 +29,10 @@ import {
 import { cn } from '@/lib/utils';
 import { ALL_ITEM_PINS, type PlacedItemPin } from '@/lib/vm/map-pins';
 
-import { useRowSelectionControls, useTableStateMap } from '../data-table/data-table-store';
+import {
+  useRowSelectionControls,
+  useTableStateMap,
+} from '../data-table/data-table-store';
 import { Slider } from '../ui/slider';
 import { Switch } from '../ui/switch';
 import type { MapPin } from './leaflet-map';
@@ -76,12 +79,16 @@ function useNearbyItems(
   // (placement type, item id) → catalog row + which table owns it. Tables can
   // share a placement type (all the goods tables), but an id resolves to one row.
   const rowByKey = useMemo(() => {
-    const m = new Map<string, { row: InventoryRow; tableId: InventoryTableType }>();
+    const m = new Map<
+      string,
+      { row: InventoryRow; tableId: InventoryTableType }
+    >();
     for (const [tableId, result] of Object.entries(allTables)) {
       const type = TABLE_PLACEMENT_TYPE[tableId as InventoryTableType];
       for (const row of result.items) {
         const k = `${type}:${row.id.toString()}`;
-        if (!m.has(k)) m.set(k, { row, tableId: tableId as InventoryTableType });
+        if (!m.has(k))
+          m.set(k, { row, tableId: tableId as InventoryTableType });
       }
     }
     return m;
@@ -133,10 +140,13 @@ function useNearbyItems(
 }
 
 function entryMeta(e: NearbyEntry): string {
-  const source = e.source === 'map' ? 'Treasure' : e.approx ? 'Drop · approx. area' : 'Drop';
+  const source =
+    e.source === 'map' ? 'Treasure' : e.approx ? 'Drop · approx. area' : 'Drop';
   const parts = [
     `${Math.round(e.distance).toString()}m ${e.direction}`,
-    e.chance < 1 ? `${source} ${Math.round(e.chance * 100).toString()}%` : source,
+    e.chance < 1
+      ? `${source} ${Math.round(e.chance * 100).toString()}%`
+      : source,
   ];
   if (e.nearbyCount > 1) parts.push(`×${e.nearbyCount.toString()}`);
   if (e.row.quantity > 0) parts.push('owned');
@@ -155,7 +165,12 @@ export function NearbyItemsPanel({
   const [includeChanceDrops, setIncludeChanceDrops] = useState(true);
   // Defer the scan/regroup while the slider is dragged; the label stays live.
   const deferredRadius = useDeferredValue(radius);
-  const entries = useNearbyItems(playerPin, deferredRadius, includeOwned, includeChanceDrops);
+  const entries = useNearbyItems(
+    playerPin,
+    deferredRadius,
+    includeOwned,
+    includeChanceDrops,
+  );
   const tableState = useTableStateMap();
   const { setRowSelection } = useRowSelectionControls();
   const shown = entries.slice(0, MAX_ROWS);
@@ -228,23 +243,24 @@ export function NearbyItemsPanel({
         </p>
       ) : !playerPin ? (
         <p className='text-xs text-muted-foreground'>
-          Your character is in an interior (dungeon/cave) we can’t place on the world map, so
-          there’s no position to search around.
+          Your character is in an interior (dungeon/cave) we can’t place on the
+          world map, so there’s no position to search around.
         </p>
       ) : entries.length === 0 ? (
         <p className='text-xs text-muted-foreground'>
-          Nothing {includeOwned ? 'placeable' : 'uncollected'} within {deferredRadius}m. Try a wider
-          radius.
+          Nothing {includeOwned ? 'placeable' : 'uncollected'} within{' '}
+          {deferredRadius}m. Try a wider radius.
         </p>
       ) : (
         <>
           <p className='text-xs text-muted-foreground'>
-            {entries.length} item{entries.length === 1 ? '' : 's'} within {deferredRadius}m — click
-            to pin on the map.
+            {entries.length} item{entries.length === 1 ? '' : 's'} within{' '}
+            {deferredRadius}m — click to pin on the map.
           </p>
           <div className='flex flex-col'>
             {shown.map((e) => {
-              const pinned = !!tableState[e.tableId]?.rowSelection?.[e.row.id.toString()];
+              const pinned =
+                !!tableState[e.tableId]?.rowSelection?.[e.row.id.toString()];
               const iconUrl = itemIconUrl(e.row.icon);
               return (
                 <button
@@ -258,7 +274,12 @@ export function NearbyItemsPanel({
                   onClick={() => togglePin(e)}
                 >
                   {iconUrl !== undefined ? (
-                    <img src={iconUrl} alt='' className='size-6 shrink-0' loading='lazy' />
+                    <img
+                      src={iconUrl}
+                      alt=''
+                      className='size-6 shrink-0'
+                      loading='lazy'
+                    />
                   ) : (
                     <span className='size-6 shrink-0' />
                   )}
@@ -281,7 +302,8 @@ export function NearbyItemsPanel({
           </div>
           {entries.length > shown.length && (
             <p className='text-[11px] text-muted-foreground'>
-              +{entries.length - shown.length} more in range (closest {MAX_ROWS} shown).
+              +{entries.length - shown.length} more in range (closest {MAX_ROWS}{' '}
+              shown).
             </p>
           )}
         </>

@@ -1,3 +1,4 @@
+import { RegistryProvider, useAtomSet } from '@effect/atom-react';
 import {
   createRootRoute,
   HeadContent,
@@ -5,13 +6,14 @@ import {
   Outlet,
   retainSearchParams,
 } from '@tanstack/react-router';
-import { RegistryProvider, useAtomSet } from '@effect/atom-react';
+import { Analytics } from '@vercel/analytics/react';
 import { Effect, Exit, Schema } from 'effect';
 import { useEffect } from 'react';
-import { Analytics } from '@vercel/analytics/react';
+
 import { Providers } from '@/components/providers/providers';
 import { decodeFromUrlEffect } from '@/lib/share/decode';
 import { saveFileSourceAtom } from '@/stores/save-file-source-store';
+
 import '../index.css';
 
 // Dev-only React Scan render profiler — highlights components as they re-render

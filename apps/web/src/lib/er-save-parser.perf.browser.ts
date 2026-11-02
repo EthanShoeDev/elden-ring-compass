@@ -1,11 +1,11 @@
-import { parseSave as parseSaveTs } from '@elden-ring-compass/save-parser-ts';
 import { it } from '@effect/vitest';
+import { parseSave as parseSaveTs } from '@elden-ring-compass/save-parser-ts';
+import SAVE_URL from '@elden-ring-compass/save-parser-ts/fixtures/ER0000.sl2?url';
 import { Effect } from 'effect';
 import { FetchHttpClient, HttpClient } from 'effect/http';
 import { expect } from 'vitest';
-import { forceGcHeapUsedBytes, mb } from '@/test/perf/cdp-memory';
-import type { WasmEldenRingSave } from './save-dto';
 
+import { forceGcHeapUsedBytes, mb } from '@/test/perf/cdp-memory';
 // Pure-TS save-parse perf (direct), measured in real Chromium (real V8 + DOM) — the engine your
 // users actually run. `parseSave(buffer)` on the test thread: the parse cost, isolated. (The
 // worker round-trip is covered by the Playwright E2E `e2e/save-parse.spec.ts`, not here.)
@@ -15,7 +15,7 @@ import type { WasmEldenRingSave } from './save-dto';
 // script runs with `--reporter=verbose` to surface them. Thresholds are deliberately HIGH; ratchet
 // down as you learn the real numbers. Run locally with `bun run test:perf`.
 
-import SAVE_URL from '@elden-ring-compass/save-parser-ts/fixtures/ER0000.sl2?url';
+import type { WasmEldenRingSave } from './save-dto';
 
 const WARMUP = 1;
 const RUNS = 5;
@@ -32,33 +32,35 @@ const loadSaveBuffer = HttpClient.get(SAVE_URL).pipe(
 );
 
 it.layer(FetchHttpClient.layer)('save parser perf', (it) => {
-  it.effect('parse TS (direct): median time + retained heap within bounds', () =>
-    Effect.gen(function* () {
-      // Pure-TS parser: no wasm init, no marshalling boundary — it builds the JS object graph
-      // directly. See `docs/projects/typescript-save-parser-port.md` (Performance).
-      const buffer = yield* loadSaveBuffer;
+  it.effect(
+    'parse TS (direct): median time + retained heap within bounds',
+    () =>
+      Effect.gen(function* () {
+        // Pure-TS parser: no wasm init, no marshalling boundary — it builds the JS object graph
+        // directly. See `docs/projects/typescript-save-parser-port.md` (Performance).
+        const buffer = yield* loadSaveBuffer;
 
-      for (let i = 0; i < WARMUP; i++) yield* parseSaveTs(buffer);
+        for (let i = 0; i < WARMUP; i++) yield* parseSaveTs(buffer);
 
-      const heapBefore = yield* forceGcHeapUsedBytes;
-      const times: number[] = [];
-      let save: WasmEldenRingSave | undefined;
-      for (let i = 0; i < RUNS; i++) {
-        const start = performance.now();
-        save = yield* parseSaveTs(buffer);
-        times.push(performance.now() - start);
-      }
-      const heapAfter = yield* forceGcHeapUsedBytes;
+        const heapBefore = yield* forceGcHeapUsedBytes;
+        const times: number[] = [];
+        let save: WasmEldenRingSave | undefined;
+        for (let i = 0; i < RUNS; i++) {
+          const start = performance.now();
+          save = yield* parseSaveTs(buffer);
+          times.push(performance.now() - start);
+        }
+        const heapAfter = yield* forceGcHeapUsedBytes;
 
-      const med = median(times);
-      const heapDeltaMb = mb(heapAfter - heapBefore);
-      yield* Effect.log(
-        `[perf][browser] ts    (direct): median ${med.toFixed(1)}ms (${RUNS} runs), retained +${heapDeltaMb}MB`,
-      );
+        const med = median(times);
+        const heapDeltaMb = mb(heapAfter - heapBefore);
+        yield* Effect.log(
+          `[perf][browser] ts    (direct): median ${med.toFixed(1)}ms (${RUNS} runs), retained +${heapDeltaMb}MB`,
+        );
 
-      expect(save?.slots.length ?? 0).toBeGreaterThan(0);
-      expect(med).toBeLessThan(PARSE_DIRECT_MS);
-      expect(heapDeltaMb).toBeLessThan(PARSE_HEAP_MB);
-    }),
+        expect(save?.slots.length ?? 0).toBeGreaterThan(0);
+        expect(med).toBeLessThan(PARSE_DIRECT_MS);
+        expect(heapDeltaMb).toBeLessThan(PARSE_HEAP_MB);
+      }),
   );
 });

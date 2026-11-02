@@ -22,7 +22,13 @@
 import { GOODS, REGIONS } from '@elden-ring-compass/data';
 import { itemIconUrl } from '@elden-ring-compass/data/images';
 
-export type BossBadge = 'demigod' | 'shardbearer' | 'legend' | 'great-enemy' | 'field' | 'dungeon';
+export type BossBadge =
+  | 'demigod'
+  | 'shardbearer'
+  | 'legend'
+  | 'great-enemy'
+  | 'field'
+  | 'dungeon';
 
 /** Boss defeat-flag → the good id it rewards (a Remembrance, or Heart of Bayle). */
 const BOSS_REWARD_GOOD_BY_FLAG: ReadonlyMap<number, number> = new Map([
@@ -90,13 +96,17 @@ const goodById = new Map(GOODS.map((g) => [g.id, g]));
  * also count a defeated boss, not just a held item.
  */
 export function rewardBossFlags(goodId: number): number[] {
-  return [...BOSS_REWARD_GOOD_BY_FLAG].filter(([, id]) => id === goodId).map(([flag]) => flag);
+  return [...BOSS_REWARD_GOOD_BY_FLAG]
+    .filter(([, id]) => id === goodId)
+    .map(([flag]) => flag);
 }
 
 /** The Remembrance/Legend reward a boss drops (name + icon), or undefined. */
 export function bossReward(
   flag: number,
-): { name: string; iconUrl: string | undefined; isRemembrance: boolean } | undefined {
+):
+  | { name: string; iconUrl: string | undefined; isRemembrance: boolean }
+  | undefined {
   const goodId = BOSS_REWARD_GOOD_BY_FLAG.get(flag);
   if (goodId === undefined) return undefined;
   const good = goodById.get(goodId);
@@ -110,7 +120,9 @@ export function bossReward(
 
 /** A Legend boss is anything that drops a Remembrance (or is a Shardbearer/Demigod). */
 const isLegend = (flag: number): boolean =>
-  BOSS_REWARD_GOOD_BY_FLAG.has(flag) || DEMIGOD_FLAGS.has(flag) || SHARDBEARER_FLAGS.has(flag);
+  BOSS_REWARD_GOOD_BY_FLAG.has(flag) ||
+  DEMIGOD_FLAGS.has(flag) ||
+  SHARDBEARER_FLAGS.has(flag);
 
 /**
  * The category badges for any boss, most-significant first. Demigod/Shardbearer/
@@ -161,7 +173,8 @@ const REGION_NAME_BY_BLOCK: ReadonlyMap<string, string> = (() => {
   }
   const mode = (xs: (string | null)[]): string | undefined => {
     const counts = new Map<string, number>();
-    for (const x of xs) if (x !== null && x !== '') counts.set(x, (counts.get(x) ?? 0) + 1);
+    for (const x of xs)
+      if (x !== null && x !== '') counts.set(x, (counts.get(x) ?? 0) + 1);
     let best: string | undefined;
     let bestN = 0;
     for (const [k, n] of counts) {
@@ -180,7 +193,10 @@ const REGION_NAME_BY_BLOCK: ReadonlyMap<string, string> = (() => {
     // A single-region block is a self-contained dungeon (e.g. a catacomb) — its
     // `name` IS the place. A multi-region block is a big legacy area (Stormveil,
     // Leyndell, …) whose shared `area` names the whole dungeon.
-    const label = names.size === 1 ? first.name : (mode(regions.map((r) => r.area)) ?? first.name);
+    const label =
+      names.size === 1
+        ? first.name
+        : (mode(regions.map((r) => r.area)) ?? first.name);
     out.set(key, label);
   }
   return out;
@@ -198,7 +214,9 @@ export function bossMapName(mapId: string): string {
   if (!m) return mapId;
   const area = Number(m[1]);
   const block = Number(m[2]);
-  return REGION_NAME_BY_BLOCK.get(`${area}_${block}`) ?? AREA_FALLBACK[area] ?? mapId;
+  return (
+    REGION_NAME_BY_BLOCK.get(`${area}_${block}`) ?? AREA_FALLBACK[area] ?? mapId
+  );
 }
 
 // --- the progression-ordered story gallery ---------------------------------

@@ -1,4 +1,5 @@
 import { Match } from 'effect';
+
 /**
  * Client-only react-leaflet map over the extractor-generated tile pyramid.
  *
@@ -27,9 +28,20 @@ import {
 } from 'leaflet';
 import { ExternalLinkIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { MapContainer, Marker, Popup, Tooltip, useMap, useMapEvents } from 'react-leaflet';
+import {
+  MapContainer,
+  Marker,
+  Popup,
+  Tooltip,
+  useMap,
+  useMapEvents,
+} from 'react-leaflet';
 
-import { MAP_TILES_BASE, type MapManifest, type TileIndex } from '@/lib/map-tiles';
+import {
+  MAP_TILES_BASE,
+  type MapManifest,
+  type TileIndex,
+} from '@/lib/map-tiles';
 import { wikiNameForBoss, wikiPageUrl } from '@/lib/wiki';
 
 /** What kind of thing a pin represents — drives its hover/popup content. */
@@ -49,36 +61,36 @@ export interface MapPin {
    * boss defeated / item owned). Drives a brighter vs. muted shade of the category
    * colour. Absent for the player marker, which has no such state.
    */
-  discovered?: boolean;
+  discovered?: boolean | undefined;
   /**
    * Bloodstain only: runes currently recoverable on the ground at this spot.
    * Drives the hover tooltip + popup ("N runes on the ground"). Absent for all
    * other pins.
    */
-  runes?: number;
+  runes?: number | undefined;
 
   // --- enrichment (optional, populated per kind in map-section.tsx) ---
   /** One-line status shown in the hover tooltip + as a popup badge. */
-  status?: string;
+  status?: string | undefined;
   /** Human map area ("Stormveil Castle", a grace's region, …). */
-  area?: string;
+  area?: string | undefined;
   /** Boss category badges ("Demigod", "Shardbearer", …). */
-  badges?: string[];
+  badges?: string[] | undefined;
   /** Boss reward drop (Remembrance / Heart of Bayle). */
-  reward?: { name: string; iconUrl?: string };
+  reward?: { name: string; iconUrl?: string | undefined } | undefined;
   /** Item: source label ("Treasure" | "Drop" | "Drop · approx. area"). */
-  sourceLabel?: string;
+  sourceLabel?: string | undefined;
   /** Item: drop chance as a percentage (omitted when guaranteed). */
-  chancePct?: number;
+  chancePct?: number | undefined;
   /** Item: how many of this item the player owns. */
-  quantity?: number;
+  quantity?: number | undefined;
   /** Item: how many pins this item places across the map. */
-  locationCount?: number;
+  locationCount?: number | undefined;
   /**
    * Item: resolved wiki page name (`wikiNameForItem`) — differs from `name` for
    * affinity/upgrade variants, absent when the wiki has no page for the item.
    */
-  wikiName?: string;
+  wikiName?: string | undefined;
 }
 
 const BASE_LAYER = 'base';
@@ -106,7 +118,8 @@ function tileExistence(
     }
     sets.set(Number(zoom), set);
   }
-  return (tz: number, tx: number, ty: number) => sets.get(tz)?.has(tileKey(tx, ty)) ?? false;
+  return (tz: number, tx: number, ty: number) =>
+    sets.get(tz)?.has(tileKey(tx, ty)) ?? false;
 }
 
 /**
@@ -188,8 +201,10 @@ const PIN_COLOR = {
 
 function categoryColor(category: string, discovered?: boolean): string {
   const c = category.toLowerCase();
-  if (c.includes('grace')) return discovered === false ? PIN_COLOR.graceOff : PIN_COLOR.graceOn;
-  if (c.includes('boss')) return discovered === false ? PIN_COLOR.bossOff : PIN_COLOR.bossOn;
+  if (c.includes('grace'))
+    return discovered === false ? PIN_COLOR.graceOff : PIN_COLOR.graceOn;
+  if (c.includes('boss'))
+    return discovered === false ? PIN_COLOR.bossOff : PIN_COLOR.bossOn;
   if (c.includes('treasure') || c.includes('drop'))
     return discovered === false ? PIN_COLOR.itemOff : PIN_COLOR.itemOn;
   return PIN_COLOR.default;
@@ -310,9 +325,14 @@ function PinPopupBody({ pin }: { pin: MapPin }) {
           {pin.area !== undefined && pin.area !== '' && <p>{pin.area}</p>}
           {pin.reward && (
             <p className='flex items-center gap-1.5'>
-              {pin.reward.iconUrl !== undefined && pin.reward.iconUrl !== '' && (
-                <img src={pin.reward.iconUrl} alt='' className='size-5 shrink-0' />
-              )}
+              {pin.reward.iconUrl !== undefined &&
+                pin.reward.iconUrl !== '' && (
+                  <img
+                    src={pin.reward.iconUrl}
+                    alt=''
+                    className='size-5 shrink-0'
+                  />
+                )}
               <span>{pin.reward.name}</span>
             </p>
           )}
@@ -339,16 +359,20 @@ function PinPopupBody({ pin }: { pin: MapPin }) {
         </>
       )}
 
-      {pin.kind === 'player' && <p className='opacity-80'>Your current position</p>}
-
-      {pin.kind === 'bloodstain' && pin.description !== undefined && pin.description !== '' && (
-        <p>{pin.description}</p>
+      {pin.kind === 'player' && (
+        <p className='opacity-80'>Your current position</p>
       )}
+
+      {pin.kind === 'bloodstain' &&
+        pin.description !== undefined &&
+        pin.description !== '' && <p>{pin.description}</p>}
 
       {pin.status !== undefined &&
         pin.status !== '' &&
         pin.kind !== 'bloodstain' &&
-        pin.kind !== 'player' && <p className='text-[11px] font-medium opacity-80'>{pin.status}</p>}
+        pin.kind !== 'player' && (
+          <p className='text-[11px] font-medium opacity-80'>{pin.status}</p>
+        )}
 
       {/* Link-only — the wiki forbids scraping its content. */}
       {wikiName !== undefined && (
@@ -431,12 +455,12 @@ function MapBody({
   manifest: MapManifest;
   activeMapId: string;
   pins: MapPin[];
-  playerPin?: MapPin | null;
+  playerPin?: MapPin | null | undefined;
   /** Last-death bloodstain ("lost runes"). `runes > 0` = active; `<= 0` = recovered. */
-  bloodstainPin?: MapPin | null;
-  tileIndex?: TileIndex;
+  bloodstainPin?: MapPin | null | undefined;
+  tileIndex?: TileIndex | undefined;
   /** Bumped by the "Center on me" button — recenters on the player at close zoom. */
-  recenterToken?: number;
+  recenterToken?: number | undefined;
 }) {
   const map = useMap();
   const z = manifest.maxNativeZoom;
@@ -446,7 +470,10 @@ function MapBody({
   // rastercoords getMaxBounds(): SW = unproject([0,h]), NE = unproject([w,0]).
   const bounds = useMemo(
     () =>
-      latLngBounds(map.unproject([0, manifest.height], z), map.unproject([manifest.width, 0], z)),
+      latLngBounds(
+        map.unproject([0, manifest.height], z),
+        map.unproject([manifest.width, 0], z),
+      ),
     [map, manifest.height, manifest.width, z],
   );
 
@@ -498,9 +525,15 @@ function MapBody({
         bounds={bounds}
         exists={exists}
       />
-      <MarkerLayer pins={pins.filter((p) => p.master === activeMapId)} zoom={z} />
+      <MarkerLayer
+        pins={pins.filter((p) => p.master === activeMapId)}
+        zoom={z}
+      />
       {playerPin && playerPin.master === activeMapId && (
-        <Marker position={map.unproject([playerPin.px, playerPin.py], z)} icon={playerIcon}>
+        <Marker
+          position={map.unproject([playerPin.px, playerPin.py], z)}
+          icon={playerIcon}
+        >
           <Tooltip direction='top' offset={[0, -10]}>
             <PinTooltipBody pin={playerPin} />
           </Tooltip>
@@ -515,7 +548,11 @@ function MapBody({
         // in `useBloodstainPin`; here we only pick the active vs. recovered icon.
         <Marker
           position={map.unproject([bloodstainPin.px, bloodstainPin.py], z)}
-          icon={(bloodstainPin.runes ?? 0) > 0 ? bloodstainIcon : bloodstainRecoveredIcon}
+          icon={
+            (bloodstainPin.runes ?? 0) > 0
+              ? bloodstainIcon
+              : bloodstainRecoveredIcon
+          }
         >
           <Tooltip direction='top' offset={[0, -6]}>
             <PinTooltipBody pin={bloodstainPin} />
@@ -542,10 +579,10 @@ export default function LeafletMap({
   manifest: MapManifest;
   activeMapId: string;
   pins: MapPin[];
-  playerPin?: MapPin | null;
-  bloodstainPin?: MapPin | null;
-  tileIndex?: TileIndex;
-  recenterToken?: number;
+  playerPin?: MapPin | null | undefined;
+  bloodstainPin?: MapPin | null | undefined;
+  tileIndex?: TileIndex | undefined;
+  recenterToken?: number | undefined;
 }) {
   return (
     <MapContainer

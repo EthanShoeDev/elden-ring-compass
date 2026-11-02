@@ -23,8 +23,8 @@
     "effect": "catalog:"
   },
   "devDependencies": {
-    "@elden-ring-compass/typescript-config": "workspace:*",
     "@types/node": "catalog:",
+    "shoemaker-typescript-config": "catalog:",
     "vitest": "catalog:"
   },
   "peerDependencies": {

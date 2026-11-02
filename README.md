@@ -29,7 +29,6 @@ entirely in your browser. Nothing is ever written back to the save.
 | `packages/save-parser` (`save-parser-ts`) | Pure-TypeScript Elden Ring save parser. Runs in the browser/worker.                                                                                                       |
 | `packages/extractor` (`er-extractor`)     | Build-time CLI that reads an installed copy of the game and bakes everything `data` needs (names, stats, markers, icons, graces, event scripts).                          |
 | `packages/vendored-data`                  | Build-time-only reverse-engineered constants the extractor can't derive from the install (event-flag tables, AES/RSA keys, param schemas). See its README for provenance. |
-| `packages/config/*`                       | Shared TypeScript / oxlint config.                                                                                                                                        |
 
 ## Data & Save Parsing
 

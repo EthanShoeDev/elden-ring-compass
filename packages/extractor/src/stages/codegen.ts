@@ -6,9 +6,9 @@ import { loadEventFlagBst } from '../game/event-flags.ts';
 import type { Grace } from '../game/graces.ts';
 import type { ItemText } from '../game/item-text.ts';
 import type { MapFragment } from '../game/map-fragments.ts';
-import type { Region } from '../game/regions.ts';
 import type { ClassifiedMarker } from '../game/marker-classify.ts';
 import type { Placement } from '../game/placements.ts';
+import type { Region } from '../game/regions.ts';
 import type { SpEffectLabel } from '../game/sp-effect-labels.ts';
 import type { LegacyConv } from '../game/world-map-legacy-conv.ts';
 import type {

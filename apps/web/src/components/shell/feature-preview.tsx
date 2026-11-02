@@ -38,7 +38,9 @@ export function FeaturePreview({
           </div>
         </CardHeader>
         <CardContent className='flex flex-col gap-5'>
-          <p className='max-w-prose leading-relaxed text-muted-foreground'>{blurb}</p>
+          <p className='max-w-prose leading-relaxed text-muted-foreground'>
+            {blurb}
+          </p>
           <div>
             <div className='mb-2 text-[11px] font-bold tracking-wider text-muted-foreground uppercase'>
               Planned

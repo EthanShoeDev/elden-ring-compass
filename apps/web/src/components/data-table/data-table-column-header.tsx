@@ -1,3 +1,5 @@
+import type { RowData } from '@tanstack/react-table';
+import { Subscribe } from '@tanstack/react-table';
 import { Match } from 'effect';
 import {
   ArrowDown as ArrowDownIcon,
@@ -7,7 +9,7 @@ import {
   ChevronsUpDown as CaretSortIcon,
   EyeOff as EyeNoneIcon,
 } from 'lucide-react';
-import { RowData, Subscribe } from '@tanstack/react-table';
+import React from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -18,8 +20,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import React from 'react';
-import { DataTableColumn, DataTableInstance } from './table-hook';
+
+import type { DataTableColumn, DataTableInstance } from './table-hook';
 
 type DataTableColumnHeaderProps<TData extends RowData, TValue> = {
   column: DataTableColumn<TData, TValue>;
@@ -66,9 +68,15 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
               >
                 <span>{headerTitle}</span>
                 {Match.value(column.getIsSorted()).pipe(
-                  Match.when('desc', () => <ArrowDownIcon className='ml-2 size-4' />),
-                  Match.when('asc', () => <ArrowUpIcon className='ml-2 size-4' />),
-                  Match.when(false, () => <CaretSortIcon className='ml-2 size-4' />),
+                  Match.when('desc', () => (
+                    <ArrowDownIcon className='ml-2 size-4' />
+                  )),
+                  Match.when('asc', () => (
+                    <ArrowUpIcon className='ml-2 size-4' />
+                  )),
+                  Match.when(false, () => (
+                    <CaretSortIcon className='ml-2 size-4' />
+                  )),
                   Match.exhaustive,
                 )}
               </DropdownMenuTrigger>
@@ -102,7 +110,9 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                 <div className='flex'>
                   <DropdownMenuItem
                     className='grow'
-                    disabled={leafColumns.map((c) => c.id).indexOf(column.id) === 0}
+                    disabled={
+                      leafColumns.map((c) => c.id).indexOf(column.id) === 0
+                    }
                     onClick={() => {
                       const newOrder = leafColumns.map((c) => c.id);
                       const currentIndex = newOrder.indexOf(column.id);
@@ -116,7 +126,8 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                   <DropdownMenuItem
                     className='grow justify-end'
                     disabled={
-                      leafColumns.map((c) => c.id).indexOf(column.id) === leafColumns.length - 1
+                      leafColumns.map((c) => c.id).indexOf(column.id) ===
+                      leafColumns.length - 1
                     }
                     onClick={() => {
                       const newOrder = leafColumns.map((c) => c.id);

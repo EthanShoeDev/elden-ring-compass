@@ -9,15 +9,28 @@ import {
   scaleUpgradeLevel,
 } from '@/lib/ar';
 import { type BuildArchetype, weaponScalesWith } from '@/lib/build-archetypes';
-import { bestAffinityPerWeapon, type RatedWeapon, rateWeapons } from '@/lib/weapon-rating';
-
+import {
+  bestAffinityPerWeapon,
+  type RatedWeapon,
+  rateWeapons,
+} from '@/lib/weapon-rating';
 import { wikiNameForItem } from '@/lib/wiki';
 
-import { commonAccessorColumnDef, commonWikiColumnDef } from '../data-table/common-column-defs';
+import {
+  commonAccessorColumnDef,
+  commonWikiColumnDef,
+} from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
-import { createAppColumnHelper, DataTableColumnDef } from '../data-table/table-hook';
+import type { DataTableColumnDef } from '../data-table/table-hook';
+import { createAppColumnHelper } from '../data-table/table-hook';
 import { TooltipImg } from '../misc/tooltip-img';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
 import { Checkbox } from '../ui/checkbox';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -86,7 +99,9 @@ export function WeaponArTable({
       query === ''
         ? selected
         : selected.filter(
-            (r) => r.name.toLowerCase().includes(query) || String(r.id).includes(query),
+            (r) =>
+              r.name.toLowerCase().includes(query) ||
+              String(r.id).includes(query),
           );
 
     // Default order = highest AR first ("best weapon for your build").
@@ -119,7 +134,8 @@ export function WeaponArTable({
       commonAccessorColumnDef(columnHelper, 'level', '+', { size: 1 }),
       commonAccessorColumnDef(columnHelper, 'wieldable', 'Wieldable'),
     ];
-    if (hasSave) cols.push(commonAccessorColumnDef(columnHelper, 'owned', 'Owned'));
+    if (hasSave)
+      cols.push(commonAccessorColumnDef(columnHelper, 'owned', 'Owned'));
     return cols;
   }, [hasSave]);
 
@@ -128,8 +144,9 @@ export function WeaponArTable({
       <CardHeader>
         <CardTitle>Weapon AR Calculator</CardTitle>
         <CardDescription>
-          {rows.length} {ownedOnly ? 'owned armaments' : 'weapons'} ranked by Attack Rating at the
-          target attributes{archetype && relevantOnly ? ` · fits ${archetype.label}` : ''}.
+          {rows.length} {ownedOnly ? 'owned armaments' : 'weapons'} ranked by
+          Attack Rating at the target attributes
+          {archetype && relevantOnly ? ` · fits ${archetype.label}` : ''}.
         </CardDescription>
       </CardHeader>
       <CardContent className='space-y-5'>
@@ -201,8 +218,9 @@ export function WeaponArTable({
 
         {!ownedOnly && !showVariants && (
           <p className='text-[11px] text-muted-foreground'>
-            Showing the best-scaling affinity per weapon for your stats. Two-handing adds 50% Str.
-            Weapons you can&apos;t wield (unmet requirements) keep a −40% penalty in their AR.
+            Showing the best-scaling affinity per weapon for your stats.
+            Two-handing adds 50% Str. Weapons you can&apos;t wield (unmet
+            requirements) keep a −40% penalty in their AR.
           </p>
         )}
 

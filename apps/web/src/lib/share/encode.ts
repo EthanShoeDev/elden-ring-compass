@@ -1,21 +1,35 @@
-import LZString from 'lz-string';
 import { eventFlagOffset } from '@elden-ring-compass/data';
 import { Effect, Schema } from 'effect';
+import LZString from 'lz-string';
+
 import type { Slot } from '@/lib/save-dto';
+
 import { SHAREABLE_EVENT_IDS } from './shareable-events';
-import { ShareCodecError, type ShareableProgression, ShareableProgressionSchema } from './types';
+import {
+  ShareCodecError,
+  type ShareableProgression,
+  ShareableProgressionSchema,
+} from './types';
 
 const GZIP_PREFIX = 'gz.';
-const ShareableProgressionJson = Schema.fromJsonString(ShareableProgressionSchema);
+const ShareableProgressionJson = Schema.fromJsonString(
+  ShareableProgressionSchema,
+);
 
 function bytesToBase64Url(bytes: Uint8Array): string {
   let binary = '';
   for (const byte of bytes) binary += String.fromCodePoint(byte);
-  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+  return btoa(binary)
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replaceAll('=', '');
 }
 
 const gzip = Effect.fn('gzip')(function* (bytes: Uint8Array) {
-  if (typeof CompressionStream === 'undefined' || !('stream' in Blob.prototype)) {
+  if (
+    typeof CompressionStream === 'undefined' ||
+    !('stream' in Blob.prototype)
+  ) {
     return bytes;
   }
   const stream = new Blob([bytes.buffer as ArrayBuffer])
@@ -31,12 +45,17 @@ const gzip = Effect.fn('gzip')(function* (bytes: Uint8Array) {
 /**
  * Compress and encode shareable data for URL query param.
  */
-export const encodeToUrl = Effect.fn('encodeToUrl')(function* (data: ShareableProgression) {
-  const json = yield* Schema.encodeUnknownEffect(ShareableProgressionJson)(data);
+export const encodeToUrl = Effect.fn('encodeToUrl')(function* (
+  data: ShareableProgression,
+) {
+  const json = yield* Schema.encodeUnknownEffect(ShareableProgressionJson)(
+    data,
+  );
   if (data.v === 2) {
     const encodedJson = new TextEncoder().encode(json);
     const compressed = yield* gzip(encodedJson);
-    if (compressed === encodedJson) return LZString.compressToEncodedURIComponent(json);
+    if (compressed === encodedJson)
+      return LZString.compressToEncodedURIComponent(json);
     return `${GZIP_PREFIX}${bytesToBase64Url(compressed)}`;
   }
   return LZString.compressToEncodedURIComponent(json);
@@ -59,11 +78,16 @@ function deltaEncode(sortedIds: number[]): number[] {
 }
 
 const invItems = (items: Slot['equip_inventory_data']['common_items']) =>
-  items.map((item) => [item.ga_item_handle, item.quantity, item.inventory_index] as const);
+  items.map(
+    (item) =>
+      [item.ga_item_handle, item.quantity, item.inventory_index] as const,
+  );
 
 export function slotToShareableProgression(slot: Slot): ShareableProgression {
   const p = slot.player_game_data;
-  const eventIds = SHAREABLE_EVENT_IDS.filter((id) => isEventFlagSet(slot.event_flags.flags, id));
+  const eventIds = SHAREABLE_EVENT_IDS.filter((id) =>
+    isEventFlagSet(slot.event_flags.flags, id),
+  );
 
   return {
     v: 2,
@@ -120,7 +144,11 @@ export function slotToShareableProgression(slot: Slot): ShareableProgression {
       m: slot.player_coords.map_id,
       a: slot.player_coords.angle,
     },
-    ga: slot.ga_items.map((item) => [item.gaitem_handle, item.item_id, item.gem_gaitem_handle]),
+    ga: slot.ga_items.map((item) => [
+      item.gaitem_handle,
+      item.item_id,
+      item.gem_gaitem_handle,
+    ]),
     ca: {
       l: slot.chr_asm2.left_hand_armaments,
       r: slot.chr_asm2.right_hand_armaments,
@@ -158,7 +186,10 @@ export function slotToShareableProgression(slot: Slot): ShareableProgression {
     ges: slot.gestures,
     eph: slot.equipped_physics,
     ap: slot.acquired_projectiles,
-    se: slot.sp_effects.map((effect) => [effect.sp_effect_id, effect.remaining_time]),
+    se: slot.sp_effects.map((effect) => [
+      effect.sp_effect_id,
+      effect.remaining_time,
+    ]),
     sp: slot.seconds_played,
     d: slot.deaths,
     lr: slot.last_rested_grace,

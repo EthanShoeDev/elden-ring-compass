@@ -17,8 +17,8 @@ function ScrollArea({
   ...props
 }: ScrollAreaPrimitive.Root.Props & {
   viewportRef?: Ref<HTMLDivElement>;
-  viewportClassName?: string;
-  viewportStyle?: CSSProperties;
+  viewportClassName?: string | undefined;
+  viewportStyle?: CSSProperties | undefined;
 }) {
   return (
     <ScrollAreaPrimitive.Root

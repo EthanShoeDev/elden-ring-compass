@@ -26,17 +26,17 @@
 import { Context, Schema } from 'effect';
 
 /** Raised when a read or seek would run past the end of the save buffer. */
-export class SaveTruncatedError extends Schema.TaggedError<SaveTruncatedError>()(
-  'save-parser/SaveTruncatedError',
-  {
-    /** Cursor position the read started at. */
-    at: Schema.Int,
-    /** Number of bytes the read needed. */
-    need: Schema.Int,
-    /** Total length of the save buffer. */
-    length: Schema.Int,
-  },
-) {}
+export class SaveTruncatedError extends Schema.TaggedError<
+  SaveTruncatedError,
+  { readonly brand: unique symbol }
+>()('save-parser/SaveTruncatedError', {
+  /** Cursor position the read started at. */
+  at: Schema.Int,
+  /** Number of bytes the read needed. */
+  need: Schema.Int,
+  /** Total length of the save buffer. */
+  length: Schema.Int,
+}) {}
 
 /** The resolved {@link BinaryReader} service value (its synchronous read surface). */
 export interface BinaryReaderApi {

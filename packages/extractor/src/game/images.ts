@@ -21,6 +21,13 @@ import { type Bnd4Error, parseBnd4Headers } from '../formats/bnd4.ts';
 import { type DcxError, dcxDecompress, isDcx } from '../formats/dcx.ts';
 import { parseTpf, type TpfError } from '../formats/tpf.ts';
 import {
+  EVENT_BITS,
+  type MapMask,
+  type MapMaskError,
+  parseMapMasks,
+  pickVanillaVariant,
+} from './map-mask.ts';
+import {
   buildLayerPyramid,
   MASTER_PX,
   MAX_NATIVE_ZOOM,
@@ -28,13 +35,6 @@ import {
   parseTileName,
   TILE_PX,
 } from './map-pyramid.ts';
-import {
-  EVENT_BITS,
-  type MapMask,
-  type MapMaskError,
-  parseMapMasks,
-  pickVanillaVariant,
-} from './map-mask.ts';
 
 /**
  * Image extraction: TPF textures → PNG (BCn decode in Rust, see image-codec.ts).

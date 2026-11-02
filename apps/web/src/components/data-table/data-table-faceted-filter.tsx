@@ -1,9 +1,7 @@
-import { PlusCircle as PlusCircledIcon } from 'lucide-react';
-import { RowData } from '@tanstack/react-table';
-import * as React from 'react';
+import type { RowData } from '@tanstack/react-table';
 import { Match, Predicate } from 'effect';
-
-import { DataTableColumn } from './table-hook';
+import { PlusCircle as PlusCircledIcon } from 'lucide-react';
+import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,6 +24,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 
+import type { DataTableColumn } from './table-hook';
+
 // Above this many options the dropdown gets a searchable Combobox; at or below it, a plain
 // checkbox menu. Booleans/enums stay lightweight; high-cardinality columns (weight, Effects —
 // hundreds of values) get type-to-filter.
@@ -39,7 +39,7 @@ type FacetOption = {
 
 type DataTableFacetedFilterProps<TData extends RowData, TValue> = {
   column?: DataTableColumn<TData, TValue>;
-  title?: string;
+  title?: string | undefined;
   options: Array<FacetOption>;
 };
 
@@ -62,8 +62,14 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
   const rawFilterValue = column?.getFilterValue();
   const numericValues = options.map((o) => o.value).filter(Predicate.isNumber);
   const selectedValues = Match.value(rawFilterValue).pipe(
-    Match.when('owned', () => new Set<unknown>(numericValues.filter((v) => v > 0))),
-    Match.when('missing', () => new Set<unknown>(numericValues.filter((v) => v === 0))),
+    Match.when(
+      'owned',
+      () => new Set<unknown>(numericValues.filter((v) => v > 0)),
+    ),
+    Match.when(
+      'missing',
+      () => new Set<unknown>(numericValues.filter((v) => v === 0)),
+    ),
     Match.when(Match.instanceOf(Array), (values) => new Set<unknown>(values)),
     Match.orElse(() => new Set<unknown>()),
   );
@@ -85,12 +91,18 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
       {selectedValues.size > 0 && (
         <>
           <Separator orientation='vertical' className='mx-2 h-4' />
-          <Badge variant='secondary' className='rounded-sm px-1 font-normal lg:hidden'>
+          <Badge
+            variant='secondary'
+            className='rounded-sm px-1 font-normal lg:hidden'
+          >
             {selectedValues.size}
           </Badge>
           <div className='hidden space-x-1 lg:flex'>
             {selectedValues.size > 2 ? (
-              <Badge variant='secondary' className='rounded-sm px-1 font-normal'>
+              <Badge
+                variant='secondary'
+                className='rounded-sm px-1 font-normal'
+              >
                 {selectedValues.size} selected
               </Badge>
             ) : (
@@ -133,7 +145,9 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
     return (
       <DropdownMenu>
         <DropdownMenuTrigger
-          render={<Button variant='outline' size='sm' className='h-8 border-dashed' />}
+          render={
+            <Button variant='outline' size='sm' className='h-8 border-dashed' />
+          }
         >
           {triggerInner}
         </DropdownMenuTrigger>
@@ -145,7 +159,9 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
               closeOnClick={false}
               onCheckedChange={() => toggle(option.value)}
             >
-              {option.icon && <option.icon className='mr-2 size-4 text-muted-foreground' />}
+              {option.icon && (
+                <option.icon className='mr-2 size-4 text-muted-foreground' />
+              )}
               <span className='min-w-0 flex-1 truncate'>{option.label}</span>
               {optionCount(option)}
             </DropdownMenuCheckboxItem>
@@ -173,12 +189,16 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
       items={options}
       multiple
       value={options.filter((option) => selectedValues.has(option.value))}
-      onValueChange={(selected) => setSelected(selected.map((option) => option.value))}
+      onValueChange={(selected) =>
+        setSelected(selected.map((option) => option.value))
+      }
       itemToStringLabel={(option) => option.label}
       itemToStringValue={(option) => option.label}
     >
       <ComboboxTrigger
-        render={<Button variant='outline' size='sm' className='h-8 border-dashed' />}
+        render={
+          <Button variant='outline' size='sm' className='h-8 border-dashed' />
+        }
       >
         {triggerInner}
       </ComboboxTrigger>
@@ -188,7 +208,9 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
         <ComboboxList>
           {(option: FacetOption) => (
             <ComboboxItem key={optionKey(option)} value={option}>
-              {option.icon && <option.icon className='mr-2 size-4 text-muted-foreground' />}
+              {option.icon && (
+                <option.icon className='mr-2 size-4 text-muted-foreground' />
+              )}
               <span className='min-w-0 flex-1 truncate'>{option.label}</span>
               {optionCount(option)}
             </ComboboxItem>
@@ -196,7 +218,12 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
         </ComboboxList>
         {selectedValues.size > 0 && (
           <div className='border-t p-1'>
-            <Button variant='ghost' size='sm' className='w-full justify-center' onClick={clear}>
+            <Button
+              variant='ghost'
+              size='sm'
+              className='w-full justify-center'
+              onClick={clear}
+            >
               Clear filters
             </Button>
           </div>

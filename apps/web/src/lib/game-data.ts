@@ -43,7 +43,10 @@ export const archetypeNameById: ReadonlyMap<number, string> = new Map(
  * Coverage is partial (direct item refs only; nested-leaf effects are unlabeled —
  * see `packages/er-extractor/src/game/sp-effect-labels.ts`).
  */
-export const spEffectLabelById: ReadonlyMap<number, { label: string; source: string }> = new Map(
+export const spEffectLabelById: ReadonlyMap<
+  number,
+  { label: string; source: string }
+> = new Map(
   SP_EFFECT_LABELS.map((e) => [e.id, { label: e.label, source: e.source }]),
 );
 

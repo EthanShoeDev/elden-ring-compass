@@ -1,10 +1,10 @@
-import { CircleDotIcon, StarIcon, SwordIcon } from 'lucide-react';
-import { Link } from '@tanstack/react-router';
 import { useAtom, useAtomValue } from '@effect/atom-react';
+import { Link } from '@tanstack/react-router';
 import { Data, Effect, Option, Predicate, Schema } from 'effect';
 import { HttpClient, HttpClientResponse } from 'effect/http';
 import { Atom } from 'effect/reactivity';
 import * as AsyncResult from 'effect/reactivity/AsyncResult';
+import { CircleDotIcon, StarIcon, SwordIcon } from 'lucide-react';
 
 import { REPO_URL } from '@/components/shell/nav';
 import { appRuntime } from '@/lib/atoms/runtime';
@@ -29,8 +29,9 @@ export function Footer() {
             Elden Ring Compass
           </div>
           <p className='text-[12.5px] leading-relaxed text-muted-foreground'>
-            A free, open-source, read-only save analyzer for Elden Ring — it runs entirely in your
-            browser and your save never leaves your device.
+            A free, open-source, read-only save analyzer for Elden Ring — it
+            runs entirely in your browser and your save never leaves your
+            device.
           </p>
         </div>
 
@@ -158,7 +159,9 @@ const saveSlotJson = (slot: SaveSlot) =>
       regions: regionsDbView(slot)[0],
       events: {
         known_events: eventsDbView(slot),
-        event_buffer: uint8ArrayToBase64(trimTrailingZeros(slot.event_flags.flags)),
+        event_buffer: uint8ArrayToBase64(
+          trimTrailingZeros(slot.event_flags.flags),
+        ),
       },
       inventory: inventoryDbView(slot).items,
       equipment: equipmentDbView(slot),
@@ -176,12 +179,19 @@ const copySaveAsJsonAtom = appRuntime.fn((slot: SaveSlot) =>
   Effect.gen(function* () {
     const json = yield* Effect.try({
       try: () => saveSlotJson(slot),
-      catch: (cause) => new CopySaveAsJsonError({ message: 'Could not serialize the save', cause }),
+      catch: (cause) =>
+        new CopySaveAsJsonError({
+          message: 'Could not serialize the save',
+          cause,
+        }),
     });
     yield* Effect.tryPromise({
       try: () => navigator.clipboard.writeText(json),
       catch: (cause) =>
-        new CopySaveAsJsonError({ message: 'Could not write to the clipboard', cause }),
+        new CopySaveAsJsonError({
+          message: 'Could not write to the clipboard',
+          cause,
+        }),
     });
   }),
 );
@@ -201,7 +211,9 @@ function CopySaveAsJsonButton() {
       }}
     >
       {result.waiting && <Spinner />}
-      {AsyncResult.isSuccess(result) && <span className='text-green-500'>✔</span>}
+      {AsyncResult.isSuccess(result) && (
+        <span className='text-green-500'>✔</span>
+      )}
       {error ? error.message : 'Copy Save as JSON'}
     </Button>
   );

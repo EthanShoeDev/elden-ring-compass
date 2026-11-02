@@ -1,3 +1,7 @@
+import { useAtomValue } from '@effect/atom-react';
+import { useHydrated } from '@tanstack/react-router';
+import { Option } from 'effect';
+import * as AsyncResult from 'effect/reactivity/AsyncResult';
 /**
  * Map section — the SSR boundary for the tiled, interactive map.
  *
@@ -23,29 +27,33 @@ import {
   SkullIcon,
   Trash2Icon,
 } from 'lucide-react';
-import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
-import { useAtomValue } from '@effect/atom-react';
-import { Option } from 'effect';
-import * as AsyncResult from 'effect/reactivity/AsyncResult';
-import { useHydrated } from '@tanstack/react-router';
 import { lazy, Suspense, useMemo, useState } from 'react';
 
+import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
 import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  BADGE_LABEL,
+  bossBadges,
+  bossMapName,
+  bossReward,
+} from '@/lib/boss-meta';
 import { useDataTableData } from '@/lib/data-table-data';
-import { cn } from '@/lib/utils';
-import { wikiNameForItem } from '@/lib/wiki';
 import {
   type InventoryTableType,
   TABLE_PLACEMENT_TYPE,
   useInventoryTables,
 } from '@/lib/inventory-catalog';
-import { BADGE_LABEL, bossBadges, bossMapName, bossReward } from '@/lib/boss-meta';
 import { playerToMasterPixel } from '@/lib/map-affine';
 import { mapManifestAtom, mapTileIndexAtom } from '@/lib/map-tiles';
+import { cn } from '@/lib/utils';
 import { bossMapIdByFlag, bossPinByFlag, itemPins } from '@/lib/vm/map-pins';
+import { wikiNameForItem } from '@/lib/wiki';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
-import { useRowSelectionControls, useTableStateMap } from '../data-table/data-table-store';
+import {
+  useRowSelectionControls,
+  useTableStateMap,
+} from '../data-table/data-table-store';
 import { Button } from '../ui/button';
 import { Switch } from '../ui/switch';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
@@ -150,7 +158,9 @@ function MapRightRail({
           <LayersIcon />
         </Button>
       </div>
-      {nearbyOpen && <NearbyItemsPanel playerPin={playerPin} slotConnected={slotConnected} />}
+      {nearbyOpen && (
+        <NearbyItemsPanel playerPin={playerPin} slotConnected={slotConnected} />
+      )}
       {controlsOpen && (
         <div
           className={cn(
@@ -166,7 +176,10 @@ function MapRightRail({
                   key={key}
                   className='flex cursor-pointer items-center gap-2 text-sm select-none'
                 >
-                  <Icon style={{ color }} className={cn('size-4', !layers[key] && 'opacity-40')} />
+                  <Icon
+                    style={{ color }}
+                    className={cn('size-4', !layers[key] && 'opacity-40')}
+                  />
                   {label}
                   <Switch
                     className='ml-auto'
@@ -265,33 +278,59 @@ function MapLegendOverlay({ defaultOpen }: { defaultOpen: boolean }) {
         className='mb-1.5 flex w-full cursor-pointer items-center justify-between gap-6'
         onClick={() => setOpen(false)}
       >
-        <span className='text-[11px] font-semibold tracking-wide uppercase'>Legend</span>
+        <span className='text-[11px] font-semibold tracking-wide uppercase'>
+          Legend
+        </span>
         <ChevronDownIcon className='size-3.5' />
       </button>
       <div className='flex flex-col gap-1'>
         <span className='flex items-center gap-1'>
-          <MapPinGlyph className='size-3.5' style={{ color: '#ecbd4a' }} filled />
-          <MapPinGlyph className='size-3.5' style={{ color: '#8c7a3e' }} filled /> Graces (found /
-          undiscovered)
+          <MapPinGlyph
+            className='size-3.5'
+            style={{ color: '#ecbd4a' }}
+            filled
+          />
+          <MapPinGlyph
+            className='size-3.5'
+            style={{ color: '#8c7a3e' }}
+            filled
+          />{' '}
+          Graces (found / undiscovered)
         </span>
         <span className='flex items-center gap-1'>
-          <MapPinGlyph className='size-3.5' style={{ color: '#e24a4a' }} filled />
-          <MapPinGlyph className='size-3.5' style={{ color: '#8a4040' }} filled /> Bosses (defeated
-          / remaining)
+          <MapPinGlyph
+            className='size-3.5'
+            style={{ color: '#e24a4a' }}
+            filled
+          />
+          <MapPinGlyph
+            className='size-3.5'
+            style={{ color: '#8a4040' }}
+            filled
+          />{' '}
+          Bosses (defeated / remaining)
         </span>
         <span className='flex items-center gap-1'>
-          <MapPinGlyph className='size-3.5' style={{ color: '#3cbfdb' }} filled />
-          <MapPinGlyph className='size-3.5' style={{ color: '#356e7a' }} filled /> Items (collected
-          / not collected)
+          <MapPinGlyph
+            className='size-3.5'
+            style={{ color: '#3cbfdb' }}
+            filled
+          />
+          <MapPinGlyph
+            className='size-3.5'
+            style={{ color: '#356e7a' }}
+            filled
+          />{' '}
+          Items (collected / not collected)
         </span>
         <span className='flex items-center gap-1.5'>
-          <span className='size-2.5 rounded-full bg-amber-500 ring-2 ring-amber-500/40' /> You are
-          here
+          <span className='size-2.5 rounded-full bg-amber-500 ring-2 ring-amber-500/40' />{' '}
+          You are here
         </span>
         <span className='flex items-center gap-1.5'>
           <span className='size-2.5 rotate-45 bg-yellow-400 shadow-[0_0_5px_1px_rgba(250,204,21,.7)]' />
-          <span className='size-2.5 rotate-45 border border-yellow-400/70' /> Lost runes (active /
-          recovered)
+          <span className='size-2.5 rotate-45 border border-yellow-400/70' />{' '}
+          Lost runes (active / recovered)
         </span>
       </div>
     </div>
@@ -311,7 +350,11 @@ function MapFallback({ message }: { message: string }) {
  * Shared boss-pin enrichment from boss-meta — reward / map-area / badges / status.
  * `defeated` is `undefined` when we don't know the save state (status omitted then).
  */
-function bossEnrichment(flag: number, mapId: string | undefined, defeated: boolean | undefined) {
+function bossEnrichment(
+  flag: number,
+  mapId: string | undefined,
+  defeated: boolean | undefined,
+) {
   const reward = bossReward(flag);
   return {
     area: mapId !== undefined && mapId !== '' ? bossMapName(mapId) : undefined,
@@ -320,7 +363,8 @@ function bossEnrichment(flag: number, mapId: string | undefined, defeated: boole
         ? bossBadges(flag, mapId).map((b) => BADGE_LABEL[b])
         : undefined,
     reward: reward ? { name: reward.name, iconUrl: reward.iconUrl } : undefined,
-    status: defeated === undefined ? undefined : defeated ? 'Defeated' : 'Remaining',
+    status:
+      defeated === undefined ? undefined : defeated ? 'Defeated' : 'Remaining',
   };
 }
 
@@ -403,11 +447,20 @@ function useSelectedPins(): MapPin[] {
             kind: 'item',
             name: row.name,
             wikiName: wikiNameForItem(row) ?? undefined,
-            category: p.source === 'map' ? 'Treasure' : p.approx ? 'Drop · approx. area' : 'Drop',
+            category:
+              p.source === 'map'
+                ? 'Treasure'
+                : p.approx
+                  ? 'Drop · approx. area'
+                  : 'Drop',
             description: '',
             discovered: owned, // owned → brighter "collected" shade
             sourceLabel:
-              p.source === 'map' ? 'Treasure' : p.approx ? 'Drop · approx. area' : 'Drop',
+              p.source === 'map'
+                ? 'Treasure'
+                : p.approx
+                  ? 'Drop · approx. area'
+                  : 'Drop',
             chancePct: p.chance < 1 ? Math.round(p.chance * 100) : undefined,
             quantity: row.quantity,
             locationCount: locations.length,
@@ -468,7 +521,9 @@ function useBloodstainPin(): MapPin | null {
       name: active ? 'Lost runes' : 'Last death',
       category: '',
       // status drives the hover tooltip; description the popup sentence.
-      status: active ? `${runeText} on the ground` : 'Last death · runes recovered',
+      status: active
+        ? `${runeText} on the ground`
+        : 'Last death · runes recovered',
       description: active
         ? `${runeText} waiting to be recovered`
         : 'Runes here have already been recovered',
@@ -484,7 +539,9 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
   const mounted = useHydrated();
   const manifestResult = useAtomValue(mapManifestAtom);
   const manifest = Option.getOrNull(AsyncResult.value(manifestResult));
-  const error = Option.getOrNull(Option.map(AsyncResult.error(manifestResult), (e) => e.message));
+  const error = Option.getOrNull(
+    Option.map(AsyncResult.error(manifestResult), (e) => e.message),
+  );
   // Best-effort (see mapTileIndexAtom): on failure every tile is requested.
   const tileIndexResult = useAtomValue(mapTileIndexAtom);
   const tileIndex = Option.getOrUndefined(AsyncResult.value(tileIndexResult));
@@ -516,7 +573,8 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
   // aren't counted — they always exist and "Center on me" handles that jump.
   const pinCountByMaster = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const p of visiblePins) counts.set(p.master, (counts.get(p.master) ?? 0) + 1);
+    for (const p of visiblePins)
+      counts.set(p.master, (counts.get(p.master) ?? 0) + 1);
     return counts;
   }, [visiblePins]);
   // The acute case: the selection has pins, but NONE on the active map — show a
@@ -529,7 +587,8 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
     [pinCountByMaster, activeMapId],
   );
   const eventsItems = useDataTableData('events');
-  const { setRowSelection, clearAllRowSelection: clearPins } = useRowSelectionControls();
+  const { setRowSelection, clearAllRowSelection: clearPins } =
+    useRowSelectionControls();
 
   /**
    * Add all events of `type` matching `on` (that have a placeable position) to the
@@ -635,8 +694,10 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
                 >
                   <MapPinGlyph className='size-3.5 text-amber-400' filled />
                   {count} pin{count === 1 ? '' : 's'} on{' '}
-                  {SHORT_MAP_NAME[id] ?? manifest.maps.find((m) => m.id === id)?.name ?? id} —
-                  switch
+                  {SHORT_MAP_NAME[id] ??
+                    manifest.maps.find((m) => m.id === id)?.name ??
+                    id}{' '}
+                  — switch
                 </Button>
               ))}
             </div>
@@ -644,7 +705,9 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
             <MapRightRail
               defaultControlsOpen={!isMobile}
               layers={layers}
-              onLayerChange={(key, visible) => setLayers((l) => ({ ...l, [key]: visible }))}
+              onLayerChange={(key, visible) =>
+                setLayers((l) => ({ ...l, [key]: visible }))
+              }
               onQuickSelect={selectEvents}
               onClearPins={clearPins}
               pinCount={pins.length}
@@ -674,7 +737,8 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
                 disabled={!playerPin}
                 onClick={() => {
                   if (!playerPin) return;
-                  if (playerPin.master !== activeMapId) setActiveMapId(playerPin.master);
+                  if (playerPin.master !== activeMapId)
+                    setActiveMapId(playerPin.master);
                   setRecenterToken((t) => t + 1);
                 }}
               >

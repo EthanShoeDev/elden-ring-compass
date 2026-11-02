@@ -1,3 +1,9 @@
+import {
+  ER_ARCHIVE_KEYS,
+  ER_GAME_INFO,
+  erDictionaryUrl,
+  SD_ARCHIVES,
+} from '@elden-ring-compass/vendored-data';
 // Effect-native dvdbnd unpacker. File IO goes through effect `FileSystem`/`Path`
 // services (directory setup, per-file existence checks, mkdir) — the per-`yield*`
 // overhead is nanoseconds against real syscalls, so being on the Effect runtime
@@ -7,13 +13,6 @@
 // the real regression — wrapped in `Effect.promise`. `Bun.write` is likewise kept
 // (not a lint concern; `node:fs`/`node:path` are).
 import { Data, Effect, FileSystem, Option, Path } from 'effect';
-
-import {
-  ER_ARCHIVE_KEYS,
-  ER_GAME_INFO,
-  erDictionaryUrl,
-  SD_ARCHIVES,
-} from '@elden-ring-compass/vendored-data';
 
 import { decryptBhdHeader } from '../crypto/rsa.ts';
 import { decryptAesRanges, parseBhd5 } from '../formats/bhd5.ts';

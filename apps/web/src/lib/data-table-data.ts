@@ -1,6 +1,8 @@
-import { TableId } from '@/components/data-table/data-table-store';
-import { useSelectedSlot } from '@/stores/slot-selection-store';
 import { useMemo } from 'react';
+
+import type { TableId } from '@/components/data-table/data-table-store';
+import { useSelectedSlot } from '@/stores/slot-selection-store';
+
 import {
   type InventoryRow,
   type InventoryTableType,
@@ -9,12 +11,21 @@ import {
 import { eventsDbView } from './vm/events';
 import { regionsDbView } from './vm/regions';
 
-export function useDataTableData(tableId: 'events'): ReturnType<typeof eventsDbView>;
-export function useDataTableData(tableId: 'regions'): ReturnType<typeof regionsDbView>;
-export function useDataTableData(tableId: InventoryTableType): Array<InventoryRow>;
+export function useDataTableData(
+  tableId: 'events',
+): ReturnType<typeof eventsDbView>;
+export function useDataTableData(
+  tableId: 'regions',
+): ReturnType<typeof regionsDbView>;
+export function useDataTableData(
+  tableId: InventoryTableType,
+): Array<InventoryRow>;
 export function useDataTableData(
   tableId: TableId,
-): ReturnType<typeof eventsDbView> | ReturnType<typeof regionsDbView> | Array<InventoryRow> {
+):
+  | ReturnType<typeof eventsDbView>
+  | ReturnType<typeof regionsDbView>
+  | Array<InventoryRow> {
   const slot = useSelectedSlot();
   const allTables = useInventoryTables();
 
@@ -24,7 +35,12 @@ export function useDataTableData(
     // 'weapons', 'weapon-calculator' and 'bosses' serve their own data (see
     // weapon-ar-calculator.tsx / bosses-data-table.tsx), not the save-driven
     // inventory join, so they never reach this hook.
-    if (tableId === 'weapons' || tableId === 'weapon-calculator' || tableId === 'bosses') return [];
+    if (
+      tableId === 'weapons' ||
+      tableId === 'weapon-calculator' ||
+      tableId === 'bosses'
+    )
+      return [];
     return allTables[tableId].items;
   }, [slot, tableId, allTables]);
 

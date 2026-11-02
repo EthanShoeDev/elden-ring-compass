@@ -1,8 +1,9 @@
+import sampleSaveUrl from '@elden-ring-compass/save-parser-ts/fixtures/ER0000.sl2?url';
 import { Schema } from 'effect';
 import { Atom } from 'effect/reactivity';
+
 import { appRuntime } from '@/lib/atoms/runtime';
 import type { ShareableProgression } from '@/lib/share/types';
-import sampleSaveUrl from '@elden-ring-compass/save-parser-ts/fixtures/ER0000.sl2?url';
 
 type FileData = {
   name: string;
@@ -81,13 +82,16 @@ export const SAMPLE_SAVE_URL: string = sampleSaveUrl;
  * left alone.
  */
 export const normalizePersistedUrl = (url: string): string =>
-  url.startsWith('/') && /\/ER0000(-[\w-]+)?\.sl2$/.test(url) ? SAMPLE_SAVE_URL : url;
+  url.startsWith('/') && /\/ER0000(-[\w-]+)?\.sl2$/.test(url)
+    ? SAMPLE_SAVE_URL
+    : url;
 
 // Type guards
 export const isFileSource = (src?: SaveFileSource): src is FileUploadSource =>
   !!src && 'file' in src;
 
-export const isUrlSource = (src?: SaveFileSource): src is UrlSource => !!src && 'url' in src;
+export const isUrlSource = (src?: SaveFileSource): src is UrlSource =>
+  !!src && 'url' in src;
 
 export const isSharedSource = (src?: SaveFileSource): src is SharedDataSource =>
   !!src && 'sharedData' in src;

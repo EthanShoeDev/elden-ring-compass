@@ -118,10 +118,10 @@ const CHARACTER_NAME_BYTES = 32;
 const utf16le = new TextDecoder('utf-16le');
 
 /** Raised when the buffer is not a PC Elden Ring save (missing the "BND4" magic). */
-export class SaveMagicMismatchError extends Schema.TaggedError<SaveMagicMismatchError>()(
-  'save-parser/SaveMagicMismatchError',
-  {},
-) {}
+export class SaveMagicMismatchError extends Schema.TaggedError<
+  SaveMagicMismatchError,
+  { readonly brand: unique symbol }
+>()('save-parser/SaveMagicMismatchError', {}) {}
 
 /** All failures `parseSave` can produce. */
 export type SaveParseError = SaveMagicMismatchError | SaveTruncatedError;

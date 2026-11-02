@@ -83,7 +83,9 @@ export function rateWeapons(
 }
 
 /** Collapse to the single best-AR affinity per base weapon (the affinity recommender). */
-export function bestAffinityPerWeapon(rated: readonly RatedWeapon[]): RatedWeapon[] {
+export function bestAffinityPerWeapon(
+  rated: readonly RatedWeapon[],
+): RatedWeapon[] {
   const best = new Map<number, RatedWeapon>();
   for (const r of rated) {
     const cur = best.get(r.baseId);

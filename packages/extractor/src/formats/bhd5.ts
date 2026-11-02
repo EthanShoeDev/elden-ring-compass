@@ -21,7 +21,7 @@ export interface Bhd5FileHeader {
   readonly paddedSize: number; // size of the data slab in the .bdt
   readonly unpaddedSize: number; // real size after decryption (-1 if unknown)
   readonly offset: number; // start of file data in the .bdt
-  readonly aes?: AesInfo;
+  readonly aes?: AesInfo | undefined;
 }
 
 // Minimal little-endian binary reader.

@@ -1,9 +1,9 @@
 import { Effect, FileSystem, PlatformError } from 'effect';
 
+import type { OodleError } from '../external/oodle.ts';
 import { type Bnd4Error, parseBnd4 } from '../formats/bnd4.ts';
 import { type DcxError, dcxDecompress } from '../formats/dcx.ts';
 import { type FmgError, parseFmg } from '../formats/fmg.ts';
-import type { OodleError } from '../external/oodle.ts';
 
 /**
  * Loads one logical FMG `id → string` table out of the game's message archives,

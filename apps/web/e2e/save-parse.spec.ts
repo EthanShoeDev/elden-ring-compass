@@ -14,7 +14,9 @@ test('parses the test save via the worker (file upload)', async ({ page }) => {
   await expect(trigger).toBeVisible({ timeout: 15_000 });
   await expect(async () => {
     await trigger.click();
-    await expect(page.getByText(/drop your save here/i)).toBeVisible({ timeout: 1000 });
+    await expect(page.getByText(/drop your save here/i)).toBeVisible({
+      timeout: 1000,
+    });
   }).toPass({ timeout: 15_000 });
 
   // The dialog opens on the File source by default. Upload the committed test save directly — the
@@ -25,7 +27,9 @@ test('parses the test save via the worker (file upload)', async ({ page }) => {
 
   // The worker parse must resolve (not hang on "Loading…"): the dialog closes itself on success and
   // the sidebar switches to the loaded-save state, whose slot switcher names the parsed character.
-  await expect(page.getByRole('button', { name: /switch save slot/i })).toBeVisible({
+  await expect(
+    page.getByRole('button', { name: /switch save slot/i }),
+  ).toBeVisible({
     timeout: 30_000,
   });
 });

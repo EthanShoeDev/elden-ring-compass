@@ -41,11 +41,21 @@ import {
 import { cn } from '@/lib/utils';
 import { equippedWeaponInfo } from '@/lib/vm/equipped-weapon';
 import { inventoryDbView } from '@/lib/vm/inventory';
-import { bestAffinityPerWeapon, type RatedWeapon, rateWeapons } from '@/lib/weapon-rating';
+import {
+  bestAffinityPerWeapon,
+  type RatedWeapon,
+  rateWeapons,
+} from '@/lib/weapon-rating';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 import { Button } from '../ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
 import { Slider } from '../ui/slider';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 import { WeaponArTable } from './weapon-ar-calculator';
@@ -73,8 +83,13 @@ type ArchetypeChoice = BuildArchetypeKey | 'custom';
 export function BuildPlannerSection() {
   const slot = useSelectedSlot();
 
-  const current = useMemo<Attrs8>(() => (slot ? attrs8FromSlot(slot) : VAGABOND), [slot]);
-  const initialKey: ArchetypeChoice = slot ? detectArchetype(current) : 'strength';
+  const current = useMemo<Attrs8>(
+    () => (slot ? attrs8FromSlot(slot) : VAGABOND),
+    [slot],
+  );
+  const initialKey: ArchetypeChoice = slot
+    ? detectArchetype(current)
+    : 'strength';
 
   const [archetypeKey, setArchetypeKey] = useState<ArchetypeChoice>(initialKey);
   // The sliders represent the *target* build you're planning toward; an archetype
@@ -82,7 +97,9 @@ export function BuildPlannerSection() {
   const [target, setTarget] = useState<Attrs8>(
     () => buildArchetypeByKey.get(initialKey)?.target ?? current,
   );
-  const [rankContext, setRankContext] = useState<'target' | 'current'>('target');
+  const [rankContext, setRankContext] = useState<'target' | 'current'>(
+    'target',
+  );
 
   // Re-detect + reseed whenever the active save changes (connect / switch slot).
   // Adjusted during render, not in an effect, so the reseed lands in the same paint.
@@ -97,7 +114,9 @@ export function BuildPlannerSection() {
   }
 
   const archetype: BuildArchetype | undefined =
-    archetypeKey === 'custom' ? undefined : buildArchetypeByKey.get(archetypeKey);
+    archetypeKey === 'custom'
+      ? undefined
+      : buildArchetypeByKey.get(archetypeKey);
 
   const pickArchetype = (key: ArchetypeChoice) => {
     setArchetypeKey(key);
@@ -126,7 +145,10 @@ export function BuildPlannerSection() {
     if (slot) {
       for (const item of inventoryDbView(slot).items) {
         if (item.type !== 'WEAPON') continue;
-        owned.set(item.item_id, Math.max(owned.get(item.item_id) ?? 0, item.upgrade_level));
+        owned.set(
+          item.item_id,
+          Math.max(owned.get(item.item_id) ?? 0, item.upgrade_level),
+        );
       }
     }
     return owned;
@@ -135,11 +157,23 @@ export function BuildPlannerSection() {
   // Rate the whole armament set at the target build and at the real current stats
   // (both at max upgrade — "potential"). The advisors read the top of each list.
   const ratedAtTarget = useMemo(
-    () => rateWeapons(arAttrsFromAttrs8(target), MAX_UPGRADE_LEVEL, false, ownedById),
+    () =>
+      rateWeapons(
+        arAttrsFromAttrs8(target),
+        MAX_UPGRADE_LEVEL,
+        false,
+        ownedById,
+      ),
     [target, ownedById],
   );
   const ratedAtCurrent = useMemo(
-    () => rateWeapons(arAttrsFromAttrs8(current), MAX_UPGRADE_LEVEL, false, ownedById),
+    () =>
+      rateWeapons(
+        arAttrsFromAttrs8(current),
+        MAX_UPGRADE_LEVEL,
+        false,
+        ownedById,
+      ),
     [current, ownedById],
   );
 
@@ -150,7 +184,10 @@ export function BuildPlannerSection() {
     () =>
       topWeapon(
         ratedAtTarget.filter(
-          (r) => r.owned && r.wieldable && (!archetype || weaponScalesWith(r.scaling, archetype)),
+          (r) =>
+            r.owned &&
+            r.wieldable &&
+            (!archetype || weaponScalesWith(r.scaling, archetype)),
         ),
       ),
     [ratedAtTarget, archetype],
@@ -160,7 +197,9 @@ export function BuildPlannerSection() {
       topWeapon(
         bestAffinityPerWeapon(
           ratedAtTarget.filter(
-            (r) => !r.owned && (!archetype || weaponScalesWith(r.scaling, archetype)),
+            (r) =>
+              !r.owned &&
+              (!archetype || weaponScalesWith(r.scaling, archetype)),
           ),
         ),
       ),
@@ -174,10 +213,15 @@ export function BuildPlannerSection() {
   );
   const statusBuild = archetype ? STATUS_ARCHETYPES.has(archetype.key) : false;
 
-  const equipped = useMemo(() => (slot ? equippedWeaponInfo(slot) : null), [slot]);
+  const equipped = useMemo(
+    () => (slot ? equippedWeaponInfo(slot) : null),
+    [slot],
+  );
 
   const levelTarget = levelFromAttrs8(target);
-  const currentLevel = slot ? slot.player_game_data.level : levelFromAttrs8(current);
+  const currentLevel = slot
+    ? slot.player_game_data.level
+    : levelFromAttrs8(current);
 
   // Derived survival stats. ER's HP/FP/stamina growth curves live in the game
   // executable, not in regulation.bin, so they can't be extracted — BUT the save
@@ -186,8 +230,10 @@ export function BuildPlannerSection() {
   // hypothetical target fall back to the modelled curve. (Equip load isn't stored
   // in the save, so it's always modelled.)
   const pgd = slot?.player_game_data;
-  const hpVal = pgd && target.vigor === current.vigor ? pgd.base_max_hp : hp(target.vigor);
-  const fpVal = pgd && target.mind === current.mind ? pgd.base_max_fp : fp(target.mind);
+  const hpVal =
+    pgd && target.vigor === current.vigor ? pgd.base_max_hp : hp(target.vigor);
+  const fpVal =
+    pgd && target.mind === current.mind ? pgd.base_max_fp : fp(target.mind);
   const staminaVal =
     pgd && target.endurance === current.endurance
       ? pgd.base_max_stamina
@@ -243,7 +289,11 @@ export function BuildPlannerSection() {
               Custom
             </ToggleGroupItem>
           </ToggleGroup>
-          {archetype && <p className='mt-3 text-sm text-muted-foreground'>{archetype.blurb}</p>}
+          {archetype && (
+            <p className='mt-3 text-sm text-muted-foreground'>
+              {archetype.blurb}
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -252,38 +302,56 @@ export function BuildPlannerSection() {
         {/* OWN: the best weapon you already have for this build. */}
         <AdvisorCard
           icon={<PackageCheckIcon className='size-4' />}
-          title={archetype ? `Best ${archetype.label} weapon you own` : 'Best weapon you own'}
+          title={
+            archetype
+              ? `Best ${archetype.label} weapon you own`
+              : 'Best weapon you own'
+          }
         >
           {!slot ? (
-            <Muted>Connect a save to see the best weapon you already own for this build.</Muted>
+            <Muted>
+              Connect a save to see the best weapon you already own for this
+              build.
+            </Muted>
           ) : bestOwnedForBuild ? (
             <>
               <AdvisorLine
                 weapon={bestOwnedForBuild}
                 lead='Equip this:'
-                context={archetype ? `best fit at a ${archetype.label} stat spread` : undefined}
+                context={
+                  archetype
+                    ? `best fit at a ${archetype.label} stat spread`
+                    : undefined
+                }
               />
               {strongestOwned && strongestOwned.id !== bestOwnedForBuild.id && (
                 <Muted>
                   Hardest-hitter right now (any build):{' '}
-                  <strong className='text-foreground'>{strongestOwned.name}</strong>{' '}
+                  <strong className='text-foreground'>
+                    {strongestOwned.name}
+                  </strong>{' '}
                   {strongestOwned.ar} AR at your Lvl {currentLevel}.
                 </Muted>
               )}
               {statusBuild && (
-                <Muted>Ranked by raw AR — bleed/status buildup isn&apos;t modelled yet.</Muted>
+                <Muted>
+                  Ranked by raw AR — bleed/status buildup isn&apos;t modelled
+                  yet.
+                </Muted>
               )}
             </>
           ) : (
             <Muted>
-              You don&apos;t own a weapon that scales for this build yet — see &ldquo;Aim
-              for&rdquo;.
+              You don&apos;t own a weapon that scales for this build yet — see
+              &ldquo;Aim for&rdquo;.
               {strongestOwned && (
                 <>
                   {' '}
                   Your current hardest-hitter is{' '}
-                  <strong className='text-foreground'>{strongestOwned.name}</strong> (
-                  {strongestOwned.ar} AR).
+                  <strong className='text-foreground'>
+                    {strongestOwned.name}
+                  </strong>{' '}
+                  ({strongestOwned.ar} AR).
                 </>
               )}
             </Muted>
@@ -301,7 +369,9 @@ export function BuildPlannerSection() {
                 weapon={bestObtainable}
                 lead="Don't own yet:"
                 context={
-                  slot && bestOwnedForBuild && bestObtainable.ar > bestOwnedForBuild.ar
+                  slot &&
+                  bestOwnedForBuild &&
+                  bestObtainable.ar > bestOwnedForBuild.ar
                     ? `+${bestObtainable.ar - bestOwnedForBuild.ar} AR over your best owned`
                     : 'top pick for this build'
                 }
@@ -313,11 +383,17 @@ export function BuildPlannerSection() {
           )}
         </AdvisorCard>
 
-        <AdvisorCard icon={<TrendingUpIcon className='size-4' />} title='Next level-up'>
+        <AdvisorCard
+          icon={<TrendingUpIcon className='size-4' />}
+          title='Next level-up'
+        >
           <LevelUpAdvice current={current} target={target} />
         </AdvisorCard>
 
-        <AdvisorCard icon={<RotateCcwIcon className='size-4' />} title='Respec verdict'>
+        <AdvisorCard
+          icon={<RotateCcwIcon className='size-4' />}
+          title='Respec verdict'
+        >
           <RespecVerdict
             slot={slot}
             current={current}
@@ -338,7 +414,9 @@ export function BuildPlannerSection() {
               <CardTitle>Target attributes</CardTitle>
               <CardDescription>
                 Ticks mark soft caps.{' '}
-                {archetype ? `Seeded from the ${archetype.label} build.` : 'Custom build.'}
+                {archetype
+                  ? `Seeded from the ${archetype.label} build.`
+                  : 'Custom build.'}
               </CardDescription>
             </div>
             <Button
@@ -346,7 +424,11 @@ export function BuildPlannerSection() {
               size='sm'
               disabled={!dirty}
               onClick={resetTarget}
-              title={dirty ? `Reset to the ${archetype?.label ?? 'detected'} build` : undefined}
+              title={
+                dirty
+                  ? `Reset to the ${archetype?.label ?? 'detected'} build`
+                  : undefined
+              }
             >
               <RefreshCcwIcon /> Reset
             </Button>
@@ -394,7 +476,11 @@ export function BuildPlannerSection() {
             <CardContent className='grid grid-cols-2 gap-3'>
               <DerivedStat label='HP' value={hpVal} ratio={hpVal / HP_MAX} />
               <DerivedStat label='FP' value={fpVal} ratio={fpVal / FP_MAX} />
-              <DerivedStat label='Stamina' value={staminaVal} ratio={staminaVal / STAMINA_MAX} />
+              <DerivedStat
+                label='Stamina'
+                value={staminaVal}
+                ratio={staminaVal / STAMINA_MAX}
+              />
               <DerivedStat
                 label='Equip Load'
                 value={equipLoad(target.endurance)}
@@ -406,16 +492,24 @@ export function BuildPlannerSection() {
           <Card>
             <CardHeader>
               <CardTitle>Rune cost</CardTitle>
-              <CardDescription>Runes to reach this build (estimate).</CardDescription>
+              <CardDescription>
+                Runes to reach this build (estimate).
+              </CardDescription>
             </CardHeader>
             <CardContent className='space-y-3'>
               <div className='flex items-center justify-between'>
-                <span className='text-sm text-muted-foreground'>Rune Level</span>
-                <span className='font-mono text-2xl font-semibold tabular-nums'>{levelTarget}</span>
+                <span className='text-sm text-muted-foreground'>
+                  Rune Level
+                </span>
+                <span className='font-mono text-2xl font-semibold tabular-nums'>
+                  {levelTarget}
+                </span>
               </div>
               <div className='h-px bg-border' />
               <div className='flex items-center justify-between'>
-                <span className='text-sm text-muted-foreground'>From Level 1</span>
+                <span className='text-sm text-muted-foreground'>
+                  From Level 1
+                </span>
                 <span className='font-mono font-semibold tabular-nums'>
                   {runesBetween(1, levelTarget).toLocaleString()}
                 </span>
@@ -485,8 +579,9 @@ const topWeapon = (list: readonly RatedWeapon[]): RatedWeapon | undefined =>
     undefined,
   );
 
-const scaleAttrsOf = (scaling: Readonly<Partial<Record<ScalingAttr, number>>>): ScalingAttr[] =>
-  SCALING_ATTRS.filter((a) => (scaling[a] ?? 0) > 0);
+const scaleAttrsOf = (
+  scaling: Readonly<Partial<Record<ScalingAttr, number>>>,
+): ScalingAttr[] => SCALING_ATTRS.filter((a) => (scaling[a] ?? 0) > 0);
 
 function Muted({ children }: { children: React.ReactNode }) {
   return <p className='text-sm text-muted-foreground'>{children}</p>;
@@ -524,16 +619,22 @@ function AdvisorLine({
 }: {
   weapon: RatedWeapon;
   lead: string;
-  context?: string;
+  context?: string | undefined;
   muted?: boolean;
 }) {
   return (
     <p className={cn('text-sm', muted === true && 'text-muted-foreground')}>
-      <span className={cn(muted === true ? 'text-muted-foreground' : 'text-muted-foreground')}>
+      <span
+        className={cn(
+          muted === true ? 'text-muted-foreground' : 'text-muted-foreground',
+        )}
+      >
         {lead}{' '}
       </span>
       <strong className='text-foreground'>{weapon.name}</strong>{' '}
-      <span className='font-mono tabular-nums text-foreground'>{weapon.ar} AR</span>
+      <span className='font-mono text-foreground tabular-nums'>
+        {weapon.ar} AR
+      </span>
       {context !== undefined && context !== '' && (
         <span className='text-muted-foreground'> · {context}</span>
       )}
@@ -541,7 +642,13 @@ function AdvisorLine({
   );
 }
 
-function LevelUpAdvice({ current, target }: { current: Attrs8; target: Attrs8 }) {
+function LevelUpAdvice({
+  current,
+  target,
+}: {
+  current: Attrs8;
+  target: Attrs8;
+}) {
   const need = (k: Attr8Key) => Math.max(0, target[k] - current[k]);
   const primary = OFFENSIVE_KEYS.filter((k) => target[k] >= 30).toSorted(
     (a, b) => target[b] - target[a],
@@ -557,23 +664,35 @@ function LevelUpAdvice({ current, target }: { current: Attrs8; target: Attrs8 })
         reason: 'health is low — most builds want ~40 Vigor first',
       };
     const prim = primary.find((k) => need(k) > 0);
-    if (prim) return { key: prim, reason: `your main damage stat (${need(prim)} to target)` };
-    if (need('mind') > 0) return { key: 'mind' as Attr8Key, reason: 'more FP for casts' };
+    if (prim)
+      return {
+        key: prim,
+        reason: `your main damage stat (${need(prim)} to target)`,
+      };
+    if (need('mind') > 0)
+      return { key: 'mind' as Attr8Key, reason: 'more FP for casts' };
     if (need('endurance') > 0)
       return { key: 'endurance' as Attr8Key, reason: 'stamina + equip load' };
-    if (need('vigor') > 0) return { key: 'vigor' as Attr8Key, reason: 'more survivability' };
+    if (need('vigor') > 0)
+      return { key: 'vigor' as Attr8Key, reason: 'more survivability' };
     const any = ATTR_META.map((m) => m.key).find((k) => need(k) > 0);
     return any ? { key: any, reason: 'toward your target build' } : null;
   })();
 
   const label = (k: Attr8Key) => ATTR_META.find((m) => m.key === k)?.label ?? k;
 
-  if (!rec) return <Muted>You&apos;ve already hit this build&apos;s targets. Spend freely.</Muted>;
+  if (!rec)
+    return (
+      <Muted>
+        You&apos;ve already hit this build&apos;s targets. Spend freely.
+      </Muted>
+    );
 
   return (
     <>
       <p className='text-sm'>
-        Put your next point in <strong className='text-foreground'>{label(rec.key)}</strong>{' '}
+        Put your next point in{' '}
+        <strong className='text-foreground'>{label(rec.key)}</strong>{' '}
         <span className='font-mono text-muted-foreground'>
           {current[rec.key]} → {target[rec.key]}
         </span>
@@ -583,13 +702,16 @@ function LevelUpAdvice({ current, target }: { current: Attrs8; target: Attrs8 })
         {ATTR_META.filter((m) => need(m.key) > 0).map((m) => (
           <span
             key={m.key}
-            className='rounded-md border border-border bg-muted/40 px-1.5 py-0.5 text-[11px] tabular-nums text-muted-foreground'
+            className='rounded-md border border-border bg-muted/40 px-1.5 py-0.5 text-[11px] text-muted-foreground tabular-nums'
           >
             {m.label} +{need(m.key)}
           </span>
         ))}
       </div>
-      <Muted>How much Vigor is up to you — drag its slider to set your own health target.</Muted>
+      <Muted>
+        How much Vigor is up to you — drag its slider to set your own health
+        target.
+      </Muted>
     </>
   );
 }
@@ -612,7 +734,11 @@ function RespecVerdict({
   levelTarget: number;
 }) {
   if (!slot)
-    return <Muted>Connect a save for a respec recommendation tailored to your build.</Muted>;
+    return (
+      <Muted>
+        Connect a save for a respec recommendation tailored to your build.
+      </Muted>
+    );
 
   const label = (k: Attr8Key) => ATTR_META.find((m) => m.key === k)?.label ?? k;
   const buildLabel = archetype?.label ?? 'this';
@@ -634,40 +760,46 @@ function RespecVerdict({
 
   const mismatch =
     archetype && equipped
-      ? !archetype.scaleAttrs.some((a) => (equipped.scaling.scaling[a] ?? 0) > 0)
+      ? !archetype.scaleAttrs.some(
+          (a) => (equipped.scaling.scaling[a] ?? 0) > 0,
+        )
       : false;
 
   const RESPEC_THRESHOLD = 10;
   const needsRespec = stranded >= RESPEC_THRESHOLD;
-  const extraLevels = levelTarget > currentLevel ? levelTarget - currentLevel : 0;
+  const extraLevels =
+    levelTarget > currentLevel ? levelTarget - currentLevel : 0;
 
   return (
     <>
       {needsRespec ? (
         <p className='text-sm'>
-          <strong className='text-foreground'>Respec worth it.</strong> ~{stranded} points sit in{' '}
-          {strandedLabels.join(' & ')} — stats a {buildLabel} build doesn&apos;t use.
+          <strong className='text-foreground'>Respec worth it.</strong> ~
+          {stranded} points sit in {strandedLabels.join(' & ')} — stats a{' '}
+          {buildLabel} build doesn&apos;t use.
         </p>
       ) : mismatch && equipped ? (
         <p className='text-sm'>
-          <strong className='text-foreground'>Loadout mismatch.</strong> Your {equipped.name} scales
-          with{' '}
+          <strong className='text-foreground'>Loadout mismatch.</strong> Your{' '}
+          {equipped.name} scales with{' '}
           {scaleAttrsOf(equipped.scaling.scaling)
             .map((a) => SCALING_LABEL[a])
             .join('/')}
           , but a {buildLabel} build leans on{' '}
-          {archetype?.scaleAttrs.map((a) => SCALING_LABEL[a]).join('/')}. Swap weapon — your stats
-          are fine.
+          {archetype?.scaleAttrs.map((a) => SCALING_LABEL[a]).join('/')}. Swap
+          weapon — your stats are fine.
         </p>
       ) : (
         <p className='text-sm'>
-          <strong className='text-foreground'>No respec needed.</strong> Your offensive stats
-          already suit a {buildLabel} build. Vigor, Mind &amp; Endurance are your call.
+          <strong className='text-foreground'>No respec needed.</strong> Your
+          offensive stats already suit a {buildLabel} build. Vigor, Mind &amp;
+          Endurance are your call.
         </p>
       )}
       {needsRespec && extraLevels > 0 && (
         <Muted>
-          You&apos;d also need {extraLevels} more levels ({currentLevel}→{levelTarget}) ·{' '}
+          You&apos;d also need {extraLevels} more levels ({currentLevel}→
+          {levelTarget}) ·{' '}
           {runesBetween(currentLevel, levelTarget).toLocaleString()} runes.
         </Muted>
       )}
@@ -675,13 +807,23 @@ function RespecVerdict({
   );
 }
 
-function DerivedStat({ label, value, ratio }: { label: string; value: number; ratio: number }) {
+function DerivedStat({
+  label,
+  value,
+  ratio,
+}: {
+  label: string;
+  value: number;
+  ratio: number;
+}) {
   return (
     <div className='flex flex-col gap-1.5 rounded-lg border border-border bg-muted/30 p-3'>
       <div className='text-[11px] font-medium tracking-wide text-muted-foreground uppercase'>
         {label}
       </div>
-      <div className='text-xl font-semibold tabular-nums'>{value.toLocaleString()}</div>
+      <div className='text-xl font-semibold tabular-nums'>
+        {value.toLocaleString()}
+      </div>
       <div className='h-1.5 overflow-hidden rounded-full bg-muted'>
         <div
           className='h-full rounded-full bg-primary'

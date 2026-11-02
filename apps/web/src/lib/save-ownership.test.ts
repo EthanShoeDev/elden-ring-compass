@@ -1,10 +1,12 @@
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+
 import { NodeServices } from '@effect/platform-node';
 import { it } from '@effect/vitest';
+import { GOODS } from '@elden-ring-compass/data';
 import { Effect, FileSystem } from 'effect';
 import { expect } from 'vitest';
-import { GOODS } from '@elden-ring-compass/data';
+
 import { completionMilestones } from './completion';
 import { parseEldenRingData } from './er-save-parser';
 import { inventoryTables } from './inventory-catalog';
@@ -33,7 +35,14 @@ const REPO_ROOT = (() => {
 const loadSlots = Effect.gen(function* () {
   const fs = yield* FileSystem.FileSystem;
   const bytes = yield* fs.readFile(
-    join(REPO_ROOT, 'packages', 'save-parser', 'test', 'fixtures', 'ER0000.sl2'),
+    join(
+      REPO_ROOT,
+      'packages',
+      'save-parser',
+      'test',
+      'fixtures',
+      'ER0000.sl2',
+    ),
   );
   const buffer = bytes.buffer.slice(
     bytes.byteOffset,
@@ -41,15 +50,21 @@ const loadSlots = Effect.gen(function* () {
   ) as ArrayBuffer;
   const save = parseEldenRingData(buffer);
   const byName = (name: string): Slot => {
-    const slot = save.slots.find((s) => s.player_game_data.character_name === name);
+    const slot = save.slots.find(
+      (s) => s.player_game_data.character_name === name,
+    );
     if (!slot) throw new Error(`fixture slot ${name} not found`);
     return slot;
   };
   return { slots: save.slots, byName };
 });
 
-const crystalTearIds = new Set(GOODS.filter((g) => g.category === 'Crystal Tear').map((g) => g.id));
-const greatRuneIds = new Set(GOODS.filter((g) => g.category === 'Great Rune').map((g) => g.id));
+const crystalTearIds = new Set(
+  GOODS.filter((g) => g.category === 'Crystal Tear').map((g) => g.id),
+);
+const greatRuneIds = new Set(
+  GOODS.filter((g) => g.category === 'Great Rune').map((g) => g.id),
+);
 
 it.layer(NodeServices.layer)('save ownership view-models (issue #11)', (it) => {
   it.effect(
@@ -65,58 +80,79 @@ it.layer(NodeServices.layer)('save ownership view-models (issue #11)', (it) => {
           ['ashes', 'AOW'],
         ] as const;
         for (const slot of slots) {
-          const items = inventoryDbView(slot).items.filter((i) => i.quantity > 0);
+          const items = inventoryDbView(slot).items.filter(
+            (i) => i.quantity > 0,
+          );
           const tables = inventoryTables(slot);
           for (const [table, type] of typedTables) {
-            const ownedOfType = new Set(items.filter((i) => i.type === type).map((i) => i.item_id));
+            const ownedOfType = new Set(
+              items.filter((i) => i.type === type).map((i) => i.item_id),
+            );
             for (const row of tables[table].items.filter((r) => r.quantity > 0))
-              expect(ownedOfType, `${slot.player_game_data.character_name}: ${row.name}`).toContain(
-                row.id,
-              );
+              expect(
+                ownedOfType,
+                `${slot.player_game_data.character_name}: ${row.name}`,
+              ).toContain(row.id);
           }
         }
       }),
   );
 
-  it.effect('a held flask no longer marks the talisman with the same id as owned', () =>
-    Effect.gen(function* () {
-      const { byName } = yield* loadSlots;
-      // Yager holds Flask of Crimson Tears +10 (goods 1021) but no talisman 1021.
-      const tables = inventoryTables(byName('Yager'));
-      expect(tables.tools.items.find((r) => r.id === 1021)?.quantity).toBeGreaterThan(0);
-      expect(tables.talismans.items.find((r) => r.id === 1021)?.quantity ?? 0).toBe(0);
-    }),
+  it.effect(
+    'a held flask no longer marks the talisman with the same id as owned',
+    () =>
+      Effect.gen(function* () {
+        const { byName } = yield* loadSlots;
+        // Yager holds Flask of Crimson Tears +10 (goods 1021) but no talisman 1021.
+        const tables = inventoryTables(byName('Yager'));
+        expect(
+          tables.tools.items.find((r) => r.id === 1021)?.quantity,
+        ).toBeGreaterThan(0);
+        expect(
+          tables.talismans.items.find((r) => r.id === 1021)?.quantity ?? 0,
+        ).toBe(0);
+      }),
   );
 
-  it.effect('key items are read: Crystal Tears and Great Runes in the key-item list count', () =>
-    Effect.gen(function* () {
-      const { byName } = yield* loadSlots;
-      const ownedTears = (name: string) =>
-        inventoryTables(byName(name)).tools.items.filter(
-          (r) => crystalTearIds.has(r.id) && r.quantity > 0,
+  it.effect(
+    'key items are read: Crystal Tears and Great Runes in the key-item list count',
+    () =>
+      Effect.gen(function* () {
+        const { byName } = yield* loadSlots;
+        const ownedTears = (name: string) =>
+          inventoryTables(byName(name)).tools.items.filter(
+            (r) => crystalTearIds.has(r.id) && r.quantity > 0,
+          ).length;
+        // "sam" and "shoe" store their tears as key items; "Yager" (older save) as common items.
+        expect(ownedTears('sam')).toBe(9);
+        expect(ownedTears('shoe')).toBe(2);
+        expect(ownedTears('Yager')).toBe(23);
+        const ownedGreatRunes = inventoryTables(
+          byName('sam'),
+        ).keyItems.items.filter(
+          (r) => greatRuneIds.has(r.id) && r.quantity > 0,
         ).length;
-      // "sam" and "shoe" store their tears as key items; "Yager" (older save) as common items.
-      expect(ownedTears('sam')).toBe(9);
-      expect(ownedTears('shoe')).toBe(2);
-      expect(ownedTears('Yager')).toBe(23);
-      const ownedGreatRunes = inventoryTables(byName('sam')).keyItems.items.filter(
-        (r) => greatRuneIds.has(r.id) && r.quantity > 0,
-      ).length;
-      expect(ownedGreatRunes).toBe(1);
-    }),
+        expect(ownedGreatRunes).toBe(1);
+      }),
   );
 
-  it.effect('gestures count only unlocked (odd) entries of the gesture table', () =>
-    Effect.gen(function* () {
-      const { slots, byName } = yield* loadSlots;
-      for (const slot of slots) {
-        const { gestures } = inventoryTables(slot);
-        expect(gestures.ownedCount).toBeLessThanOrEqual(gestures.items.length);
-      }
-      // "sam"'s table has 57 entries (all gestures, locked + unlocked) — 25 are unlocked.
-      expect(inventoryTables(byName('sam')).gestures.ownedCount).toBe(25);
-      expect(inventoryTables(byName('vagbond dlc prep')).gestures.ownedCount).toBe(13);
-    }),
+  it.effect(
+    'gestures count only unlocked (odd) entries of the gesture table',
+    () =>
+      Effect.gen(function* () {
+        const { slots, byName } = yield* loadSlots;
+        for (const slot of slots) {
+          const { gestures } = inventoryTables(slot);
+          expect(gestures.ownedCount).toBeLessThanOrEqual(
+            gestures.items.length,
+          );
+        }
+        // "sam"'s table has 57 entries (all gestures, locked + unlocked) — 25 are unlocked.
+        expect(inventoryTables(byName('sam')).gestures.ownedCount).toBe(25);
+        expect(
+          inventoryTables(byName('vagbond dlc prep')).gestures.ownedCount,
+        ).toBe(13);
+      }),
   );
 
   it.effect(
@@ -157,7 +193,9 @@ it.layer(NodeServices.layer)('save ownership view-models (issue #11)', (it) => {
       expect(yager.cerulean.charges).toBe(0);
 
       // A +1 flask (the old lookup skipped +1 entirely).
-      expect(flasksView(byName('shoe')).crimson.item?.name).toBe('Flask of Crimson Tears +1');
+      expect(flasksView(byName('shoe')).crimson.item?.name).toBe(
+        'Flask of Crimson Tears +1',
+      );
     }),
   );
 
@@ -179,46 +217,56 @@ it.layer(NodeServices.layer)('save ownership view-models (issue #11)', (it) => {
             expect(row.quantity).toBe(row.heldQuantity + row.storedQuantity);
 
       const yager = inventoryTables(byName('Yager'));
-      const daggers = yager.tools.items.find((r) => r.name === 'Throwing Dagger');
-      expect([daggers?.heldQuantity, daggers?.storedQuantity]).toEqual([40, 600]);
-      const rollo = yager.spirits.items.find((r) => r.name === 'Omenkiller Rollo');
+      const daggers = yager.tools.items.find(
+        (r) => r.name === 'Throwing Dagger',
+      );
+      expect([daggers?.heldQuantity, daggers?.storedQuantity]).toEqual([
+        40, 600,
+      ]);
+      const rollo = yager.spirits.items.find(
+        (r) => r.name === 'Omenkiller Rollo',
+      );
       expect([rollo?.heldQuantity, rollo?.storedQuantity]).toEqual([1, 1]);
     }),
   );
 
-  it.effect('derived stats: save HP/FP/stamina, equipped weight, poise and discovery', () =>
-    Effect.gen(function* () {
-      const { byName } = yield* loadSlots;
-      const sam = derivedStatsView(byName('sam'));
-      expect(sam.hp).toEqual({ max: 1402, base: 1402 });
-      expect(sam.fp).toEqual({ max: 109, base: 100 });
-      // END 20, no load talismans: 45 + 27·(20−8)/17 = 64.06.
-      expect(sam.equipLoad.max).toBe(64.1);
-      // 2× Sword of Night and Flame, Longbow, Sentry's Torch, Zamor set, Imp Head, 4 talismans
-      // (equipped arrows don't count: ammo is weightless).
-      expect(sam.equipLoad.current).toBe(44.7);
-      expect(sam.equipLoad.roll).toBe('Medium');
-      expect(sam.discovery).toBe(108); // 100 + 8 Arcane
+  it.effect(
+    'derived stats: save HP/FP/stamina, equipped weight, poise and discovery',
+    () =>
+      Effect.gen(function* () {
+        const { byName } = yield* loadSlots;
+        const sam = derivedStatsView(byName('sam'));
+        expect(sam.hp).toEqual({ max: 1402, base: 1402 });
+        expect(sam.fp).toEqual({ max: 109, base: 100 });
+        // END 20, no load talismans: 45 + 27·(20−8)/17 = 64.06.
+        expect(sam.equipLoad.max).toBe(64.1);
+        // 2× Sword of Night and Flame, Longbow, Sentry's Torch, Zamor set, Imp Head, 4 talismans
+        // (equipped arrows don't count: ammo is weightless).
+        expect(sam.equipLoad.current).toBe(44.7);
+        expect(sam.equipLoad.roll).toBe('Medium');
+        expect(sam.discovery).toBe(108); // 100 + 8 Arcane
 
-      // Bull-Goat + Maliketh armor; Erdtree's Favor +2 raises max load ×1.08.
-      const yager = derivedStatsView(byName('Yager'));
-      expect(yager.poise).toBe(63);
-      expect(yager.equipLoad.max).toBe(92.3);
-      expect(yager.discovery).toBe(144); // 100 + 44 Arcane
-    }),
+        // Bull-Goat + Maliketh armor; Erdtree's Favor +2 raises max load ×1.08.
+        const yager = derivedStatsView(byName('Yager'));
+        expect(yager.poise).toBe(63);
+        expect(yager.equipLoad.max).toBe(92.3);
+        expect(yager.discovery).toBe(144); // 100 + 44 Arcane
+      }),
   );
 
-  it.effect('Great Runes count unrestored copies; Remembrances count defeated bosses', () =>
-    Effect.gen(function* () {
-      const { byName } = yield* loadSlots;
-      const milestone = (name: string, key: string) =>
-        completionMilestones(byName(name)).find((m) => m.key === key)?.owned;
-      // sam holds 1 restored Great Rune + 3 not yet restored at their Divine Towers.
-      expect(milestone('sam', 'greatRunes')).toBe(4);
-      expect(milestone('sam', 'remembrances')).toBe(6);
-      expect(milestone('Yager', 'greatRunes')).toBe(3);
-      expect(milestone('Yager', 'remembrances')).toBe(11);
-      expect(milestone('vagbond dlc prep', 'remembrances')).toBe(0);
-    }),
+  it.effect(
+    'Great Runes count unrestored copies; Remembrances count defeated bosses',
+    () =>
+      Effect.gen(function* () {
+        const { byName } = yield* loadSlots;
+        const milestone = (name: string, key: string) =>
+          completionMilestones(byName(name)).find((m) => m.key === key)?.owned;
+        // sam holds 1 restored Great Rune + 3 not yet restored at their Divine Towers.
+        expect(milestone('sam', 'greatRunes')).toBe(4);
+        expect(milestone('sam', 'remembrances')).toBe(6);
+        expect(milestone('Yager', 'greatRunes')).toBe(3);
+        expect(milestone('Yager', 'remembrances')).toBe(11);
+        expect(milestone('vagbond dlc prep', 'remembrances')).toBe(0);
+      }),
   );
 });

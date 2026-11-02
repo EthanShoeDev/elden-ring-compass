@@ -1,4 +1,5 @@
 import { dlopen, FFIType, ptr, toArrayBuffer } from 'bun:ffi';
+
 import { Data, Effect } from 'effect';
 
 /**

@@ -5,13 +5,26 @@
 import { useMemo } from 'react';
 
 import { useSelectedSlot } from '@/stores/slot-selection-store';
-import { CATALOG, TABLE_PLACEMENT_TYPE, type InventoryTableType } from './inventory-catalog-data';
+
+import {
+  CATALOG,
+  TABLE_PLACEMENT_TYPE,
+  type InventoryTableType,
+} from './inventory-catalog-data';
 import type { Slot } from './save-dto';
 import { unlockedGestureGoodsIds } from './vm/gestures';
-import { inventoryDbView, type InventoryItemType, ownedItemKey } from './vm/inventory';
+import {
+  inventoryDbView,
+  type InventoryItemType,
+  ownedItemKey,
+} from './vm/inventory';
 import { itemPins } from './vm/map-pins';
 
-export { CATALOG, TABLE_PLACEMENT_TYPE, type InventoryTableType } from './inventory-catalog-data';
+export {
+  CATALOG,
+  TABLE_PLACEMENT_TYPE,
+  type InventoryTableType,
+} from './inventory-catalog-data';
 
 /** A catalog row joined with the active save's ownership. */
 export type WithOwnership<T> = T & {
@@ -70,13 +83,18 @@ const TABLE_ITEM_TYPE: Record<InventoryTableType, InventoryItemType> = {
 export function inventoryTables(
   slot: Readonly<Slot> | undefined,
 ): Record<InventoryTableType, InventoryTableResult> {
-  const owned = new Map<string, { held: number; stored: number; upgradeLevel: number }>();
+  const owned = new Map<
+    string,
+    { held: number; stored: number; upgradeLevel: number }
+  >();
   if (slot) {
     for (const item of inventoryDbView(slot).items) {
       const key = ownedItemKey(item.type, item.item_id);
       const cur = owned.get(key);
-      const held = (cur?.held ?? 0) + (item.location === 'held' ? item.quantity : 0);
-      const stored = (cur?.stored ?? 0) + (item.location === 'storage' ? item.quantity : 0);
+      const held =
+        (cur?.held ?? 0) + (item.location === 'held' ? item.quantity : 0);
+      const stored =
+        (cur?.stored ?? 0) + (item.location === 'storage' ? item.quantity : 0);
       owned.set(key, {
         held,
         stored,
@@ -84,7 +102,11 @@ export function inventoryTables(
       });
     }
     for (const id of unlockedGestureGoodsIds(slot))
-      owned.set(ownedItemKey('ITEM', id), { held: 1, stored: 0, upgradeLevel: 0 });
+      owned.set(ownedItemKey('ITEM', id), {
+        held: 1,
+        stored: 0,
+        upgradeLevel: 0,
+      });
   }
 
   const join = (
@@ -113,7 +135,10 @@ export function inventoryTables(
           heldQuantity,
           storedQuantity,
           weaponUpgradeLevel,
-          name: weaponUpgradeLevel > 0 ? `${row.name} +${weaponUpgradeLevel.toString()}` : row.name,
+          name:
+            weaponUpgradeLevel > 0
+              ? `${row.name} +${weaponUpgradeLevel.toString()}`
+              : row.name,
           hasCoords: locationCount > 0,
           locationCount,
         };
@@ -124,13 +149,19 @@ export function inventoryTables(
   return Object.fromEntries(
     Object.entries(CATALOG).map(([key, rows]) => {
       const table = key as InventoryTableType;
-      return [table, join(rows, TABLE_ITEM_TYPE[table], TABLE_PLACEMENT_TYPE[table])];
+      return [
+        table,
+        join(rows, TABLE_ITEM_TYPE[table], TABLE_PLACEMENT_TYPE[table]),
+      ];
     }),
   ) as Record<InventoryTableType, InventoryTableResult>;
 }
 
 /** {@link inventoryTables} for the selected save slot. */
-export function useInventoryTables(): Record<InventoryTableType, InventoryTableResult> {
+export function useInventoryTables(): Record<
+  InventoryTableType,
+  InventoryTableResult
+> {
   const slot = useSelectedSlot();
   return useMemo(() => inventoryTables(slot), [slot]);
 }

@@ -1,7 +1,5 @@
+import type { RowData } from '@tanstack/react-table';
 import { SlidersHorizontal as MixerHorizontalIcon } from 'lucide-react';
-import { RowData } from '@tanstack/react-table';
-
-import { DataTableInstance } from './table-hook';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +12,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+import type { DataTableInstance } from './table-hook';
+
 type DataTableViewOptionsProps<TData extends RowData> = {
   table: DataTableInstance<TData>;
 };
@@ -24,7 +24,13 @@ export function DataTableViewOptions<TData extends RowData>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button variant='outline' size='sm' className='ml-auto hidden h-8 lg:flex' />}
+        render={
+          <Button
+            variant='outline'
+            size='sm'
+            className='ml-auto hidden h-8 lg:flex'
+          />
+        }
       >
         <MixerHorizontalIcon className='mr-2 size-4' />
         View
@@ -35,7 +41,10 @@ export function DataTableViewOptions<TData extends RowData>({
           <DropdownMenuSeparator />
           {table
             .getAllColumns()
-            .filter((column) => column.accessorFn !== undefined && column.getCanHide())
+            .filter(
+              (column) =>
+                column.accessorFn !== undefined && column.getCanHide(),
+            )
             .map((column) => (
               <DropdownMenuCheckboxItem
                 key={column.id}

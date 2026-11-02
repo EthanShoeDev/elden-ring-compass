@@ -1,5 +1,5 @@
-import { GAME_VERSION } from '@elden-ring-compass/data';
 import { useAtomValue } from '@effect/atom-react';
+import { GAME_VERSION } from '@elden-ring-compass/data';
 import { Link, useHydrated, useLocation } from '@tanstack/react-router';
 import {
   ChevronRightIcon,
@@ -20,7 +20,11 @@ import {
 } from '@/components/misc/save-file-source-selector';
 import { GithubIcon } from '@/components/shell/github-icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Sidebar,
   SidebarContent,
@@ -120,10 +124,15 @@ export function AppSidebar() {
             <SwordIcon className='size-5' />
           </span>
           <div className='min-w-0 leading-tight group-data-[collapsible=icon]:hidden'>
-            <h1 className='truncate text-sm font-bold tracking-tight'>Elden Ring Compass</h1>
+            <h1 className='truncate text-sm font-bold tracking-tight'>
+              Elden Ring Compass
+            </h1>
             <p className='text-[11px] text-muted-foreground'>Save Parser</p>
           </div>
-          <DarkModeToggle size='icon-sm' className='ml-auto group-data-[collapsible=icon]:hidden' />
+          <DarkModeToggle
+            size='icon-sm'
+            className='ml-auto group-data-[collapsible=icon]:hidden'
+          />
         </div>
       </SidebarHeader>
 
@@ -135,7 +144,9 @@ export function AppSidebar() {
             {NAV.map((item) => {
               const Icon = item.icon;
               const sectionActive =
-                item.exact === true ? pathname === item.to : pathname.startsWith(item.to as string);
+                item.exact === true
+                  ? pathname === item.to
+                  : pathname.startsWith(item.to);
 
               // Collapsible group of sub-routes (e.g. Inventory → Items/Events/…).
               if (item.children) {
@@ -144,7 +155,10 @@ export function AppSidebar() {
                     key={item.to}
                     open={openGroups[item.to as string] ?? sectionActive}
                     onOpenChange={(open) => {
-                      setOpenGroups((g) => ({ ...g, [item.to as string]: open }));
+                      setOpenGroups((g) => ({
+                        ...g,
+                        [item.to as string]: open,
+                      }));
                     }}
                     className='group/collapsible'
                     render={<SidebarMenuItem />}
@@ -158,7 +172,9 @@ export function AppSidebar() {
                           // route redirects to its default sub-route) since the
                           // sub-menu can't expand. Expanded: plain toggle.
                           {...(railCollapsed && {
-                            render: <Link to={item.to} className='group/navlink' />,
+                            render: (
+                              <Link to={item.to} className='group/navlink' />
+                            ),
                           })}
                         />
                       }
@@ -202,7 +218,7 @@ export function AppSidebar() {
                     render={
                       <Link
                         to={item.to}
-                        activeOptions={{ exact: item.exact }}
+                        activeOptions={{ exact: item.exact ?? false }}
                         className='group/navlink'
                       />
                     }
@@ -298,7 +314,11 @@ export function AppSidebar() {
                 {isSample ? 'Sample save' : isShared ? 'Shared link' : 'Live'}
               </span>
               <span className='truncate text-muted-foreground'>
-                {isSample ? '· demo data' : isShared ? '· read-only' : '· synced'}
+                {isSample
+                  ? '· demo data'
+                  : isShared
+                    ? '· read-only'
+                    : '· synced'}
               </span>
               <DisconnectButton className='-mr-1 ml-auto size-6 text-muted-foreground hover:text-foreground' />
             </div>
@@ -325,7 +345,9 @@ export function AppSidebar() {
             ) : (
               <ConnectSaveButton className='w-full justify-center group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-0!'>
                 <FileCheckIcon />
-                <span className='group-data-[collapsible=icon]:hidden'>Connect a save</span>
+                <span className='group-data-[collapsible=icon]:hidden'>
+                  Connect a save
+                </span>
               </ConnectSaveButton>
             )}
           </>

@@ -62,7 +62,11 @@ const CORE: ReadonlyArray<CoreCredit> = [
 
 /** Tools, data dumps and wikis we cross-referenced — credited, but not dependencies. */
 const MENTIONS: ReadonlyArray<Mention> = [
-  { name: 'WitchyBND', by: 'ividyon', href: 'https://github.com/ividyon/WitchyBND' },
+  {
+    name: 'WitchyBND',
+    by: 'ividyon',
+    href: 'https://github.com/ividyon/WitchyBND',
+  },
   {
     name: 'The Impaler’s Archive',
     by: 'ividyon',
@@ -73,8 +77,16 @@ const MENTIONS: ReadonlyArray<Mention> = [
     by: 'soulsmods',
     href: 'https://github.com/soulsmods/elden-ring-eventparam',
   },
-  { name: 'DSMapStudio', by: 'soulsmods', href: 'https://github.com/soulsmods/DSMapStudio' },
-  { name: 'Smithbox', by: 'vawser', href: 'https://github.com/vawser/Smithbox' },
+  {
+    name: 'DSMapStudio',
+    by: 'soulsmods',
+    href: 'https://github.com/soulsmods/DSMapStudio',
+  },
+  {
+    name: 'Smithbox',
+    by: 'vawser',
+    href: 'https://github.com/vawser/Smithbox',
+  },
   {
     name: 'Elden Ring Cheat Table (TGA)',
     by: 'The Grand Archives',
@@ -95,8 +107,16 @@ const MENTIONS: ReadonlyArray<Mention> = [
     by: 'EldenRingDatabase',
     href: 'https://github.com/EldenRingDatabase/erdb',
   },
-  { name: 'Fextralife Wiki', by: 'Fextralife', href: 'https://eldenring.wiki.fextralife.com' },
-  { name: 'SoulsModding Wiki', by: 'community', href: 'http://soulsmodding.wikidot.com' },
+  {
+    name: 'Fextralife Wiki',
+    by: 'Fextralife',
+    href: 'https://eldenring.wiki.fextralife.com',
+  },
+  {
+    name: 'SoulsModding Wiki',
+    by: 'community',
+    href: 'http://soulsmodding.wikidot.com',
+  },
 ];
 
 function CoreRow({ item }: { item: CoreCredit }) {
@@ -109,10 +129,14 @@ function CoreRow({ item }: { item: CoreCredit }) {
     >
       <div className='flex min-w-0 flex-col gap-0.5'>
         <div className='flex items-baseline gap-2'>
-          <span className='text-sm font-semibold tracking-tight'>{item.name}</span>
+          <span className='text-sm font-semibold tracking-tight'>
+            {item.name}
+          </span>
           <span className='text-[11px] text-muted-foreground'>{item.by}</span>
         </div>
-        <p className='text-[12.5px] leading-snug text-muted-foreground text-pretty'>{item.role}</p>
+        <p className='text-[12.5px] leading-snug text-pretty text-muted-foreground'>
+          {item.role}
+        </p>
       </div>
       <ExternalLinkIcon className='mt-1 ml-auto size-3.5 shrink-0 text-muted-foreground/60 transition-colors group-hover:text-foreground' />
     </a>
@@ -146,10 +170,11 @@ export function CreditsSection() {
           <h3 className='mb-1.5 text-lg font-semibold tracking-tight'>
             Standing on the shoulders of the Tarnished
           </h3>
-          <p className='max-w-[62ch] text-[13.5px] leading-relaxed text-muted-foreground text-pretty'>
-            Compass exists because the community reverse-engineered the save format and built the
-            tools to unpack the game. We built our own extractor on top of their work to add Shadow
-            of the Erdtree support — please go star them.
+          <p className='max-w-[62ch] text-[13.5px] leading-relaxed text-pretty text-muted-foreground'>
+            Compass exists because the community reverse-engineered the save
+            format and built the tools to unpack the game. We built our own
+            extractor on top of their work to add Shadow of the Erdtree support
+            — please go star them.
           </p>
         </div>
       </div>
@@ -181,7 +206,8 @@ export function CreditsSection() {
       {/* Closing note */}
       <div className='flex flex-col gap-2 border-t border-border pt-4'>
         <p className='max-w-[70ch] text-[12px] leading-relaxed text-pretty'>
-          Spotted something wrong or uncredited? Corrections are always welcome on{' '}
+          Spotted something wrong or uncredited? Corrections are always welcome
+          on{' '}
           <a
             href={REPO_URL}
             target='_blank'
@@ -193,8 +219,9 @@ export function CreditsSection() {
           .
         </p>
         <p className='max-w-[70ch] text-[11px] text-muted-foreground'>
-          Elden Ring Compass is a fan project and is not affiliated with, endorsed by, or sponsored
-          by FromSoftware or Bandai Namco Entertainment.
+          Elden Ring Compass is a fan project and is not affiliated with,
+          endorsed by, or sponsored by FromSoftware or Bandai Namco
+          Entertainment.
         </p>
       </div>
     </div>

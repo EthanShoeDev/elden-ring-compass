@@ -1,9 +1,20 @@
 import { useDataTableData } from '@/lib/data-table-data';
-import { eventsDbView } from '@/lib/vm/events';
-import { commonAccessorColumnDef, commonPinColumnDef } from '../data-table/common-column-defs';
+import type { eventsDbView } from '@/lib/vm/events';
+
+import {
+  commonAccessorColumnDef,
+  commonPinColumnDef,
+} from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
-import { createAppColumnHelper, DataTableColumnDef } from '../data-table/table-hook';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import type { DataTableColumnDef } from '../data-table/table-hook';
+import { createAppColumnHelper } from '../data-table/table-hook';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
 
 type Grace = ReturnType<typeof eventsDbView>[0];
 
@@ -44,5 +55,9 @@ const columns: Array<DataTableColumnDef<Grace>> = [
     filterFn: 'includesString',
   }),
   commonAccessorColumnDef(columnHelper, 'on', 'Discovered'),
-  commonAccessorColumnDef(columnHelper, (row) => !!row.pixel, 'Has Coordinates'),
+  commonAccessorColumnDef(
+    columnHelper,
+    (row) => !!row.pixel,
+    'Has Coordinates',
+  ),
 ];

@@ -1,17 +1,30 @@
 import { equipmentDbView } from '@/lib/vm/equipement';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
 import { Separator } from '../ui/separator';
 
 const isEquipped = (e: { name: string }) => e.name !== 'Empty';
 
 /** A single equipped armament row: weapon name + its attached Ash of War. */
-function ArmamentRow({ item }: { item: { name: string; ashOfWar: { id: number; name: string } } }) {
+function ArmamentRow({
+  item,
+}: {
+  item: { name: string; ashOfWar: { id: number; name: string } };
+}) {
   return (
     <div className='flex flex-col'>
       <span className='text-sm'>{item.name}</span>
       {item.ashOfWar.id !== 0 && (
-        <span className='text-xs text-muted-foreground'>Ash of War: {item.ashOfWar.name}</span>
+        <span className='text-xs text-muted-foreground'>
+          Ash of War: {item.ashOfWar.name}
+        </span>
       )}
     </div>
   );
@@ -37,8 +50,14 @@ export function EquipmentCard() {
 
   // Keyed by hand + slot position: the same weapon can be equipped in two slots.
   const armaments = [
-    ...eq.right_hand_armaments.map((item, i) => ({ slot: `R${(i + 1).toString()}`, item })),
-    ...eq.left_hand_armaments.map((item, i) => ({ slot: `L${(i + 1).toString()}`, item })),
+    ...eq.right_hand_armaments.map((item, i) => ({
+      slot: `R${(i + 1).toString()}`,
+      item,
+    })),
+    ...eq.left_hand_armaments.map((item, i) => ({
+      slot: `L${(i + 1).toString()}`,
+      item,
+    })),
   ].filter(({ item }) => isEquipped(item));
   const armor = [
     ['Head', eq.head],
@@ -56,9 +75,13 @@ export function EquipmentCard() {
       </CardHeader>
       <CardContent className='flex flex-col gap-3'>
         <div className='flex flex-col gap-1'>
-          <div className='text-xs font-medium text-muted-foreground'>Armaments</div>
+          <div className='text-xs font-medium text-muted-foreground'>
+            Armaments
+          </div>
           {armaments.length > 0 ? (
-            armaments.map(({ slot: armSlot, item }) => <ArmamentRow key={armSlot} item={item} />)
+            armaments.map(({ slot: armSlot, item }) => (
+              <ArmamentRow key={armSlot} item={item} />
+            ))
           ) : (
             <span className='text-sm text-muted-foreground'>None equipped</span>
           )}
@@ -67,7 +90,11 @@ export function EquipmentCard() {
         <div className='flex flex-col gap-1'>
           <div className='text-xs font-medium text-muted-foreground'>Armor</div>
           {armor.map(([label, piece]) => (
-            <GearRow key={label} label={label} name={isEquipped(piece) ? piece.name : '—'} />
+            <GearRow
+              key={label}
+              label={label}
+              name={isEquipped(piece) ? piece.name : '—'}
+            />
           ))}
         </div>
         <Separator />

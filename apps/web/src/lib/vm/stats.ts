@@ -1,12 +1,13 @@
 import { archetypeNameById } from '@/lib/game-data';
-import { Slot } from '@/lib/save-dto';
+import type { Slot } from '@/lib/save-dto';
 
 export function statsDbView(slot: Readonly<Slot>) {
   return {
     steam_id: slot.steam_id,
     gender: slot.player_game_data.gender === 0x0 ? 'female' : 'male',
     match_making_weapon_level: slot.player_game_data.match_making_wpn_lvl,
-    arche_type: archetypeNameById.get(slot.player_game_data.arche_type) ?? 'Unknown',
+    arche_type:
+      archetypeNameById.get(slot.player_game_data.arche_type) ?? 'Unknown',
     deaths: slot.deaths,
     seconds_played: slot.seconds_played,
     stats: {

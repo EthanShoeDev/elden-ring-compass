@@ -101,7 +101,9 @@ export function wikiNameForItem(row: {
   if (row.category === 'Gesture') return 'Gestures';
   const name =
     row.baseName ??
-    ((row.weaponUpgradeLevel ?? 0) > 0 ? row.name.replace(/ \+\d+$/, '') : row.name);
+    ((row.weaponUpgradeLevel ?? 0) > 0
+      ? row.name.replace(/ \+\d+$/, '')
+      : row.name);
   if (NO_WIKI_PAGE.has(name)) return null;
   const override = WIKI_NAME_OVERRIDES.get(name);
   if (override !== undefined) return override;
@@ -109,7 +111,8 @@ export function wikiNameForItem(row: {
   if (/^Flask of .+ \+\d+$/.test(name)) return name.replace(/ \+\d+$/, '');
   // Map fragments: base-game "Map: Limgrave, West" is titled "Map (Limgrave, West)".
   const mapRegion = /^Map: (.+)$/.exec(name)?.[1];
-  if (mapRegion !== undefined && !DLC_MAP_FRAGMENTS.has(mapRegion)) return `Map (${mapRegion})`;
+  if (mapRegion !== undefined && !DLC_MAP_FRAGMENTS.has(mapRegion))
+    return `Map (${mapRegion})`;
   return name;
 }
 

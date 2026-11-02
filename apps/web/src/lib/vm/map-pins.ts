@@ -7,7 +7,12 @@
 // dungeons (`m10`/`m12`/…) are now projected too — `overworldMarkerToMasterPixel`
 // routes them through `WORLD_MAP_LEGACY_CONV` (dungeon-local → overworld). Anything
 // with no overworld tile and no conv entry still projects to `null` and is omitted.
-import { BOSSES, GRACES, MAP_MARKERS, PLACEMENTS } from '@elden-ring-compass/data';
+import {
+  BOSSES,
+  GRACES,
+  MAP_MARKERS,
+  PLACEMENTS,
+} from '@elden-ring-compass/data';
 
 import { type MasterPixel, overworldMarkerToMasterPixel } from '../map-affine';
 

@@ -1,26 +1,32 @@
 import { eventFlagOffset } from '@elden-ring-compass/data';
 import { CheckIcon, ExternalLinkIcon, SwordIcon } from 'lucide-react';
-import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
 
-import { ConnectSaveButton } from '@/components/misc/save-file-source-selector';
-import { type BossBadge, type GalleryBoss, BOSS_GALLERY, bossReward } from '@/lib/boss-meta';
-import { cn } from '@/lib/utils';
-import { bossPinByFlag } from '@/lib/vm/map-pins';
-import { wikiPageUrl } from '@/lib/wiki';
 import {
   useRowSelectionControls,
   useTableStateMap,
 } from '@/components/data-table/data-table-store';
+import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
+import { ConnectSaveButton } from '@/components/misc/save-file-source-selector';
+import {
+  type BossBadge,
+  type GalleryBoss,
+  BOSS_GALLERY,
+  bossReward,
+} from '@/lib/boss-meta';
+import { cn } from '@/lib/utils';
+import { bossPinByFlag } from '@/lib/vm/map-pins';
+import { wikiPageUrl } from '@/lib/wiki';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
-import { BossBadgePill, BossBadges } from './boss-badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { BossBadgePill, BossBadges } from './boss-badge';
 
 // Boss portraits are the bosses' Remembrance-item icons (the only portrait-like asset
 // the data package ships). Bosses that drop no Remembrance (Margit, Gideon, …) fall
 // back to a sword glyph — there simply is no icon for them.
 
-const pct = (n: number, total: number) => (total === 0 ? 0 : Math.round((n / total) * 100));
+const pct = (n: number, total: number) =>
+  total === 0 ? 0 : Math.round((n / total) * 100);
 
 const ALL_BOSSES = BOSS_GALLERY.flatMap((g) => g.bosses);
 
@@ -76,8 +82,8 @@ export function StoryBossSection() {
             <span>
               <span className='font-medium'>{total} major bosses</span>{' '}
               <span className='text-muted-foreground'>
-                · every Demigod, Shardbearer and Legend, ordered from Limgrave to the Erdtree (and
-                into the DLC)
+                · every Demigod, Shardbearer and Legend, ordered from Limgrave
+                to the Erdtree (and into the DLC)
               </span>
             </span>
             <div className='ml-auto'>
@@ -93,7 +99,9 @@ export function StoryBossSection() {
           <div className='mb-0.5 text-[11px] font-bold tracking-wider text-muted-foreground uppercase'>
             {group.title}
           </div>
-          <p className='mb-2.5 max-w-3xl text-xs text-muted-foreground/80'>{group.subtitle}</p>
+          <p className='mb-2.5 max-w-3xl text-xs text-muted-foreground/80'>
+            {group.subtitle}
+          </p>
           <div className='grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3.5'>
             {group.bosses.map((boss) => (
               <BossCell
@@ -171,8 +179,9 @@ function CategoryGuide() {
         ))}
       </div>
       <p className='mt-2.5 text-[11px] text-muted-foreground/70'>
-        These overlap — Godrick, for instance, is a Demigod, a Shardbearer and a Legend at once. The
-        smaller Field and Dungeon bosses fill out the full table below.
+        These overlap — Godrick, for instance, is a Demigod, a Shardbearer and a
+        Legend at once. The smaller Field and Dungeon bosses fill out the full
+        table below.
       </p>
     </div>
   );
@@ -191,7 +200,8 @@ function Legend({ connected }: { connected?: boolean }) {
             <span className='size-2.5 rounded-sm bg-green-400' /> Defeated
           </span>
           <span className='flex items-center gap-1.5'>
-            <span className='size-2.5 rounded-sm bg-muted-foreground' /> Incomplete
+            <span className='size-2.5 rounded-sm bg-muted-foreground' />{' '}
+            Incomplete
           </span>
         </>
       )}
@@ -225,7 +235,9 @@ function BossCell({
         className={cn(
           'group relative flex aspect-[3/4] items-end overflow-hidden rounded-xl border bg-[#15110d] text-left transition-transform hover:-translate-y-0.5',
           // Border is the PINNED channel only — so your hand-picked few stand out.
-          pinned ? 'border-amber-400/80 ring-1 ring-amber-400/40' : 'border-border',
+          pinned
+            ? 'border-amber-400/80 ring-1 ring-amber-400/40'
+            : 'border-border',
           pinnable ? 'cursor-pointer' : 'cursor-default',
         )}
       >
@@ -276,7 +288,9 @@ function BossCell({
             {boss.name}
           </span>
           {boss.note !== undefined && boss.note !== '' && (
-            <span className='text-[11px] leading-tight text-stone-300/70'>{boss.note}</span>
+            <span className='text-[11px] leading-tight text-stone-300/70'>
+              {boss.note}
+            </span>
           )}
         </div>
       </TooltipTrigger>

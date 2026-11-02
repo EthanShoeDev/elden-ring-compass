@@ -1,9 +1,9 @@
 import { Effect, FileSystem, Path, Predicate } from 'effect';
 
+import { findOodleDll, type OodleError } from '../external/oodle.ts';
 import type { DcxError } from '../formats/dcx.ts';
 import type { EmedfError } from '../formats/emedf.ts';
 import type { EmevdError } from '../formats/emevd.ts';
-import { findOodleDll, type OodleError } from '../external/oodle.ts';
 import {
   decodeRow,
   type ParamError,
@@ -17,8 +17,8 @@ import {
   type MarkerCoord,
 } from './event-drop-locations.ts';
 import { type ItemType, loadItemLots } from './item-lots.ts';
-import type { ClassifiedMarker } from './marker-classify.ts';
 import type { MapTreasure } from './map-markers.ts';
+import type { ClassifiedMarker } from './marker-classify.ts';
 
 /**
  * Item world-placements (#10) — "this item can be found here". Replaces the

@@ -1,6 +1,9 @@
 import { Schema } from 'effect';
 
-export class ShareCodecError extends Schema.TaggedError<ShareCodecError>()('ShareCodecError', {
+export class ShareCodecError extends Schema.TaggedError<
+  ShareCodecError,
+  { readonly brand: unique symbol }
+>()('ShareCodecError', {
   cause: Schema.Defect(),
 }) {}
 
@@ -10,7 +13,12 @@ const Int2 = Schema.Tuple([Schema.Int, Schema.Int]);
 const Int3 = Schema.Tuple([Schema.Int, Schema.Int, Schema.Int]);
 const Int4 = Schema.Tuple([Schema.Int, Schema.Int, Schema.Int, Schema.Int]);
 const Finite3 = Schema.Tuple([Schema.Finite, Schema.Finite, Schema.Finite]);
-const Finite4 = Schema.Tuple([Schema.Finite, Schema.Finite, Schema.Finite, Schema.Finite]);
+const Finite4 = Schema.Tuple([
+  Schema.Finite,
+  Schema.Finite,
+  Schema.Finite,
+  Schema.Finite,
+]);
 
 const ShareableStatsV1 = Schema.Struct({
   l: Schema.Int,
@@ -143,7 +151,9 @@ export const ShareableProgressionSchema = Schema.Union([
   ShareableProgressionV1,
   ShareableProgressionV2,
 ]);
-export type ShareableProgression = ShareableProgressionV1 | ShareableProgressionV2;
+export type ShareableProgression =
+  | ShareableProgressionV1
+  | ShareableProgressionV2;
 
 export const SHAREABLE_VERSION = 2 as const;
 export const LEGACY_SHAREABLE_VERSION = 1 as const;

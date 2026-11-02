@@ -1,5 +1,7 @@
 import { dlopen, FFIType, ptr } from 'bun:ffi';
-import { Data, Effect } from 'effect';
+
+import { Data, Effect, FileSystem } from 'effect';
+
 import { globSorted } from './glob.ts';
 
 export class OodleError extends Data.TaggedError('OodleError')<{
@@ -26,7 +28,7 @@ export class OodleError extends Data.TaggedError('OodleError')<{
  */
 export const findOodleDll = (
   gameRoot: string,
-): Effect.Effect<string, OodleError> =>
+): Effect.Effect<string, OodleError, FileSystem.FileSystem> =>
   Effect.gen(function* () {
     const [dll] = yield* globSorted(
       'oo2core_*_win64.dll',

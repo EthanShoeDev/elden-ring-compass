@@ -15,7 +15,8 @@ import {
 import { enrichWeapon } from './weapon-affinity';
 
 const AMMO_CATEGORIES = new Set(['Arrow', 'Bolt', 'Greatarrow', 'Greatbolt']);
-const goodsIn = (category: string) => GOODS.filter((g) => g.category === category);
+const goodsIn = (category: string) =>
+  GOODS.filter((g) => g.category === category);
 // Cookbooks are tagged `Key Item` in the dataset, but the game shows them under the
 // Tools tab — so we split them out of Key Items and into Tools (see CATALOG below).
 const isCookbook = (g: { name: string }) => g.name.includes('Cookbook');
@@ -31,7 +32,9 @@ const isCookbook = (g: { name: string }) => g.name.includes('Cookbook');
 export const CATALOG = {
   // Enriched with derived affinity fields so the armaments table can collapse the
   // ~13 affinity variants of each weapon to one base row (see weapon-affinity.ts).
-  armaments: WEAPONS.filter((w) => !AMMO_CATEGORIES.has(w.category)).map(enrichWeapon),
+  armaments: WEAPONS.filter((w) => !AMMO_CATEGORIES.has(w.category)).map(
+    enrichWeapon,
+  ),
   ammo: WEAPONS.filter((w) => AMMO_CATEGORIES.has(w.category)),
   armor: ARMOR,
   talismans: TALISMANS,

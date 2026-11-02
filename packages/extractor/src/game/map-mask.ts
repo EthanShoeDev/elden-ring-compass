@@ -1,8 +1,8 @@
 import { Data, Effect } from 'effect';
 
+import type { OodleError } from '../external/oodle.ts';
 import { type Bnd4Error, parseBnd4 } from '../formats/bnd4.ts';
 import { type DcxError, dcxDecompress, isDcx } from '../formats/dcx.ts';
-import type { OodleError } from '../external/oodle.ts';
 
 /**
  * Map-tile world-state model.

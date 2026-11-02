@@ -4,9 +4,12 @@ import { type CSSProperties, useState } from 'react';
 
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { DataTableStateInitProps, useDataTableStateSync } from './data-table-store';
+
+import type { DataTableStateInitProps } from './data-table-store';
+import { useDataTableStateSync } from './data-table-store';
 import { DataTableToolbar } from './data-table-toolbar';
-import { DataTableColumnDef, DataTableInstance, useAppTable } from './table-hook';
+import type { DataTableColumnDef, DataTableInstance } from './table-hook';
+import { useAppTable } from './table-hook';
 
 // Every row is forced to this fixed height (see the `<tr>` style + cell
 // `overflow-hidden`), so the virtualizer's translate math is exact without
@@ -68,7 +71,9 @@ export function DataTable<TData extends { id: number; name: string }>({
       // A row is pinnable if it has an extracted overworld position: an event
       // pixel (graces / field bosses) or an item with overworld pickup locations.
       const r = row.original as { pixel?: unknown; hasCoords?: boolean };
-      return (r.pixel !== undefined && r.pixel !== null) || r.hasCoords === true;
+      return (
+        (r.pixel !== undefined && r.pixel !== null) || r.hasCoords === true
+      );
     },
     getRowId: (row) => row.id.toString(),
   });
@@ -91,7 +96,12 @@ export function DataTable<TData extends { id: number; name: string }>({
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
 
   return (
-    <div className={cn(fill ? 'flex min-h-0 flex-1 flex-col gap-4' : 'space-y-4', className)}>
+    <div
+      className={cn(
+        fill ? 'flex min-h-0 flex-1 flex-col gap-4' : 'space-y-4',
+        className,
+      )}
+    >
       <div className='shrink-0'>
         <DataTableToolbar table={table} />
       </div>
@@ -108,7 +118,10 @@ export function DataTable<TData extends { id: number; name: string }>({
             from `getSize()` and stay stable as rows virtualize in/out. The `Name`
             column grows to absorb slack when the viewport is wider than the sum of
             columns; otherwise the table keeps its natural width and scrolls. */}
-        <table className='grid w-full caption-bottom text-sm' style={{ minWidth: totalWidth }}>
+        <table
+          className='grid w-full caption-bottom text-sm'
+          style={{ minWidth: totalWidth }}
+        >
           <thead className='sticky top-0 z-10 grid bg-background [&_tr]:border-b'>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className='flex w-full'>
@@ -119,7 +132,9 @@ export function DataTable<TData extends { id: number; name: string }>({
                     className='relative flex h-10 items-center px-2 text-left align-middle font-medium whitespace-nowrap text-foreground'
                     style={cellStyle(header.column.id, header.getSize())}
                   >
-                    {header.isPlaceholder ? null : <table.FlexRender header={header} />}
+                    {header.isPlaceholder ? null : (
+                      <table.FlexRender header={header} />
+                    )}
                     {header.column.getCanResize() && (
                       // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- column-resize grip is a pointer-only drag affordance with no keyboard equivalent
                       <div
@@ -185,14 +200,19 @@ function DataTableBody<TData extends { id: number; name: string }>({
     return (
       <tbody className='grid'>
         <tr className='flex'>
-          <td className='flex h-24 w-full items-center justify-center text-center'>No results.</td>
+          <td className='flex h-24 w-full items-center justify-center text-center'>
+            No results.
+          </td>
         </tr>
       </tbody>
     );
   }
 
   return (
-    <tbody className='relative grid' style={{ height: rowVirtualizer.getTotalSize() }}>
+    <tbody
+      className='relative grid'
+      style={{ height: rowVirtualizer.getTotalSize() }}
+    >
       {rowVirtualizer.getVirtualItems().map((virtualRow) => {
         const row = rows[virtualRow.index];
         if (!row) return null;

@@ -40,8 +40,6 @@ package-lock.json
 # Test coverage
 coverage
 
-# oxlint-plugins build output
-packages/oxlint-plugins/dist
 
 # Cloned documentation repos
 docs/cloned-repos-as-docs/
@@ -56,3 +54,5 @@ target/
 tmp/
 .vercel
 .claude
+# Reference repos cloned for agents to read
+.external/

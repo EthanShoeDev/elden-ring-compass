@@ -1,4 +1,5 @@
 import { Effect } from 'effect';
+
 import { clientRuntime } from './client';
 import { serverRuntime } from './server';
 
@@ -9,7 +10,12 @@ import { serverRuntime } from './server';
 // server logger, and the server bundle never pulls in the client one.
 const runtime = import.meta.env.SSR ? serverRuntime : clientRuntime;
 
-export const logWarning = (message: string): void => runtime.runSync(Effect.logWarning(message));
+export const logWarning = (message: string): void =>
+  runtime.runSync(Effect.logWarning(message));
 
 export const logError = (message: string, cause?: unknown): void =>
-  runtime.runSync(cause === undefined ? Effect.logError(message) : Effect.logError(message, cause));
+  runtime.runSync(
+    cause === undefined
+      ? Effect.logError(message)
+      : Effect.logError(message, cause),
+  );

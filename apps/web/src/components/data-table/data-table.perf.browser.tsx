@@ -1,11 +1,16 @@
 import { RegistryProvider } from '@effect/atom-react';
 import { it } from '@effect/vitest';
-import { Effect } from 'effect';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { Effect } from 'effect';
 import { expect } from 'vitest';
+
 import { CATALOG } from '@/lib/inventory-catalog';
 import { forceGcHeapUsedBytes, mb } from '@/test/perf/cdp-memory';
-import { commonAccessorColumnDef, commonPinColumnDef } from './common-column-defs';
+
+import {
+  commonAccessorColumnDef,
+  commonPinColumnDef,
+} from './common-column-defs';
 import { DataTable } from './data-table';
 import { createAppColumnHelper } from './table-hook';
 
@@ -35,44 +40,46 @@ const MOUNT_MS = 4000;
 const FILTER_MS = 2000;
 const MOUNT_HEAP_MB = 200;
 
-it.effect('armaments table: mount + filter time and retained heap within bounds', () =>
-  Effect.gen(function* () {
-    const heapBefore = yield* forceGcHeapUsedBytes;
+it.effect(
+  'armaments table: mount + filter time and retained heap within bounds',
+  () =>
+    Effect.gen(function* () {
+      const heapBefore = yield* forceGcHeapUsedBytes;
 
-    // Mount: render the real table + wait until the toolbar is interactive.
-    const mountStart = performance.now();
-    yield* Effect.sync(() =>
-      render(
-        <RegistryProvider>
-          <DataTable tableId='armaments' columns={columns} data={ARMAMENTS} />
-        </RegistryProvider>,
-      ),
-    );
-    yield* Effect.promise(() => screen.findByPlaceholderText('Search'));
-    const mountMs = performance.now() - mountStart;
+      // Mount: render the real table + wait until the toolbar is interactive.
+      const mountStart = performance.now();
+      yield* Effect.sync(() =>
+        render(
+          <RegistryProvider>
+            <DataTable tableId='armaments' columns={columns} data={ARMAMENTS} />
+          </RegistryProvider>,
+        ),
+      );
+      yield* Effect.promise(() => screen.findByPlaceholderText('Search'));
+      const mountMs = performance.now() - mountStart;
 
-    const heapAfter = yield* forceGcHeapUsedBytes;
-    const heapDeltaMb = mb(heapAfter - heapBefore);
+      const heapAfter = yield* forceGcHeapUsedBytes;
+      const heapDeltaMb = mb(heapAfter - heapBefore);
 
-    // Filter: type into the Name search → react-table recomputes the filtered row model over the
-    // whole catalog → first page re-renders. Time until filtered rows are in the DOM.
-    const input = screen.getByPlaceholderText('Search');
-    const filterStart = performance.now();
-    yield* Effect.sync(() =>
-      // oxlint-disable-next-line testing-library/prefer-user-event -- the benchmark times ONE filter recompute; userEvent.type fires a change per keystroke and would time five
-      fireEvent.change(input, { target: { value: 'sword' } }),
-    );
-    yield* Effect.promise(() => screen.findAllByText(/sword/i));
-    const filterMs = performance.now() - filterStart;
+      // Filter: type into the Name search → react-table recomputes the filtered row model over the
+      // whole catalog → first page re-renders. Time until filtered rows are in the DOM.
+      const input = screen.getByPlaceholderText('Search');
+      const filterStart = performance.now();
+      yield* Effect.sync(() =>
+        // oxlint-disable-next-line testing-library/prefer-user-event -- the benchmark times ONE filter recompute; userEvent.type fires a change per keystroke and would time five
+        fireEvent.change(input, { target: { value: 'sword' } }),
+      );
+      yield* Effect.promise(() => screen.findAllByText(/sword/i));
+      const filterMs = performance.now() - filterStart;
 
-    yield* Effect.log(
-      `armaments (${ARMAMENTS.length} rows): mount ${mountMs.toFixed(1)}ms, ` +
-        `filter ${filterMs.toFixed(1)}ms, retained +${heapDeltaMb}MB`,
-    );
+      yield* Effect.log(
+        `armaments (${ARMAMENTS.length} rows): mount ${mountMs.toFixed(1)}ms, ` +
+          `filter ${filterMs.toFixed(1)}ms, retained +${heapDeltaMb}MB`,
+      );
 
-    expect(ARMAMENTS.length).toBeGreaterThan(100);
-    expect(mountMs).toBeLessThan(MOUNT_MS);
-    expect(filterMs).toBeLessThan(FILTER_MS);
-    expect(heapDeltaMb).toBeLessThan(MOUNT_HEAP_MB);
-  }),
+      expect(ARMAMENTS.length).toBeGreaterThan(100);
+      expect(mountMs).toBeLessThan(MOUNT_MS);
+      expect(filterMs).toBeLessThan(FILTER_MS);
+      expect(heapDeltaMb).toBeLessThan(MOUNT_HEAP_MB);
+    }),
 );

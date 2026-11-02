@@ -43,7 +43,8 @@ datasets the website consumes into `@elden-ring-compass/data`. Read
    exception is the *ranged* archive read — `Bun.file(bdt).slice(off, len).arrayBuffer()`
    for the multi-GB BHD/BDT slabs — because effect `FileSystem` has no ranged-read API;
    it stays wrapped in `Effect.promise`. (`Bun.write` / `Bun.file().text()` likewise stay,
-   wrapped in `Effect.promise` — not lint-flagged.) `Bun.Glob` is fine.
+   wrapped in `Effect.promise` — not lint-flagged.) Globbing uses effect's
+   `FileSystem.glob` (effect ≥ 4.1) through `src/external/glob.ts`, not `Bun.Glob`.
 
 7. **Native code is in-package.** The BCn→PNG codec is a Rust cdylib under
    `native/image-codec/`, built with `bun run build:image-codec` and loaded via
