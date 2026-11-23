@@ -9,7 +9,7 @@ import {
   bossMapName,
   bossReward,
 } from '@/lib/boss-meta';
-import { inDlcScope } from '@/lib/dlc';
+import { DLC_SCOPE_LABEL, inDlcScope } from '@/lib/dlc';
 import { useDlcScope } from '@/lib/dlc-scope';
 import type { MasterPixel } from '@/lib/map-affine';
 import { bossFlagToPixel } from '@/lib/vm/map-pins';
@@ -56,6 +56,8 @@ type BossRow = {
   defeated: boolean | null;
   /** Shadow of the Erdtree boss — tagged in the Name column. */
   isDlc: boolean;
+  /** "Base game" / "Shadow of the Erdtree" — the Content facet. */
+  content: string;
 };
 
 // Cell renderers kept at module scope (not redefined per render) so the table's
@@ -136,6 +138,7 @@ export function BossesDataTable() {
         pixel: bossFlagToPixel.get(b.defeatFlagId),
         defeated: connected ? isDefeated(b.defeatFlagId) : null,
         isDlc: b.isDlc,
+        content: DLC_SCOPE_LABEL[b.isDlc ? 'dlc' : 'base'],
       });
     }
     return out;
@@ -150,9 +153,9 @@ export function BossesDataTable() {
         cell: renderNameCell,
       }),
       commonWikiColumnDef(helper, (r) => wikiNameForBoss(r.name)),
-      commonAccessorColumnDef(helper, 'mapName', 'Map', {
-        filterFn: 'includesString',
-      }),
+      // Faceted (pick places from a searchable list, with counts), not substring.
+      commonAccessorColumnDef(helper, 'mapName', 'Map'),
+      commonAccessorColumnDef(helper, 'content', 'Content'),
       commonAccessorColumnDef(helper, 'category', 'Category', {
         cell: renderCategoryCell,
       }),
@@ -179,8 +182,8 @@ export function BossesDataTable() {
           {connected
             ? `${defeatedCount} / ${rows.length} - (${Math.round((defeatedCount / rows.length) * 100)}% defeated)`
             : `${rows.length} bosses in the game`}
-          {' · '}filter by name, map, category or reward, then tap the pin to
-          drop a boss on the map.
+          {' · '}filter by name, map, content, category or reward, then tap the
+          pin to drop a boss on the map.
         </CardDescription>
       </CardHeader>
       <CardContent>

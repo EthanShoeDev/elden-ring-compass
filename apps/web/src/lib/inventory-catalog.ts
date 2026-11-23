@@ -61,6 +61,22 @@ export type InventoryTableResult = {
   ownedCount: number;
 };
 
+/**
+ * The game's "nothing equipped" sentinels: the engine fills an empty slot with
+ * these fixed param rows ("Bare head with no armor equipped.", "No armament
+ * equipped."), so every character holds them. They aren't collectible and the
+ * game ships no menu icon for most of them (1097–1099 are absent from the icon
+ * binder; Legs' 1100 is another item's art), so listing them only adds
+ * icon-less "Held" rows and inflates the owned counts.
+ */
+const EMPTY_SLOT_ITEMS: ReadonlySet<string> = new Set([
+  ownedItemKey('WEAPON', 110_000), // Unarmed
+  ownedItemKey('ARMOR', 10_000), // Head
+  ownedItemKey('ARMOR', 10_100), // Body
+  ownedItemKey('ARMOR', 10_200), // Arms
+  ownedItemKey('ARMOR', 10_300), // Legs
+]);
+
 /** Which save inventory type each table's ids belong to (ids are only unique within a type). */
 const TABLE_ITEM_TYPE: Record<InventoryTableType, InventoryItemType> = {
   armaments: 'WEAPON',
@@ -129,11 +145,14 @@ export function inventoryTables(
   ): InventoryTableResult => {
     const items: InventoryRow[] = Arr.map(
       // Drop the datasets' `[ERROR]Type N` placeholder rows (48 in WEAPONS, 54 in ARMOR,
-      // 1 in TALISMANS) — unused item slots that would otherwise render as junk table rows.
+      // 1 in TALISMANS) — unused item slots that would otherwise render as junk table rows
+      // — and the empty-slot sentinels (see EMPTY_SLOT_ITEMS).
       Arr.filter(
         rows,
         (row) =>
-          !Str.startsWith('[ERROR]')(row.name) && inDlcScope(scope, row.isDlc),
+          !Str.startsWith('[ERROR]')(row.name) &&
+          !EMPTY_SLOT_ITEMS.has(ownedItemKey(itemType, row.id)) &&
+          inDlcScope(scope, row.isDlc),
       ),
       (row) => {
         const o = owned.get(ownedItemKey(itemType, row.id));

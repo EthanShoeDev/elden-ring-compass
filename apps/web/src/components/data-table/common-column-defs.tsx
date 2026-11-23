@@ -42,7 +42,9 @@ export const commonPinColumnDef = <T extends RowData>(
           const all = table.getIsAllPageRowsSelected();
           const some = table.getIsSomePageRowsSelected();
           return (
-            <div className='flex flex-col items-center gap-0.5'>
+            // The header row is a fixed h-10; a visible "Pin" caption under the
+            // 30px toggle overflowed it, so the label is screen-reader only.
+            <div className='flex justify-center'>
               <PinToggle
                 state={all ? 'on' : some ? 'ind' : 'off'}
                 onToggle={() => {
@@ -50,9 +52,7 @@ export const commonPinColumnDef = <T extends RowData>(
                 }}
                 title={all ? 'Unpin this page' : 'Pin all on this page'}
               />
-              <span className='text-[9px] font-bold tracking-wider text-muted-foreground uppercase'>
-                Pin
-              </span>
+              <span className='sr-only'>Pin</span>
             </div>
           );
         }}

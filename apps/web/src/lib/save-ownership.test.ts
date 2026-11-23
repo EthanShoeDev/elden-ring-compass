@@ -281,4 +281,19 @@ it.layer(NodeServices.layer)('save ownership view-models (issue #11)', (it) => {
         expect(milestone('vagbond dlc prep', 'remembrances')).toBe(0);
       }),
   );
+
+  it.effect(
+    'the empty-slot sentinels (bare Head/Body/Arms/Legs, Unarmed) are not listed',
+    () =>
+      Effect.gen(function* () {
+        const { byName } = yield* loadSlots;
+        const tables = inventoryTables(byName('vagbond dlc prep'));
+        const ids = (rows: ReadonlyArray<{ id: number }>) =>
+          new Set(Arr.map(rows, (r) => r.id));
+        const armor = ids(tables.armor.items);
+        for (const id of [10_000, 10_100, 10_200, 10_300])
+          expect(armor.has(id)).toBe(false);
+        expect(ids(tables.armaments.items).has(110_000)).toBe(false);
+      }),
+  );
 });

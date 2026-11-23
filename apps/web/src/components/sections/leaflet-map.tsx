@@ -393,14 +393,24 @@ function PinPopupBody({ pin }: { pin: MapPin }) {
   );
 }
 
+const pinKey = (pin: MapPin) =>
+  `${pin.kind}:${pin.category}:${pin.name}:${pin.master}:${pin.px.toString()}:${pin.py.toString()}`;
+
 /** Pins — already in master-pixel space; unproject at native zoom → latlng. */
 function MarkerLayer({ pins, zoom }: { pins: MapPin[]; zoom: number }) {
   const map = useMap();
+  // Keys MUST be unique: with duplicates React loses track of a Marker, its
+  // tooltip/popup content unmounts, but the Leaflet layer is never removed — an
+  // empty pin that survives realm switches, layer toggles and "Clear pins".
+  // Identical pins do occur (an item placed twice at one spot, East Capital
+  // Rampart's two grace flags, a boss pinned from both the events and bosses
+  // tables) and would only draw on top of each other, so keep the first.
+  const unique = [...new Map(Arr.map(pins, (p) => [pinKey(p), p])).values()];
   return (
     <>
-      {Arr.map(pins, (pin) => (
+      {Arr.map(unique, (pin) => (
         <Marker
-          key={`${pin.kind}:${pin.category}:${pin.name}:${pin.px.toString()}:${pin.py.toString()}`}
+          key={pinKey(pin)}
           position={map.unproject([pin.px, pin.py], zoom)}
           icon={pinIcon(pin.category, pin.discovered)}
         >
