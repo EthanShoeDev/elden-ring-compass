@@ -1,4 +1,5 @@
 import { REGIONS } from '@elden-ring-compass/data';
+import { Array as Arr } from 'effect';
 
 import type { Slot } from '../save-dto';
 
@@ -12,7 +13,7 @@ export function regionsDbView(slot?: Readonly<Slot>) {
     }
   }
 
-  return REGIONS.map((r) => ({
+  return Arr.map(REGIONS, (r) => ({
     id: r.id,
     name: r.name,
     map: r.area,

@@ -1,3 +1,5 @@
+import { Array as Arr } from 'effect';
+
 import {
   accessoryNameById,
   aowNameById,
@@ -86,7 +88,7 @@ export function inventoryDbView(slot: Readonly<Slot>) {
   }
 
   const gaItemMap = new Map<number, GaItem>(
-    slot.ga_items.map((i) => [i.gaitem_handle, i]),
+    Arr.map(slot.ga_items, (i) => [i.gaitem_handle, i]),
   );
   // Both halves of an inventory: newer saves keep Crystal Tears, Great Runes and crafting tools
   // in the key-item list, so reading only `common_items` drops them. Key items take equip
@@ -103,8 +105,8 @@ export function inventoryDbView(slot: Readonly<Slot>) {
     equip_index_base: number,
     location: InventoryLocation,
   ) =>
-    items
-      .map((commonItem, idx) => {
+    Arr.filter(
+      Arr.map(items, (commonItem, idx) => {
         const itemType = itemTypeFromGaHandle(commonItem.ga_item_handle);
         const equip_index = idx + equip_index_base;
 
@@ -164,11 +166,10 @@ export function inventoryDbView(slot: Readonly<Slot>) {
           upgrade_level,
           location,
         };
-      })
-      .filter(
-        (i): i is NonNullable<typeof i> =>
-          i !== null && i.item_id !== -1 && i.item_id !== 0,
-      );
+      }),
+      (i): i is NonNullable<typeof i> =>
+        i !== null && i.item_id !== -1 && i.item_id !== 0,
+    );
 
   const equip_inventory = fill_storage_type(slot.equip_inventory_data, 'held');
   const storage_inventory = fill_storage_type(

@@ -20,17 +20,20 @@
 import { BunRuntime, BunServices } from '@effect/platform-bun';
 import { BOSSES } from '@elden-ring-compass/data';
 import {
+  Array as Arr,
   Config,
   Console,
-  Data,
   DateTime,
   Duration,
   Effect,
   FileSystem,
   Option,
+  Order,
   Path,
+  Record as Rec,
   Schedule,
   Schema,
+  String as Str,
 } from 'effect';
 import { Command, Flag } from 'effect/cli';
 import { FetchHttpClient, HttpClient } from 'effect/http';
@@ -40,9 +43,13 @@ import { wikiNameForBoss, wikiNameForItem, wikiPageUrl } from '../src/lib/wiki';
 
 const COMMAND_NAME = 'wiki-link-check';
 
-class BrokenLinksError extends Data.TaggedError('BrokenLinksError')<{
-  message: string;
-}> {}
+class BrokenLinksError extends Schema.TaggedError<
+  BrokenLinksError,
+  { readonly brand: unique symbol }
+>()('BrokenLinksError', { message: Schema.String }) {}
+
+/** Locale-aware string order (`a.localeCompare(b)`), not code-unit order. */
+const byLocale: Order.Order<string> = (a, b) => Str.localeCompare(b)(a);
 
 /**
  * Everything the UI links: the inventory tables, plus the bosses table / map
@@ -56,7 +63,7 @@ const SOURCES: Record<
   ReadonlyArray<{ name: string; baseName?: string; category?: string }>
 > = {
   ...CATALOG,
-  bosses: BOSSES.flatMap((b) =>
+  bosses: Arr.flatMap(BOSSES, (b) =>
     b.name === null ? [] : [{ name: wikiNameForBoss(b.name) }],
   ),
 };
@@ -70,11 +77,11 @@ interface LinkCheck {
 /** Unique link targets across all sources, remembering which tables use each. */
 const collectLinks = (only?: string): LinkCheck[] => {
   const byUrl = new Map<string, LinkCheck>();
-  for (const [table, rows] of Object.entries(SOURCES)) {
+  for (const [table, rows] of Rec.toEntries(SOURCES)) {
     if (only !== undefined && only !== '' && table !== only) continue;
     for (const row of rows) {
       // Same placeholder filter as the tables' join() — never rendered as rows.
-      if (row.name.startsWith('[ERROR]')) continue;
+      if (Str.startsWith('[ERROR]')(row.name)) continue;
       // Same resolution as the wiki column / map popup; null = renders no link.
       const name = wikiNameForItem(row);
       if (name === null) continue;
@@ -140,7 +147,7 @@ const readCache = Effect.gen(function* () {
   );
   if (parsed === null || parsed.version !== CACHE_VERSION)
     return new Map<string, CacheEntry>();
-  return new Map(Object.entries(parsed.results));
+  return new Map(Rec.toEntries(parsed.results));
 });
 
 const writeCache = (entries: ReadonlyMap<string, CacheEntry>) =>
@@ -149,8 +156,11 @@ const writeCache = (entries: ReadonlyMap<string, CacheEntry>) =>
     const path = yield* Path.Path;
     const file = yield* cacheFilePath;
     yield* fs.makeDirectory(path.dirname(file), { recursive: true });
-    const results = Object.fromEntries(
-      [...entries.entries()].toSorted(([a], [b]) => a.localeCompare(b)),
+    const results = Rec.fromEntries(
+      Arr.sort(
+        entries.entries(),
+        Order.mapInput(byLocale, ([url]: readonly [string, CacheEntry]) => url),
+      ),
     );
     const json = yield* Schema.encodeEffect(CacheFileSchema)({
       version: CACHE_VERSION,
@@ -160,9 +170,10 @@ const writeCache = (entries: ReadonlyMap<string, CacheEntry>) =>
   });
 
 /** Rate limiting / server hiccups — retried with backoff before being reported. */
-class TransientStatus extends Data.TaggedError('TransientStatus')<{
-  status: number;
-}> {}
+class TransientStatus extends Schema.TaggedError<
+  TransientStatus,
+  { readonly brand: unique symbol }
+>()('TransientStatus', { status: Schema.Int }) {}
 
 // HEAD the page; the plain client doesn't fail on 4xx/5xx, so the status comes
 // back on the response. Network errors and 429/5xx (the wiki rate-limits bursts
@@ -175,7 +186,7 @@ const checkLink = (link: LinkCheck) =>
   }).pipe(
     Effect.flatMap((response) =>
       response.status === 429 || response.status >= 500
-        ? Effect.fail(new TransientStatus({ status: response.status }))
+        ? Effect.fail(TransientStatus.make({ status: response.status }))
         : Effect.succeed(response.status),
     ),
     Effect.retry({
@@ -213,11 +224,11 @@ const main = ({ concurrency, table, noCache, revalidate }: MainOptions) =>
     // Cached-OK links are trusted; the oldest few rotate back in each run so a
     // page the wiki deletes is still caught eventually, amortized across runs.
     const cachedAt = (url: string) => cache.get(url)?.checkedAt ?? '';
-    const fresh = links.filter((l) => !cache.has(l.url));
-    const rotation = links
-      .filter((l) => cache.has(l.url))
-      .toSorted((a, b) => cachedAt(a.url).localeCompare(cachedAt(b.url)))
-      .slice(0, Math.max(0, revalidate));
+    const fresh = Arr.filter(links, (l) => !cache.has(l.url));
+    const rotation = Arr.sort(
+      Arr.filter(links, (l) => cache.has(l.url)),
+      Order.mapInput(byLocale, (l: LinkCheck) => cachedAt(l.url)),
+    ).slice(0, Math.max(0, revalidate));
     const toCheck = [...fresh, ...rotation];
 
     yield* Console.log(
@@ -239,10 +250,8 @@ const main = ({ concurrency, table, noCache, revalidate }: MainOptions) =>
             // the page is gone — keep any cached entry and report separately.
             unreachable.push(link);
           } else if (status === 200) {
-            cache.set(link.url, {
-              status,
-              checkedAt: DateTime.formatIso(yield* DateTime.now),
-            });
+            const now = yield* DateTime.now;
+            cache.set(link.url, { status, checkedAt: DateTime.formatIso(now) });
           } else {
             cache.delete(link.url);
             failures.push({ ...link, status });
@@ -256,7 +265,7 @@ const main = ({ concurrency, table, noCache, revalidate }: MainOptions) =>
     // Drop cache entries for URLs the UI can no longer produce (full runs only —
     // a --table run sees just a slice and must not prune the rest).
     if (table === undefined) {
-      const current = new Set(links.map((l) => l.url));
+      const current = new Set(Arr.map(links, (l) => l.url));
       for (const url of cache.keys()) if (!current.has(url)) cache.delete(url);
     }
     yield* writeCache(cache);
@@ -284,16 +293,23 @@ const main = ({ concurrency, table, noCache, revalidate }: MainOptions) =>
     }
 
     yield* Console.log(`\n${failures.length}/${links.length} links failed:\n`);
-    for (const [t, fs] of [...perTable.entries()].toSorted(
-      (a, b) => b[1].length - a[1].length,
+    for (const [t, fs] of Arr.sort(
+      perTable.entries(),
+      Order.mapInput(
+        Order.flip(Order.Number),
+        ([, list]: readonly [string, Failure[]]) => list.length,
+      ),
     )) {
       const total = collectLinks(t).length;
       yield* Console.log(`  ${t} — ${fs.length}/${total} broken:`);
-      for (const f of fs.toSorted((a, b) => a.name.localeCompare(b.name))) {
+      for (const f of Arr.sort(
+        fs,
+        Order.mapInput(byLocale, (failure: Failure) => failure.name),
+      )) {
         yield* Console.log(`    [${f.status}] ${f.name}  →  ${f.url}`);
       }
     }
-    return yield* new BrokenLinksError({
+    return yield* BrokenLinksError.make({
       message: `${failures.length} broken wiki links`,
     });
   });

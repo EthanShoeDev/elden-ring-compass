@@ -1,6 +1,6 @@
 import { NodeServices } from '@effect/platform-node';
 import { it } from '@effect/vitest';
-import { Effect, FileSystem } from 'effect';
+import { Array as Arr, Effect, FileSystem, Order } from 'effect';
 import { expect } from 'vitest';
 
 import { cleanInstall } from './dvdbnd.ts';
@@ -28,7 +28,19 @@ const makeInstall = Effect.gen(function* () {
 const listSd = (root: string) =>
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
-    return (yield* fs.readDirectory(`${root}/sd`)).toSorted();
+    const names = yield* fs.readDirectory(`${root}/sd`);
+    return Arr.sort(names, Order.String);
+  });
+
+/** Post-`cleanInstall` state of everything the tests assert on. */
+const inspectInstall = (root: string) =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    const sd = yield* listSd(root);
+    const sdBdt = yield* fs.readFileString(`${root}/sd/sd.bdt`);
+    const hasBackup = yield* fs.exists(`${root}/_backup`);
+    const hasChr = yield* fs.exists(`${root}/chr`);
+    return { sd, sdBdt, hasBackup, hasChr };
   });
 
 it.layer(NodeServices.layer)('cleanInstall', (it) => {
@@ -43,10 +55,13 @@ it.layer(NodeServices.layer)('cleanInstall', (it) => {
 
       yield* cleanInstall(root);
 
-      expect(yield* listSd(root)).toEqual(['sd.bdt']);
-      expect(yield* fs.readFileString(`${root}/sd/sd.bdt`)).toBe('original');
-      expect(yield* fs.exists(`${root}/_backup`)).toBe(false);
-      expect(yield* fs.exists(`${root}/chr`)).toBe(false);
+      const result = yield* inspectInstall(root);
+      expect(result).toEqual({
+        sd: ['sd.bdt'],
+        sdBdt: 'original',
+        hasBackup: false,
+        hasChr: false,
+      });
     }).pipe(Effect.scoped),
   );
 
@@ -60,10 +75,13 @@ it.layer(NodeServices.layer)('cleanInstall', (it) => {
 
       yield* cleanInstall(root);
 
-      expect(yield* listSd(root)).toEqual(['sd.bdt']);
-      expect(yield* fs.readFileString(`${root}/sd/sd.bdt`)).toBe('patched!');
-      expect(yield* fs.exists(`${root}/_backup`)).toBe(false);
-      expect(yield* fs.exists(`${root}/chr`)).toBe(false);
+      const result = yield* inspectInstall(root);
+      expect(result).toEqual({
+        sd: ['sd.bdt'],
+        sdBdt: 'patched!',
+        hasBackup: false,
+        hasChr: false,
+      });
     }).pipe(Effect.scoped),
   );
 });

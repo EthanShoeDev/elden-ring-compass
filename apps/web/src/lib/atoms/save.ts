@@ -1,5 +1,5 @@
 import { useAtomRefresh, useAtomValue } from '@effect/atom-react';
-import { Cause, Data, Effect, Exit, Option, Schema } from 'effect';
+import { Cause, Effect, Exit, Option, Schema } from 'effect';
 import { HttpClient } from 'effect/http';
 import * as AsyncResult from 'effect/reactivity/AsyncResult';
 
@@ -20,10 +20,14 @@ import {
 // `saveFileSourceAtom`; when the source changes the parse re-runs automatically. No QueryClient
 // / React Query, and no Comlink — a plain `postMessage` request/response (see the worker).
 
-class NoSaveSourceError extends Data.TaggedError('NoSaveSourceError')<object> {}
-class SaveParseError extends Data.TaggedError('SaveParseError')<{
-  readonly message: string;
-}> {}
+class NoSaveSourceError extends Schema.TaggedError<
+  NoSaveSourceError,
+  { readonly brand: unique symbol }
+>()('NoSaveSourceError', {}) {}
+class SaveParseError extends Schema.TaggedError<
+  SaveParseError,
+  { readonly brand: unique symbol }
+>()('SaveParseError', { message: Schema.String }) {}
 
 // Just the correlation id of a reply that failed the full protocol decode.
 const decodeReplyId = (data: unknown) =>
@@ -77,7 +81,7 @@ const getWorker = (): Worker | null => {
 };
 
 const toParseError = (cause: unknown) =>
-  new SaveParseError({
+  SaveParseError.make({
     message: cause instanceof Error ? cause.message : String(cause),
   });
 
@@ -88,7 +92,9 @@ const parseInWorker = (
     const w = getWorker();
     if (!w) {
       resume(
-        Effect.fail(new SaveParseError({ message: 'Save parser unavailable' })),
+        Effect.fail(
+          SaveParseError.make({ message: 'Save parser unavailable' }),
+        ),
       );
       return;
     }
@@ -110,7 +116,7 @@ let parseRunCount = 0;
 export const saveAtom = appRuntime.atom((get) =>
   Effect.gen(function* () {
     const src = get(saveFileSourceAtom);
-    if (!src) return yield* new NoSaveSourceError();
+    if (!src) return yield* NoSaveSourceError.make({});
 
     const sourceKind = isSharedSource(src)
       ? 'shared'
@@ -135,7 +141,7 @@ export const saveAtom = appRuntime.atom((get) =>
     }
 
     if (!getWorker())
-      return yield* new SaveParseError({ message: 'Save parser unavailable' });
+      return yield* SaveParseError.make({ message: 'Save parser unavailable' });
 
     const buffer =
       'file' in src

@@ -1,11 +1,10 @@
-import { existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-
 import { NodeServices } from '@effect/platform-node';
 import { it } from '@effect/vitest';
 import { MATCHMAKING_REGION_IDS, REGIONS } from '@elden-ring-compass/data';
-import { Data, Effect, FileSystem } from 'effect';
+import { Array as Arr, Effect, Schema } from 'effect';
 import { expect } from 'vitest';
+
+import { fixtureSavePath, readSaveBuffer } from '@/test/fixture-save';
 
 import { parseEldenRingData } from './er-save-parser';
 import type { Slot, WasmEldenRingSave } from './save-dto';
@@ -21,59 +20,31 @@ import type { Slot, WasmEldenRingSave } from './save-dto';
 // `NodeServices.layer` is the matching FileSystem provider. (This used to verify the Rust/WASM
 // parser; that's been retired in favor of the byte-identical TS port.)
 
-class SaveParseError extends Data.TaggedError('SaveParseError')<{
-  readonly message: string;
-  readonly cause: unknown;
-}> {}
+class SaveParseError extends Schema.TaggedError<
+  SaveParseError,
+  { readonly brand: unique symbol }
+>()('SaveParseError', { message: Schema.String, cause: Schema.Unknown }) {}
 
-// Resolve the repo root by walking up for `turbo.jsonc`, NOT from `process.cwd()` or
-// `import.meta.url`: the test runs both per-package (cwd = apps/web) and via the root
-// vitest config (cwd = repo root), and in the jsdom env `import.meta.url` isn't a
-// `file://` URL. Walking up to a known root marker is stable across all of these.
-const REPO_ROOT = (() => {
-  let dir = process.cwd();
-  for (let i = 0; i < 10; i++) {
-    if (existsSync(join(dir, 'turbo.jsonc'))) return dir;
-    const parent = dirname(dir);
-    if (parent === dir) break;
-    dir = parent;
-  }
-  return process.cwd();
-})();
-
-const savePaths = Effect.sync(() => ({
+const savePaths = Effect.map(fixtureSavePath, (baseSave) => ({
   // A committed base-game save shipped in public/. (DLC fixtures can join this list once a
   // committed `.sl2` lives in the repo.)
-  baseSave: join(
-    REPO_ROOT,
-    'packages',
-    'save-parser',
-    'test',
-    'fixtures',
-    'ER0000.sl2',
-  ),
+  baseSave,
 }));
 
 /** Read a save fixture and parse it into the lean DTO, as a typed-failure Effect. */
 const parseFixture = (absPath: string) =>
   Effect.gen(function* () {
-    const fs = yield* FileSystem.FileSystem;
-    const bytes = yield* fs.readFile(absPath);
-    // Tighten to an exact-size ArrayBuffer (the FileSystem view may sit in a larger buffer).
-    const buffer = bytes.buffer.slice(
-      bytes.byteOffset,
-      bytes.byteOffset + bytes.byteLength,
-    ) as ArrayBuffer;
+    const buffer = yield* readSaveBuffer(absPath);
     return yield* Effect.try({
       try: () => parseEldenRingData(buffer),
       catch: (cause) =>
-        new SaveParseError({ message: 'TS parse failed', cause }),
+        SaveParseError.make({ message: 'TS parse failed', cause }),
     });
   });
 
 /** A slot is "occupied" when it has a character name; empty slots are skipped for value checks. */
 const occupiedSlots = (save: WasmEldenRingSave): readonly Slot[] =>
-  save.slots.filter((s) => s.player_game_data.character_name.length > 0);
+  Arr.filter(save.slots, (s) => s.player_game_data.character_name.length > 0);
 
 it.layer(NodeServices.layer)('TS save parser — lean DTO (ER0000.sl2)', (it) => {
   it.effect('parses without throwing and yields the top-level shape', () =>
@@ -82,9 +53,9 @@ it.layer(NodeServices.layer)('TS save parser — lean DTO (ER0000.sl2)', (it) =>
       const save = yield* parseFixture(baseSave);
       expect(save.global_steam_id).toBeTypeOf('string');
       expect(save.global_steam_id).toMatch(/^\d+$/);
-      expect(Array.isArray(save.slots)).toBe(true);
+      expect(Arr.isArray(save.slots)).toBe(true);
       expect(save.slots.length).toBeGreaterThan(0);
-      expect(Array.isArray(save.character_steam_ids)).toBe(true);
+      expect(Arr.isArray(save.character_steam_ids)).toBe(true);
       expect(occupiedSlots(save).length).toBeGreaterThan(0);
     }),
   );
@@ -115,7 +86,7 @@ it.layer(NodeServices.layer)('TS save parser — lean DTO (ER0000.sl2)', (it) =>
             expect(stat).toBeLessThanOrEqual(99);
           }
           // Level can't exceed the summed attributes (each level buys exactly one attribute point).
-          const statSum = stats.reduce((a, b) => a + b, 0);
+          const statSum = Arr.reduce(stats, 0, (a, b) => a + b);
           expect(statSum).toBeGreaterThanOrEqual(p.level);
           expect(p.souls).toBeGreaterThanOrEqual(0);
           expect(p.soulsmemory).toBeGreaterThanOrEqual(p.souls);
@@ -182,7 +153,7 @@ it.layer(NodeServices.layer)('TS save parser — lean DTO (ER0000.sl2)', (it) =>
       Effect.gen(function* () {
         const { baseSave } = yield* savePaths;
         const save = yield* parseFixture(baseSave);
-        const regionIds = new Set(REGIONS.map((r) => r.id));
+        const regionIds = new Set(Arr.map(REGIONS, (r) => r.id));
         let sawPlaced = false;
         const unclassified: number[] = [];
         for (const slot of occupiedSlots(save)) {

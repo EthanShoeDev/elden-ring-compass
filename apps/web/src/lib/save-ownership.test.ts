@@ -1,11 +1,10 @@
-import { existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-
 import { NodeServices } from '@effect/platform-node';
 import { it } from '@effect/vitest';
 import { GOODS } from '@elden-ring-compass/data';
-import { Effect, FileSystem } from 'effect';
+import { Array as Arr, Effect, Option, pipe, Record as Rec } from 'effect';
 import { expect } from 'vitest';
+
+import { readFixtureSave } from '@/test/fixture-save';
 
 import { completionMilestones } from './completion';
 import { parseEldenRingData } from './er-save-parser';
@@ -21,50 +20,41 @@ import { inventoryDbView } from './vm/inventory';
 // Each case pins values read from the committed ER0000.sl2 fixture (5 characters; "sam" is a
 // DLC-era save, "vagbond dlc prep" a fresh level-10 character).
 
-const REPO_ROOT = (() => {
-  let dir = process.cwd();
-  for (let i = 0; i < 10; i++) {
-    if (existsSync(join(dir, 'turbo.jsonc'))) return dir;
-    const parent = dirname(dir);
-    if (parent === dir) break;
-    dir = parent;
-  }
-  return process.cwd();
-})();
-
 const loadSlots = Effect.gen(function* () {
-  const fs = yield* FileSystem.FileSystem;
-  const bytes = yield* fs.readFile(
-    join(
-      REPO_ROOT,
-      'packages',
-      'save-parser',
-      'test',
-      'fixtures',
-      'ER0000.sl2',
-    ),
-  );
-  const buffer = bytes.buffer.slice(
-    bytes.byteOffset,
-    bytes.byteOffset + bytes.byteLength,
-  ) as ArrayBuffer;
+  const buffer = yield* readFixtureSave;
   const save = parseEldenRingData(buffer);
-  const byName = (name: string): Slot => {
-    const slot = save.slots.find(
-      (s) => s.player_game_data.character_name === name,
+  const byName = (name: string): Slot =>
+    Option.getOrThrowWith(
+      Arr.findFirst(
+        save.slots,
+        (s) => s.player_game_data.character_name === name,
+      ),
+      () => new Error(`fixture slot ${name} not found`),
     );
-    if (!slot) throw new Error(`fixture slot ${name} not found`);
-    return slot;
-  };
   return { slots: save.slots, byName };
 });
 
-const crystalTearIds = new Set(
-  GOODS.filter((g) => g.category === 'Crystal Tear').map((g) => g.id),
-);
-const greatRuneIds = new Set(
-  GOODS.filter((g) => g.category === 'Great Rune').map((g) => g.id),
-);
+const goodsIdsOfCategory = (category: string) =>
+  new Set(
+    Arr.map(
+      Arr.filter(GOODS, (g) => g.category === category),
+      (g) => g.id,
+    ),
+  );
+const crystalTearIds = goodsIdsOfCategory('Crystal Tear');
+const greatRuneIds = goodsIdsOfCategory('Great Rune');
+
+/** Field of the first row matching `predicate`, or undefined when none matches. */
+const findField = <A, B>(
+  rows: ReadonlyArray<A>,
+  predicate: (row: A) => boolean,
+  field: (row: A) => B,
+) =>
+  pipe(
+    Arr.findFirst(rows, predicate),
+    Option.map(field),
+    Option.getOrUndefined,
+  );
 
 it.layer(NodeServices.layer)('save ownership view-models (issue #11)', (it) => {
   it.effect(
@@ -80,15 +70,22 @@ it.layer(NodeServices.layer)('save ownership view-models (issue #11)', (it) => {
           ['ashes', 'AOW'],
         ] as const;
         for (const slot of slots) {
-          const items = inventoryDbView(slot).items.filter(
+          const items = Arr.filter(
+            inventoryDbView(slot).items,
             (i) => i.quantity > 0,
           );
           const tables = inventoryTables(slot);
           for (const [table, type] of typedTables) {
             const ownedOfType = new Set(
-              items.filter((i) => i.type === type).map((i) => i.item_id),
+              Arr.map(
+                Arr.filter(items, (i) => i.type === type),
+                (i) => i.item_id,
+              ),
             );
-            for (const row of tables[table].items.filter((r) => r.quantity > 0))
+            for (const row of Arr.filter(
+              tables[table].items,
+              (r) => r.quantity > 0,
+            ))
               expect(
                 ownedOfType,
                 `${slot.player_game_data.character_name}: ${row.name}`,
@@ -106,10 +103,18 @@ it.layer(NodeServices.layer)('save ownership view-models (issue #11)', (it) => {
         // Yager holds Flask of Crimson Tears +10 (goods 1021) but no talisman 1021.
         const tables = inventoryTables(byName('Yager'));
         expect(
-          tables.tools.items.find((r) => r.id === 1021)?.quantity,
+          findField(
+            tables.tools.items,
+            (r) => r.id === 1021,
+            (r) => r.quantity,
+          ),
         ).toBeGreaterThan(0);
         expect(
-          tables.talismans.items.find((r) => r.id === 1021)?.quantity ?? 0,
+          findField(
+            tables.talismans.items,
+            (r) => r.id === 1021,
+            (r) => r.quantity,
+          ) ?? 0,
         ).toBe(0);
       }),
   );
@@ -120,16 +125,16 @@ it.layer(NodeServices.layer)('save ownership view-models (issue #11)', (it) => {
       Effect.gen(function* () {
         const { byName } = yield* loadSlots;
         const ownedTears = (name: string) =>
-          inventoryTables(byName(name)).tools.items.filter(
+          Arr.filter(
+            inventoryTables(byName(name)).tools.items,
             (r) => crystalTearIds.has(r.id) && r.quantity > 0,
           ).length;
         // "sam" and "shoe" store their tears as key items; "Yager" (older save) as common items.
         expect(ownedTears('sam')).toBe(9);
         expect(ownedTears('shoe')).toBe(2);
         expect(ownedTears('Yager')).toBe(23);
-        const ownedGreatRunes = inventoryTables(
-          byName('sam'),
-        ).keyItems.items.filter(
+        const ownedGreatRunes = Arr.filter(
+          inventoryTables(byName('sam')).keyItems.items,
           (r) => greatRuneIds.has(r.id) && r.quantity > 0,
         ).length;
         expect(ownedGreatRunes).toBe(1);
@@ -212,19 +217,22 @@ it.layer(NodeServices.layer)('save ownership view-models (issue #11)', (it) => {
     Effect.gen(function* () {
       const { slots, byName } = yield* loadSlots;
       for (const slot of slots)
-        for (const table of Object.values(inventoryTables(slot)))
+        for (const table of Rec.values(inventoryTables(slot)))
           for (const row of table.items)
             expect(row.quantity).toBe(row.heldQuantity + row.storedQuantity);
 
       const yager = inventoryTables(byName('Yager'));
-      const daggers = yager.tools.items.find(
-        (r) => r.name === 'Throwing Dagger',
+      const daggers = Option.getOrUndefined(
+        Arr.findFirst(yager.tools.items, (r) => r.name === 'Throwing Dagger'),
       );
       expect([daggers?.heldQuantity, daggers?.storedQuantity]).toEqual([
         40, 600,
       ]);
-      const rollo = yager.spirits.items.find(
-        (r) => r.name === 'Omenkiller Rollo',
+      const rollo = Option.getOrUndefined(
+        Arr.findFirst(
+          yager.spirits.items,
+          (r) => r.name === 'Omenkiller Rollo',
+        ),
       );
       expect([rollo?.heldQuantity, rollo?.storedQuantity]).toEqual([1, 1]);
     }),
@@ -260,7 +268,11 @@ it.layer(NodeServices.layer)('save ownership view-models (issue #11)', (it) => {
       Effect.gen(function* () {
         const { byName } = yield* loadSlots;
         const milestone = (name: string, key: string) =>
-          completionMilestones(byName(name)).find((m) => m.key === key)?.owned;
+          findField(
+            completionMilestones(byName(name)),
+            (m) => m.key === key,
+            (m) => m.owned,
+          );
         // sam holds 1 restored Great Rune + 3 not yet restored at their Divine Towers.
         expect(milestone('sam', 'greatRunes')).toBe(4);
         expect(milestone('sam', 'remembrances')).toBe(6);

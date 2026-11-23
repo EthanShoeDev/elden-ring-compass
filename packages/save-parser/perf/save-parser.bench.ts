@@ -9,21 +9,13 @@
  * Run: `bun run --filter @elden-ring-compass/save-parser-ts bench`
  * (or `vitest bench --project save-parser-perf` from the repo root).
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-
 import { Effect } from 'effect';
 import { describe, test } from 'vitest';
 
 import { parseSave } from '../src/index.ts';
+import { loadFixtureSave } from '../test/fixture-save.ts';
 
-const here = (rel: string) => fileURLToPath(new URL(rel, import.meta.url));
-
-const fixture = readFileSync(here('../test/fixtures/ER0000.sl2'));
-const arrayBuffer = fixture.buffer.slice(
-  fixture.byteOffset,
-  fixture.byteOffset + fixture.byteLength,
-);
+const arrayBuffer = await Effect.runPromise(loadFixtureSave);
 
 describe('parse ER0000.sl2', () => {
   // Vitest 5: `bench` is a test-context fixture; each registration is run explicitly.

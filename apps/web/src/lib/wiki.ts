@@ -15,6 +15,8 @@
  * typographic apostrophes (→ '). All of these — and the item-name rules below —
  * are validated against the live wiki by `scripts/wiki-link-check.ts`.
  */
+import { pipe, String as Str } from 'effect';
+
 export const WIKI_BASE_URL = 'https://eldenring.wiki.fextralife.com';
 
 /** Catalog rows with no wiki page at all (placeholder/cut rows + two unlisted items). */
@@ -76,7 +78,7 @@ const BOSS_WIKI_NAME_OVERRIDES = new Map([
  * Knight (Spear)" — aren't separate wiki pages; the shared enemy/boss page is.
  */
 export function wikiNameForBoss(name: string): string {
-  const base = name.replace(/ \([^)]+\)$/, '');
+  const base = Str.replace(/ \([^)]+\)$/, '')(name);
   return BOSS_WIKI_NAME_OVERRIDES.get(base) ?? base;
 }
 
@@ -102,13 +104,13 @@ export function wikiNameForItem(row: {
   const name =
     row.baseName ??
     ((row.weaponUpgradeLevel ?? 0) > 0
-      ? row.name.replace(/ \+\d+$/, '')
+      ? Str.replace(/ \+\d+$/, '')(row.name)
       : row.name);
   if (NO_WIKI_PAGE.has(name)) return null;
   const override = WIKI_NAME_OVERRIDES.get(name);
   if (override !== undefined) return override;
   // Flask upgrade tiers ("Flask of Crimson Tears +4") share the base flask's page.
-  if (/^Flask of .+ \+\d+$/.test(name)) return name.replace(/ \+\d+$/, '');
+  if (/^Flask of .+ \+\d+$/.test(name)) return Str.replace(/ \+\d+$/, '')(name);
   // Map fragments: base-game "Map: Limgrave, West" is titled "Map (Limgrave, West)".
   const mapRegion = /^Map: (.+)$/.exec(name)?.[1];
   if (mapRegion !== undefined && !DLC_MAP_FRAGMENTS.has(mapRegion))
@@ -117,12 +119,13 @@ export function wikiNameForItem(row: {
 }
 
 export function wikiPageUrl(name: string): string {
-  const page = name
-    .trim()
-    .replaceAll(/[’‘]/g, "'")
-    .replaceAll('"', '')
-    .replaceAll(/\[(\d+)\]/g, '($1)')
-    .replaceAll(/\+(?=\d)/g, '')
-    .replaceAll(/\s+/g, '+');
+  const page = pipe(
+    Str.trim(name),
+    Str.replaceAll(/[’‘]/g, "'"),
+    Str.replaceAll('"', ''),
+    Str.replaceAll(/\[(\d+)\]/g, '($1)'),
+    Str.replaceAll(/\+(?=\d)/g, ''),
+    Str.replaceAll(/\s+/g, '+'),
+  );
   return `${WIKI_BASE_URL}/${encodeURI(page)}`;
 }

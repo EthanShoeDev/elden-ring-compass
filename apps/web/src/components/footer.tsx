@@ -1,6 +1,6 @@
 import { useAtom, useAtomValue } from '@effect/atom-react';
 import { Link } from '@tanstack/react-router';
-import { Data, Effect, Option, Predicate, Schema } from 'effect';
+import { Effect, Option, Predicate, Schema, String as Str } from 'effect';
 import { HttpClient, HttpClientResponse } from 'effect/http';
 import { Atom } from 'effect/reactivity';
 import * as AsyncResult from 'effect/reactivity/AsyncResult';
@@ -98,7 +98,7 @@ export function Footer() {
 const GithubRepo = Schema.Struct({ stargazers_count: Schema.Int });
 
 // REPO_URL = https://github.com/<owner>/<repo>
-const REPO_SLUG = REPO_URL.replace(/^https?:\/\/github\.com\//, '');
+const REPO_SLUG = Str.replace(/^https?:\/\/github\.com\//, '')(REPO_URL);
 
 /**
  * Live GitHub star count for the repo, fetched client-side (unauthenticated, so
@@ -140,55 +140,57 @@ function trimTrailingZeros(uint8Array: Readonly<Uint8Array>) {
   return uint8Array.slice(0, endIndex + 1);
 }
 
-/** JSON.stringify replacer: the save's bigint fields (e.g. Steam ids) serialize as strings. */
+/** JSON replacer: the save's bigint fields (e.g. Steam ids) serialize as strings. */
 const bigintToString = (_key: string, value: unknown): unknown =>
   Predicate.isBigInt(value) ? value.toString() : value;
 
+const encodeSaveSlotJson = Schema.encodeEffect(
+  Schema.fromJsonString(Schema.Unknown, { replacer: bigintToString, space: 2 }),
+);
+
 type SaveSlot = NonNullable<ReturnType<typeof useSelectedSlot>>;
 
-class CopySaveAsJsonError extends Data.TaggedError('CopySaveAsJsonError')<{
-  readonly message: string;
-  readonly cause: unknown;
-}> {}
+class CopySaveAsJsonError extends Schema.TaggedError<
+  CopySaveAsJsonError,
+  { readonly brand: unique symbol }
+>()('CopySaveAsJsonError', {
+  message: Schema.String,
+  cause: Schema.Defect(),
+}) {}
 
 /** The selected slot's view-models, in the shape the "Copy Save as JSON" button exports. */
-const saveSlotJson = (slot: SaveSlot) =>
-  JSON.stringify(
-    {
-      stats: statsDbView(slot),
-      regions: regionsDbView(slot)[0],
-      events: {
-        known_events: eventsDbView(slot),
-        event_buffer: uint8ArrayToBase64(
-          trimTrailingZeros(slot.event_flags.flags),
-        ),
-      },
-      inventory: inventoryDbView(slot).items,
-      equipment: equipmentDbView(slot),
-    },
-    bigintToString,
-    2,
-  );
+const saveSlotJson = (slot: SaveSlot) => ({
+  stats: statsDbView(slot),
+  regions: regionsDbView(slot)[0],
+  events: {
+    known_events: eventsDbView(slot),
+    event_buffer: uint8ArrayToBase64(trimTrailingZeros(slot.event_flags.flags)),
+  },
+  inventory: inventoryDbView(slot).items,
+  equipment: equipmentDbView(slot),
+});
 
 /**
  * Mutation: serialize the slot and write it to the clipboard. Its AsyncResult is the
  * button's whole state — `waiting` while running, the typed failure, or success (✔
  * until the next copy).
  */
+const serializeError = (cause: unknown) =>
+  CopySaveAsJsonError.make({ message: 'Could not serialize the save', cause });
+
 const copySaveAsJsonAtom = appRuntime.fn((slot: SaveSlot) =>
   Effect.gen(function* () {
-    const json = yield* Effect.try({
+    const value = yield* Effect.try({
       try: () => saveSlotJson(slot),
-      catch: (cause) =>
-        new CopySaveAsJsonError({
-          message: 'Could not serialize the save',
-          cause,
-        }),
+      catch: serializeError,
     });
+    const json = yield* encodeSaveSlotJson(value).pipe(
+      Effect.mapError(serializeError),
+    );
     yield* Effect.tryPromise({
       try: () => navigator.clipboard.writeText(json),
       catch: (cause) =>
-        new CopySaveAsJsonError({
+        CopySaveAsJsonError.make({
           message: 'Could not write to the clipboard',
           cause,
         }),
@@ -199,7 +201,7 @@ const copySaveAsJsonAtom = appRuntime.fn((slot: SaveSlot) =>
 function CopySaveAsJsonButton() {
   const slot = useSelectedSlot();
   const [result, copy] = useAtom(copySaveAsJsonAtom);
-  const error = Option.getOrUndefined(AsyncResult.error(result));
+  const error = result.pipe(AsyncResult.error, Option.getOrUndefined);
 
   return (
     <Button

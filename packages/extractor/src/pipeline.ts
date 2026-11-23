@@ -1,4 +1,11 @@
-import { Effect } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  Order,
+  pipe,
+  Record as Rec,
+  String as Str,
+} from 'effect';
 
 import { PipelineContext } from './domain/context.ts';
 import { loadGameVersion } from './game/game-version.ts';
@@ -13,6 +20,8 @@ import { markers } from './stages/markers.ts';
 import { params } from './stages/params.ts';
 import { text } from './stages/text.ts';
 import { unpack } from './stages/unpack.ts';
+
+const byLocale: Order.Order<string> = (a, b) => Str.localeCompare(b)(a);
 
 /**
  * The end-to-end extraction pipeline (plan §6). Stages are `Effect`s that pull
@@ -71,7 +80,10 @@ export const runPipeline = Effect.gen(function* () {
     treasures,
     ctx.gameRoot,
   ).pipe(Effect.annotateLogs('stage', '7-placements'));
-  const enemyCount = placementRows.filter((p) => p.source === 'enemy').length;
+  const enemyCount = Arr.filter(
+    placementRows,
+    (p) => p.source === 'enemy',
+  ).length;
   yield* Effect.logInfo(
     `placements — ${placementRows.length} item drops (enemy:${enemyCount} map:${placementRows.length - enemyCount})`,
   ).pipe(Effect.annotateLogs('stage', '7-placements'));
@@ -79,15 +91,21 @@ export const runPipeline = Effect.gen(function* () {
   const legacyConv = yield* loadLegacyConv(paramFiles).pipe(
     Effect.annotateLogs('stage', '7-legacy-conv'),
   );
-  const convDungeons = new Set(legacyConv.map((c) => c.srcMapId)).size;
-  const byMaster = legacyConv.reduce<Record<string, number>>((acc, c) => {
-    acc[c.master] = (acc[c.master] ?? 0) + 1;
-    return acc;
-  }, {});
-  const masterCounts = Object.entries(byMaster)
-    .toSorted(([a], [b]) => a.localeCompare(b))
-    .map(([m, n]) => `${m}:${n}`)
-    .join(' ');
+  const convDungeons = new Set(Arr.map(legacyConv, (c) => c.srcMapId)).size;
+  const byMaster = Arr.reduce(
+    legacyConv,
+    Rec.empty<string, number>(),
+    (acc, c) => {
+      acc[c.master] = (acc[c.master] ?? 0) + 1;
+      return acc;
+    },
+  );
+  const masterCounts = pipe(
+    Rec.toEntries(byMaster),
+    Arr.sortWith(([m]) => m, byLocale),
+    Arr.map(([m, n]) => `${m}:${n}`),
+    Arr.join(' '),
+  );
   yield* Effect.logInfo(
     `legacy-conv — ${legacyConv.length} base points across ${convDungeons} dungeons (${masterCounts})`,
   ).pipe(Effect.annotateLogs('stage', '7-legacy-conv'));

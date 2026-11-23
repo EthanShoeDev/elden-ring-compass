@@ -1,7 +1,7 @@
 import { it } from '@effect/vitest';
 import { parseSave as parseSaveTs } from '@elden-ring-compass/save-parser-ts';
 import SAVE_URL from '@elden-ring-compass/save-parser-ts/fixtures/ER0000.sl2?url';
-import { Effect } from 'effect';
+import { Array as Arr, Effect, Order } from 'effect';
 import { FetchHttpClient, HttpClient } from 'effect/http';
 import { expect } from 'vitest';
 
@@ -24,7 +24,7 @@ const PARSE_DIRECT_MS = 3000;
 const PARSE_HEAP_MB = 300;
 
 const median = (xs: readonly number[]): number =>
-  [...xs].toSorted((a, b) => a - b)[Math.floor(xs.length / 2)] ?? 0;
+  Arr.sort(xs, Order.Number)[Math.floor(xs.length / 2)] ?? 0;
 
 const loadSaveBuffer = HttpClient.get(SAVE_URL).pipe(
   Effect.flatMap((r) => r.arrayBuffer),

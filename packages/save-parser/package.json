@@ -23,6 +23,7 @@
     "effect": "catalog:"
   },
   "devDependencies": {
+    "@effect/platform-node": "catalog:",
     "@types/node": "catalog:",
     "shoemaker-typescript-config": "catalog:",
     "vitest": "catalog:"

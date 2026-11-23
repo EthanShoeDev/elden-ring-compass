@@ -1,5 +1,12 @@
 import { eventFlagOffset } from '@elden-ring-compass/data';
-import { Effect, Schema } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  Order,
+  pipe,
+  Schema,
+  String as Str,
+} from 'effect';
 import LZString from 'lz-string';
 
 import type { Slot } from '@/lib/save-dto';
@@ -19,10 +26,12 @@ const ShareableProgressionJson = Schema.fromJsonString(
 function bytesToBase64Url(bytes: Uint8Array): string {
   let binary = '';
   for (const byte of bytes) binary += String.fromCodePoint(byte);
-  return btoa(binary)
-    .replaceAll('+', '-')
-    .replaceAll('/', '_')
-    .replaceAll('=', '');
+  return pipe(
+    btoa(binary),
+    Str.replaceAll('+', '-'),
+    Str.replaceAll('/', '_'),
+    Str.replaceAll('=', ''),
+  );
 }
 
 const gzip = Effect.fn('gzip')(function* (bytes: Uint8Array) {
@@ -70,7 +79,7 @@ function isEventFlagSet(flags: Uint8Array, id: number): boolean {
 
 function deltaEncode(sortedIds: number[]): number[] {
   let previous = 0;
-  return sortedIds.map((id) => {
+  return Arr.map(sortedIds, (id) => {
     const delta = id - previous;
     previous = id;
     return delta;
@@ -78,14 +87,15 @@ function deltaEncode(sortedIds: number[]): number[] {
 }
 
 const invItems = (items: Slot['equip_inventory_data']['common_items']) =>
-  items.map(
+  Arr.map(
+    items,
     (item) =>
       [item.ga_item_handle, item.quantity, item.inventory_index] as const,
   );
 
 export function slotToShareableProgression(slot: Slot): ShareableProgression {
   const p = slot.player_game_data;
-  const eventIds = SHAREABLE_EVENT_IDS.filter((id) =>
+  const eventIds = Arr.filter(SHAREABLE_EVENT_IDS, (id) =>
     isEventFlagSet(slot.event_flags.flags, id),
   );
 
@@ -136,7 +146,7 @@ export function slotToShareableProgression(slot: Slot): ShareableProgression {
     g: p.gender,
     at: p.arche_type,
     wl: p.match_making_wpn_lvl,
-    ef: deltaEncode(eventIds.toSorted((a, b) => a - b)),
+    ef: deltaEncode(Arr.sort(eventIds, Order.Number)),
     ur: slot.regions.unlocked_regions,
     mid: slot.map_id,
     pc: {
@@ -144,7 +154,7 @@ export function slotToShareableProgression(slot: Slot): ShareableProgression {
       m: slot.player_coords.map_id,
       a: slot.player_coords.angle,
     },
-    ga: slot.ga_items.map((item) => [
+    ga: Arr.map(slot.ga_items, (item) => [
       item.gaitem_handle,
       item.item_id,
       item.gem_gaitem_handle,
@@ -178,15 +188,15 @@ export function slotToShareableProgression(slot: Slot): ShareableProgression {
       k: invItems(slot.storage_inventory_data.key_items),
     },
     eq: {
-      q: slot.equip_item_data.quick_slot_items.map((item) => item.item_id),
-      p: slot.equip_item_data.pouch_items.map((item) => item.item_id),
+      q: Arr.map(slot.equip_item_data.quick_slot_items, (item) => item.item_id),
+      p: Arr.map(slot.equip_item_data.pouch_items, (item) => item.item_id),
     },
     esp: slot.equipped_spells,
     eg: slot.equipped_gestures,
     ges: slot.gestures,
     eph: slot.equipped_physics,
     ap: slot.acquired_projectiles,
-    se: slot.sp_effects.map((effect) => [
+    se: Arr.map(slot.sp_effects, (effect) => [
       effect.sp_effect_id,
       effect.remaining_time,
     ]),

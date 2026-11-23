@@ -1,4 +1,4 @@
-import { Data, Effect } from 'effect';
+import { Array as Arr, Effect, Schema } from 'effect';
 
 import { BinaryReader, reverseBits } from './binary-reader.ts';
 
@@ -14,9 +14,10 @@ import { BinaryReader, reverseBits } from './binary-reader.ts';
  * read from it instead of the header buffer.
  */
 
-export class Bnd4Error extends Data.TaggedError('Bnd4Error')<{
-  readonly detail: string;
-}> {}
+export class Bnd4Error extends Schema.TaggedError<
+  Bnd4Error,
+  { readonly brand: unique symbol }
+>()('Bnd4Error', { detail: Schema.String }) {}
 
 export interface Bnd4Entry {
   readonly id: number;
@@ -117,7 +118,7 @@ export const parseBnd4Headers = (
 ): Effect.Effect<Bnd4Header[], Bnd4Error> =>
   Effect.try({
     try: () => readHeaders(data),
-    catch: (cause) => new Bnd4Error({ detail: String(cause) }),
+    catch: (cause) => Bnd4Error.make({ detail: String(cause) }),
   });
 
 export const parseBnd4 = (
@@ -128,11 +129,11 @@ export const parseBnd4 = (
     try: () => {
       // Split binder (BHF4): entry bytes live in the companion BDF4 data file.
       const src = dataBuf ?? data;
-      return readHeaders(data).map((h) => ({
+      return Arr.map(readHeaders(data), (h) => ({
         id: h.id,
         name: h.name,
         bytes: src.subarray(h.dataOffset, h.dataOffset + h.size),
       }));
     },
-    catch: (cause) => new Bnd4Error({ detail: String(cause) }),
+    catch: (cause) => Bnd4Error.make({ detail: String(cause) }),
   });

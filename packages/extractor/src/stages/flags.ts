@@ -1,4 +1,4 @@
-import { Effect } from 'effect';
+import { Array as Arr, Effect, Option, Predicate } from 'effect';
 
 import { PipelineContext } from '../domain/context.ts';
 import { findOodleDll } from '../external/oodle.ts';
@@ -25,28 +25,38 @@ export const flags = (params: Map<string, Uint8Array>) =>
     const oo2core = yield* findOodleDll(ctx.gameRoot);
 
     const graces = yield* loadGraces(params, ctx.gameRoot, oo2core);
-    const dlcGraces = graces.filter((g) => g.areaNo === 61).length;
-    const regions = new Set(graces.map((g) => g.region).filter(Boolean)).size;
+    const dlcGraces = Arr.filter(graces, (g) => g.areaNo === 61).length;
+    const regions = new Set(
+      Arr.filter(
+        Arr.map(graces, (g) => g.region),
+        Predicate.isTruthy,
+      ),
+    ).size;
     yield* Effect.logInfo(
       `graces — ${graces.length} (DLC overworld: ${dlcGraces}) across ${regions} regions`,
     );
-    const first = graces.find((g) => g.flagId === 76101);
-    if (first)
+    const first = Arr.findFirst(graces, (g) => g.flagId === 76101);
+    if (Option.isSome(first))
       yield* Effect.logInfo(
-        `grace sample — flag ${first.flagId} = "${first.name}" [${first.region}]`,
+        `grace sample — flag ${first.value.flagId} = "${first.value.name}" [${first.value.region}]`,
       );
 
     const bosses = yield* loadBosses(params, ctx.gameRoot, oo2core);
-    const named = bosses.filter((b) => b.name !== null && b.name !== '').length;
+    const named = Arr.filter(
+      bosses,
+      (b) => b.name !== null && b.name !== '',
+    ).length;
     yield* Effect.logInfo(
       `boss defeat flags — ${bosses.length} arenas (GameAreaParam), ${named} named via EMEVD`,
     );
     // DLC proof: Messmer's defeat flag + name resolve from the event scripts.
-    const messmer = bosses.find((b) => b.defeatFlagId === 21010800);
+    const messmer = Arr.findFirst(bosses, (b) => b.defeatFlagId === 21010800);
     yield* Effect.logInfo(
-      messmer
-        ? `DLC boss sample — flag ${messmer.defeatFlagId} "${messmer.name ?? '(unnamed)'}" @ ${messmer.mapId}`
-        : 'Messmer defeat flag not found',
+      Option.match(messmer, {
+        onNone: () => 'Messmer defeat flag not found',
+        onSome: (m) =>
+          `DLC boss sample — flag ${m.defeatFlagId} "${m.name ?? '(unnamed)'}" @ ${m.mapId}`,
+      }),
     );
 
     const { regions: playRegions, matchmakingRegionIds } = yield* loadRegions(
@@ -54,15 +64,17 @@ export const flags = (params: Map<string, Uint8Array>) =>
       graces,
       bosses,
     );
-    const openWorld = playRegions.filter((r) => r.isOpenWorld).length;
+    const openWorld = Arr.filter(playRegions, (r) => r.isOpenWorld).length;
+    const interior = Arr.filter(playRegions, (r) => r.isDungeon).length;
     yield* Effect.logInfo(
       `regions — ${playRegions.length} placed (${openWorld} open-world, ` +
-        `${playRegions.filter((r) => r.isDungeon).length} interior); ` +
+        `${interior} interior); ` +
         `${matchmakingRegionIds.length} matchmaking siblings (areaNo=0) ignored`,
     );
 
     const mapFragments = yield* loadMapFragments(params, ctx.gameRoot, oo2core);
-    const namedFragments = mapFragments.filter(
+    const namedFragments = Arr.filter(
+      mapFragments,
       (m) => m.name !== null && m.name !== '',
     ).length;
     yield* Effect.logInfo(

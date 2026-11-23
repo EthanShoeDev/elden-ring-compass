@@ -1,7 +1,7 @@
 import { useAtomSet, useAtomValue } from '@effect/atom-react';
 import { itemIconUrl } from '@elden-ring-compass/data/images';
 import { ClientOnly, useNavigate } from '@tanstack/react-router';
-import { Effect, Exit, Match } from 'effect';
+import { Array as Arr, Effect, Exit, Match } from 'effect';
 import {
   CheckIcon,
   ChevronsUpDownIcon,
@@ -517,8 +517,7 @@ export function SlotSwitcher() {
                   Save slots
                 </DropdownMenuLabel>
                 {/* Keyed/valued by slot index — character names can repeat (#10). */}
-                {data.slots.map((s, i) => (
-                  // oxlint-disable-next-line react/no-array-index-key -- the slot index is the slot's identity; names can repeat (#10)
+                {Arr.map(data.slots, (s, i) => (
                   <DropdownMenuRadioItem key={i} value={i}>
                     <span className='flex min-w-0 flex-1 items-center justify-between gap-2'>
                       <span className='truncate'>

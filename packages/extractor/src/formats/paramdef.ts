@@ -1,5 +1,5 @@
 import { paramdexDefsUrl } from '@elden-ring-compass/vendored-data';
-import { Data, Effect, FileSystem, Path } from 'effect';
+import { Effect, FileSystem, Path, Schema, String as Str } from 'effect';
 
 /**
  * PARAMDEF — the field layout for a PARAM, used to decode row bytes into named
@@ -9,9 +9,10 @@ import { Data, Effect, FileSystem, Path } from 'effect';
  * `PARAM.Row.ReadCells` / `ParamUtil`.
  */
 
-export class ParamdefError extends Data.TaggedError('ParamdefError')<{
-  readonly detail: string;
-}> {}
+export class ParamdefError extends Schema.TaggedError<
+  ParamdefError,
+  { readonly brand: unique symbol }
+>()('ParamdefError', { detail: Schema.String }) {}
 
 export type DefType =
   | 's8'
@@ -65,27 +66,34 @@ export const parseParamdefXml = (
   xml: string,
 ): Effect.Effect<Paramdef, ParamdefError> =>
   Effect.gen(function* () {
-    const paramType = /<ParamType>([^<]+)<\/ParamType>/.exec(xml)?.[1]?.trim();
-    if (paramType === undefined || paramType === '') {
-      return yield* new ParamdefError({ detail: 'no <ParamType> in def XML' });
+    const paramType = Str.trim(
+      /<ParamType>([^<]+)<\/ParamType>/.exec(xml)?.[1] ?? '',
+    );
+    if (paramType === '') {
+      return yield* ParamdefError.make({ detail: 'no <ParamType> in def XML' });
     }
     const dataVersion = Number(
       /<DataVersion>(\d+)<\/DataVersion>/.exec(xml)?.[1] ?? -1,
     );
     const fields: ParamdefField[] = [];
     // Each field is "<Field Def=\"...\" ...>"; the Def attribute carries the layout.
-    for (const m of xml.matchAll(/<Field\s+Def="([^"]+)"/g)) {
-      const def = m[1]?.trim();
-      if (def === undefined) continue;
+    for (const m of Str.matchAll(/<Field\s+Def="([^"]+)"/g)(xml)) {
+      const group = m[1];
+      if (group === undefined) continue;
+      const def = Str.trim(group);
       const parsed = DEF_RE.exec(def);
       if (!parsed)
-        return yield* new ParamdefError({ detail: `unparseable Def "${def}"` });
+        return yield* ParamdefError.make({
+          detail: `unparseable Def "${def}"`,
+        });
       const [, type, name, arr, bits] = parsed;
       if (type === undefined || name === undefined) {
-        return yield* new ParamdefError({ detail: `unparseable Def "${def}"` });
+        return yield* ParamdefError.make({
+          detail: `unparseable Def "${def}"`,
+        });
       }
       if (!DEF_TYPES.has(type)) {
-        return yield* new ParamdefError({
+        return yield* ParamdefError.make({
           detail: `unknown field type "${type}" in "${def}"`,
         });
       }
@@ -116,11 +124,10 @@ export const loadParamdef = (
     const url = new URL(`${defName}.xml`, paramdexDefsUrl);
     const xml = yield* path.fromFileUrl(url).pipe(
       Effect.flatMap((filePath) => fs.readFileString(filePath)),
-      Effect.mapError(
-        (cause) =>
-          new ParamdefError({
-            detail: `reading def ${paramType}: ${String(cause)}`,
-          }),
+      Effect.mapError((cause) =>
+        ParamdefError.make({
+          detail: `reading def ${paramType}: ${String(cause)}`,
+        }),
       ),
     );
     return yield* parseParamdefXml(xml);

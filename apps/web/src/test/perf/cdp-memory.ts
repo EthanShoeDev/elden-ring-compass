@@ -1,4 +1,4 @@
-import { Effect } from 'effect';
+import { Array as Arr, Effect, Option } from 'effect';
 import { cdp } from 'vitest/browser';
 
 // Vitest types its `cdp()` return as an empty `interface CDPSession {}`, but at runtime it IS the
@@ -39,7 +39,8 @@ export const forceGcHeapUsedBytes: Effect.Effect<number> = Effect.gen(
     const { metrics } = yield* Effect.promise(() =>
       session.send('Performance.getMetrics'),
     );
-    return metrics.find((m) => m.name === 'JSHeapUsedSize')?.value ?? 0;
+    const heapUsed = Arr.findFirst(metrics, (m) => m.name === 'JSHeapUsedSize');
+    return Option.getOrUndefined(heapUsed)?.value ?? 0;
   },
 );
 

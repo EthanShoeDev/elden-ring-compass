@@ -1,4 +1,15 @@
-import { Effect, FileSystem, Path, Predicate } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  FileSystem,
+  Option,
+  Order,
+  Path,
+  pipe,
+  Predicate,
+  Record as Rec,
+  String as Str,
+} from 'effect';
 
 import {
   decodeRow,
@@ -342,8 +353,12 @@ const findOffsetIndices = (
   maxima: readonly number[],
   inc = 1,
 ): number[] => {
-  const max =
-    [...maxima].toSorted((a, b) => b - a).find((m) => has(base + m * inc)) ?? 0;
+  const max = Option.getOrElse(
+    Arr.findFirst(Arr.sort(maxima, Order.flip(Order.Number)), (m) =>
+      has(base + m * inc),
+    ),
+    () => 0,
+  );
   const out: number[] = [];
   for (let i = 0; i <= max; i++)
     if (has(base + i * inc)) out.push(base + i * inc);
@@ -419,7 +434,7 @@ const rarityLabel = (r: number): string =>
   r >= 3 ? 'Legendary' : r === 2 ? 'Rare' : 'Common';
 
 const splitDescription = (text?: string): string[] =>
-  text !== undefined && text.length > 0 ? text.split('\n') : [];
+  text !== undefined && text.length > 0 ? Str.split(text, '\n') : [];
 
 /**
  * Fields every item category shares, sourced identically: summary/description
@@ -469,11 +484,11 @@ const decodeCategory = <T>(
           ` — decoded stats may be wrong; refresh Paramdex (bun run update-paramdex)`,
       );
     }
-    const rowsById = new Map(param.rows.map((r) => [r.id, r]));
+    const rowsById = new Map(Arr.map(param.rows, (r) => [r.id, r] as const));
     const out: T[] = [];
     for (const [id, name] of nameTable) {
       const row = rowsById.get(id);
-      if (!row || name.trim().length === 0 || name === '[ERROR]') continue;
+      if (!row || Str.trim(name).length === 0 || name === '[ERROR]') continue;
       out.push(
         build(id, name, decodeRow(bytes, row.dataOffset, def, param.little)),
       );
@@ -520,7 +535,9 @@ export const join = (
     if (spBytes) {
       const sp = yield* parseParam(spBytes);
       const spDef = yield* loadParamdef('SpEffectParam'); // → SpEffect.xml (aliased)
-      const spOffsets = new Map(sp.rows.map((r) => [r.id, r.dataOffset]));
+      const spOffsets = new Map(
+        Arr.map(sp.rows, (r) => [r.id, r.dataOffset] as const),
+      );
       const spCache = new Map<number, ItemEffect[]>();
       resolveEffects = (id) => {
         if (id < 0) return [];
@@ -562,7 +579,7 @@ export const join = (
             ? 'Somber Smithing Stone'
             : '';
       const basePrice = num(f, 'reinforcePrice');
-      const upgradeCosts = chain.slice(1).map((i) => {
+      const upgradeCosts = Arr.map(chain.slice(1), (i) => {
         const rr = reinforceRows.get(i);
         return rr ? Math.round(basePrice * num(rr, 'reinforcePriceRate')) : 0;
       });
@@ -638,7 +655,7 @@ export const join = (
           calcCorrectIds[dt] = graphId;
       }
       // No damage = not an armament we can rate (e.g. some shields/torches).
-      if (Object.keys(baseAttack).length === 0) return null;
+      if (Rec.isEmptyRecord<string, number>(baseAttack)) return null;
 
       const scaling: Partial<Record<ScalingAttr, number>> = {};
       for (const [attr, correctField] of SCALING_FIELDS) {
@@ -673,37 +690,39 @@ export const join = (
       };
     };
 
-    const weaponScaling = (yield* decodeCategory(
+    const weaponScalingAll = yield* decodeCategory(
       paramFiles,
       'EquipParamWeapon',
       names.WeaponName,
       buildScaling,
-    )).filter((x): x is WeaponScalingRecord => x !== null);
+    );
+    const weaponScaling = Arr.filter(weaponScalingAll, Predicate.isNotNull);
 
     // Reinforce types: rows reinforceTypeId+0 .. +N (consecutive) → per-level rates.
-    const reinforceTypes: ReinforceTypeRecord[] = [...usedReinforce]
-      .toSorted((a, b) => a - b)
-      .map((baseId) => {
+    const reinforceTypes: ReinforceTypeRecord[] = Arr.map(
+      Arr.sort(usedReinforce, Order.Number),
+      (baseId) => {
         const levels: ReinforceLevel[] = [];
         for (let lvl = 0; reinforceRows.has(baseId + lvl); lvl++) {
           const rr = reinforceRows.get(baseId + lvl);
           if (!rr) break;
           levels.push({
-            attack: REINFORCE_ATTACK_RATES.map((k) => num(rr, k)),
-            scaling: SCALING_FIELDS.map((field) => num(rr, field[2])),
+            attack: Arr.map(REINFORCE_ATTACK_RATES, (k) => num(rr, k)),
+            scaling: Arr.map(SCALING_FIELDS, (field) => num(rr, field[2])),
           });
         }
         return { id: baseId, levels };
-      });
+      },
+    );
 
     // AttackElementCorrectParam: which attributes correct which damage type.
     const aecRows = yield* decodeParamMap(
       paramFiles,
       'AttackElementCorrectParam',
     );
-    const attackElementCorrects: AttackElementCorrectRecord[] = [...usedAec]
-      .toSorted((a, b) => a - b)
-      .map((id) => {
+    const attackElementCorrects: AttackElementCorrectRecord[] = Arr.map(
+      Arr.sort(usedAec, Order.Number),
+      (id) => {
         const row = aecRows.get(id);
         const correct: Partial<
           Record<DamageType, Partial<Record<ScalingAttr, number | true>>>
@@ -720,29 +739,33 @@ export const join = (
               );
               entry[attr] = overwrite === -1 ? true : overwrite / 100;
             }
-            if (Object.keys(entry).length > 0) correct[dt] = entry;
+            if (!Rec.isEmptyRecord<string, number | true>(entry))
+              correct[dt] = entry;
           }
         }
         return { id, correct };
-      });
+      },
+    );
 
     // CalcCorrectGraph: the stat→growth saturation curves (5 stages each).
     const calcCorrectRows = yield* decodeParamMap(
       paramFiles,
       'CalcCorrectGraph',
     );
-    const calcCorrectGraphs: CalcCorrectGraphRecord[] = [...usedGraphs]
-      .toSorted((a, b) => a - b)
-      .flatMap((id) => {
+    const graphIds = Arr.sort(usedGraphs, Order.Number);
+    const calcCorrectGraphs: CalcCorrectGraphRecord[] = Arr.flatMap(
+      graphIds,
+      (id) => {
         const row = calcCorrectRows.get(id);
         if (!row) return [];
-        const stages: CalcCorrectStage[] = [0, 1, 2, 3, 4].map((i) => ({
+        const stages: CalcCorrectStage[] = Arr.map([0, 1, 2, 3, 4], (i) => ({
           maxVal: num(row, `stageMaxVal${i}`),
           maxGrowVal: num(row, `stageMaxGrowVal${i}`) / 100,
           adjPt: num(row, `adjPt_maxGrowVal${i}`),
         }));
         return [{ id, stages }];
-      });
+      },
+    );
 
     // Negation % = (1 - cutRate) * 100, rounded to 1 dp (the game's display).
     const neg = (f: Row, key: string) =>
@@ -809,10 +832,12 @@ export const join = (
       arr.push(t.name);
       talismanGroups.set(t.accessoryGroup, arr);
     }
-    const talismans: TalismanRecord[] = talismansRaw.map(
+    const talismans: TalismanRecord[] = Arr.map(
+      talismansRaw,
       ({ accessoryGroup, ...t }) => ({
         ...t,
-        conflicts: (talismanGroups.get(accessoryGroup) ?? []).filter(
+        conflicts: Arr.filter(
+          talismanGroups.get(accessoryGroup) ?? [],
           (n) => n !== t.name,
         ),
       }),
@@ -845,19 +870,25 @@ export const join = (
         id,
         name,
         ...coreFields(f, id, names.GemInfo, names.GemCaption),
-        armamentCategories: GEM_MOUNT_CATEGORIES.filter(
-          ([suffix]) => num(f, `canMountWep_${suffix}`) === 1,
-        ).map(([, display]) => display),
+        armamentCategories: Arr.map(
+          Arr.filter(
+            GEM_MOUNT_CATEGORIES,
+            ([suffix]) => num(f, `canMountWep_${suffix}`) === 1,
+          ),
+          ([, display]) => display,
+        ),
         defaultAffinity: AFFINITIES[num(f, 'defaultWepAttr')] ?? 'Standard',
-        possibleAffinities: AFFINITIES.filter(
+        possibleAffinities: Arr.filter(
+          AFFINITIES,
           (_, i) =>
-            num(f, `configurableWepAttr${String(i).padStart(2, '0')}`) === 1,
+            num(f, `configurableWepAttr${Str.padStart(2, '0')(String(i))}`) ===
+            1,
         ),
         skillId: num(f, 'swordArtsParamId'),
       }),
     );
     // erdb filters EquipParamGem to id ≥ 10000 (below are test/placeholder gems).
-    const ashesOfWar = ashesOfWarAll.filter((a) => a.id >= 10000);
+    const ashesOfWar = Arr.filter(ashesOfWarAll, (a) => a.id >= 10000);
 
     // Spells: EquipParamGoods sorcery/incantation rows ⨝ the Magic param for stats.
     const SPELL_GOODS_TYPES = new Set([5, 16, 17, 18]); // sorcery×2, incantation×2
@@ -866,7 +897,7 @@ export const join = (
     const mtrlRows = yield* decodeParamMap(paramFiles, 'EquipMtrlSetParam');
     const spells: SpellRecord[] = [];
     for (const [id, name] of names.GoodsName) {
-      if (name.trim().length === 0 || name === '[ERROR]') continue;
+      if (Str.trim(name).length === 0 || name === '[ERROR]') continue;
       const g = goodsRows.get(id);
       const m = magicRows.get(id);
       if (!g || !m || !SPELL_GOODS_TYPES.has(num(g, 'goodsType'))) continue;
@@ -892,15 +923,17 @@ export const join = (
     const SPIRIT_GOODS_TYPES = new Set([7, 8]); // lesser / greater
     const spiritAshes: SpiritAshRecord[] = [];
     for (const [id, name] of names.GoodsName) {
-      if (name.trim().length === 0 || name === '[ERROR]') continue;
+      if (Str.trim(name).length === 0 || name === '[ERROR]') continue;
       if (id % 100 !== 0) continue; // base item only (upgrades are +1..+10)
       const g = goodsRows.get(id);
       if (!g || !SPIRIT_GOODS_TYPES.has(num(g, 'goodsType'))) continue;
       const mtrl = mtrlRows.get(num(g, 'reinforceMaterialId'));
       const upgradeMaterial = mtrl
-        ? (names.GoodsName.get(num(mtrl, 'materialId01')) ?? '')
-            .replace(/\s*\[\d+\]\s*$/, '')
-            .trim()
+        ? pipe(
+            names.GoodsName.get(num(mtrl, 'materialId01')) ?? '',
+            Str.replace(/\s*\[\d+\]\s*$/, ''),
+            Str.trim,
+          )
         : '';
       const hp = num(g, 'consumeHP');
       const chain = findOffsetIndices(id, (i) => goodsRows.has(i), [9]);
@@ -908,11 +941,11 @@ export const join = (
         id,
         name,
         ...coreFields(g, id, names.GoodsInfo, names.GoodsCaption),
-        summonName: (names.GoodsInfo2.get(id) ?? '').trim(),
+        summonName: Str.trim(names.GoodsInfo2.get(id) ?? ''),
         fpCost: num(g, 'consumeMP'),
         hpCost: Math.max(0, hp),
         upgradeMaterial,
-        upgradeCosts: chain.slice(1).flatMap((i) => {
+        upgradeCosts: Arr.flatMap(chain.slice(1), (i) => {
           const row = goodsRows.get(i);
           return row === undefined ? [] : [num(row, 'reinforcePrice')];
         }),
@@ -929,10 +962,12 @@ export const join = (
     for (const g of goods)
       byCat.set(g.category, (byCat.get(g.category) ?? 0) + 1);
     yield* Effect.logInfo(
-      `goods categories: ${[...byCat.entries()]
-        .toSorted((a, b) => b[1] - a[1])
-        .map(([c, n]) => `${c}=${n}`)
-        .join(' ')}`,
+      `goods categories: ${pipe(
+        byCat.entries(),
+        Arr.sortWith(([, n]) => n, Order.flip(Order.Number)),
+        Arr.map(([c, n]) => `${c}=${n}`),
+        Arr.join(' '),
+      )}`,
     );
     return {
       weapons,

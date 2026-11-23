@@ -1,4 +1,5 @@
 import { GOODS } from '@elden-ring-compass/data';
+import { Array as Arr } from 'effect';
 
 import type { Slot } from '@/lib/save-dto';
 
@@ -13,7 +14,7 @@ const CRIMSON_BASE_ID = 1000;
 const CERULEAN_BASE_ID = 1050;
 const MAX_FLASK_LEVEL = 12;
 
-const goodsById = new Map(GOODS.map((g) => [g.id, g]));
+const goodsById = new Map(Arr.map(GOODS, (g) => [g.id, g]));
 
 export type FlaskInfo = {
   /** The filled flask's goods row at the held upgrade level (name carries the `+N`). */
@@ -46,9 +47,13 @@ function flaskInfo(
  * Mixed tears stay in the inventory, so this is extra detail, not ownership.
  */
 export function mixedPhysickTearIds(slot: Readonly<Slot>): number[] {
-  return slot.equipped_physics
-    .filter((v) => (v & 0xf0000000) >>> 0 === 0x40000000)
-    .map((v) => (v & 0x0fffffff) >>> 0);
+  return Arr.map(
+    Arr.filter(
+      slot.equipped_physics,
+      (v) => (v & 0xf0000000) >>> 0 === 0x40000000,
+    ),
+    (v) => (v & 0x0fffffff) >>> 0,
+  );
 }
 
 /** Crimson/Cerulean flask upgrade levels and charge allocation for a save slot. */

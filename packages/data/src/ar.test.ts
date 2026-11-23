@@ -1,3 +1,4 @@
+import { Array as Arr, Option, Record as Rec } from 'effect';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -21,9 +22,9 @@ const EMPTY_LEVEL: ReinforceLevel = { attack: [], scaling: [] };
 // Sparse level array — only the upgrade levels the tests exercise are populated;
 // the rest are harmless empties (compute is never called on them).
 const levels = (entries: Record<number, ReinforceLevel>): ReinforceLevel[] => {
-  const max = Math.max(...Object.keys(entries).map(Number));
+  const max = Math.max(...Arr.map(Rec.keys(entries), Number));
   const arr = Array.from({ length: max + 1 }, () => EMPTY_LEVEL);
-  for (const [i, v] of Object.entries(entries)) arr[Number(i)] = v;
+  for (const [i, v] of Rec.toEntries(entries)) arr[Number(i)] = v;
   return arr;
 };
 
@@ -171,7 +172,9 @@ describe('AR calculator', () => {
   });
 
   it('evaluateCalcCorrectGraph is monotonic with a soft-cap bend', () => {
-    const graph = tables.calcCorrectGraphs.find((g) => g.id === 0);
+    const graph = Option.getOrUndefined(
+      Arr.findFirst(tables.calcCorrectGraphs, (g) => g.id === 0),
+    );
     expect(graph).toBeDefined();
     const curve = evaluateCalcCorrectGraph(graph?.stages ?? []);
     const at = (v: number) => curve[v] ?? 0;

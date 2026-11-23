@@ -1,3 +1,5 @@
+import { Array as Arr } from 'effect';
+
 import { useDataTableData } from '@/lib/data-table-data';
 import type { regionsDbView } from '@/lib/vm/regions';
 
@@ -18,7 +20,7 @@ type Region = ReturnType<typeof regionsDbView>[0];
 export function RegionsDataTable() {
   const items = useDataTableData('regions');
 
-  const ownedCount = items.filter((item) => item.found).length;
+  const ownedCount = Arr.filter(items, (item) => item.found).length;
   return (
     <Card className='w-full'>
       <CardHeader>

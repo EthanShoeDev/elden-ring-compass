@@ -1,6 +1,6 @@
 import { dlopen, FFIType, ptr, toArrayBuffer } from 'bun:ffi';
 
-import { Data, Effect } from 'effect';
+import { Effect, Schema } from 'effect';
 
 /**
  * BCn DDS → PNG via the `er-image-codec` Rust cdylib (bun:ffi, same pattern as
@@ -9,9 +9,10 @@ import { Data, Effect } from 'effect';
  * `packages/extractor/native/image-codec`. Build it with `bun run build:image-codec`.
  */
 
-export class ImageCodecError extends Data.TaggedError('ImageCodecError')<{
-  readonly detail: string;
-}> {}
+export class ImageCodecError extends Schema.TaggedError<
+  ImageCodecError,
+  { readonly brand: unique symbol }
+>()('ImageCodecError', { detail: Schema.String }) {}
 
 // Resolved relative to this module so it's independent of the process cwd:
 // packages/extractor/src/external → packages/extractor/native/image-codec/target/release.
@@ -62,5 +63,5 @@ export const ddsToPng = (
       return png;
     },
     catch: (cause) =>
-      new ImageCodecError({ detail: `dds_to_png failed: ${String(cause)}` }),
+      ImageCodecError.make({ detail: `dds_to_png failed: ${String(cause)}` }),
   });

@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { devtools } from '@tanstack/devtools-vite';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react';
-import { Config, Effect } from 'effect';
+import { Config, Effect, String as Str } from 'effect';
 import { nitro } from 'nitro/vite';
 // Pure Vite build/plugins config for the app (`vite dev`/`vite build`). The Vitest test
 // PROJECTS live in the root `vitest.config.ts` + `apps/web/vitest.config{,.browser}.ts`,
@@ -79,7 +79,7 @@ export default defineConfig({
     // `images` chunk). Force every icon asset to emit as a real, HTTP-cacheable,
     // lazily-fetched file instead. `undefined` = Vite's default for all other assets.
     assetsInlineLimit: (filePath: string) =>
-      filePath.includes('/icons/items') ? false : undefined,
+      Str.includes('/icons/items')(filePath) ? false : undefined,
   },
   // `viteReact()` MUST come after `tanstackStart()` — the TanStack Router plugin (inside
   // tanstackStart/appOnlyPlugins) has to run before the JSX transform. Under VITEST appOnlyPlugins

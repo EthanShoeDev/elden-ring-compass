@@ -1,4 +1,4 @@
-import { Effect, FileSystem, Path, Predicate } from 'effect';
+import { Effect, FileSystem, Path, Predicate, String as Str } from 'effect';
 
 import {
   decodeRow,
@@ -50,7 +50,7 @@ const num = (row: ReadonlyMap<string, RowValue>, key: string): number => {
 };
 
 const isName = (n: string | undefined): n is string =>
-  n !== undefined && n.trim().length > 0 && n !== '[ERROR]';
+  n !== undefined && Str.trim(n).length > 0 && n !== '[ERROR]';
 
 export const loadSpEffectLabels = (
   params: Map<string, Uint8Array>,

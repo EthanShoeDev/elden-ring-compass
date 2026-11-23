@@ -2,6 +2,8 @@
 // Both the Build Planner section and the archetype presets read from this so
 // there's a single source of truth for the 8 attributes, their soft caps, the
 // derived-stat curves, and the rune-cost math. See docs/projects/calculator.md.
+import { Array as Arr } from 'effect';
+
 import type { Attributes } from '@/lib/ar';
 import type { Slot } from '@/lib/save-dto';
 
@@ -203,4 +205,4 @@ export function runesBetween(a: number, b: number): number {
  * 10s → 80 − 79). Exact for Elden Ring.
  */
 export const levelFromAttrs8 = (a: Attrs8): number =>
-  Math.max(1, ATTR_META.reduce((s, m) => s + a[m.key], 0) - 79);
+  Math.max(1, Arr.reduce(ATTR_META, 0, (s, m) => s + a[m.key]) - 79);

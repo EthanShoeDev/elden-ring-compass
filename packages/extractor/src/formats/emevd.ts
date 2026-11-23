@@ -1,4 +1,4 @@
-import { Data, Effect } from 'effect';
+import { Effect, Schema } from 'effect';
 
 import { BinaryReader } from './binary-reader.ts';
 
@@ -18,9 +18,10 @@ import { BinaryReader } from './binary-reader.ts';
  * and the string blob are skipped (not needed).
  */
 
-export class EmevdError extends Data.TaggedError('EmevdError')<{
-  readonly detail: string;
-}> {}
+export class EmevdError extends Schema.TaggedError<
+  EmevdError,
+  { readonly brand: unique symbol }
+>()('EmevdError', { detail: Schema.String }) {}
 
 export interface EmevdInstruction {
   readonly bank: number;
@@ -57,7 +58,7 @@ export const parseEmevd = (
 ): Effect.Effect<Emevd, EmevdError> =>
   Effect.try({
     try: () => readEmevd(data),
-    catch: (cause) => new EmevdError({ detail: String(cause) }),
+    catch: (cause) => EmevdError.make({ detail: String(cause) }),
   });
 
 function readEmevd(data: Uint8Array): Emevd {

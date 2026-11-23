@@ -1,4 +1,10 @@
-import { Predicate } from 'effect';
+import {
+  Array as Arr,
+  Order,
+  Predicate,
+  Record as Rec,
+  String as Str,
+} from 'effect';
 
 import type { RowValue } from '../formats/param.ts';
 
@@ -420,7 +426,7 @@ const effectsFromRow = (
   addCondition?: string,
 ): ItemEffect[] => {
   const out: ItemEffect[] = [];
-  for (const [field, f] of Object.entries(fields)) {
+  for (const [field, f] of Rec.toEntries(fields)) {
     const raw = row.get(field);
     if (!Predicate.isNumber(raw)) continue;
     if (raw === f.defaultValue) continue;
@@ -455,7 +461,7 @@ export const withCondition = (
   effects: readonly ItemEffect[],
   condition: string,
 ): ItemEffect[] =>
-  effects.map((e) => ({
+  Arr.map(effects, (e) => ({
     ...e,
     conditions: [...(e.conditions ?? []), condition],
   }));
@@ -526,6 +532,20 @@ const AGGREGATOR_HINTS: readonly {
   },
 ];
 
+// Effects with equal model/type/value/conditions aggregate together. NUL never
+// occurs in condition labels, so it separates the parts unambiguously; the `[`
+// marker keeps "no conditions" distinct from an empty list.
+const groupKey = (e: ItemEffect) =>
+  Arr.join(
+    [
+      e.model,
+      e.type,
+      String(e.value),
+      ...(e.conditions === undefined ? [] : ['[', ...e.conditions]),
+    ],
+    '\u0000',
+  );
+
 /**
  * Collapse effects that share the same value/model/type/conditions across an
  * aggregator-hint's full attribute set into the single effective attribute (e.g.
@@ -537,12 +557,7 @@ export const aggregateEffects = (
 ): ItemEffect[] => {
   const groups = new Map<string, { attrs: Set<string>; example: ItemEffect }>();
   for (const e of effects) {
-    const key = JSON.stringify([
-      e.conditions ?? null,
-      e.model,
-      e.type,
-      e.value,
-    ]);
+    const key = groupKey(e);
     const g = groups.get(key);
     if (g) g.attrs.add(e.attribute);
     else groups.set(key, { attrs: new Set([e.attribute]), example: e });
@@ -550,12 +565,18 @@ export const aggregateEffects = (
   const out: ItemEffect[] = [];
   for (const { attrs, example } of groups.values()) {
     for (const hint of AGGREGATOR_HINTS) {
-      if (hint.base.every((b) => attrs.has(b))) {
-        hint.base.forEach((b) => attrs.delete(b));
+      if (Arr.every(hint.base, (b) => attrs.has(b))) {
+        for (const b of hint.base) attrs.delete(b);
         attrs.add(hint.effective);
       }
     }
     for (const attribute of attrs) out.push({ ...example, attribute });
   }
-  return out.toSorted((a, b) => a.attribute.localeCompare(b.attribute));
+  return Arr.sort(
+    out,
+    Order.mapInput(
+      (a: string, b: string) => Str.localeCompare(b)(a),
+      (e: ItemEffect) => e.attribute,
+    ),
+  );
 };

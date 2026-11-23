@@ -1,4 +1,13 @@
-import { Data, Effect, FileSystem, Path, Predicate } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  FileSystem,
+  Option,
+  Path,
+  Predicate,
+  Schema,
+  String as Str,
+} from 'effect';
 
 import {
   decodeRow,
@@ -40,9 +49,10 @@ import { loadParamdef, type ParamdefError } from '../formats/paramdef.ts';
  * `docs/projects/tiled-map-image-viewer-interactive.md` (step 3 follow-up).
  */
 
-export class LegacyConvError extends Data.TaggedError('LegacyConvError')<{
-  readonly detail: string;
-}> {}
+export class LegacyConvError extends Schema.TaggedError<
+  LegacyConvError,
+  { readonly brand: unique symbol }
+>()('LegacyConvError', { detail: Schema.String }) {}
 
 /** Which tile-pyramid master a dungeon projects onto (surface M00/M10 or underground M01/M11). */
 export type MasterId = 'M00' | 'M01' | 'M10' | 'M11';
@@ -69,7 +79,7 @@ const num = (row: ReadonlyMap<string, RowValue>, key: string): number => {
   return Predicate.isNumber(v) ? v : 0;
 };
 
-const pad2 = (n: number): string => String(n).padStart(2, '0');
+const pad2 = (n: number): string => Str.padStart(2, '0')(String(n));
 
 /**
  * Source areas that render on an UNDERGROUND world map instead of the surface. The
@@ -147,7 +157,9 @@ const resolveToSurface = (
   const visited = new Set<string>([start.srcBlock, block]);
   for (let depth = 0; depth < 8; depth++) {
     const outs = edgesByBlock.get(block) ?? [];
-    const term = outs.find((e) => isSurface(e.dstArea));
+    const term = Option.getOrUndefined(
+      Arr.findFirst(outs, (e) => isSurface(e.dstArea)),
+    );
     if (term) {
       const w = dstSurfaceWorld(term);
       return {
@@ -156,7 +168,9 @@ const resolveToSurface = (
         area: term.dstArea,
       };
     }
-    const next = outs.find((e) => !visited.has(e.dstBlock));
+    const next = Option.getOrUndefined(
+      Arr.findFirst(outs, (e) => !visited.has(e.dstBlock)),
+    );
     if (!next) return null;
     tx += next.dstX - next.srcX;
     tz += next.dstZ - next.srcZ;
@@ -176,7 +190,7 @@ export const loadLegacyConv = (
   Effect.gen(function* () {
     const bytes = params.get('WorldMapLegacyConvParam');
     if (!bytes) {
-      return yield* new LegacyConvError({
+      return yield* LegacyConvError.make({
         detail: 'WorldMapLegacyConvParam missing from regulation',
       });
     }

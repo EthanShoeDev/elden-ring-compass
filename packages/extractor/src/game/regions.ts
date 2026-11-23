@@ -1,4 +1,4 @@
-import { Effect, FileSystem, Path, Predicate } from 'effect';
+import { Array as Arr, Effect, FileSystem, Path, Predicate } from 'effect';
 
 import {
   decodeRow,
@@ -71,8 +71,10 @@ export const loadRegions = (
     }
     const param = yield* parseParam(bytes);
     const def = yield* loadParamdef('PlayRegionParam');
-    const graceByFlag = new Map(graces.map((g) => [g.flagId, g]));
-    const bossByFlag = new Map(bosses.map((b) => [b.defeatFlagId, b]));
+    const graceByFlag = new Map(Arr.map(graces, (g) => [g.flagId, g] as const));
+    const bossByFlag = new Map(
+      Arr.map(bosses, (b) => [b.defeatFlagId, b] as const),
+    );
 
     const out: Region[] = [];
     const matchmakingRegionIds: number[] = [];

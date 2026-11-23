@@ -1,6 +1,6 @@
 import type { RowData } from '@tanstack/react-table';
 import { Subscribe } from '@tanstack/react-table';
-import { Predicate } from 'effect';
+import { Array as Arr, Option, Predicate, Schema } from 'effect';
 import { CheckIcon, ExternalLinkIcon, XIcon } from 'lucide-react';
 
 import { wikiPageUrl } from '@/lib/wiki';
@@ -163,11 +163,16 @@ export function quantityFilterFn<T extends RowData>(
   const qty = row.getValue<number>(columnId);
   if (filterVal === 'owned') return qty > 0;
   if (filterVal === 'missing') return qty === 0;
-  if (Array.isArray(filterVal))
+  if (Arr.isArray(filterVal))
     return filterVal.length === 0 || filterVal.includes(qty);
   return true;
 }
 quantityFilterFn[defaultFacetedFilterFnSymbol] = true;
+
+/** `JSON.stringify` that yields `None` (instead of `undefined` or a throw) for values with no JSON form. */
+export const encodeJsonOption = Schema.encodeOption(
+  Schema.fromJsonString(Schema.Unknown),
+);
 
 export const commonAccessorColumnDef = <T extends RowData>(
   columnHelper: DataTableColumnHelper<T>,
@@ -194,7 +199,7 @@ export const commonAccessorColumnDef = <T extends RowData>(
             <XIcon className='size-4 text-red-300' />
           )
         ) : (
-          JSON.stringify(value)
+          Option.getOrUndefined(encodeJsonOption(value))
         );
       return <div>{renderValue}</div>;
     },

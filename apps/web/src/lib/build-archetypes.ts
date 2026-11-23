@@ -6,6 +6,7 @@
 //
 // NB: distinct from the generated `ARCHETYPES` (the 10 starting classes) — these
 // are *build* archetypes, hence the `BUILD_` prefix.
+import { Array as Arr, Order } from 'effect';
 import {
   DropletIcon,
   FlameIcon,
@@ -166,7 +167,7 @@ export const BUILD_ARCHETYPES: readonly BuildArchetype[] = [
 export const buildArchetypeByKey: ReadonlyMap<
   BuildArchetypeKey,
   BuildArchetype
-> = new Map(BUILD_ARCHETYPES.map((a) => [a.key, a]));
+> = new Map(Arr.map(BUILD_ARCHETYPES, (a) => [a.key, a]));
 
 /** Pure archetype for the single dominant offensive stat (detectArchetype's fallback). */
 const TOP_STAT_ARCHETYPE = {
@@ -202,15 +203,19 @@ export function detectArchetype(attrs: Attrs8): BuildArchetypeKey {
   if (big(f)) return 'faith';
 
   // Otherwise the single dominant offensive stat.
-  const ranked = (
+  const ranked = Arr.sort(
     [
       ['strength', s],
       ['dexterity', d],
       ['intelligence', i],
       ['faith', f],
       ['arcane', a],
-    ] as ReadonlyArray<[keyof typeof TOP_STAT_ARCHETYPE, number]>
-  ).toSorted((x, y) => y[1] - x[1]);
+    ] as ReadonlyArray<[keyof typeof TOP_STAT_ARCHETYPE, number]>,
+    Order.mapInput(
+      Order.flip(Order.Number),
+      ([, value]: readonly [string, number]) => value,
+    ),
+  );
   const topKey = ranked[0]?.[0];
   return topKey === undefined ? 'strength' : TOP_STAT_ARCHETYPE[topKey];
 }
@@ -226,7 +231,7 @@ export function weaponScalesWith(
   weapon: WeaponScaling,
   arche: BuildArchetype,
 ): boolean {
-  return arche.scaleAttrs.every((s) => (weapon.scaling[s] ?? 0) > 0);
+  return Arr.every(arche.scaleAttrs, (s) => (weapon.scaling[s] ?? 0) > 0);
 }
 
 /** Status-driven builds whose AR-only ranking is knowingly incomplete (bleed/rot not modelled yet). */

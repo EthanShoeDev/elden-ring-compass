@@ -1,4 +1,5 @@
 import { WEAPONS, type Weapon } from '@elden-ring-compass/data';
+import { Array as Arr } from 'effect';
 
 // Resolve the player's *active* right-hand armament from a save slot into the AR
 // scaling row, so the Build Doctor can reason about "the weapon you're actually
@@ -9,7 +10,7 @@ import type { Slot } from '@/lib/save-dto';
 
 import { equipmentDbView } from './equipement';
 
-const weaponById = new Map<number, Weapon>(WEAPONS.map((w) => [w.id, w]));
+const weaponById = new Map<number, Weapon>(Arr.map(WEAPONS, (w) => [w.id, w]));
 
 export interface EquippedWeaponInfo {
   /** Base param id (affinity-bearing, upgrade stripped) matching the WEAPONS dataset. */
@@ -33,7 +34,8 @@ export function equippedWeaponInfo(
   const activeIdx = slot.active_weapon_slots.right_hand;
 
   // Prefer the active slot; fall back to the first non-empty armament.
-  const ordered = [arms[activeIdx], ...arms].filter(
+  const ordered = Arr.filter(
+    [arms[activeIdx], ...arms],
     (a) => a !== undefined && a.id !== undefined && a.id !== 0,
   );
   for (const arm of ordered) {

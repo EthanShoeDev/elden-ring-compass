@@ -1,6 +1,6 @@
 import type { RowData } from '@tanstack/react-table';
 import { Subscribe } from '@tanstack/react-table';
-import { Match } from 'effect';
+import { Array as Arr, Match } from 'effect';
 import {
   ArrowDown as ArrowDownIcon,
   ArrowLeft as ArrowLeftIcon,
@@ -111,10 +111,10 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                   <DropdownMenuItem
                     className='grow'
                     disabled={
-                      leafColumns.map((c) => c.id).indexOf(column.id) === 0
+                      Arr.map(leafColumns, (c) => c.id).indexOf(column.id) === 0
                     }
                     onClick={() => {
-                      const newOrder = leafColumns.map((c) => c.id);
+                      const newOrder = Arr.map(leafColumns, (c) => c.id);
                       const currentIndex = newOrder.indexOf(column.id);
                       newOrder.splice(currentIndex, 1);
                       newOrder.splice(currentIndex - 1, 0, column.id);
@@ -126,11 +126,11 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                   <DropdownMenuItem
                     className='grow justify-end'
                     disabled={
-                      leafColumns.map((c) => c.id).indexOf(column.id) ===
+                      Arr.map(leafColumns, (c) => c.id).indexOf(column.id) ===
                       leafColumns.length - 1
                     }
                     onClick={() => {
-                      const newOrder = leafColumns.map((c) => c.id);
+                      const newOrder = Arr.map(leafColumns, (c) => c.id);
                       const currentIndex = newOrder.indexOf(column.id);
                       newOrder.splice(currentIndex, 1);
                       newOrder.splice(currentIndex + 1, 0, column.id);

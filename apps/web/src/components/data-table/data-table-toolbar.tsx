@@ -1,11 +1,14 @@
 import type { ReactTable, RowData } from '@tanstack/react-table';
-import { Predicate } from 'effect';
+import { Array as Arr, Option, Predicate } from 'effect';
 import { X as Cross2Icon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-import { defaultFacetedFilterFnSymbol } from './common-column-defs';
+import {
+  defaultFacetedFilterFnSymbol,
+  encodeJsonOption,
+} from './common-column-defs';
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
 import { DataTableViewOptions } from './data-table-view-options';
 import type { DataTableFeatures, DataTableFilterFn } from './table-hook';
@@ -36,9 +39,9 @@ export function DataTableToolbar<TData extends RowData>({
           }
           className='h-8 w-[150px] lg:w-[250px]'
         />
-        {table
-          .getAllLeafColumns()
-          .filter(
+        {Arr.map(
+          Arr.filter(
+            table.getAllLeafColumns(),
             (col) =>
               col.getCanFilter() &&
               (
@@ -46,8 +49,8 @@ export function DataTableToolbar<TData extends RowData>({
                   [defaultFacetedFilterFnSymbol]?: boolean;
                 }
               )[defaultFacetedFilterFnSymbol] === true,
-          )
-          .map((column) => {
+          ),
+          (column) => {
             // [value, count] pairs. Numeric columns (e.g. Upgrade Level, Locations)
             // read most naturally sorted by value ascending; everything else by
             // aggregate count descending (most-common first). `getFacetedUniqueValues`
@@ -57,16 +60,16 @@ export function DataTableToolbar<TData extends RowData>({
             );
             const isNumeric =
               entries.length > 0 &&
-              entries.every(([v]) => Predicate.isNumber(v));
+              Arr.every(entries, ([v]) => Predicate.isNumber(v));
             entries.sort(([va, ca], [vb, cb]) =>
               isNumeric ? (va as number) - (vb as number) : cb - ca,
             );
-            const options = entries.map(([value]) => ({
+            const options = Arr.map(entries, ([value]) => ({
               label: Predicate.isString(value)
                 ? value
                 : Predicate.isNullish(value)
                   ? 'NA'
-                  : JSON.stringify(value),
+                  : Option.getOrElse(encodeJsonOption(value), () => 'NA'),
               value: value as unknown,
             }));
             return (
@@ -77,7 +80,8 @@ export function DataTableToolbar<TData extends RowData>({
                 options={options}
               />
             );
-          })}
+          },
+        )}
         {isFiltered && (
           <Button
             variant='ghost'

@@ -1,3 +1,5 @@
+import { Array as Arr } from 'effect';
+
 import { spEffectLabelById } from '../game-data';
 import type { Slot } from '../save-dto';
 
@@ -19,7 +21,7 @@ export interface ActiveEffect {
 
 export function activeEffectsDbView(slot?: Readonly<Slot>): ActiveEffect[] {
   if (!slot) return [];
-  return slot.sp_effects.map((e) => {
+  return Arr.map(slot.sp_effects, (e) => {
     const l = spEffectLabelById.get(e.sp_effect_id);
     return {
       id: e.sp_effect_id,

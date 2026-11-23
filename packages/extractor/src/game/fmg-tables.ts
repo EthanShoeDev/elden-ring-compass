@@ -1,4 +1,10 @@
-import { Effect, FileSystem, PlatformError } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  FileSystem,
+  PlatformError,
+  String as Str,
+} from 'effect';
 
 import type { OodleError } from '../external/oodle.ts';
 import { type Bnd4Error, parseBnd4 } from '../formats/bnd4.ts';
@@ -46,12 +52,13 @@ export const loadFmgTable = (
       const path = `${gameRoot}/msg/engus/${rel}`;
       if (!(yield* fs.exists(path))) continue;
       const dcx = yield* fs.readFile(path);
-      const entries = yield* parseBnd4(yield* dcxDecompress(dcx, oo2corePath));
+      const bnd = yield* dcxDecompress(dcx, oo2corePath);
+      const entries = yield* parseBnd4(bnd);
       for (const e of entries) {
-        const base = (e.name ?? '').split(/[\\/]/).pop() ?? '';
+        const base = Arr.lastNonEmpty(Str.split(e.name ?? '', /[\\/]/));
         if (!wanted.test(base)) continue;
         for (const [id, name] of yield* parseFmg(e.bytes)) {
-          if (name && name.trim() && name !== '[ERROR]') table.set(id, name);
+          if (name && Str.trim(name) && name !== '[ERROR]') table.set(id, name);
         }
       }
     }

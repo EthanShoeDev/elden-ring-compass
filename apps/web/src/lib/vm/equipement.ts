@@ -1,3 +1,5 @@
+import { Array as Arr, Option } from 'effect';
+
 import {
   accessoryNameById,
   aowNameById,
@@ -56,11 +58,13 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
       talismans: [empty, empty, empty, empty],
     };
   const gaHandleToGaItemId = new Map(
-    slot.ga_items.map((g) => [g.gaitem_handle, g.item_id]),
+    Arr.map(slot.ga_items, (g) => [g.gaitem_handle, g.item_id]),
   );
   // handle -> the full ga_item, so a weapon can resolve its attached Ash of War
   // (gem) by following `gem_gaitem_handle` to another ga_item.
-  const gaByHandle = new Map(slot.ga_items.map((g) => [g.gaitem_handle, g]));
+  const gaByHandle = new Map(
+    Arr.map(slot.ga_items, (g) => [g.gaitem_handle, g]),
+  );
 
   /** Resolve a weapon's equipped Ash of War via its gem handle (None if unattached). */
   const ashOfWarFor = (weaponGaHandle: number): EquippedAsh => {
@@ -92,13 +96,14 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
     return count;
   })();
 
-  const equip_index_from_ga_handle = (gaitem_handle: number) => {
-    let equip_index = slot.equip_inventory_data.common_items.findIndex(
-      (common_item) => common_item.ga_item_handle === gaitem_handle,
+  const equip_index_from_ga_handle = (gaitem_handle: number) =>
+    Option.getOrElse(
+      Arr.findFirstIndex(
+        slot.equip_inventory_data.common_items,
+        (common_item) => common_item.ga_item_handle === gaitem_handle,
+      ),
+      () => 0,
     );
-    equip_index = equip_index === -1 ? 0 : equip_index;
-    return equip_index;
-  };
 
   const weapon_arms = (side: 'left' | 'right') =>
     Array.from({ length: 3 }, (_, i) => {

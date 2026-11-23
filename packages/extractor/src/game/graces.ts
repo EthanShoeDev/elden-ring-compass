@@ -1,4 +1,4 @@
-import { Data, Effect, FileSystem, Path, PlatformError } from 'effect';
+import { Effect, FileSystem, Path, PlatformError, Schema } from 'effect';
 
 import type { OodleError } from '../external/oodle.ts';
 import type { Bnd4Error } from '../formats/bnd4.ts';
@@ -22,9 +22,10 @@ import { ITEM_MSGBNDS, loadFmgTable, MENU_MSGBNDS } from './fmg-tables.ts';
  * a Paramdex refresh is needed if the paramdef layout itself changes).
  */
 
-export class GracesError extends Data.TaggedError('GracesError')<{
-  readonly detail: string;
-}> {}
+export class GracesError extends Schema.TaggedError<
+  GracesError,
+  { readonly brand: unique symbol }
+>()('GracesError', { detail: Schema.String }) {}
 
 export interface Grace {
   readonly flagId: number; // BonfireWarpParam.eventflagId — the save flag
@@ -53,7 +54,7 @@ export const loadGraces = (
     const bwpBytes = params.get('BonfireWarpParam');
     const subBytes = params.get('BonfireWarpSubCategoryParam');
     if (!bwpBytes || !subBytes) {
-      return yield* new GracesError({
+      return yield* GracesError.make({
         detail: 'BonfireWarp params missing from regulation',
       });
     }

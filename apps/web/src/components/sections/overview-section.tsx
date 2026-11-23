@@ -1,7 +1,7 @@
 import { GOODS } from '@elden-ring-compass/data';
 import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
 import { Link } from '@tanstack/react-router';
-import { Predicate } from 'effect';
+import { Array as Arr, Option, Predicate, String as Str } from 'effect';
 import {
   CoinsIcon,
   MapIcon,
@@ -205,7 +205,10 @@ export function OverviewSection() {
     "Smithing-Stone Miner's Bell Bearing [1]": {
       boss: {
         bossName: 'Crystalian (Raya Lucaria Crystal Tunnel)',
-        killed: events.find((e) => e.id === 32020800)?.on === true,
+        killed: Option.exists(
+          Arr.findFirst(events, (e) => e.id === 32020800),
+          (e) => e.on,
+        ),
       },
     },
     "Smithing-Stone Miner's Bell Bearing [2]": { location: 'Sealed Tunnel' },
@@ -213,19 +216,28 @@ export function OverviewSection() {
     "Smithing-Stone Miner's Bell Bearing [4]": {
       boss: {
         bossName: 'Godskin Duo',
-        killed: events.find((e) => e.id === 13000850)?.on === true,
+        killed: Option.exists(
+          Arr.findFirst(events, (e) => e.id === 13000850),
+          (e) => e.on,
+        ),
       },
     },
     "Somberstone Miner's Bell Bearing [1]": {
       boss: {
         bossName: 'Fallingstar Beast (Sellia Crystal Tunnel)',
-        killed: events.find((e) => e.id === 32080800)?.on === true,
+        killed: Option.exists(
+          Arr.findFirst(events, (e) => e.id === 32080800),
+          (e) => e.on,
+        ),
       },
     },
     "Somberstone Miner's Bell Bearing [2]": {
       boss: {
         bossName: 'Crystalian Spear and Crystalian Ringblade (Altus Tunnel)',
-        killed: events.find((e) => e.id === 32050800)?.on === true,
+        killed: Option.exists(
+          Arr.findFirst(events, (e) => e.id === 32050800),
+          (e) => e.on,
+        ),
       },
     },
     "Somberstone Miner's Bell Bearing [3]": {
@@ -339,7 +351,7 @@ export function OverviewSection() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {UPGRADE_TIERS.map((tier) => {
+                {Arr.map(UPGRADE_TIERS, (tier) => {
                   const smithingStone =
                     tier < 9
                       ? goodsByName.get(
@@ -376,97 +388,98 @@ export function OverviewSection() {
                   return (
                     <TableRow key={tier}>
                       <TableCell>+{tier + 1}</TableCell>
-                      {(
+                      {Arr.map(
                         [
                           ['smithing', smithingStone],
                           ['somber', somberSmithingStone],
                           ['grave', graveGlovewart],
                           ['ghost', ghostGlovewart],
-                        ] as const
-                      ).map(([material, item]) => {
-                        const bellBearingName =
-                          item && item.name in materialToBellBearings
-                            ? materialToBellBearings[
-                                item.name as keyof typeof materialToBellBearings
-                              ]
-                            : undefined;
+                        ] as const,
+                        ([material, item]) => {
+                          const bellBearingName =
+                            item && item.name in materialToBellBearings
+                              ? materialToBellBearings[
+                                  item.name as keyof typeof materialToBellBearings
+                                ]
+                              : undefined;
 
-                        const bellBearing =
-                          bellBearingName && goodsByName.get(bellBearingName);
+                          const bellBearing =
+                            bellBearingName && goodsByName.get(bellBearingName);
 
-                        const bellLocation =
-                          bellBearing && bellNameLocation[bellBearingName];
-                        const bellOwned =
-                          ((bellBearing &&
-                            inventoryQuantityById.get(bellBearing.id)) ??
-                            0) > 0 ||
-                          (bellLocation &&
-                            'boss' in bellLocation &&
-                            bellLocation.boss.killed);
+                          const bellLocation =
+                            bellBearing && bellNameLocation[bellBearingName];
+                          const bellOwned =
+                            ((bellBearing &&
+                              inventoryQuantityById.get(bellBearing.id)) ??
+                              0) > 0 ||
+                            (bellLocation &&
+                              'boss' in bellLocation &&
+                              bellLocation.boss.killed);
 
-                        const imgSrc = item && itemIconUrl(item.icon);
-                        return (
-                          <TableCell key={material} className={cn('p-2')}>
-                            <Tooltip>
-                              <TooltipTrigger
-                                className={cn(
-                                  'flex items-center rounded-lg p-1',
-                                  bellOwned === true
-                                    ? 'border border-green-300/50'
-                                    : '',
-                                )}
-                              >
-                                <div className='flex flex-wrap items-center justify-center gap-1'>
-                                  {item && (
+                          const imgSrc = item && itemIconUrl(item.icon);
+                          return (
+                            <TableCell key={material} className={cn('p-2')}>
+                              <Tooltip>
+                                <TooltipTrigger
+                                  className={cn(
+                                    'flex items-center rounded-lg p-1',
+                                    bellOwned === true
+                                      ? 'border border-green-300/50'
+                                      : '',
+                                  )}
+                                >
+                                  <div className='flex flex-wrap items-center justify-center gap-1'>
+                                    {item && (
+                                      <>
+                                        <img
+                                          className='size-8'
+                                          src={imgSrc}
+                                          alt={item.name}
+                                        />
+
+                                        <span className='w-10 whitespace-nowrap'>
+                                          {inventoryQuantityById.get(item.id) ??
+                                            0}
+                                          {item.name ===
+                                            'Ancient Dragon Smithing Stone' &&
+                                            ' / 13'}
+                                          {item.name ===
+                                            'Somber Ancient Dragon Smithing Stone' &&
+                                            ' / 8'}
+                                          {item.name ===
+                                            'Great Grave Glovewort' && ' / 6'}
+                                          {item.name ===
+                                            'Great Ghost Glovewort' && ' / 4'}
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent className='flex max-w-72 flex-col items-center'>
+                                  <img
+                                    loading='lazy'
+                                    src={imgSrc}
+                                    className='size-40'
+                                    alt={item?.name ?? ''}
+                                  />
+                                  <p className='text-lg'>{item?.name}</p>
+                                  {bellLocation && (
                                     <>
-                                      <img
-                                        className='size-8'
-                                        src={imgSrc}
-                                        alt={item.name}
-                                      />
-
-                                      <span className='w-10 whitespace-nowrap'>
-                                        {inventoryQuantityById.get(item.id) ??
-                                          0}
-                                        {item.name ===
-                                          'Ancient Dragon Smithing Stone' &&
-                                          ' / 13'}
-                                        {item.name ===
-                                          'Somber Ancient Dragon Smithing Stone' &&
-                                          ' / 8'}
-                                        {item.name ===
-                                          'Great Grave Glovewort' && ' / 6'}
-                                        {item.name ===
-                                          'Great Ghost Glovewort' && ' / 4'}
-                                      </span>
+                                      <br />
+                                      <p className='w-full text-center text-wrap'>
+                                        Bell bearing found{' '}
+                                        {'boss' in bellLocation
+                                          ? `from boss ${bellLocation.boss.bossName}`
+                                          : `in ${bellLocation.location}`}
+                                      </p>
                                     </>
                                   )}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent className='flex max-w-72 flex-col items-center'>
-                                <img
-                                  loading='lazy'
-                                  src={imgSrc}
-                                  className='size-40'
-                                  alt={item?.name ?? ''}
-                                />
-                                <p className='text-lg'>{item?.name}</p>
-                                {bellLocation && (
-                                  <>
-                                    <br />
-                                    <p className='w-full text-center text-wrap'>
-                                      Bell bearing found{' '}
-                                      {'boss' in bellLocation
-                                        ? `from boss ${bellLocation.boss.bossName}`
-                                        : `in ${bellLocation.location}`}
-                                    </p>
-                                  </>
-                                )}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TableCell>
-                        );
-                      })}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TableCell>
+                          );
+                        },
+                      )}
                     </TableRow>
                   );
                 })}
@@ -495,10 +508,12 @@ function WondrousPhysick() {
     ? goodsQuantityById(slot)
     : new Map<number, number>();
   const mixed = new Set(slot ? mixedPhysickTearIds(slot) : []);
-  const tears = GOODS.filter(
-    (g) => g.category === 'Crystal Tear' && !g.name.startsWith('[ERROR]'),
+  const tears = Arr.filter(
+    GOODS,
+    (g) => g.category === 'Crystal Tear' && !Str.startsWith('[ERROR]')(g.name),
   );
-  const ownedCount = tears.filter(
+  const ownedCount = Arr.filter(
+    tears,
     (t) => (quantityById.get(t.id) ?? 0) > 0,
   ).length;
   const physick = goodsByName.get('Flask of Wondrous Physick');
@@ -521,7 +536,7 @@ function WondrousPhysick() {
         </span>
       </div>
       <div className='flex flex-wrap gap-1.5'>
-        {tears.map((tear) => {
+        {Arr.map(tears, (tear) => {
           const owned = (quantityById.get(tear.id) ?? 0) > 0;
           const inFlask = mixed.has(tear.id);
           return (

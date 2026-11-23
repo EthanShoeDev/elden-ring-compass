@@ -1,4 +1,4 @@
-import { Match } from 'effect';
+import { Array as Arr, Match, Record as Rec, String as Str } from 'effect';
 
 /**
  * Client-only react-leaflet map over the extractor-generated tile pyramid.
@@ -109,7 +109,7 @@ function tileExistence(
   const perZoom = tileIndex?.[activeMapId];
   if (!perZoom) return () => true;
   const sets = new Map<number, Set<number>>();
-  for (const [zoom, pairs] of Object.entries(perZoom)) {
+  for (const [zoom, pairs] of Rec.toEntries(perZoom)) {
     const set = new Set<number>();
     for (let i = 0; i + 1 < pairs.length; i += 2) {
       const x = pairs[i];
@@ -200,12 +200,12 @@ const PIN_COLOR = {
 } as const;
 
 function categoryColor(category: string, discovered?: boolean): string {
-  const c = category.toLowerCase();
-  if (c.includes('grace'))
+  const c = Str.toLowerCase(category);
+  if (Str.includes('grace')(c))
     return discovered === false ? PIN_COLOR.graceOff : PIN_COLOR.graceOn;
-  if (c.includes('boss'))
+  if (Str.includes('boss')(c))
     return discovered === false ? PIN_COLOR.bossOff : PIN_COLOR.bossOn;
-  if (c.includes('treasure') || c.includes('drop'))
+  if (Str.includes('treasure')(c) || Str.includes('drop')(c))
     return discovered === false ? PIN_COLOR.itemOff : PIN_COLOR.itemOn;
   return PIN_COLOR.default;
 }
@@ -320,7 +320,9 @@ function PinPopupBody({ pin }: { pin: MapPin }) {
       {pin.kind === 'boss' && (
         <>
           {pin.badges && pin.badges.length > 0 && (
-            <p className='text-[11px] opacity-70'>{pin.badges.join(' · ')}</p>
+            <p className='text-[11px] opacity-70'>
+              {Arr.join(pin.badges, ' · ')}
+            </p>
           )}
           {pin.area !== undefined && pin.area !== '' && <p>{pin.area}</p>}
           {pin.reward && (
@@ -396,7 +398,7 @@ function MarkerLayer({ pins, zoom }: { pins: MapPin[]; zoom: number }) {
   const map = useMap();
   return (
     <>
-      {pins.map((pin) => (
+      {Arr.map(pins, (pin) => (
         <Marker
           key={`${pin.kind}:${pin.category}:${pin.name}:${pin.px.toString()}:${pin.py.toString()}`}
           position={map.unproject([pin.px, pin.py], zoom)}
@@ -526,7 +528,7 @@ function MapBody({
         exists={exists}
       />
       <MarkerLayer
-        pins={pins.filter((p) => p.master === activeMapId)}
+        pins={Arr.filter(pins, (p) => p.master === activeMapId)}
         zoom={z}
       />
       {playerPin && playerPin.master === activeMapId && (

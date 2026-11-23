@@ -1,4 +1,4 @@
-import { Data, Effect } from 'effect';
+import { Effect, Schema } from 'effect';
 
 /**
  * TPF — From's texture container (`*.tpf`, usually inside `*.tpf.dcx`). On PC
@@ -8,9 +8,10 @@ import { Data, Effect } from 'effect';
  * console layouts carry an extra TexHeader block we don't need).
  */
 
-export class TpfError extends Data.TaggedError('TpfError')<{
-  readonly detail: string;
-}> {}
+export class TpfError extends Schema.TaggedError<
+  TpfError,
+  { readonly brand: unique symbol }
+>()('TpfError', { detail: Schema.String }) {}
 
 export interface TpfTexture {
   readonly name: string;
@@ -23,7 +24,7 @@ export const parseTpf = (
 ): Effect.Effect<TpfTexture[], TpfError> =>
   Effect.try({
     try: () => readTpf(data),
-    catch: (cause) => new TpfError({ detail: String(cause) }),
+    catch: (cause) => TpfError.make({ detail: String(cause) }),
   });
 
 function readTpf(data: Uint8Array): TpfTexture[] {

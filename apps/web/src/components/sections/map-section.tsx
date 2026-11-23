@@ -1,6 +1,12 @@
 import { useAtomValue } from '@effect/atom-react';
 import { useHydrated } from '@tanstack/react-router';
-import { Option } from 'effect';
+import {
+  Array as Arr,
+  Option,
+  Order,
+  Record as Rec,
+  String as Str,
+} from 'effect';
 import * as AsyncResult from 'effect/reactivity/AsyncResult';
 /**
  * Map section — the SSR boundary for the tiled, interactive map.
@@ -88,9 +94,9 @@ const SHORT_MAP_NAME: Record<string, string> = {
 /** The three toggleable content layers a pin can belong to. */
 type LayerKey = 'graces' | 'bosses' | 'items';
 function pinLayer(category: string): LayerKey {
-  const c = category.toLowerCase();
-  if (c.includes('grace')) return 'graces';
-  if (c.includes('boss')) return 'bosses';
+  const c = Str.toLowerCase(category);
+  if (Str.includes('grace')(c)) return 'graces';
+  if (Str.includes('boss')(c)) return 'bosses';
   return 'items';
 }
 
@@ -171,7 +177,7 @@ function MapRightRail({
           <div>
             <PanelLabel>Layers</PanelLabel>
             <div className='flex flex-col gap-1.5'>
-              {LAYER_META.map(({ key, label, icon: Icon, color }) => (
+              {Arr.map(LAYER_META, ({ key, label, icon: Icon, color }) => (
                 <label
                   key={key}
                   className='flex cursor-pointer items-center gap-2 text-sm select-none'
@@ -360,7 +366,7 @@ function bossEnrichment(
     area: mapId !== undefined && mapId !== '' ? bossMapName(mapId) : undefined,
     badges:
       mapId !== undefined && mapId !== ''
-        ? bossBadges(flag, mapId).map((b) => BADGE_LABEL[b])
+        ? Arr.map(bossBadges(flag, mapId), (b) => BADGE_LABEL[b])
         : undefined,
     reward: reward ? { name: reward.name, iconUrl: reward.iconUrl } : undefined,
     status:
@@ -376,101 +382,108 @@ function useSelectedPins(): MapPin[] {
   return useMemo(() => {
     // Defeat state by flag, so bosses-table pins (which only know the flag) get the
     // same Defeated/Remaining status the events table already computed from the save.
-    const defeatedByFlag = new Map(eventsItems.map((e) => [e.id, e.on]));
+    const defeatedByFlag = new Map(Arr.map(eventsItems, (e) => [e.id, e.on]));
 
-    return Object.entries(tableState).flatMap(([tableId, sel]) =>
-      Object.entries(sel?.rowSelection ?? {})
-        .filter(([, v]) => v)
-        .flatMap(([id]): MapPin[] => {
-          if (tableId === 'events') {
-            const e = eventsItems.find((ev) => ev.id.toString() === id);
-            if (!e?.pixel) return [];
-            const base = {
-              master: e.pixel.master,
-              px: e.pixel.px,
-              py: e.pixel.py,
-            };
-            if (e.type === 'grace') {
-              return [
-                {
-                  kind: 'grace',
-                  name: e.name,
-                  category: 'Site of Grace',
-                  description: '',
-                  discovered: e.on, // found → brighter shade
-                  area: e.subtitle ?? undefined,
-                  status: e.on ? 'Discovered' : 'Undiscovered',
-                  ...base,
-                },
-              ];
-            }
+    return Arr.flatMap(Rec.toEntries(tableState), ([tableId, sel]) => {
+      const selected = Arr.filter(
+        Rec.toEntries(sel?.rowSelection ?? {}),
+        ([, v]) => v,
+      );
+      return Arr.flatMap(selected, ([id]): MapPin[] => {
+        if (tableId === 'events') {
+          const e = Option.getOrUndefined(
+            Arr.findFirst(eventsItems, (ev) => ev.id.toString() === id),
+          );
+          if (!e?.pixel) return [];
+          const base = {
+            master: e.pixel.master,
+            px: e.pixel.px,
+            py: e.pixel.py,
+          };
+          if (e.type === 'grace') {
             return [
               {
-                kind: 'boss',
+                kind: 'grace',
                 name: e.name,
-                category: 'Boss',
+                category: 'Site of Grace',
                 description: '',
-                discovered: e.on, // defeated → brighter shade
-                ...bossEnrichment(e.id, bossMapIdByFlag.get(e.id), e.on),
+                discovered: e.on, // found → brighter shade
+                area: e.subtitle ?? undefined,
+                status: e.on ? 'Discovered' : 'Undiscovered',
                 ...base,
               },
             ];
           }
-          if (tableId === 'bosses') {
-            const pin = bossPinByFlag.get(Number(id));
-            if (!pin) return [];
-            const defeated = defeatedByFlag.get(pin.flag);
-            return [
-              {
-                kind: 'boss',
-                name: pin.name,
-                category: 'Boss',
-                description: '',
-                discovered: defeated,
-                ...bossEnrichment(pin.flag, pin.mapId, defeated),
-                master: pin.master,
-                px: pin.px,
-                py: pin.py,
-              },
-            ];
-          }
-          // Inventory item → its extracted overworld pickup locations.
-          if (tableId === 'regions' || tableId === 'weapons') return [];
-          const type = TABLE_PLACEMENT_TYPE[tableId as InventoryTableType];
-          const row = allTables[tableId as InventoryTableType].items.find(
+          return [
+            {
+              kind: 'boss',
+              name: e.name,
+              category: 'Boss',
+              description: '',
+              discovered: e.on, // defeated → brighter shade
+              ...bossEnrichment(e.id, bossMapIdByFlag.get(e.id), e.on),
+              ...base,
+            },
+          ];
+        }
+        if (tableId === 'bosses') {
+          const pin = bossPinByFlag.get(Number(id));
+          if (!pin) return [];
+          const defeated = defeatedByFlag.get(pin.flag);
+          return [
+            {
+              kind: 'boss',
+              name: pin.name,
+              category: 'Boss',
+              description: '',
+              discovered: defeated,
+              ...bossEnrichment(pin.flag, pin.mapId, defeated),
+              master: pin.master,
+              px: pin.px,
+              py: pin.py,
+            },
+          ];
+        }
+        // Inventory item → its extracted overworld pickup locations.
+        if (tableId === 'regions' || tableId === 'weapons') return [];
+        const type = TABLE_PLACEMENT_TYPE[tableId as InventoryTableType];
+        const row = Option.getOrUndefined(
+          Arr.findFirst(
+            allTables[tableId as InventoryTableType].items,
             (e) => e.id.toString() === id,
-          );
-          if (!row) return [];
-          const locations = itemPins(type, row.id);
-          const owned = row.quantity > 0;
-          return locations.map((p) => ({
-            kind: 'item',
-            name: row.name,
-            wikiName: wikiNameForItem(row) ?? undefined,
-            category:
-              p.source === 'map'
-                ? 'Treasure'
-                : p.approx
-                  ? 'Drop · approx. area'
-                  : 'Drop',
-            description: '',
-            discovered: owned, // owned → brighter "collected" shade
-            sourceLabel:
-              p.source === 'map'
-                ? 'Treasure'
-                : p.approx
-                  ? 'Drop · approx. area'
-                  : 'Drop',
-            chancePct: p.chance < 1 ? Math.round(p.chance * 100) : undefined,
-            quantity: row.quantity,
-            locationCount: locations.length,
-            status: owned ? 'Collected' : 'Not collected',
-            master: p.master,
-            px: p.px,
-            py: p.py,
-          }));
-        }),
-    );
+          ),
+        );
+        if (!row) return [];
+        const locations = itemPins(type, row.id);
+        const owned = row.quantity > 0;
+        return Arr.map(locations, (p) => ({
+          kind: 'item',
+          name: row.name,
+          wikiName: wikiNameForItem(row) ?? undefined,
+          category:
+            p.source === 'map'
+              ? 'Treasure'
+              : p.approx
+                ? 'Drop · approx. area'
+                : 'Drop',
+          description: '',
+          discovered: owned, // owned → brighter "collected" shade
+          sourceLabel:
+            p.source === 'map'
+              ? 'Treasure'
+              : p.approx
+                ? 'Drop · approx. area'
+                : 'Drop',
+          chancePct: p.chance < 1 ? Math.round(p.chance * 100) : undefined,
+          quantity: row.quantity,
+          locationCount: locations.length,
+          status: owned ? 'Collected' : 'Not collected',
+          master: p.master,
+          px: p.px,
+          py: p.py,
+        }));
+      });
+    });
   }, [tableState, eventsItems, allTables]);
 }
 
@@ -535,16 +548,25 @@ function useBloodstainPin(): MapPin | null {
   }, [slot]);
 }
 
+const byPinCountDesc = Order.flip(
+  Order.mapInput(Order.Number, ([, count]: readonly [string, number]) => count),
+);
+
 export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
   const mounted = useHydrated();
   const manifestResult = useAtomValue(mapManifestAtom);
-  const manifest = Option.getOrNull(AsyncResult.value(manifestResult));
-  const error = Option.getOrNull(
-    Option.map(AsyncResult.error(manifestResult), (e) => e.message),
+  const manifest = manifestResult.pipe(AsyncResult.value, Option.getOrNull);
+  const error = manifestResult.pipe(
+    AsyncResult.error,
+    Option.map((e) => e.message),
+    Option.getOrNull,
   );
   // Best-effort (see mapTileIndexAtom): on failure every tile is requested.
   const tileIndexResult = useAtomValue(mapTileIndexAtom);
-  const tileIndex = Option.getOrUndefined(AsyncResult.value(tileIndexResult));
+  const tileIndex = tileIndexResult.pipe(
+    AsyncResult.value,
+    Option.getOrUndefined,
+  );
   const [activeMapId, setActiveMapId] = useState('M00');
   // Layer visibility — hide (but don't clear) graces/bosses/items on the map.
   const [layers, setLayers] = useState<Record<LayerKey, boolean>>({
@@ -564,7 +586,7 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
   const bloodstainPin = useBloodstainPin();
   const slotConnected = !!useSelectedSlot();
   const visiblePins = useMemo(
-    () => pins.filter((p) => layers[pinLayer(p.category)]),
+    () => Arr.filter(pins, (p) => layers[pinLayer(p.category)]),
     [pins, layers],
   );
   // Selected-pin counts per realm, surfaced as badges on the map switcher so a
@@ -583,7 +605,7 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
     () =>
       (pinCountByMaster.get(activeMapId) ?? 0) > 0
         ? []
-        : [...pinCountByMaster.entries()].toSorted((a, b) => b[1] - a[1]),
+        : Arr.sort(pinCountByMaster.entries(), byPinCountDesc),
     [pinCountByMaster, activeMapId],
   );
   const eventsItems = useDataTableData('events');
@@ -596,7 +618,8 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
    * then "Incomplete Bosses" leaves both pinned; use "Clear pins" to reset.
    */
   const selectEvents = (type: 'grace' | 'boss', on: boolean) => {
-    const matches = eventsItems.filter(
+    const matches = Arr.filter(
+      eventsItems,
       (e) => e.type === type && e.on === on && e.pixel !== undefined,
     );
     setRowSelection('events')((prev) => {
@@ -655,9 +678,9 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
                   if (next !== undefined) setActiveMapId(next);
                 }}
               >
-                {manifest.maps
-                  .filter((m) => !HIDDEN_MAP_IDS.has(m.id))
-                  .map((m) => {
+                {Arr.map(
+                  Arr.filter(manifest.maps, (m) => !HIDDEN_MAP_IDS.has(m.id)),
+                  (m) => {
                     const count = pinCountByMaster.get(m.id) ?? 0;
                     return (
                       <ToggleGroupItem
@@ -682,9 +705,10 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
                         )}
                       </ToggleGroupItem>
                     );
-                  })}
+                  },
+                )}
               </ToggleGroup>
-              {offRealmPins.map(([id, count]) => (
+              {Arr.map(offRealmPins, ([id, count]) => (
                 <Button
                   key={id}
                   variant='outline'
@@ -695,7 +719,9 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
                   <MapPinGlyph className='size-3.5 text-amber-400' filled />
                   {count} pin{count === 1 ? '' : 's'} on{' '}
                   {SHORT_MAP_NAME[id] ??
-                    manifest.maps.find((m) => m.id === id)?.name ??
+                    Option.getOrUndefined(
+                      Arr.findFirst(manifest.maps, (m) => m.id === id),
+                    )?.name ??
                     id}{' '}
                   — switch
                 </Button>

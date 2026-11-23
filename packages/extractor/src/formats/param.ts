@@ -1,4 +1,4 @@
-import { Data, Effect } from 'effect';
+import { Effect, Schema } from 'effect';
 
 import { BinaryReader } from './binary-reader.ts';
 import type { DefType, Paramdef } from './paramdef.ts';
@@ -10,9 +10,10 @@ import type { DefType, Paramdef } from './paramdef.ts';
  * the matching PARAMDEF (Paramdex) and is layered on later.
  */
 
-export class ParamError extends Data.TaggedError('ParamError')<{
-  readonly detail: string;
-}> {}
+export class ParamError extends Schema.TaggedError<
+  ParamError,
+  { readonly brand: unique symbol }
+>()('ParamError', { detail: Schema.String }) {}
 
 export interface ParamRow {
   readonly id: number;
@@ -38,14 +39,14 @@ export const parseParam = (
 ): Effect.Effect<Param, ParamError> =>
   Effect.gen(function* () {
     if (bytes.length < 0x40) {
-      return yield* new ParamError({
+      return yield* ParamError.make({
         detail: `PARAM too short (${bytes.length} bytes)`,
       });
     }
     const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     const endByte = dv.getUint8(0x2c);
     if (endByte !== 0x00 && endByte !== 0xff) {
-      return yield* new ParamError({
+      return yield* ParamError.make({
         detail: `bad endian flag 0x${endByte.toString(16)} at 0x2C`,
       });
     }

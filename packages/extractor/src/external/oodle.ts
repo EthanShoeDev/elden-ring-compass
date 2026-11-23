@@ -1,12 +1,13 @@
 import { dlopen, FFIType, ptr } from 'bun:ffi';
 
-import { Data, Effect, FileSystem } from 'effect';
+import { Effect, FileSystem, Schema } from 'effect';
 
 import { globSorted } from './glob.ts';
 
-export class OodleError extends Data.TaggedError('OodleError')<{
-  readonly detail: string;
-}> {}
+export class OodleError extends Schema.TaggedError<
+  OodleError,
+  { readonly brand: unique symbol }
+>()('OodleError', { detail: Schema.String }) {}
 
 /**
  * Decompress an Oodle/Kraken (`DCX_KRAK`) buffer — used by Elden Ring's
@@ -30,14 +31,11 @@ export const findOodleDll = (
   gameRoot: string,
 ): Effect.Effect<string, OodleError, FileSystem.FileSystem> =>
   Effect.gen(function* () {
-    const [dll] = yield* globSorted(
-      'oo2core_*_win64.dll',
-      gameRoot,
-      (cause) =>
-        new OodleError({ detail: `locating Oodle DLL: ${String(cause)}` }),
+    const [dll] = yield* globSorted('oo2core_*_win64.dll', gameRoot, (cause) =>
+      OodleError.make({ detail: `locating Oodle DLL: ${String(cause)}` }),
     );
     if (dll === undefined) {
-      return yield* new OodleError({
+      return yield* OodleError.make({
         detail: `no oo2core_*_win64.dll in ${gameRoot}`,
       });
     }
@@ -130,7 +128,7 @@ export const oodleDecompress = (
       return out;
     },
     catch: (cause) =>
-      new OodleError({
+      OodleError.make({
         detail: `Oodle decompression failed (dll=${oo2corePath}): ${String(cause)}`,
       }),
   });

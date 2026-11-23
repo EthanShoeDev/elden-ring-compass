@@ -14,7 +14,7 @@
  *      bun run gen-icon-thumbs --force   (re-encode even if the thumb exists)
  */
 import { BunRuntime, BunServices } from '@effect/platform-bun';
-import { Console, Data, Effect, FileSystem, Path } from 'effect';
+import { Console, Effect, FileSystem, Path, Schema } from 'effect';
 
 import { globSorted } from '../src/external/glob.ts';
 
@@ -22,9 +22,10 @@ const THUMB_PX = 80;
 const QUALITY = 80;
 const CONCURRENCY = 24;
 
-class IconScanError extends Data.TaggedError('IconScanError')<{
-  readonly detail: string;
-}> {}
+class IconScanError extends Schema.TaggedError<
+  IconScanError,
+  { readonly brand: unique symbol }
+>()('IconScanError', { detail: Schema.String }) {}
 
 const program = Effect.gen(function* () {
   const fs = yield* FileSystem.FileSystem;
@@ -42,11 +43,8 @@ const program = Effect.gen(function* () {
   const force = process.argv.includes('--force');
 
   yield* fs.makeDirectory(outDir, { recursive: true });
-  const files = yield* globSorted(
-    '*.webp',
-    srcDir,
-    (cause) =>
-      new IconScanError({ detail: `scanning ${srcDir}: ${String(cause)}` }),
+  const files = yield* globSorted('*.webp', srcDir, (cause) =>
+    IconScanError.make({ detail: `scanning ${srcDir}: ${String(cause)}` }),
   );
   yield* Console.log(
     `${files.length} icons → ${THUMB_PX}px thumbnails (${outDir})${force ? ' [force]' : ''}`,
@@ -82,5 +80,4 @@ const program = Effect.gen(function* () {
   yield* Console.log(`done: ${written} written, ${skipped} skipped`);
 });
 
-// oxlint-disable-next-line effecttsgo/strict-effect-provide -- the script entry point is where the platform layer is provided
 program.pipe(Effect.provide(BunServices.layer), BunRuntime.runMain);

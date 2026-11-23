@@ -13,6 +13,7 @@ import {
   MAP_MARKERS,
   PLACEMENTS,
 } from '@elden-ring-compass/data';
+import { Array as Arr } from 'effect';
 
 import { type MasterPixel, overworldMarkerToMasterPixel } from '../map-affine';
 
@@ -35,7 +36,7 @@ for (const mk of MAP_MARKERS) {
 
 /** Grace event-flag id → overworld master pixel (overworld graces only). */
 export const graceFlagToPixel: ReadonlyMap<number, MasterPixel> = new Map(
-  GRACES.flatMap((g) => {
+  Arr.flatMap(GRACES, (g) => {
     const p = entityPixel.get(g.bonfireEntityId);
     return p ? [[g.flagId, p] as const] : [];
   }),
@@ -43,7 +44,7 @@ export const graceFlagToPixel: ReadonlyMap<number, MasterPixel> = new Map(
 
 /** Boss defeat-flag id → overworld master pixel (overworld field bosses only). */
 export const bossFlagToPixel: ReadonlyMap<number, MasterPixel> = new Map(
-  BOSSES.flatMap((b) => {
+  Arr.flatMap(BOSSES, (b) => {
     const p = overworldMarkerToMasterPixel(b.mapId, b.x, b.z);
     return p ? [[b.defeatFlagId, p] as const] : [];
   }),
@@ -60,7 +61,7 @@ export interface BossPin extends MasterPixel {
 
 /** Boss defeat-flag id → placed pin, for the all-bosses table's map selection. */
 export const bossPinByFlag: ReadonlyMap<number, BossPin> = new Map(
-  BOSSES.flatMap((b) => {
+  Arr.flatMap(BOSSES, (b) => {
     const p = overworldMarkerToMasterPixel(b.mapId, b.x, b.z);
     return p
       ? [
@@ -84,7 +85,7 @@ export const bossPinByFlag: ReadonlyMap<number, BossPin> = new Map(
  * `bossMapName`/`bossBadges` (which need the map id).
  */
 export const bossMapIdByFlag: ReadonlyMap<number, string> = new Map(
-  BOSSES.map((b) => [b.defeatFlagId, b.mapId] as const),
+  Arr.map(BOSSES, (b) => [b.defeatFlagId, b.mapId] as const),
 );
 
 // Item ids are NOT globally unique — each item TYPE (weapon/armor/goods/talisman/

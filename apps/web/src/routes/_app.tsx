@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, useMatches } from '@tanstack/react-router';
+import { Array as Arr } from 'effect';
 
 import { Footer } from '@/components/footer';
 import { SharedViewBanner } from '@/components/misc/shared-view-banner';
@@ -35,12 +36,13 @@ function AppLayout() {
   //    `fullBleed` additionally drops the page padding for an edge-to-edge table.
   const fill = useMatches({
     select: (m) =>
-      m.some(
+      Arr.some(
+        m,
         (r) => r.staticData.fill === true || r.staticData.fullBleed === true,
       ),
   });
   const fullBleed = useMatches({
-    select: (m) => m.some((r) => r.staticData.fullBleed === true),
+    select: (m) => Arr.some(m, (r) => r.staticData.fullBleed === true),
   });
   return (
     <SidebarProvider className='h-svh overflow-hidden'>

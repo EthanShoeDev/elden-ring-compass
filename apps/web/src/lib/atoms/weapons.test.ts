@@ -1,4 +1,5 @@
 import { WEAPONS } from '@elden-ring-compass/data';
+import { Array as Arr } from 'effect';
 import { describe, it, expect } from 'vitest';
 
 import { affinityIndexOf, baseIdOf, enrichWeapon } from './weapons';
@@ -31,7 +32,7 @@ describe('weapon affinity id convention', () => {
 });
 
 describe('enrichWeapon', () => {
-  const byId = new Map(WEAPONS.map((w) => [w.id, w]));
+  const byId = new Map(Arr.map(WEAPONS, (w) => [w.id, w]));
   const enrich = (id: number) => {
     const w = byId.get(id);
     if (!w) throw new Error(`fixture weapon ${id} not found`);
@@ -65,10 +66,11 @@ describe('enrichWeapon', () => {
   });
 
   it('never leaves a non-standard row without a real base weapon', () => {
-    const baseIds = new Set(WEAPONS.map((w) => w.id));
-    const orphans = WEAPONS.map(enrichWeapon).filter(
+    const baseIds = new Set(Arr.map(WEAPONS, (w) => w.id));
+    const orphans = Arr.filter(
+      Arr.map(WEAPONS, enrichWeapon),
       (w) => w.affinityIndex !== 0 && !baseIds.has(w.baseId),
     );
-    expect(orphans.map((w) => `${w.id} ${w.name}`)).toEqual([]);
+    expect(Arr.map(orphans, (w) => `${w.id} ${w.name}`)).toEqual([]);
   });
 });

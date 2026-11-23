@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { Array as Arr, String as Str } from 'effect';
 import { CheckIcon, TrophyIcon } from 'lucide-react';
 
 import {
@@ -21,9 +22,6 @@ import {
 } from '../ui/card';
 import { Separator } from '../ui/separator';
 import { CompletionRing } from './completion-ring';
-
-const capitalize = (s: string) =>
-  s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 
 /** The single character card: completion ring + identity + attribute stats. */
 export function CompletionHero() {
@@ -104,15 +102,15 @@ export function CompletionHero() {
               <Separator orientation='vertical' className='h-4' />
               <span>Weapon Lvl {stats.match_making_weapon_level}</span>
               <Separator orientation='vertical' className='h-4' />
-              <span>{capitalize(stats.gender)}</span>
+              <span>{Str.capitalize(stats.gender)}</span>
             </div>
           </div>
         </div>
         <div className='grid grid-cols-4 gap-3 border-t border-border pt-4 sm:grid-cols-8'>
-          {attributes.map(([label, value]) => (
+          {Arr.map(attributes, ([label, value]) => (
             <div key={label} className='flex flex-col items-center gap-0.5'>
               <span className='text-[10.5px] font-medium tracking-wide text-muted-foreground uppercase'>
-                {label.slice(0, 3)}
+                {Str.slice(0, 3)(label)}
               </span>
               <span className='text-lg font-semibold tabular-nums'>
                 {value}
@@ -121,7 +119,7 @@ export function CompletionHero() {
           ))}
         </div>
         <div className='grid grid-cols-3 gap-3 border-t border-border pt-4 sm:grid-cols-6'>
-          {derived.map(({ label, value, sub, hint }) => (
+          {Arr.map(derived, ({ label, value, sub, hint }) => (
             <div
               key={label}
               className='flex flex-col items-center gap-0.5'
@@ -197,7 +195,7 @@ export function CompletionBreakdown() {
       </CardHeader>
       <CardContent className='flex flex-col gap-4'>
         <div className='grid gap-1 sm:grid-cols-2'>
-          {categories.map((c) => (
+          {Arr.map(categories, (c) => (
             <CategoryRow key={c.key} c={c} />
           ))}
         </div>
@@ -214,7 +212,7 @@ function MilestoneChips({ milestones }: { milestones: Milestone[] }) {
         <TrophyIcon className='size-3.5' /> Milestones
       </span>
       <div className='flex flex-wrap gap-2'>
-        {milestones.map((m) => {
+        {Arr.map(milestones, (m) => {
           const done = m.total > 0 && m.owned >= m.total;
           return (
             <Badge

@@ -1,32 +1,41 @@
 import { ARMOR, TALISMANS, WEAPONS } from '@elden-ring-compass/data';
+import { Array as Arr } from 'effect';
 
 import { equipLoad } from '@/lib/build-stats';
 import type { Slot } from '@/lib/save-dto';
 
 import { equipmentDbView } from './equipement';
 
-const weaponById = new Map(WEAPONS.map((w) => [w.id, w]));
-const armorById = new Map(ARMOR.map((a) => [a.id, a]));
-const talismanById = new Map(TALISMANS.map((t) => [t.id, t]));
+const weaponById = new Map(Arr.map(WEAPONS, (w) => [w.id, w]));
+const armorById = new Map(Arr.map(ARMOR, (a) => [a.id, a]));
+const talismanById = new Map(Arr.map(TALISMANS, (t) => [t.id, t]));
 
 type Effect = { attribute: string; value: number; model: string };
 
 /** Product of the multiplicative `attribute` effects (×1 when none apply). */
 const multiplier = (effects: ReadonlyArray<Effect>, attribute: string) =>
-  effects
-    .filter(
+  Arr.reduce(
+    Arr.filter(
+      effects,
       (e) =>
         e.attribute === attribute &&
         e.model === 'multiplicative' &&
         e.value > 0,
-    )
-    .reduce((m, e) => m * e.value, 1);
+    ),
+    1,
+    (m, e) => m * e.value,
+  );
 
 /** Sum of the additive `attribute` effects. */
 const additive = (effects: ReadonlyArray<Effect>, attribute: string) =>
-  effects
-    .filter((e) => e.attribute === attribute && e.model === 'additive')
-    .reduce((s, e) => s + e.value, 0);
+  Arr.reduce(
+    Arr.filter(
+      effects,
+      (e) => e.attribute === attribute && e.model === 'additive',
+    ),
+    0,
+    (s, e) => s + e.value,
+  );
 
 /** Equip-load bands, as fractions of max load (the game's light / medium / heavy rolls). */
 export type EquipLoadRoll = 'Light' | 'Medium' | 'Heavy' | 'Overloaded';
@@ -54,7 +63,7 @@ export function derivedStatsView(slot: Readonly<Slot>) {
   const eq = equipmentDbView(slot);
   const asm = slot.chr_asm2;
   const gaItemId = new Map(
-    slot.ga_items.map((g) => [g.gaitem_handle, g.item_id]),
+    Arr.map(slot.ga_items, (g) => [g.gaitem_handle, g.item_id]),
   );
 
   // Weapon gaitem ids carry the upgrade level in `% 100`; WEAPONS is keyed by the +0 id.
@@ -67,18 +76,20 @@ export function derivedStatsView(slot: Readonly<Slot>) {
   // armament slots count.
   const weapons = [...asm.left_hand_armaments, ...asm.right_hand_armaments];
 
-  const armor = [eq.head, eq.chest, eq.arms, eq.legs]
-    .map((a) => armorById.get(a.id))
-    .filter((a) => a !== undefined);
-  const talismans = eq.talismans
-    .map((t) => talismanById.get(t.id))
-    .filter((t) => t !== undefined);
-  const effects = [...armor, ...talismans].flatMap((i) => i.effects);
+  const armor = Arr.filter(
+    Arr.map([eq.head, eq.chest, eq.arms, eq.legs], (a) => armorById.get(a.id)),
+    (a) => a !== undefined,
+  );
+  const talismans = Arr.filter(
+    Arr.map(eq.talismans, (t) => talismanById.get(t.id)),
+    (t) => t !== undefined,
+  );
+  const effects = Arr.flatMap([...armor, ...talismans], (i) => i.effects);
 
   const currentLoad =
-    weapons.reduce((s, h) => s + weaponWeight(h), 0) +
-    armor.reduce((s, a) => s + a.weight, 0) +
-    talismans.reduce((s, t) => s + t.weight, 0);
+    Arr.reduce(weapons, 0, (s, h) => s + weaponWeight(h)) +
+    Arr.reduce(armor, 0, (s, a) => s + a.weight) +
+    Arr.reduce(talismans, 0, (s, t) => s + t.weight);
   const maxLoad =
     equipLoad(p.endurance) * multiplier(effects, 'Maximum Equip Load');
   const ratio = maxLoad > 0 ? currentLoad / maxLoad : 0;
@@ -94,7 +105,8 @@ export function derivedStatsView(slot: Readonly<Slot>) {
       roll: rollFor(ratio),
     },
     poise: Math.floor(
-      armor.reduce((s, a) => s + a.poise, 0) * multiplier(effects, 'Poise'),
+      Arr.reduce(armor, 0, (s, a) => s + a.poise) *
+        multiplier(effects, 'Poise'),
     ),
     discovery: 100 + p.arcane + additive(effects, 'Item Discovery'),
   };

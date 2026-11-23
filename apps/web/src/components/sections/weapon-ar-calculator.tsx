@@ -1,5 +1,5 @@
 import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
-import { Predicate } from 'effect';
+import { Array as Arr, Order, Predicate, String as Str } from 'effect';
 import { useMemo, useState } from 'react';
 
 import {
@@ -39,6 +39,10 @@ import { Slider } from '../ui/slider';
 const sliderNum = (v: number | readonly number[]): number =>
   Predicate.isNumber(v) ? v : (v[0] ?? 0);
 
+const byArDesc = Order.flip(
+  Order.mapInput(Order.Number, (r: RatedWeapon) => r.ar),
+);
+
 /**
  * Weapon AR Calculator — the save-aware min-maxing table. Rates every armament's
  * Attack Rating at the given attributes (driven by the Build Doctor, which
@@ -76,19 +80,19 @@ export function WeaponArTable({
   const somberUpgrade = scaleUpgradeLevel(upgrade, SOMBER_MAX_UPGRADE_LEVEL);
 
   const rows = useMemo<RatedWeapon[]>(() => {
-    const query = search.trim().toLowerCase();
+    const query = Str.toLowerCase(Str.trim(search));
     const rated = rateWeapons(attrs, upgrade, twoHanding, ownedById);
 
     // Restrict to weapons that scale with the chosen archetype's stats.
     let pool = rated;
     if (relevantOnly && archetype) {
-      pool = pool.filter((r) => weaponScalesWith(r.scaling, archetype));
+      pool = Arr.filter(pool, (r) => weaponScalesWith(r.scaling, archetype));
     }
 
     // Mode selection.
     let selected: RatedWeapon[];
     if (ownedOnly) {
-      selected = pool.filter((r) => r.owned);
+      selected = Arr.filter(pool, (r) => r.owned);
     } else if (showVariants) {
       selected = pool;
     } else {
@@ -98,14 +102,15 @@ export function WeaponArTable({
     const filtered =
       query === ''
         ? selected
-        : selected.filter(
+        : Arr.filter(
+            selected,
             (r) =>
-              r.name.toLowerCase().includes(query) ||
-              String(r.id).includes(query),
+              Str.includes(query)(Str.toLowerCase(r.name)) ||
+              Str.includes(query)(String(r.id)),
           );
 
     // Default order = highest AR first ("best weapon for your build").
-    return filtered.toSorted((a, b) => b.ar - a.ar);
+    return Arr.sort(filtered, byArDesc);
   }, [
     attrs,
     upgrade,

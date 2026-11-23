@@ -1,5 +1,13 @@
 import { eventFlagBstUrl } from '@elden-ring-compass/vendored-data';
-import { Effect, FileSystem, Path } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  FileSystem,
+  Option,
+  Order,
+  Path,
+  String as Str,
+} from 'effect';
 
 /**
  * Event-flag addressing table, vendored from ER-Save-Lib (`src/res/eventflag_bst.txt`).
@@ -17,19 +25,21 @@ import { Effect, FileSystem, Path } from 'effect';
 export const loadEventFlagBst = Effect.gen(function* () {
   const fs = yield* FileSystem.FileSystem;
   const path = yield* Path.Path;
-  const text = yield* fs.readFileString(
-    yield* path.fromFileUrl(eventFlagBstUrl),
-  );
+  const bstPath = yield* path.fromFileUrl(eventFlagBstUrl);
+  const text = yield* fs.readFileString(bstPath);
   const out: Array<[number, number]> = [];
-  for (const line of text.split('\n')) {
-    const trimmed = line.trim();
+  for (const line of Str.split(text, '\n')) {
+    const trimmed = Str.trim(line);
     if (trimmed.length === 0) continue;
-    const comma = trimmed.indexOf(',');
-    if (comma === -1) continue;
+    const comma = Str.indexOf(',')(trimmed);
+    if (Option.isNone(comma)) continue;
     out.push([
-      Number(trimmed.slice(0, comma)),
-      Number(trimmed.slice(comma + 1)),
+      Number(Str.slice(0, comma.value)(trimmed)),
+      Number(Str.slice(comma.value + 1)(trimmed)),
     ]);
   }
-  return out.toSorted((a, b) => a[0] - b[0]);
+  return Arr.sort(
+    out,
+    Order.mapInput(Order.Number, ([block]: readonly [number, number]) => block),
+  );
 });

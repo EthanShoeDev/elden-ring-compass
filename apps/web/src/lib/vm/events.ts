@@ -1,4 +1,5 @@
 import { BOSSES, eventFlagOffset, GRACES } from '@elden-ring-compass/data';
+import { Array as Arr } from 'effect';
 
 import type { Slot } from '../save-dto';
 import { bossFlagToPixel, graceFlagToPixel } from './map-pins';
@@ -26,27 +27,37 @@ type BaseEvent = {
  * lib/inventory-catalog.ts). Map-fragment *discovery* flags are still round-tripped by the
  * shared-progression link via lib/share/shareable-events.ts.
  */
-const FLAG_EVENTS: ReadonlyArray<BaseEvent & { flagId: number }> = [
-  ...new Map(
-    [
-      ...GRACES.map((g) => ({
-        id: g.flagId,
-        name: g.name,
-        type: 'grace' as const,
-        subtitle: g.region ?? undefined,
-      })),
-      ...BOSSES.filter(
-        (b): b is typeof b & { name: string } => b.name !== null,
-      ).map((b) => ({
-        id: b.defeatFlagId,
-        name: b.name,
-        type: 'boss' as const,
-      })),
-      // Starscourge Radahn (Caelid) has no standard arena flag in BOSSES; kept as the legacy did.
-      { id: 310, name: 'Starscourge Radahn', type: 'boss' as const },
-    ].map((e) => [e.id, e] as const), // dedupe by flag id (bosses can share a defeat flag)
-  ).values(),
-].map((e) => ({ ...e, flagId: e.id }));
+const FLAG_EVENTS: ReadonlyArray<BaseEvent & { flagId: number }> = Arr.map(
+  [
+    ...new Map(
+      Arr.map(
+        [
+          ...Arr.map(GRACES, (g) => ({
+            id: g.flagId,
+            name: g.name,
+            type: 'grace' as const,
+            subtitle: g.region ?? undefined,
+          })),
+          ...Arr.map(
+            Arr.filter(
+              BOSSES,
+              (b): b is typeof b & { name: string } => b.name !== null,
+            ),
+            (b) => ({
+              id: b.defeatFlagId,
+              name: b.name,
+              type: 'boss' as const,
+            }),
+          ),
+          // Starscourge Radahn (Caelid) has no standard arena flag in BOSSES; kept as the legacy did.
+          { id: 310, name: 'Starscourge Radahn', type: 'boss' as const },
+        ],
+        (e) => [e.id, e] as const, // dedupe by flag id (bosses can share a defeat flag)
+      ),
+    ).values(),
+  ],
+  (e) => ({ ...e, flagId: e.id }),
+);
 
 /**
  * First-visit map selection: every grace/boss that has a placeable overworld
@@ -84,7 +95,7 @@ export function eventsDbView(slot?: Readonly<Slot>) {
       ? graceFlagToPixel.get(flagId)
       : bossFlagToPixel.get(flagId);
 
-  return FLAG_EVENTS.map(({ flagId, ...e }) => ({
+  return Arr.map(FLAG_EVENTS, ({ flagId, ...e }) => ({
     ...e,
     on: isFlagOn(flagId),
     pixel: pixelFor(e, flagId),

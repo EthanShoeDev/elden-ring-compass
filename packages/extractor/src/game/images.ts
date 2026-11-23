@@ -4,13 +4,17 @@
 // would be the real regression. That ranged `Bun.file` read is the *only* exception;
 // all directory/file IO here goes through effect `FileSystem`.
 import {
-  Data,
+  Array as Arr,
   Effect,
   FileSystem,
+  Option,
+  Order,
   PlatformError,
+  Record as Rec,
   Schema,
   SchemaGetter,
   SchemaTransformation,
+  String as Str,
   Match,
 } from 'effect';
 
@@ -56,9 +60,10 @@ import {
  * of its source bytes (recorded in `images/source-hashes.json`) changes.
  */
 
-export class ImagesError extends Data.TaggedError('ImagesError')<{
-  readonly detail: string;
-}> {}
+export class ImagesError extends Schema.TaggedError<
+  ImagesError,
+  { readonly brand: unique symbol }
+>()('ImagesError', { detail: Schema.String }) {}
 
 type ImgErrors =
   | ImagesError
@@ -121,6 +126,17 @@ const tpfTextures = (bytes: Uint8Array, oo2core: string) =>
 
 const fileExists = (path: string) =>
   Effect.promise(() => Bun.file(path).exists());
+
+const readBytes = (path: string) =>
+  Effect.promise(() => Bun.file(path).arrayBuffer()).pipe(
+    Effect.map((buf) => new Uint8Array(buf)),
+  );
+
+/** Ranged read of `[start, end)` — the one sanctioned `Bun.file` exception. */
+const readRange = (path: string, start: number, end: number) =>
+  Effect.promise(() => Bun.file(path).slice(start, end).arrayBuffer()).pipe(
+    Effect.map((buf) => new Uint8Array(buf)),
+  );
 
 const dirHasEntries = (dir: string) =>
   Effect.gen(function* () {
@@ -247,22 +263,22 @@ export const extractImages = (
     yield* fs.makeDirectory(iconDir, { recursive: true });
 
     const hashesPath = `${outDir}/images/${SOURCE_HASHES_FILE}`;
-    const sourceHashes = new Map(
-      Object.entries(
-        (yield* fs.exists(hashesPath))
-          ? yield* decodeSourceHashes(
-              yield* fs.readFileString(hashesPath),
-            ).pipe(
-              Effect.mapError(
-                (cause) =>
-                  new ImagesError({
-                    detail: `reading ${hashesPath}: ${String(cause)}`,
-                  }),
+    const storedHashes: Readonly<Record<string, string>> = (yield* fs.exists(
+      hashesPath,
+    ))
+      ? yield* fs.readFileString(hashesPath).pipe(
+          Effect.flatMap((text) =>
+            decodeSourceHashes(text).pipe(
+              Effect.mapError((cause) =>
+                ImagesError.make({
+                  detail: `reading ${hashesPath}: ${String(cause)}`,
+                }),
               ),
-            )
-          : {},
-      ),
-    );
+            ),
+          ),
+        )
+      : {};
+    const sourceHashes = new Map(Rec.toEntries(storedHashes));
 
     // --- Map tiles → per-map vanilla (all-fragments) pyramid + manifest ---
     // Each tile name ends in a 32-bit `variant` bitmask (collected fragments /
@@ -279,7 +295,7 @@ export const extractImages = (
       const rootEntries = yield* fs
         .readDirectory(tileDir)
         .pipe(Effect.orElseSucceed(() => [] as string[]));
-      const legacy = rootEntries.filter((f) =>
+      const legacy = Arr.filter(rootEntries, (f) =>
         /^MENU_MapTile_.*\.(webp|png|jpeg|avif)$/i.test(f),
       );
       if (legacy.length > 0) {
@@ -287,23 +303,18 @@ export const extractImages = (
         yield* Effect.forEach(
           legacy,
           (f) => fs.remove(`${tileDir}/${f}`, { force: true }),
-          { discard: true },
+          { concurrency: 1, discard: true },
         );
       }
 
       // Authoritative fragment/event taxonomy from the mask binder.
       const masks: Map<string, MapMask> = (yield* fileExists(mtmskPath))
-        ? yield* parseMapMasks(
-            new Uint8Array(
-              yield* Effect.promise(() => Bun.file(mtmskPath).arrayBuffer()),
-            ),
-            oo2corePath,
+        ? yield* readBytes(mtmskPath).pipe(
+            Effect.flatMap((bytes) => parseMapMasks(bytes, oo2corePath)),
           )
         : new Map<string, MapMask>();
 
-      const bhd = new Uint8Array(
-        yield* Effect.promise(() => Bun.file(bhdPath).arrayBuffer()),
-      );
+      const bhd = yield* readBytes(bhdPath);
       const headers = yield* parseBnd4Headers(bhd);
       yield* log(`map tiles: ${headers.length} archive entries`);
 
@@ -317,8 +328,8 @@ export const extractImages = (
       }
       const byMap = new Map<string, Map<string, Variant[]>>();
       for (const h of headers) {
-        const base = (h.name ?? '').split(/[\\/]/).pop() ?? '';
-        const stem = base.replace(/\.tpf(\.dcx)?$/i, '');
+        const base = Arr.lastNonEmpty(Str.split(h.name ?? '', /[\\/]/));
+        const stem = Str.replace(/\.tpf(\.dcx)?$/i, '')(base);
         const t = parseTileName(stem);
         if (!t || t.lod !== 0) continue;
         let cells = byMap.get(t.map);
@@ -339,7 +350,7 @@ export const extractImages = (
       }
 
       const manifestMaps: MapSummary[] = [];
-      for (const map of [...byMap.keys()].toSorted()) {
+      for (const map of Arr.sort(byMap.keys(), Order.String)) {
         const cells = byMap.get(map);
         if (cells === undefined) continue;
         const eventMask = EVENT_BITS[map] ?? 0;
@@ -355,9 +366,10 @@ export const extractImages = (
                 for (const v of vs)
                   for (let b = 0; b < 32; b++)
                     if (v.variant & (1 << b)) all.add(1 << b);
-              return [...all]
-                .filter((b) => (b & eventMask) === 0)
-                .toSorted((a, b) => a - b);
+              return Arr.sort(
+                Arr.filter(all, (b) => (b & eventMask) === 0),
+                Order.Number,
+              );
             })();
         const eventBits = maskInfo
           ? [...maskInfo.eventBits]
@@ -395,22 +407,25 @@ export const extractImages = (
           if (useMasks) {
             const mask = cellMasks?.get(key);
             if (mask === undefined || (mask & eventMask) !== 0) continue;
-            pick = vs.find((v) => v.variant === mask);
+            pick = Option.getOrUndefined(
+              Arr.findFirst(vs, (v) => v.variant === mask),
+            );
             if (!pick) continue; // no exact full-reveal variant on disk
           } else {
             const chosen = pickVanillaVariant(
-              vs.map((v) => v.variant),
+              Arr.map(vs, (v) => v.variant),
               eventMask,
             );
-            pick = vs.find((v) => v.variant === chosen) ?? vs[0];
+            pick =
+              Option.getOrUndefined(
+                Arr.findFirst(vs, (v) => v.variant === chosen),
+              ) ?? vs[0];
           }
           if (!pick) continue;
-          const slice = new Uint8Array(
-            yield* Effect.promise(() =>
-              Bun.file(bdtPath)
-                .slice(pick.offset, pick.offset + pick.size)
-                .arrayBuffer(),
-            ),
+          const slice = yield* readRange(
+            bdtPath,
+            pick.offset,
+            pick.offset + pick.size,
           );
           picked.push({ col: pick.col, row: pick.row, slice });
         }
@@ -420,7 +435,7 @@ export const extractImages = (
         const hashKey = `map-tiles/${map}/${BASE_LAYER_ID}`;
         const sourceHash = hashSource(
           `${ext}:q${opts.quality}:${TILE_PX}:${MASTER_PX}:${MAX_NATIVE_ZOOM}`,
-          ...picked.flatMap((p) => [`${p.col}_${p.row}`, p.slice]),
+          ...Arr.flatMap(picked, (p) => [`${p.col}_${p.row}`, p.slice]),
         );
         if (
           sourceHashes.get(hashKey) === sourceHash &&
@@ -481,10 +496,11 @@ export const extractImages = (
     for (const rel of ICON_TPFS) {
       const path = `${gameRoot}/${rel}`;
       if (!(yield* fileExists(path))) continue;
-      const sheet = (rel.split('/').pop() ?? '').replace(/\.tpf\.dcx$/i, '');
-      const bytes = new Uint8Array(
-        yield* Effect.promise(() => Bun.file(path).arrayBuffer()),
-      );
+      const sheet = Str.replace(
+        /\.tpf\.dcx$/i,
+        '',
+      )(Arr.lastNonEmpty(Str.split(rel, '/')));
+      const bytes = yield* readBytes(path);
       // A changed sheet re-renders every texture in it (overwriting); an
       // unchanged one only backfills missing outputs.
       const hashKey = `icons/${sheet}`;
@@ -493,7 +509,7 @@ export const extractImages = (
       const textures = yield* tpfTextures(bytes, oo2corePath);
       yield* fs.makeDirectory(`${iconDir}/${sheet}`, { recursive: true });
       for (const [i, t] of textures.entries()) {
-        const safe = (t.name || `tex_${i}`).replaceAll(/[^\w.-]/g, '_');
+        const safe = Str.replaceAll(/[^\w.-]/g, '_')(t.name || `tex_${i}`);
         const outBase = `${iconDir}/${sheet}/${i}_${safe}`;
         if (!sheetChanged && (yield* fileExists(`${outBase}.${ext}`))) continue;
         const png = yield* ddsToPng(t.dds);
@@ -519,25 +535,20 @@ export const extractImages = (
       const itemThumbDir = `${iconDir}/items-thumb`;
       yield* fs.makeDirectory(itemIconDir, { recursive: true });
       yield* fs.makeDirectory(itemThumbDir, { recursive: true });
-      const headers = yield* parseBnd4Headers(
-        new Uint8Array(
-          yield* Effect.promise(() => Bun.file(soloBhd).arrayBuffer()),
-        ),
-      );
+      const soloBhdBytes = yield* readBytes(soloBhd);
+      const headers = yield* parseBnd4Headers(soloBhdBytes);
       for (const h of headers) {
-        const base = (h.name ?? '').split(/[\\/]/).pop() ?? '';
+        const base = Arr.lastNonEmpty(Str.split(h.name ?? '', /[\\/]/));
         const m = /MENU_Knowledge_0*(\d+)/i.exec(base);
         const idStr = m?.[1];
         if (idStr === undefined) continue;
         const iconId = Number.parseInt(idStr, 10);
         const outBase = `${itemIconDir}/${iconId}`;
         const thumbBase = `${itemThumbDir}/${iconId}`;
-        const slice = new Uint8Array(
-          yield* Effect.promise(() =>
-            Bun.file(soloBdt)
-              .slice(h.dataOffset, h.dataOffset + h.size)
-              .arrayBuffer(),
-          ),
+        const slice = yield* readRange(
+          soloBdt,
+          h.dataOffset,
+          h.dataOffset + h.size,
         );
         // Source unchanged and both outputs present → skip the (expensive)
         // decode + encode. Otherwise (re)write both, so a patched icon replaces
@@ -572,11 +583,18 @@ export const extractImages = (
     }
 
     // Sorted so the committed file diffs cleanly between runs.
-    const hashesJson = yield* encodeSourceHashes(
-      Object.fromEntries(
-        [...sourceHashes].toSorted(([a], [b]) => a.localeCompare(b)),
+    const sortedHashes = Rec.fromEntries(
+      Arr.sort(
+        sourceHashes,
+        Order.mapInput(
+          (a: string, b: string) => Str.localeCompare(b)(a),
+          ([key]: readonly [string, string]) => key,
+        ),
       ),
-    ).pipe(Effect.orDie);
+    );
+    const hashesJson = yield* encodeSourceHashes(sortedHashes).pipe(
+      Effect.orDie,
+    );
     yield* fs.writeFileString(hashesPath, `${hashesJson}\n`);
 
     return { tiles, tilesSkipped, icons, itemIcons, itemIconsSkipped };

@@ -12,7 +12,15 @@ import {
 // — effect `FileSystem` has no ranged-read API and loading the whole file would be
 // the real regression — wrapped in `Effect.promise`. `Bun.write` is likewise kept
 // (not a lint concern; `node:fs`/`node:path` are).
-import { Data, Effect, FileSystem, Option, Path } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  FileSystem,
+  Option,
+  Path,
+  Schema,
+  String as Str,
+} from 'effect';
 
 import { decryptBhdHeader } from '../crypto/rsa.ts';
 import { decryptAesRanges, parseBhd5 } from '../formats/bhd5.ts';
@@ -44,9 +52,10 @@ export interface UnpackOptions {
 }
 
 /** Raised when an encrypted archive has no known decryption key. */
-export class DvdbndError extends Data.TaggedError('DvdbndError')<{
-  readonly detail: string;
-}> {}
+export class DvdbndError extends Schema.TaggedError<
+  DvdbndError,
+  { readonly brand: unique symbol }
+>()('DvdbndError', { detail: Schema.String }) {}
 
 // Cheap magic→extension guess for files whose hash isn't in the dictionary.
 // (UXM recurses through DCX/BND here; we only need the dictionary-known files,
@@ -73,9 +82,9 @@ const loadDictionary = Effect.gen(function* () {
   if (dictionaryCache) return dictionaryCache;
   const text = yield* Effect.promise(() => Bun.file(erDictionaryUrl).text());
   const map = new Map<bigint, string>();
-  for (const line of text.split(/[\r\n]+/)) {
-    if (line.startsWith('#')) continue;
-    const trimmed = line.trim();
+  for (const line of Str.split(text, /[\r\n]+/)) {
+    if (Str.startsWith('#')(line)) continue;
+    const trimmed = Str.trim(line);
     if (trimmed.length > 0) map.set(erPathHash(trimmed), trimmed);
   }
   dictionaryCache = map;
@@ -120,7 +129,8 @@ export const cleanInstall = (gameRoot: string) =>
         // Keep the patched originals (every name the backup holds) and drop only
         // the loose files unpacked alongside them; the backup itself is discarded
         // below and re-taken from the patched dir by `backupDirs`.
-        const originals = new Set(yield* fs.readDirectory(backup));
+        const backupNames = yield* fs.readDirectory(backup);
+        const originals = new Set(backupNames);
         for (const name of yield* fs.readDirectory(live)) {
           if (originals.has(name)) continue;
           yield* fs.remove(`${live}/${name}`, { recursive: true, force: true });
@@ -185,9 +195,10 @@ const unpackArchive = (
       } satisfies ArchiveSummary;
     }
 
-    const raw = new Uint8Array(
-      yield* Effect.promise(() => Bun.file(bhdPath).arrayBuffer()),
+    const rawBuffer = yield* Effect.promise(() =>
+      Bun.file(bhdPath).arrayBuffer(),
     );
+    const raw = new Uint8Array(rawBuffer);
     const isPlain = new TextDecoder().decode(raw.subarray(0, 4)) === 'BHD5';
     let header: Uint8Array;
     if (isPlain) {
@@ -195,7 +206,7 @@ const unpackArchive = (
     } else {
       const key = ER_ARCHIVE_KEYS[archive];
       if (key === undefined)
-        return yield* new DvdbndError({
+        return yield* DvdbndError.make({
           detail: `no archive key for "${archive}"`,
         });
       header = decryptBhdHeader(raw, key);
@@ -203,7 +214,7 @@ const unpackArchive = (
     const entries = parseBhd5(header);
 
     const isSd = SD_ARCHIVES.has(archive);
-    const [archiveBase = archive] = archive.split('/');
+    const [archiveBase] = Str.split(archive, '/');
     const bdt = Bun.file(bdtPath);
 
     let extracted = 0;
@@ -224,13 +235,10 @@ const unpackArchive = (
         target = '';
       }
 
-      let bytes = new Uint8Array(
-        yield* Effect.promise(() =>
-          bdt
-            .slice(entry.offset, entry.offset + entry.paddedSize)
-            .arrayBuffer(),
-        ),
+      const slab = yield* Effect.promise(() =>
+        bdt.slice(entry.offset, entry.offset + entry.paddedSize).arrayBuffer(),
       );
+      let bytes = new Uint8Array(slab);
       if (entry.aes) decryptAesRanges(bytes, entry.aes);
       // sd files keep their padding in the slab; trim to the real size (UXM parity).
       if (
@@ -242,7 +250,7 @@ const unpackArchive = (
       }
 
       if (known === undefined) {
-        const name = `${archiveBase}_${entry.hash.toString().padStart(10, '0')}`;
+        const name = `${archiveBase}_${Str.padStart(10, '0')(entry.hash.toString())}`;
         target = `${gameRoot}/_unknown/${name}${guessExtension(bytes)}`;
         if (yield* fs.exists(target)) {
           skipped++;
@@ -296,15 +304,14 @@ export const unpackInstall = (opts: UnpackOptions) =>
     yield* backupDirs(gameRoot);
 
     const mkdirCache = new Set<string>();
-    const archives: ArchiveSummary[] = [];
-    for (const archive of ER_GAME_INFO.archives) {
-      archives.push(
-        yield* unpackArchive(gameRoot, archive, dictionary, mkdirCache),
-      );
-    }
+    const archives: ArchiveSummary[] = yield* Effect.forEach(
+      ER_GAME_INFO.archives,
+      (archive) => unpackArchive(gameRoot, archive, dictionary, mkdirCache),
+      { concurrency: 1 },
+    );
 
     const sum = (k: keyof ArchiveSummary) =>
-      archives.reduce((n, a) => n + (a[k] as number), 0);
+      Arr.reduce(archives, 0, (n, a) => n + (a[k] as number));
     return {
       cleaned: clean,
       archives,

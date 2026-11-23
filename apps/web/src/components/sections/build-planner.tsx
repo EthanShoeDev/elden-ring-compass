@@ -1,5 +1,5 @@
 import { SCALING_ATTRS, type ScalingAttr } from '@elden-ring-compass/data/ar';
-import { Predicate } from 'effect';
+import { Array as Arr, Option, Order, Predicate } from 'effect';
 import {
   PackageCheckIcon,
   RefreshCcwIcon,
@@ -136,7 +136,7 @@ export function BuildPlannerSection() {
     else setTarget(current);
   };
   const dirty = archetype
-    ? ATTR_META.some((m) => target[m.key] !== archetype.target[m.key])
+    ? Arr.some(ATTR_META, (m) => target[m.key] !== archetype.target[m.key])
     : false;
 
   // weapon id → highest owned upgrade level, from the save's inventory.
@@ -183,7 +183,8 @@ export function BuildPlannerSection() {
   const bestOwnedForBuild = useMemo(
     () =>
       topWeapon(
-        ratedAtTarget.filter(
+        Arr.filter(
+          ratedAtTarget,
           (r) =>
             r.owned &&
             r.wieldable &&
@@ -196,7 +197,8 @@ export function BuildPlannerSection() {
     () =>
       topWeapon(
         bestAffinityPerWeapon(
-          ratedAtTarget.filter(
+          Arr.filter(
+            ratedAtTarget,
             (r) =>
               !r.owned &&
               (!archetype || weaponScalesWith(r.scaling, archetype)),
@@ -208,7 +210,7 @@ export function BuildPlannerSection() {
   // The single strongest thing in the bag at your *current* stats, *any* build —
   // a clearly-labelled aside ("what hits hardest right now"), not a build pick.
   const strongestOwned = useMemo(
-    () => topWeapon(ratedAtCurrent.filter((r) => r.owned && r.wieldable)),
+    () => topWeapon(Arr.filter(ratedAtCurrent, (r) => r.owned && r.wieldable)),
     [ratedAtCurrent],
   );
   const statusBuild = archetype ? STATUS_ARCHETYPES.has(archetype.key) : false;
@@ -263,7 +265,7 @@ export function BuildPlannerSection() {
               if (next) pickArchetype(next);
             }}
           >
-            {BUILD_ARCHETYPES.map((a) => {
+            {Arr.map(BUILD_ARCHETYPES, (a) => {
               const Icon = a.icon;
               return (
                 <ToggleGroupItem
@@ -434,7 +436,7 @@ export function BuildPlannerSection() {
             </Button>
           </CardHeader>
           <CardContent className='space-y-3.5'>
-            {ATTR_META.map((m) => (
+            {Arr.map(ATTR_META, (m) => (
               <div key={m.key} className='flex items-center gap-3'>
                 <span className='w-24 shrink-0 text-sm'>{m.label}</span>
                 <div className='relative flex-1'>
@@ -446,7 +448,7 @@ export function BuildPlannerSection() {
                       setAttr(m.key, sliderNum(v));
                     }}
                   />
-                  {m.softCaps.map((cap) => (
+                  {Arr.map(m.softCaps, (cap) => (
                     <span
                       key={cap}
                       title={`Soft cap at ${cap}`}
@@ -574,14 +576,13 @@ export function BuildPlannerSection() {
 }
 
 const topWeapon = (list: readonly RatedWeapon[]): RatedWeapon | undefined =>
-  list.reduce<RatedWeapon | undefined>(
-    (best, r) => (!best || r.ar > best.ar ? r : best),
-    undefined,
+  Arr.reduce<RatedWeapon, RatedWeapon | undefined>(list, undefined, (best, r) =>
+    !best || r.ar > best.ar ? r : best,
   );
 
 const scaleAttrsOf = (
   scaling: Readonly<Partial<Record<ScalingAttr, number>>>,
-): ScalingAttr[] => SCALING_ATTRS.filter((a) => (scaling[a] ?? 0) > 0);
+): ScalingAttr[] => Arr.filter(SCALING_ATTRS, (a) => (scaling[a] ?? 0) > 0);
 
 function Muted({ children }: { children: React.ReactNode }) {
   return <p className='text-sm text-muted-foreground'>{children}</p>;
@@ -650,8 +651,9 @@ function LevelUpAdvice({
   target: Attrs8;
 }) {
   const need = (k: Attr8Key) => Math.max(0, target[k] - current[k]);
-  const primary = OFFENSIVE_KEYS.filter((k) => target[k] >= 30).toSorted(
-    (a, b) => target[b] - target[a],
+  const primary = Arr.sort(
+    Arr.filter(OFFENSIVE_KEYS, (k) => target[k] >= 30),
+    Order.flip(Order.mapInput(Order.Number, (k: Attr8Key) => target[k])),
   );
 
   const rec = (() => {
@@ -663,7 +665,9 @@ function LevelUpAdvice({
         key: 'vigor' as Attr8Key,
         reason: 'health is low — most builds want ~40 Vigor first',
       };
-    const prim = primary.find((k) => need(k) > 0);
+    const prim = Option.getOrUndefined(
+      Arr.findFirst(primary, (k) => need(k) > 0),
+    );
     if (prim)
       return {
         key: prim,
@@ -675,11 +679,18 @@ function LevelUpAdvice({
       return { key: 'endurance' as Attr8Key, reason: 'stamina + equip load' };
     if (need('vigor') > 0)
       return { key: 'vigor' as Attr8Key, reason: 'more survivability' };
-    const any = ATTR_META.map((m) => m.key).find((k) => need(k) > 0);
+    const any = Option.getOrUndefined(
+      Arr.findFirst(
+        Arr.map(ATTR_META, (m) => m.key),
+        (k) => need(k) > 0,
+      ),
+    );
     return any ? { key: any, reason: 'toward your target build' } : null;
   })();
 
-  const label = (k: Attr8Key) => ATTR_META.find((m) => m.key === k)?.label ?? k;
+  const label = (k: Attr8Key) =>
+    Option.getOrUndefined(Arr.findFirst(ATTR_META, (m) => m.key === k))
+      ?.label ?? k;
 
   if (!rec)
     return (
@@ -699,14 +710,17 @@ function LevelUpAdvice({
       </p>
       <Muted>{rec.reason}. Remaining to your target:</Muted>
       <div className='flex flex-wrap gap-1.5'>
-        {ATTR_META.filter((m) => need(m.key) > 0).map((m) => (
-          <span
-            key={m.key}
-            className='rounded-md border border-border bg-muted/40 px-1.5 py-0.5 text-[11px] text-muted-foreground tabular-nums'
-          >
-            {m.label} +{need(m.key)}
-          </span>
-        ))}
+        {Arr.map(
+          Arr.filter(ATTR_META, (m) => need(m.key) > 0),
+          (m) => (
+            <span
+              key={m.key}
+              className='rounded-md border border-border bg-muted/40 px-1.5 py-0.5 text-[11px] text-muted-foreground tabular-nums'
+            >
+              {m.label} +{need(m.key)}
+            </span>
+          ),
+        )}
       </div>
       <Muted>
         How much Vigor is up to you — drag its slider to set your own health
@@ -740,7 +754,9 @@ function RespecVerdict({
       </Muted>
     );
 
-  const label = (k: Attr8Key) => ATTR_META.find((m) => m.key === k)?.label ?? k;
+  const label = (k: Attr8Key) =>
+    Option.getOrUndefined(Arr.findFirst(ATTR_META, (m) => m.key === k))
+      ?.label ?? k;
   const buildLabel = archetype?.label ?? 'this';
 
   // Only *offensive* points sunk into a stat this build doesn't use are "stranded"
@@ -750,17 +766,26 @@ function RespecVerdict({
   const SPLASH = 15;
   const primaryKeys: ReadonlyArray<Attr8Key> = archetype
     ? archetype.primary
-    : OFFENSIVE_KEYS.filter((k) => target[k] >= 30);
-  const strandedByStat = OFFENSIVE_KEYS.filter((k) => !primaryKeys.includes(k))
-    .map((k) => ({ key: k, n: Math.max(0, current[k] - SPLASH) }))
-    .filter((x) => x.n > 0)
-    .toSorted((a, b) => b.n - a.n);
-  const stranded = strandedByStat.reduce((s, x) => s + x.n, 0);
-  const strandedLabels = strandedByStat.slice(0, 2).map((x) => label(x.key));
+    : Arr.filter(OFFENSIVE_KEYS, (k) => target[k] >= 30);
+  const strandedByStat = Arr.sort(
+    Arr.filter(
+      Arr.map(
+        Arr.filter(OFFENSIVE_KEYS, (k) => !primaryKeys.includes(k)),
+        (k) => ({ key: k, n: Math.max(0, current[k] - SPLASH) }),
+      ),
+      (x) => x.n > 0,
+    ),
+    Order.flip(Order.mapInput(Order.Number, (x: { n: number }) => x.n)),
+  );
+  const stranded = Arr.reduce(strandedByStat, 0, (s, x) => s + x.n);
+  const strandedLabels = Arr.map(strandedByStat.slice(0, 2), (x) =>
+    label(x.key),
+  );
 
   const mismatch =
     archetype && equipped
-      ? !archetype.scaleAttrs.some(
+      ? !Arr.some(
+          archetype.scaleAttrs,
           (a) => (equipped.scaling.scaling[a] ?? 0) > 0,
         )
       : false;
@@ -775,19 +800,28 @@ function RespecVerdict({
       {needsRespec ? (
         <p className='text-sm'>
           <strong className='text-foreground'>Respec worth it.</strong> ~
-          {stranded} points sit in {strandedLabels.join(' & ')} — stats a{' '}
+          {stranded} points sit in {Arr.join(strandedLabels, ' & ')} — stats a{' '}
           {buildLabel} build doesn&apos;t use.
         </p>
       ) : mismatch && equipped ? (
         <p className='text-sm'>
           <strong className='text-foreground'>Loadout mismatch.</strong> Your{' '}
           {equipped.name} scales with{' '}
-          {scaleAttrsOf(equipped.scaling.scaling)
-            .map((a) => SCALING_LABEL[a])
-            .join('/')}
+          {Arr.join(
+            Arr.map(
+              scaleAttrsOf(equipped.scaling.scaling),
+              (a) => SCALING_LABEL[a],
+            ),
+            '/',
+          )}
           , but a {buildLabel} build leans on{' '}
-          {archetype?.scaleAttrs.map((a) => SCALING_LABEL[a]).join('/')}. Swap
-          weapon — your stats are fine.
+          {archetype
+            ? Arr.join(
+                Arr.map(archetype.scaleAttrs, (a) => SCALING_LABEL[a]),
+                '/',
+              )
+            : undefined}
+          . Swap weapon — your stats are fine.
         </p>
       ) : (
         <p className='text-sm'>

@@ -1,4 +1,11 @@
-import { Effect, FileSystem, PlatformError } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  FileSystem,
+  PlatformError,
+  Record as Rec,
+  String as Str,
+} from 'effect';
 
 import type { OodleError } from '../external/oodle.ts';
 import { type Bnd4Error, parseBnd4 } from '../formats/bnd4.ts';
@@ -53,7 +60,7 @@ const MSGBNDS = [
 // so the lazy group stops before the optional "_dlcNN" suffix).
 const categoryOf = (entryName: string | null): string | null => {
   if (entryName === null) return null;
-  const base = entryName.split(/[\\/]/).pop() ?? '';
+  const base = Arr.lastNonEmpty(Str.split(entryName, /[\\/]/));
   return /^([A-Za-z0-9]+?)(?:_dlc\d+)?\.fmg$/i.exec(base)?.[1] ?? null;
 };
 
@@ -68,15 +75,19 @@ export const loadItemText = (
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const wanted = new Set<string>(ITEM_TEXT_CATEGORIES);
-    const result = Object.fromEntries(
-      ITEM_TEXT_CATEGORIES.map((c) => [c, new Map<number, string>()]),
+    const result = Rec.fromEntries(
+      Arr.map(
+        ITEM_TEXT_CATEGORIES,
+        (c) => [c, new Map<number, string>()] as const,
+      ),
     ) as ItemText;
 
     for (const rel of MSGBNDS) {
       const path = `${gameRoot}/msg/engus/${rel}`;
       if (!(yield* fs.exists(path))) continue;
       const dcx = yield* fs.readFile(path);
-      const entries = yield* parseBnd4(yield* dcxDecompress(dcx, oo2corePath));
+      const bnd = yield* dcxDecompress(dcx, oo2corePath);
+      const entries = yield* parseBnd4(bnd);
       for (const entry of entries) {
         const category = categoryOf(entry.name);
         if (category === null || !wanted.has(category)) continue;

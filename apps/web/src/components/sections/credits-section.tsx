@@ -1,3 +1,4 @@
+import { Array as Arr } from 'effect';
 import { ExternalLinkIcon, HandshakeIcon } from 'lucide-react';
 
 import { GithubIcon } from '@/components/shell/github-icon';
@@ -185,7 +186,7 @@ export function CreditsSection() {
           Built on
         </div>
         <div className='flex flex-col gap-2'>
-          {CORE.map((item) => (
+          {Arr.map(CORE, (item) => (
             <CoreRow key={item.name} item={item} />
           ))}
         </div>
@@ -197,7 +198,7 @@ export function CreditsSection() {
           Also referenced
         </div>
         <div className='flex flex-wrap gap-1.5'>
-          {MENTIONS.map((item) => (
+          {Arr.map(MENTIONS, (item) => (
             <MentionPill key={item.name} item={item} />
           ))}
         </div>

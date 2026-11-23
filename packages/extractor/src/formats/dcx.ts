@@ -1,4 +1,4 @@
-import { Data, Effect } from 'effect';
+import { Effect, Schema } from 'effect';
 
 import { oodleDecompress, type OodleError } from '../external/oodle.ts';
 
@@ -15,9 +15,10 @@ import { oodleDecompress, type OodleError } from '../external/oodle.ts';
  *   0x14 u32 → start of the compressed payload
  */
 
-export class DcxError extends Data.TaggedError('DcxError')<{
-  readonly detail: string;
-}> {}
+export class DcxError extends Schema.TaggedError<
+  DcxError,
+  { readonly brand: unique symbol }
+>()('DcxError', { detail: Schema.String }) {}
 
 const ascii = (b: Uint8Array, o: number, n: number) =>
   new TextDecoder('latin1').decode(b.subarray(o, o + n));
@@ -34,12 +35,12 @@ interface ParsedDcx {
 const parseDcx = (bytes: Uint8Array): Effect.Effect<ParsedDcx, DcxError> =>
   Effect.gen(function* () {
     if (!isDcx(bytes)) {
-      return yield* new DcxError({
+      return yield* DcxError.make({
         detail: `not a DCX (magic "${ascii(bytes, 0, 4)}")`,
       });
     }
     if (bytes.length < 0x18) {
-      return yield* new DcxError({
+      return yield* DcxError.make({
         detail: `DCX too short (${bytes.length} bytes)`,
       });
     }
@@ -53,7 +54,9 @@ const parseDcx = (bytes: Uint8Array): Effect.Effect<ParsedDcx, DcxError> =>
       dcpOffset + 8 > bytes.length ||
       dataOffset > bytes.length
     ) {
-      return yield* new DcxError({ detail: 'DCX header offsets out of range' });
+      return yield* DcxError.make({
+        detail: 'DCX header offsets out of range',
+      });
     }
     const uncompressedSize = dv.getUint32(dcsOffset + 4, false);
     const compressedSize = dv.getUint32(dcsOffset + 8, false);
@@ -90,7 +93,7 @@ export const dcxDecompress = (
         const raw = yield* Effect.tryPromise({
           try: () => Bun.zstdDecompress(compressed),
           catch: (cause) =>
-            new DcxError({
+            DcxError.make({
               detail: `zstd decompress failed: ${String(cause)}`,
             }),
         });
@@ -106,11 +109,11 @@ export const dcxDecompress = (
               Bun.inflateSync(compressed as Uint8Array<ArrayBuffer>),
             ),
           catch: (cause) =>
-            new DcxError({ detail: `zlib inflate failed: ${String(cause)}` }),
+            DcxError.make({ detail: `zlib inflate failed: ${String(cause)}` }),
         });
       }
       default: {
-        return yield* new DcxError({
+        return yield* DcxError.make({
           detail: `unsupported DCX format "${format}"`,
         });
       }

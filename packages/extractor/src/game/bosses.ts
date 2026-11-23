@@ -1,4 +1,11 @@
-import { Data, Effect, FileSystem, Path, PlatformError } from 'effect';
+import {
+  Effect,
+  FileSystem,
+  Path,
+  PlatformError,
+  Schema,
+  String as Str,
+} from 'effect';
 
 import type { OodleError } from '../external/oodle.ts';
 import type { Bnd4Error } from '../formats/bnd4.ts';
@@ -22,9 +29,10 @@ import { type BossNamesError, resolveBossNames } from './boss-names.ts';
  * the rest are roaming/field bosses without a boss healthbar (name = null).
  */
 
-export class BossesError extends Data.TaggedError('BossesError')<{
-  readonly detail: string;
-}> {}
+export class BossesError extends Schema.TaggedError<
+  BossesError,
+  { readonly brand: unique symbol }
+>()('BossesError', { detail: Schema.String }) {}
 
 export interface BossArea {
   readonly defeatFlagId: number; // GameAreaParam.defeatBossFlagId — the save flag
@@ -39,7 +47,7 @@ export interface BossArea {
 }
 
 const mapIdOf = (areaNo: number, blockNo: number, mapNo: number): string => {
-  const pad = (n: number) => n.toString().padStart(2, '0');
+  const pad = (n: number) => Str.padStart(2, '0')(n.toString());
   // bossMapMapNo is the 3rd map-id segment; the 4th is always 00 for arenas.
   return `m${pad(areaNo)}_${pad(blockNo)}_${pad(mapNo)}_00`;
 };
@@ -64,7 +72,7 @@ export const loadBosses = (
   Effect.gen(function* () {
     const bytes = params.get('GameAreaParam');
     if (!bytes)
-      return yield* new BossesError({
+      return yield* BossesError.make({
         detail: 'GameAreaParam missing from regulation',
       });
 

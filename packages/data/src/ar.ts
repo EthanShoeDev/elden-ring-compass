@@ -16,6 +16,8 @@
 //     else → totalScaling += calcCorrectGraph[statValue] × scaling[upgradeLevel]
 //   AR_type = baseAttack[upgradeLevel] × totalScaling
 
+import { Array as Arr } from 'effect';
+
 export type DamageType = 'physical' | 'magic' | 'fire' | 'lightning' | 'holy';
 export type ScalingAttr = 'str' | 'dex' | 'int' | 'fai' | 'arc';
 
@@ -146,13 +148,17 @@ export function createArCalculator(tables: ArTables): {
   ) => AttackRating;
 } {
   const graphById = new Map(
-    tables.calcCorrectGraphs.map((g) => [
+    Arr.map(tables.calcCorrectGraphs, (g) => [
       g.id,
       evaluateCalcCorrectGraph(g.stages),
     ]),
   );
-  const aecById = new Map(tables.attackElementCorrects.map((a) => [a.id, a]));
-  const reinforceById = new Map(tables.reinforceTypes.map((r) => [r.id, r]));
+  const aecById = new Map(
+    Arr.map(tables.attackElementCorrects, (a) => [a.id, a]),
+  );
+  const reinforceById = new Map(
+    Arr.map(tables.reinforceTypes, (r) => [r.id, r]),
+  );
 
   const compute = (
     weapon: WeaponScaling,
@@ -192,7 +198,8 @@ export function createArCalculator(tables: ArTables): {
       const corr = aec.correct[dt] ?? {};
 
       let totalScaling = 1;
-      const typeIneffective = SCALING_ATTRS.some(
+      const typeIneffective = Arr.some(
+        SCALING_ATTRS,
         (a) =>
           corr[a] !== undefined && corr[a] !== 0 && ineffectiveAttrs.has(a),
       );

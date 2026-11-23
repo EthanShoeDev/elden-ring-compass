@@ -1,4 +1,12 @@
-import { Data, Effect, FileSystem, PlatformError } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  FileSystem,
+  Option,
+  PlatformError,
+  Schema,
+  String as Str,
+} from 'effect';
 
 import { globSorted } from '../external/glob.ts';
 import type { OodleError } from '../external/oodle.ts';
@@ -35,9 +43,10 @@ import { ITEM_MSGBNDS, loadFmgTable } from './fmg-tables.ts';
  * normal name bar rather than 2003[11], so they resolve to no name.
  */
 
-export class BossNamesError extends Data.TaggedError('BossNamesError')<{
-  readonly detail: string;
-}> {}
+export class BossNamesError extends Schema.TaggedError<
+  BossNamesError,
+  { readonly brand: unique symbol }
+>()('BossNamesError', { detail: Schema.String }) {}
 
 export interface BossNameTables {
   readonly byCharacter: Map<number, string>;
@@ -107,7 +116,7 @@ function resolveBars(
           : sameFile.get(targetId);
       if (
         !target ||
-        !target.instructions.some((t) => isHealthbar(t.bank, t.id))
+        !Arr.some(target.instructions, (t) => isHealthbar(t.bank, t.id))
       )
         continue;
 
@@ -157,16 +166,13 @@ export const resolveBossNames = (
     );
 
     const eventDir = `${gameRoot}/event`;
-    const paths = yield* globSorted(
-      '*.emevd.dcx',
-      eventDir,
-      (cause) =>
-        new BossNamesError({
-          detail: `scanning ${eventDir}: ${String(cause)}`,
-        }),
+    const paths = yield* globSorted('*.emevd.dcx', eventDir, (cause) =>
+      BossNamesError.make({
+        detail: `scanning ${eventDir}: ${String(cause)}`,
+      }),
     );
     if (paths.length === 0) {
-      return yield* new BossNamesError({
+      return yield* BossNamesError.make({
         detail: `no EMEVDs under ${eventDir} — run unpack first`,
       });
     }
@@ -174,14 +180,18 @@ export const resolveBossNames = (
     const readEmevd = (path: string) =>
       Effect.gen(function* () {
         const dcx = yield* fs.readFile(path);
-        return yield* parseEmevd(yield* dcxDecompress(dcx, oo2corePath));
+        const bytes = yield* dcxDecompress(dcx, oo2corePath);
+        return yield* parseEmevd(bytes);
       });
 
     // common_func is the template pool for RunCommonEvent targets.
-    const commonPath = paths.find((p) => p.endsWith('common_func.emevd.dcx'));
+    const commonPath = Arr.findFirst(
+      paths,
+      Str.endsWith('common_func.emevd.dcx'),
+    );
     const commonFunc = new Map<number, EmevdEvent>();
-    if (commonPath !== undefined) {
-      for (const e of (yield* readEmevd(commonPath)).events)
+    if (Option.isSome(commonPath)) {
+      for (const e of (yield* readEmevd(commonPath.value)).events)
         commonFunc.set(e.id, e);
     }
 

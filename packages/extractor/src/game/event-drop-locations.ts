@@ -1,4 +1,12 @@
-import { Data, Effect, FileSystem, Path, Predicate } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  FileSystem,
+  Option,
+  Path,
+  Predicate,
+  Schema,
+} from 'effect';
 
 import { globSorted } from '../external/glob.ts';
 import type { OodleError } from '../external/oodle.ts';
@@ -38,9 +46,10 @@ import { argInts, type EmevdError, parseEmevd } from '../formats/emevd.ts';
  * `docs/projects/item-placement-coverage.md` (Phase 2b/2c).
  */
 
-export class EventDropError extends Data.TaggedError('EventDropError')<{
-  readonly detail: string;
-}> {}
+export class EventDropError extends Schema.TaggedError<
+  EventDropError,
+  { readonly brand: unique symbol }
+>()('EventDropError', { detail: Schema.String }) {}
 
 // Initialize (Common) Event opcodes — see `game/boss-names.ts`.
 const RUN_BANK = 2000;
@@ -85,7 +94,7 @@ export const loadEventDropLocations = (
     const emedf = yield* loadEmedf;
     const setFlag = emedf.byName.get('set event flag');
     if (!setFlag) {
-      return yield* new EventDropError({
+      return yield* EventDropError.make({
         detail: 'EMEDF missing "Set Event Flag"',
       });
     }
@@ -100,7 +109,7 @@ export const loadEventDropLocations = (
       '*.emevd.dcx',
       dir,
       (cause) =>
-        new EventDropError({ detail: `scanning ${dir}: ${String(cause)}` }),
+        EventDropError.make({ detail: `scanning ${dir}: ${String(cause)}` }),
       { exclude: ['common_func.emevd.dcx'] },
     );
 
@@ -115,14 +124,14 @@ export const loadEventDropLocations = (
 
     for (const path of paths) {
       const dcx = yield* fs.readFile(path).pipe(
-        Effect.mapError(
-          (cause) =>
-            new EventDropError({
-              detail: `reading ${path}: ${String(cause)}`,
-            }),
+        Effect.mapError((cause) =>
+          EventDropError.make({
+            detail: `reading ${path}: ${String(cause)}`,
+          }),
         ),
       );
-      const emevd = yield* parseEmevd(yield* dcxDecompress(dcx, oo2corePath));
+      const emevdBytes = yield* dcxDecompress(dcx, oo2corePath);
+      const emevd = yield* parseEmevd(emevdBytes);
 
       for (const ev of emevd.events) {
         const enabledFlags: number[] = []; // flags this event EnableFlag()s
@@ -134,11 +143,11 @@ export const loadEventDropLocations = (
           ) {
             const ints = argInts(ins.argData);
             const params = ints.slice(2); // after slot + event-id
-            const lot = params.find((p) => lotIds.has(p));
-            if (lot !== undefined) {
+            const lot = Arr.findFirst(params, (p) => lotIds.has(p));
+            if (Option.isSome(lot)) {
               awardCalls.push({
-                lot,
-                candidates: params.filter((p) => p !== lot && p > 0),
+                lot: lot.value,
+                candidates: Arr.filter(params, (p) => p !== lot.value && p > 0),
               });
             }
             if (ins.id === RUN_EVENT && ints[1] !== undefined) {
@@ -181,12 +190,16 @@ export const loadEventDropLocations = (
     const pickMarker = (
       ids: Iterable<number>,
     ): { e: number; m: MarkerCoord } | undefined => {
-      const resolved = [...ids].flatMap((e) => {
+      const resolved = Arr.flatMap(Arr.fromIterable(ids), (e) => {
         const m = markers.get(e);
         return m ? [{ e, m }] : [];
       });
       // Prefer the encounter character (invader/boss) over leash/trigger regions.
-      return resolved.find((r) => r.m.isCharacter) ?? resolved[0];
+      return (
+        Option.getOrUndefined(
+          Arr.findFirst(resolved, (r) => r.m.isCharacter),
+        ) ?? resolved[0]
+      );
     };
 
     // Resolve each award → its gate flag → encounter entity → coords.

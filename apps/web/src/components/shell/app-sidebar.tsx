@@ -1,6 +1,7 @@
 import { useAtomValue } from '@effect/atom-react';
 import { GAME_VERSION } from '@elden-ring-compass/data';
 import { Link, useHydrated, useLocation } from '@tanstack/react-router';
+import { Array as Arr, String as Str } from 'effect';
 import {
   ChevronRightIcon,
   FileCheckIcon,
@@ -55,9 +56,9 @@ import { NAV, REPO_URL } from './nav';
 // Game data is extracted from a specific Elden Ring build (PE FileVersion of
 // eldenring.exe). Trim trailing ".0" segments for a tidy "1.16" / "1.16.1".
 function prettyVersion(version: string): string {
-  const parts = version.split('.');
+  const parts = Str.split(version, '.');
   while (parts.length > 2 && parts.at(-1) === '0') parts.pop();
-  return parts.join('.');
+  return Arr.join(parts, '.');
 }
 
 // TanStack's <Link> stamps `data-transitioning` on its anchor while the target
@@ -141,12 +142,12 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Explore</SidebarGroupLabel>
           <SidebarMenu>
-            {NAV.map((item) => {
+            {Arr.map(NAV, (item) => {
               const Icon = item.icon;
               const sectionActive =
                 item.exact === true
                   ? pathname === item.to
-                  : pathname.startsWith(item.to);
+                  : Str.startsWith(item.to)(pathname);
 
               // Collapsible group of sub-routes (e.g. Inventory → Items/Events/…).
               if (item.children) {
@@ -185,7 +186,7 @@ export function AppSidebar() {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        {item.children.map((child) => (
+                        {Arr.map(item.children, (child) => (
                           <SidebarMenuSubItem key={child.matchPath}>
                             <SidebarMenuSubButton
                               isActive={pathname === child.matchPath}

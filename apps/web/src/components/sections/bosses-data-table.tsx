@@ -1,4 +1,5 @@
 import { BOSSES, eventFlagOffset } from '@elden-ring-compass/data';
+import { Array as Arr } from 'effect';
 import { useMemo } from 'react';
 
 import {
@@ -155,7 +156,7 @@ export function BossesDataTable() {
     return cols;
   }, [connected]);
 
-  const defeatedCount = rows.filter((r) => r.defeated === true).length;
+  const defeatedCount = Arr.filter(rows, (r) => r.defeated === true).length;
 
   return (
     <Card className='w-full'>

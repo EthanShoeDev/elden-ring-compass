@@ -1,3 +1,4 @@
+import { Array as Arr } from 'effect';
 import { describe, expect, it } from 'vitest';
 
 import { MAX_UPGRADE_LEVEL, upgradeLevelFor, weaponScalingById } from './ar';
@@ -27,7 +28,7 @@ describe('upgradeLevelFor', () => {
       10,
     ];
     expect(
-      table.map((_, level) => somber && upgradeLevelFor(somber, level)),
+      Arr.map(table, (_, level) => somber && upgradeLevelFor(somber, level)),
     ).toEqual(table);
   });
 });

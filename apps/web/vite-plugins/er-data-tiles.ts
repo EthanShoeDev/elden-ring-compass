@@ -12,7 +12,20 @@ import {
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { Array as Arr, Effect, Schema, String as Str } from 'effect';
 import type { Plugin } from 'vite';
+
+const encodeJsonString = Schema.encodeEffect(
+  Schema.fromJsonString(Schema.String),
+);
+const encodeTileIndex = Schema.encodeEffect(
+  Schema.fromJsonString(
+    Schema.Record(
+      Schema.String,
+      Schema.Record(Schema.String, Schema.Array(Schema.Int)),
+    ),
+  ),
+);
 
 /**
  * Serve the extractor-generated map-tile pyramid from `@elden-ring-compass/data` at
@@ -59,9 +72,10 @@ export function erDataTiles(): Plugin {
   let version = '';
   let indexJson: string | null = null;
 
+  // Plain Vite hook/middleware callbacks (no Effect runtime): the pure encodes run here.
   /** Lazily build (and cache) the JSON existence index from the on-disk pyramid. */
   const getIndexJson = (): string =>
-    (indexJson ??= JSON.stringify(buildTileIndex(src)));
+    (indexJson ??= Effect.runSync(encodeTileIndex(buildTileIndex(src))));
 
   return {
     name: 'er-data-tiles',
@@ -76,7 +90,9 @@ export function erDataTiles(): Plugin {
       version = hashTileTree(src);
       return {
         define: {
-          __ER_MAP_TILES_BASE__: JSON.stringify(`/map-tiles/${version}`),
+          __ER_MAP_TILES_BASE__: Effect.runSync(
+            encodeJsonString(`/map-tiles/${version}`),
+          ),
         },
       };
     },
@@ -84,8 +100,8 @@ export function erDataTiles(): Plugin {
       const prefix = `/map-tiles/${version}/`;
       server.middlewares.use((req, res, next) => {
         const url = req.url;
-        if (url === undefined || !url.startsWith(prefix)) return next();
-        const pathname = url.split('?')[0] ?? url;
+        if (url === undefined || !Str.startsWith(prefix)(url)) return next();
+        const pathname = Arr.headNonEmpty(Str.split(url, '?'));
         // Synthetic index (no file on disk) — derived from the tile tree.
         if (pathname === prefix + INDEX_FILE) {
           res.setHeader('Content-Type', 'application/json');
@@ -93,12 +109,12 @@ export function erDataTiles(): Plugin {
           res.end(getIndexJson());
           return;
         }
-        const rel = path
-          .normalize(decodeURIComponent(pathname))
-          .slice(prefix.length);
+        const rel = Str.slice(prefix.length)(
+          path.normalize(decodeURIComponent(pathname)),
+        );
         const file = path.join(src, rel);
         if (
-          !file.startsWith(src) ||
+          !Str.startsWith(src)(file) ||
           !existsSync(file) ||
           !statSync(file).isFile()
         ) {
@@ -155,7 +171,7 @@ function hashTileTree(srcDir: string): string {
     hash.update(readFileSync(path.join(srcDir, rel)));
     hash.update('\0');
   }
-  return hash.digest('hex').slice(0, 12);
+  return Str.slice(0, 12)(hash.digest('hex'));
 }
 
 /**
@@ -168,7 +184,9 @@ function buildTileIndex(
 ): Record<string, Record<string, number[]>> {
   const dirs = (p: string): string[] =>
     existsSync(p)
-      ? readdirSync(p).filter((e) => statSync(path.join(p, e)).isDirectory())
+      ? Arr.filter(readdirSync(p), (e) =>
+          statSync(path.join(p, e)).isDirectory(),
+        )
       : [];
   const index: Record<string, Record<string, number[]>> = {};
   for (const map of dirs(srcDir)) {

@@ -1,4 +1,4 @@
-import { Effect, FileSystem } from 'effect';
+import { Array as Arr, Effect, FileSystem } from 'effect';
 import type { PlatformError } from 'effect';
 
 /**
@@ -17,5 +17,5 @@ export const globSorted = <E>(
     const paths = yield* fs
       .glob(pattern, { root, exclude: options.exclude })
       .pipe(Effect.mapError(onError));
-    return paths.map((path) => `${root}/${path}`);
+    return Arr.map(paths, (path) => `${root}/${path}`);
   });

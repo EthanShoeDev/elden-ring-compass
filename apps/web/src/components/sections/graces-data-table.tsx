@@ -1,3 +1,5 @@
+import { Array as Arr } from 'effect';
+
 import { useDataTableData } from '@/lib/data-table-data';
 import type { eventsDbView } from '@/lib/vm/events';
 
@@ -21,8 +23,11 @@ type Grace = ReturnType<typeof eventsDbView>[0];
 export function GracesDataTable() {
   // `eventsDbView` carries graces + bosses (it feeds the map pins). Bosses have a
   // dedicated, richer route (/bosses), so this table is graces-only.
-  const items = useDataTableData('events').filter((e) => e.type === 'grace');
-  const litCount = items.filter((item) => item.on).length;
+  const items = Arr.filter(
+    useDataTableData('events'),
+    (e) => e.type === 'grace',
+  );
+  const litCount = Arr.filter(items, (item) => item.on).length;
 
   return (
     <Card className='flex min-h-0 w-full flex-1 flex-col'>

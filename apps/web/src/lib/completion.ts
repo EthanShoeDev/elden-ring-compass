@@ -1,5 +1,6 @@
 import { ARMOR, GOODS } from '@elden-ring-compass/data';
 import { itemIconUrl } from '@elden-ring-compass/data/images';
+import { Array as Arr, String as Str } from 'effect';
 // Completion model — the data behind the Overview "how close am I to 100%?" tracker.
 //
 // The denominator is CURATED, not the raw catalog (see docs/projects/overview-completion-tracker.md):
@@ -63,11 +64,11 @@ function collapse(
   }
   return {
     total: anyOwned.size,
-    owned: [...anyOwned.values()].filter(Boolean).length,
+    owned: Arr.filter(anyOwned.values(), Boolean).length,
   };
 }
 
-const armorIconById = new Map(ARMOR.map((a) => [a.id, a.icon]));
+const armorIconById = new Map(Arr.map(ARMOR, (a) => [a.id, a.icon]));
 
 /** Icon url for the character's equipped helm (the completion ring's center), or undefined if bareheaded. */
 export function equippedHelmIconUrl(slot?: Readonly<Slot>): string | undefined {
@@ -83,7 +84,10 @@ type Good = (typeof GOODS)[number];
 // A Great Rune is held in one of two forms: unrestored (a "Key Item" of the same name,
 // 8148–8153) until it's restored at its Divine Tower (the "Great Rune" category, 191–196).
 const unrestoredGreatRuneIdByName = new Map(
-  GOODS.filter((g) => g.category === 'Key Item').map((g) => [g.name, g.id]),
+  Arr.map(
+    Arr.filter(GOODS, (g) => g.category === 'Key Item'),
+    (g) => [g.name, g.id],
+  ),
 );
 
 // Curated "collect them all" sets — clean GOODS categories (counts verified 2026-06-07).
@@ -112,7 +116,7 @@ const MILESTONE_SETS: ReadonlyArray<{
     // Traded-in Remembrances leave the inventory; the boss kill still proves collection.
     collected: (g, held, slot) =>
       held(g.id) ||
-      rewardBossFlags(g.id).some((flag) => isEventFlagOn(slot, flag)),
+      Arr.some(rewardBossFlags(g.id), (flag) => isEventFlagOn(slot, flag)),
   },
 ];
 
@@ -124,15 +128,16 @@ export function completionMilestones(
     ? goodsQuantityById(slot)
     : new Map<number, number>();
   const held = (id: number) => (goodsQuantities.get(id) ?? 0) > 0;
-  return MILESTONE_SETS.map(({ key, label, category, collected }) => {
-    const set = GOODS.filter(
-      (g) => g.category === category && !g.name.startsWith('[ERROR]'),
+  return Arr.map(MILESTONE_SETS, ({ key, label, category, collected }) => {
+    const set = Arr.filter(
+      GOODS,
+      (g) => g.category === category && !Str.startsWith('[ERROR]')(g.name),
     );
     return {
       key,
       label,
       total: set.length,
-      owned: slot ? set.filter((g) => collected(g, held, slot)).length : 0,
+      owned: slot ? Arr.filter(set, (g) => collected(g, held, slot)).length : 0,
     };
   });
 }
@@ -143,8 +148,8 @@ export function useCompletion(): CompletionModel {
 
   return useMemo(() => {
     const events = eventsDbView(slot);
-    const bosses = events.filter((e) => e.type === 'boss');
-    const graces = events.filter((e) => e.type === 'grace');
+    const bosses = Arr.filter(events, (e) => e.type === 'boss');
+    const graces = Arr.filter(events, (e) => e.type === 'grace');
 
     // Weapons: collapse affinity variants by their shared base id (affinityIndex 0 sibling).
     const weapons = collapse(
@@ -153,7 +158,7 @@ export function useCompletion(): CompletionModel {
     );
     // Armor: collapse "(Altered)" tailor variants by base name.
     const armor = collapse(tables.armor.items, (r) =>
-      r.name.replace(/\s*\(Altered\)\s*$/, ''),
+      Str.replace(/\s*\(Altered\)\s*$/, '')(r.name),
     );
 
     const cat = (
@@ -176,14 +181,14 @@ export function useCompletion(): CompletionModel {
       cat(
         'bosses',
         'Bosses',
-        bosses.filter((e) => e.on).length,
+        Arr.filter(bosses, (e) => e.on).length,
         bosses.length,
         { to: '/bosses' },
       ),
       cat(
         'graces',
         'Sites of Grace',
-        graces.filter((e) => e.on).length,
+        Arr.filter(graces, (e) => e.on).length,
         graces.length,
       ),
       cat('weapons', 'Weapons', weapons.owned, weapons.total, {
@@ -244,7 +249,7 @@ export function useCompletion(): CompletionModel {
     const overallPct =
       categories.length > 0
         ? Math.round(
-            categories.reduce((s, c) => s + c.pct, 0) / categories.length,
+            Arr.reduce(categories, 0, (s, c) => s + c.pct) / categories.length,
           )
         : 0;
 

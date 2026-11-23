@@ -1,4 +1,11 @@
-import { Effect, FileSystem, Path, Predicate } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  FileSystem,
+  Path,
+  Predicate,
+  String as Str,
+} from 'effect';
 
 import { findOodleDll, type OodleError } from '../external/oodle.ts';
 import type { DcxError } from '../formats/dcx.ts';
@@ -73,7 +80,7 @@ const decodeMapLotTile = (
 ): { col: number; row: number } | null => {
   const s = lotId.toString();
   if (!/^10\d{8}$/.test(s)) return null;
-  return { col: Number(s.slice(2, 4)), row: Number(s.slice(4, 6)) };
+  return { col: Number(Str.slice(2, 4)(s)), row: Number(Str.slice(4, 6)(s)) };
 };
 
 export const loadPlacements = (
@@ -115,7 +122,7 @@ export const loadPlacements = (
       const def = yield* loadParamdef('NpcParam');
       for (const r of npcParam.rows) {
         const row = decodeRow(npcBytes, r.dataOffset, def, npcParam.little);
-        const lots = NPC_LOT_FIELDS.flatMap(({ field, map }) => {
+        const lots = Arr.flatMap(NPC_LOT_FIELDS, ({ field, map }) => {
           const lotId = num(row, field);
           return lotId > 0 ? [{ lotId, map }] : [];
         });
@@ -233,7 +240,8 @@ export const loadPlacements = (
         entityId = loc.viaEntity;
       } else {
         if (!tile) continue;
-        mapId = `m60_${String(tile.col).padStart(2, '0')}_${String(tile.row).padStart(2, '0')}_00`;
+        const pad2 = Str.padStart(2, '0');
+        mapId = `m60_${pad2(String(tile.col))}_${pad2(String(tile.row))}_00`;
       }
       for (const it of items) {
         out.push({

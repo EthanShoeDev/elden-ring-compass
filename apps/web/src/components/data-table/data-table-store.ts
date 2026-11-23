@@ -11,7 +11,7 @@ import type {
   SortingState,
 } from '@tanstack/react-table';
 import { functionalUpdate } from '@tanstack/react-table';
-import { Predicate, Schema } from 'effect';
+import { Array as Arr, Option, Predicate, Record as Rec, Schema } from 'effect';
 import { Atom } from 'effect/reactivity';
 import { useEffect } from 'react';
 
@@ -220,13 +220,19 @@ export const useColumnFilterValue = (tableId: TableId, columnId: string) => {
   const hydrated = useHydrated();
   const slice = useAtomValue(tableStateSliceFamily(tableId));
   const setTableState = useAtomSet(tableStateAtom);
-  const value = hydrated
-    ? slice?.columnFilters.find((f) => f.id === columnId)?.value
-    : undefined;
+  const value =
+    hydrated && slice
+      ? Option.getOrUndefined(
+          Arr.findFirst(slice.columnFilters, (f) => f.id === columnId),
+        )?.value
+      : undefined;
   const setValue = (next: unknown) => {
     setTableState((prev) => {
       const prevState = prev[tableId] ?? defaultTableState({ tableId });
-      const others = prevState.columnFilters.filter((f) => f.id !== columnId);
+      const others = Arr.filter(
+        prevState.columnFilters,
+        (f) => f.id !== columnId,
+      );
       const columnFilters =
         Predicate.isNullish(next) || next === ''
           ? others
@@ -258,8 +264,8 @@ export const useRowSelectionControls = () => {
   const clearAllRowSelection = () => {
     setTableState(
       (prev) =>
-        Object.fromEntries(
-          Object.entries(prev).map(([id, state]) => [
+        Rec.fromEntries(
+          Arr.map(Rec.toEntries(prev), ([id, state]) => [
             id,
             state ? { ...state, rowSelection: {} } : state,
           ]),

@@ -1,4 +1,4 @@
-import { Effect } from 'effect';
+import { Array as Arr, Effect } from 'effect';
 
 import { PipelineContext } from '../domain/context.ts';
 import { findOodleDll } from '../external/oodle.ts';
@@ -19,7 +19,7 @@ export const params = Effect.gen(function* () {
   const weaponBytes = paramFiles.get('EquipParamWeapon');
   if (weaponBytes) {
     const weapon = yield* parseParam(weaponBytes);
-    const hasMilady = weapon.rows.some((r) => r.id === 67500000);
+    const hasMilady = Arr.some(weapon.rows, (r) => r.id === 67500000);
     yield* Effect.logInfo(
       `regulation: ${paramFiles.size} params; EquipParamWeapon "${weapon.paramType}" ` +
         `${weapon.rows.length} rows; DLC row 67500000: ${hasMilady ? 'present' : 'missing'}`,

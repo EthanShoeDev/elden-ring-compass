@@ -1,4 +1,5 @@
 import { eventFlagOffset } from '@elden-ring-compass/data';
+import { Array as Arr, Record as Rec } from 'effect';
 import { CheckIcon, ExternalLinkIcon, SwordIcon } from 'lucide-react';
 
 import {
@@ -28,7 +29,7 @@ import { BossBadgePill, BossBadges } from './boss-badge';
 const pct = (n: number, total: number) =>
   total === 0 ? 0 : Math.round((n / total) * 100);
 
-const ALL_BOSSES = BOSS_GALLERY.flatMap((g) => g.bosses);
+const ALL_BOSSES = Arr.flatMap(BOSS_GALLERY, (g) => g.bosses);
 
 export function StoryBossSection() {
   const slot = useSelectedSlot();
@@ -54,12 +55,12 @@ export function StoryBossSection() {
     const key = flag.toString();
     setRowSelection('bosses')((prev) =>
       prev[key]
-        ? Object.fromEntries(Object.entries(prev).filter(([k]) => k !== key))
+        ? Rec.fromEntries(Arr.filter(Rec.toEntries(prev), ([k]) => k !== key))
         : { ...prev, [key]: true },
     );
   };
 
-  const killed = ALL_BOSSES.filter((b) => isDefeated(b.flag)).length;
+  const killed = Arr.filter(ALL_BOSSES, (b) => isDefeated(b.flag)).length;
   const total = ALL_BOSSES.length;
 
   return (
@@ -94,7 +95,7 @@ export function StoryBossSection() {
         </div>
       )}
 
-      {BOSS_GALLERY.map((group) => (
+      {Arr.map(BOSS_GALLERY, (group) => (
         <div key={group.title}>
           <div className='mb-0.5 text-[11px] font-bold tracking-wider text-muted-foreground uppercase'>
             {group.title}
@@ -103,7 +104,7 @@ export function StoryBossSection() {
             {group.subtitle}
           </p>
           <div className='grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3.5'>
-            {group.bosses.map((boss) => (
+            {Arr.map(group.bosses, (boss) => (
               <BossCell
                 key={boss.flag}
                 boss={boss}
@@ -162,7 +163,7 @@ function CategoryGuide() {
         </a>
       </div>
       <div className='grid gap-x-5 gap-y-2.5 sm:grid-cols-3'>
-        {CATEGORY_GUIDE.map(({ kind, desc, href }) => (
+        {Arr.map(CATEGORY_GUIDE, ({ kind, desc, href }) => (
           <a
             key={kind}
             href={href}

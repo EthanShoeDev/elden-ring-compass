@@ -2,6 +2,7 @@
 // `useAllErdb`). Joins the catalog rows (the dataset grouping lives in the react-free
 // `inventory-catalog-data.ts`) with the active save's ownership (quantity + weapon
 // upgrade level + map coordinates).
+import { Array as Arr, Record as Rec, String as Str } from 'effect';
 import { useMemo } from 'react';
 
 import { useSelectedSlot } from '@/stores/slot-selection-store';
@@ -119,11 +120,11 @@ export function inventoryTables(
     itemType: InventoryItemType,
     placementType: string,
   ): InventoryTableResult => {
-    const items: InventoryRow[] = rows
+    const items: InventoryRow[] = Arr.map(
       // Drop the datasets' `[ERROR]Type N` placeholder rows (48 in WEAPONS, 54 in ARMOR,
       // 1 in TALISMANS) — unused item slots that would otherwise render as junk table rows.
-      .filter((row) => !row.name.startsWith('[ERROR]'))
-      .map((row) => {
+      Arr.filter(rows, (row) => !Str.startsWith('[ERROR]')(row.name)),
+      (row) => {
         const o = owned.get(ownedItemKey(itemType, row.id));
         const weaponUpgradeLevel = o?.upgradeLevel ?? 0;
         const locationCount = itemPins(placementType, row.id).length;
@@ -142,18 +143,19 @@ export function inventoryTables(
           hasCoords: locationCount > 0,
           locationCount,
         };
-      });
-    return { items, ownedCount: items.filter((i) => i.quantity > 0).length };
+      },
+    );
+    return {
+      items,
+      ownedCount: Arr.filter(items, (i) => i.quantity > 0).length,
+    };
   };
 
-  return Object.fromEntries(
-    Object.entries(CATALOG).map(([key, rows]) => {
-      const table = key as InventoryTableType;
-      return [
-        table,
-        join(rows, TABLE_ITEM_TYPE[table], TABLE_PLACEMENT_TYPE[table]),
-      ];
-    }),
+  return Rec.fromEntries(
+    Arr.map(Rec.toEntries(CATALOG), ([table, rows]) => [
+      table,
+      join(rows, TABLE_ITEM_TYPE[table], TABLE_PLACEMENT_TYPE[table]),
+    ]),
   ) as Record<InventoryTableType, InventoryTableResult>;
 }
 

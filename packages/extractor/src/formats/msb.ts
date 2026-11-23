@@ -1,4 +1,4 @@
-import { Data, Effect } from 'effect';
+import { Effect, Schema } from 'effect';
 
 import { BinaryReader } from './binary-reader.ts';
 
@@ -25,9 +25,10 @@ import { BinaryReader } from './binary-reader.ts';
  * of ~5400 map lots appear in any event instruction).
  */
 
-export class MsbError extends Data.TaggedError('MsbError')<{
-  readonly detail: string;
-}> {}
+export class MsbError extends Schema.TaggedError<
+  MsbError,
+  { readonly brand: unique symbol }
+>()('MsbError', { detail: Schema.String }) {}
 
 /** A placed Part or Region with its world position and (raw) entity id. */
 export interface MsbMarker {
@@ -166,7 +167,7 @@ export const parseMsb = (
 ): Effect.Effect<MsbMarkers, MsbError> =>
   Effect.gen(function* () {
     if (data.length < HEADER_SIZE) {
-      return yield* new MsbError({
+      return yield* MsbError.make({
         detail: `MSB too short (${data.length} bytes)`,
       });
     }
@@ -174,7 +175,7 @@ export const parseMsb = (
     r.little = true;
     const magic = r.ascii(4);
     if (magic !== 'MSB ') {
-      return yield* new MsbError({ detail: `bad MSB magic "${magic}"` });
+      return yield* MsbError.make({ detail: `bad MSB magic "${magic}"` });
     }
 
     // Params are written in a fixed order: Models, Events, Regions, Routes,
@@ -190,7 +191,7 @@ export const parseMsb = (
       const list = yield* Effect.try({
         try: () => readParamList(r),
         catch: (cause) =>
-          new MsbError({
+          MsbError.make({
             detail: `param list @0x${listStart.toString(16)}: ${String(cause)}`,
           }),
       });
@@ -200,7 +201,7 @@ export const parseMsb = (
           const t = yield* Effect.try({
             try: () => readTreasureEvent(r, off),
             catch: (cause) =>
-              new MsbError({
+              MsbError.make({
                 detail: `event @0x${off.toString(16)}: ${String(cause)}`,
               }),
           });
@@ -208,27 +209,25 @@ export const parseMsb = (
         }
       } else if (list.name === 'PARTS_PARAM_ST') {
         for (const off of list.entryOffsets) {
-          parts.push(
-            yield* Effect.try({
-              try: () => readPart(r, off),
-              catch: (cause) =>
-                new MsbError({
-                  detail: `part @0x${off.toString(16)}: ${String(cause)}`,
-                }),
-            }),
-          );
+          const part = yield* Effect.try({
+            try: () => readPart(r, off),
+            catch: (cause) =>
+              MsbError.make({
+                detail: `part @0x${off.toString(16)}: ${String(cause)}`,
+              }),
+          });
+          parts.push(part);
         }
       } else if (list.name === 'POINT_PARAM_ST') {
         for (const off of list.entryOffsets) {
-          regions.push(
-            yield* Effect.try({
-              try: () => readRegion(r, off),
-              catch: (cause) =>
-                new MsbError({
-                  detail: `region @0x${off.toString(16)}: ${String(cause)}`,
-                }),
-            }),
-          );
+          const region = yield* Effect.try({
+            try: () => readRegion(r, off),
+            catch: (cause) =>
+              MsbError.make({
+                detail: `region @0x${off.toString(16)}: ${String(cause)}`,
+              }),
+          });
+          regions.push(region);
         }
       }
 

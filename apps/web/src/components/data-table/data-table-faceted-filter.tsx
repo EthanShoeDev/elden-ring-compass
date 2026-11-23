@@ -1,5 +1,5 @@
 import type { RowData } from '@tanstack/react-table';
-import { Match, Predicate } from 'effect';
+import { Array as Arr, Match, Option, Predicate } from 'effect';
 import { PlusCircle as PlusCircledIcon } from 'lucide-react';
 import * as React from 'react';
 
@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 
+import { encodeJsonOption } from './common-column-defs';
 import type { DataTableColumn } from './table-hook';
 
 // Above this many options the dropdown gets a searchable Combobox; at or below it, a plain
@@ -43,7 +44,8 @@ type DataTableFacetedFilterProps<TData extends RowData, TValue> = {
   options: Array<FacetOption>;
 };
 
-const optionKey = (option: FacetOption) => JSON.stringify(option.value) ?? 'NA';
+const optionKey = (option: FacetOption) =>
+  Option.getOrElse(encodeJsonOption(option.value), () => 'NA');
 
 export function DataTableFacetedFilter<TData extends RowData, TValue>({
   column,
@@ -60,15 +62,18 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
   // equivalent checked boxes so the toggle and this dropdown stay visibly linked.
   // Numeric: 'owned' = every value > 0, 'missing' = the 0 bucket.
   const rawFilterValue = column?.getFilterValue();
-  const numericValues = options.map((o) => o.value).filter(Predicate.isNumber);
+  const numericValues = Arr.filter(
+    Arr.map(options, (o) => o.value),
+    Predicate.isNumber,
+  );
   const selectedValues = Match.value(rawFilterValue).pipe(
     Match.when(
       'owned',
-      () => new Set<unknown>(numericValues.filter((v) => v > 0)),
+      () => new Set<unknown>(Arr.filter(numericValues, (v) => v > 0)),
     ),
     Match.when(
       'missing',
-      () => new Set<unknown>(numericValues.filter((v) => v === 0)),
+      () => new Set<unknown>(Arr.filter(numericValues, (v) => v === 0)),
     ),
     Match.when(Match.instanceOf(Array), (values) => new Set<unknown>(values)),
     Match.orElse(() => new Set<unknown>()),
@@ -106,9 +111,11 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
                 {selectedValues.size} selected
               </Badge>
             ) : (
-              options
-                .filter((option) => selectedValues.has(option.value))
-                .map((option) => (
+              Arr.map(
+                Arr.filter(options, (option) =>
+                  selectedValues.has(option.value),
+                ),
+                (option) => (
                   <Badge
                     variant='secondary'
                     key={optionKey(option)}
@@ -116,7 +123,8 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
                   >
                     {option.label}
                   </Badge>
-                ))
+                ),
+              )
             )}
           </div>
         </>
@@ -152,7 +160,7 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
           {triggerInner}
         </DropdownMenuTrigger>
         <DropdownMenuContent align='start' className='w-[12.5rem]'>
-          {options.map((option) => (
+          {Arr.map(options, (option) => (
             <DropdownMenuCheckboxItem
               key={optionKey(option)}
               checked={selectedValues.has(option.value)}
@@ -188,9 +196,9 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
     <Combobox<FacetOption, true>
       items={options}
       multiple
-      value={options.filter((option) => selectedValues.has(option.value))}
+      value={Arr.filter(options, (option) => selectedValues.has(option.value))}
       onValueChange={(selected) =>
-        setSelected(selected.map((option) => option.value))
+        setSelected(Arr.map(selected, (option) => option.value))
       }
       itemToStringLabel={(option) => option.label}
       itemToStringValue={(option) => option.label}

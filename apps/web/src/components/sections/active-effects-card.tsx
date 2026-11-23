@@ -1,3 +1,5 @@
+import { Array as Arr } from 'effect';
+
 import { activeEffectsDbView } from '@/lib/vm/active-effects';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
@@ -20,7 +22,7 @@ const fmtTime = (t: number) => (t > 0 ? `${Math.round(t)}s` : '—');
 export function ActiveEffectsCard() {
   const slot = useSelectedSlot();
   const effects = activeEffectsDbView(slot);
-  const labeled = effects.filter((e) => e.label !== null);
+  const labeled = Arr.filter(effects, (e) => e.label !== null);
   const unlabeled = effects.length - labeled.length;
 
   return (
@@ -34,7 +36,7 @@ export function ActiveEffectsCard() {
       </CardHeader>
       <CardContent className='flex flex-col gap-1'>
         {labeled.length > 0 ? (
-          labeled.map((e) => (
+          Arr.map(labeled, (e) => (
             <div
               key={e.id}
               className='flex items-center justify-between gap-6 text-sm'

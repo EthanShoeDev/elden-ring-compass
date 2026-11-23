@@ -8,21 +8,13 @@
  * `--expose-gc` via NODE_OPTIONS so `global.gc` exists; without it it still runs and logs that
  * the heap reads are noisy). Part of the `save-parser-perf` project; excluded from `test:run`.
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-
 import { Effect } from 'effect';
 import { describe, expect, it } from 'vitest';
 
 import { parseSave } from '../src/index.ts';
+import { loadFixtureSave } from '../test/fixture-save.ts';
 
-const here = (rel: string) => fileURLToPath(new URL(rel, import.meta.url));
-
-const fixture = readFileSync(here('../test/fixtures/ER0000.sl2'));
-const arrayBuffer = fixture.buffer.slice(
-  fixture.byteOffset,
-  fixture.byteOffset + fixture.byteLength,
-);
+const arrayBuffer = await Effect.runPromise(loadFixtureSave);
 
 const maybeGc = (globalThis as { gc?: () => void }).gc;
 const heapUsedMb = () => process.memoryUsage().heapUsed / (1024 * 1024);

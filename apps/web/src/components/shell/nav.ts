@@ -1,4 +1,5 @@
 import type { LinkProps } from '@tanstack/react-router';
+import { Array as Arr } from 'effect';
 import {
   FlameIcon,
   LayoutDashboardIcon,
@@ -50,7 +51,7 @@ export const NAV: readonly NavItem[] = [
     label: 'Inventory',
     icon: PackageIcon,
     // One sub-route per in-game inventory tab (see @/lib/inventory-tables).
-    children: INVENTORY_TABLES.map((t) => ({
+    children: Arr.map(INVENTORY_TABLES, (t) => ({
       to: '/inventory/$category',
       params: { category: t.slug },
       matchPath: `/inventory/${t.slug}`,

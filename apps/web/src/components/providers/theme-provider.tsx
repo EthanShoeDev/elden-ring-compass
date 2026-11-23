@@ -1,4 +1,5 @@
 import { ScriptOnce } from '@tanstack/react-router';
+import { Option, Schema } from 'effect';
 import { useEffect, useSyncExternalStore } from 'react';
 
 import {
@@ -23,9 +24,16 @@ import {
  */
 
 /** Pre-hydration script (string) that applies the theme class ASAP — no FOUC. */
+const encodeJsonString = Schema.encodeOption(
+  Schema.fromJsonString(Schema.String),
+);
+// Encoding a string as JSON cannot fail.
+const toJsStringLiteral = (value: string) =>
+  Option.getOrThrow(encodeJsonString(value));
+
 function getThemeScript(storageKey: string, defaultPref: ThemePreference) {
-  const key = JSON.stringify(storageKey);
-  const fallback = JSON.stringify(defaultPref);
+  const key = toJsStringLiteral(storageKey);
+  const fallback = toJsStringLiteral(defaultPref);
   return `(function(){try{var t=localStorage.getItem(${key});if(t!=='light'&&t!=='dark'&&t!=='system'){t=${fallback}}var d=matchMedia('(prefers-color-scheme: dark)').matches;var r=t==='system'?(d?'dark':'light'):t;var e=document.documentElement;e.classList.remove('light','dark');e.classList.add(r);e.style.colorScheme=r}catch(e){}})();`;
 }
 

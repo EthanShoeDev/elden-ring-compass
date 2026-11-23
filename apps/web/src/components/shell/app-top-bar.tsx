@@ -1,4 +1,5 @@
 import { useLocation } from '@tanstack/react-router';
+import { Array as Arr, Order, Record as Rec, String as Str } from 'effect';
 
 import { DarkModeToggle } from '@/components/misc/dark-mode-toggle';
 import { ConnectSaveButton } from '@/components/misc/save-file-source-selector';
@@ -8,15 +9,21 @@ import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 import { SECTION_META } from './nav';
 
+const byLengthDesc = Order.flip(
+  Order.mapInput(Order.Number, (k: string) => k.length),
+);
+
 // Exact match first; otherwise fall back to the longest section prefix so
 // dynamic children (e.g. /inventory/weapons-shields) inherit their parent's
 // title. '/' is excluded as a prefix since it matches everything.
 function resolveSectionMeta(pathname: string): { title: string; sub: string } {
   const exact = SECTION_META[pathname];
   if (exact) return exact;
-  const prefix = Object.keys(SECTION_META)
-    .filter((k) => k !== '/' && pathname.startsWith(k))
-    .toSorted((a, b) => b.length - a.length)[0];
+  const prefixes = Arr.filter(
+    Rec.keys(SECTION_META),
+    (k) => k !== '/' && Str.startsWith(k)(pathname),
+  );
+  const prefix = Arr.sort(prefixes, byLengthDesc)[0];
   return (
     (prefix !== undefined ? SECTION_META[prefix] : undefined) ?? {
       title: 'Elden Ring Compass',

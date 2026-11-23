@@ -1,4 +1,4 @@
-import { Data, Effect } from 'effect';
+import { Array as Arr, Effect, Order, Schema, String as Str } from 'effect';
 
 import type { OodleError } from '../external/oodle.ts';
 import { type Bnd4Error, parseBnd4 } from '../formats/bnd4.ts';
@@ -21,9 +21,10 @@ import { type DcxError, dcxDecompress, isDcx } from '../formats/dcx.ts';
  * bit→fragment mapping), not per-tile-local. See `docs/projects/map-tile-fragments.md`.
  */
 
-export class MapMaskError extends Data.TaggedError('MapMaskError')<{
-  readonly detail: string;
-}> {}
+export class MapMaskError extends Schema.TaggedError<
+  MapMaskError,
+  { readonly brand: unique symbol }
+>()('MapMaskError', { detail: Schema.String }) {}
 
 /**
  * World-event bits to EXCLUDE from the default "vanilla" all-fragments map: they
@@ -63,10 +64,8 @@ export interface MapMask {
 const MASK_RE = /<MapTileMask exists="(\d)" id="(\d+)" mask="(\d+)"\/>/g;
 const MAP_RE = /MENU_MapTile_(M\d{2})/;
 
-const baseName = (n: string | null): string => {
-  const norm = (n ?? '').replaceAll('\\', '/');
-  return norm.slice(norm.lastIndexOf('/') + 1);
-};
+const baseName = (n: string | null): string =>
+  Arr.lastNonEmpty(Str.split(n ?? '', /[\\/]/));
 
 /**
  * Parse `71_maptile.mtmskbnd.dcx` into per-map fragment/event taxonomy. Returns a
@@ -111,12 +110,14 @@ export const parseMapMasks = (
         }
       }
       const eventBit = EVENT_BITS[map] ?? 0;
-      const eventBits = [...allBits]
-        .filter((b) => (b & eventBit) !== 0)
-        .toSorted((a, b) => a - b);
-      const fragmentBits = [...allBits]
-        .filter((b) => (b & eventBit) === 0)
-        .toSorted((a, b) => a - b);
+      const eventBits = Arr.sort(
+        Arr.filter(allBits, (b) => (b & eventBit) !== 0),
+        Order.Number,
+      );
+      const fragmentBits = Arr.sort(
+        Arr.filter(allBits, (b) => (b & eventBit) === 0),
+        Order.Number,
+      );
       out.set(map, { map, tiles, fragmentBits, eventBits, cellMasks });
     }
     return out;

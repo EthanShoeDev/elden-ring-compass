@@ -18,9 +18,10 @@ import {
   TALISMANS,
   WEAPONS,
 } from '@elden-ring-compass/data';
+import { Array as Arr } from 'effect';
 
 const nameMap = (rows: ReadonlyArray<{ id: number; name: string }>) =>
-  new Map(rows.map((r) => [r.id, r.name]));
+  new Map(Arr.map(rows, (r) => [r.id, r.name]));
 
 /** Armament id → name (was `WEAPON_NAME`). Keys include affinity variants, base upgrade. */
 export const weaponNameById = nameMap(WEAPONS);
@@ -35,7 +36,7 @@ export const aowNameById = nameMap(ASHES_OF_WAR);
 
 /** Starting-class archetype id → label (was `ARCHE_TYPE`). */
 export const archetypeNameById: ReadonlyMap<number, string> = new Map(
-  ARCHETYPES.map((a) => [a.id, a.name]),
+  Arr.map(ARCHETYPES, (a) => [a.id, a.name]),
 );
 
 /**
@@ -47,10 +48,13 @@ export const spEffectLabelById: ReadonlyMap<
   number,
   { label: string; source: string }
 > = new Map(
-  SP_EFFECT_LABELS.map((e) => [e.id, { label: e.label, source: e.source }]),
+  Arr.map(SP_EFFECT_LABELS, (e) => [
+    e.id,
+    { label: e.label, source: e.source },
+  ]),
 );
 
 /** Goods looked up by display name (for overview lookups: flasks, bell bearings, materials). */
 export const goodsByName: ReadonlyMap<string, (typeof GOODS)[number]> = new Map(
-  GOODS.map((g) => [g.name, g]),
+  Arr.map(GOODS, (g) => [g.name, g]),
 );

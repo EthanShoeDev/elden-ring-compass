@@ -1,5 +1,6 @@
 import { FlexRender } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { Array as Arr } from 'effect';
 import { type CSSProperties, useState } from 'react';
 
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -123,9 +124,9 @@ export function DataTable<TData extends { id: number; name: string }>({
           style={{ minWidth: totalWidth }}
         >
           <thead className='sticky top-0 z-10 grid bg-background [&_tr]:border-b'>
-            {table.getHeaderGroups().map((headerGroup) => (
+            {Arr.map(table.getHeaderGroups(), (headerGroup) => (
               <tr key={headerGroup.id} className='flex w-full'>
-                {headerGroup.headers.map((header) => (
+                {Arr.map(headerGroup.headers, (header) => (
                   <th
                     key={header.id}
                     colSpan={header.colSpan}
@@ -213,7 +214,7 @@ function DataTableBody<TData extends { id: number; name: string }>({
       className='relative grid'
       style={{ height: rowVirtualizer.getTotalSize() }}
     >
-      {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+      {Arr.map(rowVirtualizer.getVirtualItems(), (virtualRow) => {
         const row = rows[virtualRow.index];
         if (!row) return null;
         return (
@@ -229,7 +230,7 @@ function DataTableBody<TData extends { id: number; name: string }>({
               transform: `translateY(${virtualRow.start}px)`,
             }}
           >
-            {row.getVisibleCells().map((cell) => (
+            {Arr.map(row.getVisibleCells(), (cell) => (
               <td
                 key={cell.id}
                 className='flex items-center overflow-hidden p-2 align-middle whitespace-nowrap has-[img]:p-0'

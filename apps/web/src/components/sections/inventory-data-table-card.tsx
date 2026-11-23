@@ -1,7 +1,7 @@
 import { useAtom } from '@effect/atom-react';
 import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
 import { useNavigate } from '@tanstack/react-router';
-import { Predicate } from 'effect';
+import { Array as Arr, Predicate } from 'effect';
 import {
   ChevronsUpDownIcon,
   FileCheckIcon,
@@ -128,12 +128,12 @@ function CategoryPicker({
       </PopoverTrigger>
       <PopoverContent align='start' className='w-80 p-1'>
         <div className='flex max-h-[60vh] flex-col overflow-y-auto'>
-          {INV_GROUPS.map((group) => (
+          {Arr.map(INV_GROUPS, (group) => (
             <div key={group.label} className='pb-1'>
               <div className='px-2 py-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase'>
                 {group.label}
               </div>
-              {group.keys.map((key) => {
+              {Arr.map(group.keys, (key) => {
                 const Icon = CAT_ICON[key];
                 const owned = allTables[key].ownedCount;
                 const total = allTables[key].items.length;
@@ -193,12 +193,13 @@ export function InventoryDataTableCard({
   const collapsible = table === 'armaments';
   const items =
     collapsible && !showVariants
-      ? allItems.filter(
+      ? Arr.filter(
+          allItems,
           (i) => (i as { affinityIndex?: number }).affinityIndex === 0,
         )
       : allItems;
   const hiddenVariantCount = collapsible ? allItems.length - items.length : 0;
-  const ownedCount = items.filter((i) => i.quantity > 0).length;
+  const ownedCount = Arr.filter(items, (i) => i.quantity > 0).length;
 
   // Ownership filter — "what I've collected" vs "what's left" vs the whole catalogue.
   // Pairs with the affinity-variant toggle (variants = "every variant in the game").
@@ -257,7 +258,7 @@ export function InventoryDataTableCard({
         </div>
         <div className='flex flex-wrap items-center gap-3'>
           <div className='inline-flex rounded-lg border border-border p-0.5'>
-            {OWNER_FILTERS.map((key) => (
+            {Arr.map(OWNER_FILTERS, (key) => (
               <button
                 key={key}
                 type='button'
@@ -319,9 +320,9 @@ const LOCATION_PRESETS: Record<'held' | 'storage', readonly ItemLocation[]> = {
 };
 
 const sameValues = (value: unknown, preset: readonly ItemLocation[]) =>
-  Array.isArray(value) &&
+  Arr.isArray(value) &&
   value.length === preset.length &&
-  preset.every((v) => (value as unknown[]).includes(v));
+  Arr.every(preset, (v) => value.includes(v));
 
 // Row element types per category, joined with save ownership.
 type Row<K extends InventoryTableType> = WithOwnership<
@@ -349,8 +350,8 @@ type Effect = {
 };
 
 const effectsText = (effects: readonly Effect[]) =>
-  effects
-    .map((e) => {
+  Arr.join(
+    Arr.map(effects, (e) => {
       const sign =
         e.type === 'positive'
           ? e.model === 'additive'
@@ -361,11 +362,12 @@ const effectsText = (effects: readonly Effect[]) =>
             : '* -';
       const conditions =
         e.conditions && e.conditions.length > 0
-          ? ` ${e.conditions.join(',')}`
+          ? ` ${Arr.join(e.conditions, ',')}`
           : '';
       return `${e.attribute} ${sign}${e.value.toString()}${conditions}`;
-    })
-    .join('\n');
+    }),
+    '\n',
+  );
 
 /** id / icon / name / quantity / rarity / has-coords — shared by every inventory table. */
 function defaultColumns<T extends BaseRow>(
@@ -494,7 +496,11 @@ const talismanColumns = (() => {
     ...defaultColumns(h),
     commonAccessorColumnDef(h, 'weight', 'Weight'),
     commonAccessorColumnDef(h, (row) => effectsText(row.effects), 'Effects'),
-    commonAccessorColumnDef(h, (row) => row.conflicts.join(', '), 'Conflicts'),
+    commonAccessorColumnDef(
+      h,
+      (row) => Arr.join(row.conflicts, ', '),
+      'Conflicts',
+    ),
   ];
 })();
 
@@ -504,7 +510,7 @@ const ashesColumns = (() => {
     ...defaultColumns(h),
     commonAccessorColumnDef(
       h,
-      (row) => row.armamentCategories.join(', '),
+      (row) => Arr.join(row.armamentCategories, ', '),
       'Armament Categories',
     ),
     commonAccessorColumnDef(h, 'defaultAffinity', 'Default Affinity'),

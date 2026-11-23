@@ -1,3 +1,5 @@
+import { Array as Arr, Record as Rec } from 'effect';
+
 import type { InventoryTableType } from './inventory-catalog';
 
 export type InventoryTableMeta = {
@@ -48,14 +50,14 @@ export const INVENTORY_TABLES: readonly InventoryTableMeta[] = [
 /** The default category landed on at bare `/inventory`. */
 export const DEFAULT_INVENTORY_SLUG = FIRST_INVENTORY_TABLE.slug;
 
-export const TABLE_LABEL = Object.fromEntries(
-  INVENTORY_TABLES.map((t) => [t.key, t.label]),
+export const TABLE_LABEL = Rec.fromEntries(
+  Arr.map(INVENTORY_TABLES, (t) => [t.key, t.label]),
 ) as Record<InventoryTableType, string>;
 
-export const SLUG_TO_TYPE = Object.fromEntries(
-  INVENTORY_TABLES.map((t) => [t.slug, t.key]),
+export const SLUG_TO_TYPE = Rec.fromEntries(
+  Arr.map(INVENTORY_TABLES, (t) => [t.slug, t.key]),
 ) as Record<string, InventoryTableType | undefined>;
 
-export const TYPE_TO_SLUG = Object.fromEntries(
-  INVENTORY_TABLES.map((t) => [t.key, t.slug]),
+export const TYPE_TO_SLUG = Rec.fromEntries(
+  Arr.map(INVENTORY_TABLES, (t) => [t.key, t.slug]),
 ) as Record<InventoryTableType, string>;

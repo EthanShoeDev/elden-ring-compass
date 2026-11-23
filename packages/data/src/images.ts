@@ -8,6 +8,8 @@
 //
 /// <reference types="vite/client" />
 
+import { Array as Arr, Record as Rec, String as Str } from 'effect';
+
 // Only Vite-based consumers (the web app, via `@elden-ring-compass/data/images`) import
 // this module — the data barrel (`.`) does not, so node/test consumers never hit the glob.
 //
@@ -43,8 +45,8 @@ const urlMapByIconId = (
   modules: Record<string, string>,
 ): ReadonlyMap<number, string> =>
   new Map(
-    Object.entries(modules).flatMap(([path, url]) => {
-      const file = path.slice(path.lastIndexOf('/') + 1);
+    Arr.flatMap(Rec.toEntries(modules), ([path, url]) => {
+      const file = Arr.lastNonEmpty(Str.split(path, '/'));
       const id = Number.parseInt(file, 10);
       return Number.isNaN(id) ? [] : [[id, url] as const];
     }),

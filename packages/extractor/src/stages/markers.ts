@@ -1,4 +1,12 @@
-import { Effect, Predicate } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  Option,
+  Order,
+  pipe,
+  Predicate,
+  String as Str,
+} from 'effect';
 
 import { PipelineContext } from '../domain/context.ts';
 import { findOodleDll } from '../external/oodle.ts';
@@ -63,20 +71,20 @@ export const markers = (
         const nameId = num(row, 'nameId');
         if (nameId <= 0) continue;
         const name = npcName.get(nameId);
-        if (name !== undefined && name.trim() !== '' && name !== '[ERROR]') {
+        if (name !== undefined && Str.trim(name) !== '' && name !== '[ERROR]') {
           npcNameByParamId.set(r.id, name);
         }
       }
     }
     const graceNameByEntityId = new Map(
-      graces.map((g) => [g.bonfireEntityId, g.name] as const),
+      Arr.map(graces, (g) => [g.bonfireEntityId, g.name] as const),
     );
 
-    const classified: ClassifiedMarker[] = entities.map((m) =>
+    const classified: ClassifiedMarker[] = Arr.map(entities, (m) =>
       classifyMarker(m, { npcNameByParamId, graceNameByEntityId }),
     );
 
-    const parts = entities.filter((e) => e.kind === 'part').length;
+    const parts = Arr.filter(entities, (e) => e.kind === 'part').length;
     const regions = entities.length - parts;
     yield* Effect.logInfo(
       `markers — ${entities.length} entities across ${mapCount} maps (parts:${parts} regions:${regions})`,
@@ -84,20 +92,27 @@ export const markers = (
     const byCategory = new Map<string, number>();
     for (const m of classified)
       byCategory.set(m.category, (byCategory.get(m.category) ?? 0) + 1);
-    const named = classified.filter((m) => m.displayName !== null).length;
+    const named = Arr.filter(classified, (m) => m.displayName !== null).length;
+    const categoryCounts = pipe(
+      byCategory.entries(),
+      Arr.sortWith(([, n]) => n, Order.flip(Order.Number)),
+      Arr.map(([c, n]) => `${c}:${n}`),
+      Arr.join(' '),
+    );
     yield* Effect.logInfo(
-      `markers — classified: ${[...byCategory.entries()]
-        .toSorted((a, b) => b[1] - a[1])
-        .map(([c, n]) => `${c}:${n}`)
-        .join(' ')}; ${named} with English labels`,
+      `markers — classified: ${categoryCounts}; ${named} with English labels`,
     );
 
     // DLC proof: m61 tiles are Shadow of the Erdtree; show a sample so a refresh
     // visibly picks up DLC content.
-    const dlc = classified.filter((e) => e.mapId.startsWith('m61'));
+    const dlc = Arr.filter(classified, (e) => Str.startsWith('m61')(e.mapId));
     yield* Effect.logInfo(`DLC (m61) markers: ${dlc.length}`);
-    const sample = dlc.find((e) => e.displayName !== null) ?? dlc[0];
-    if (sample) {
+    const sampleOption = Option.orElse(
+      Arr.findFirst(dlc, (e) => e.displayName !== null),
+      () => Arr.head(dlc),
+    );
+    if (Option.isSome(sampleOption)) {
+      const sample = sampleOption.value;
       yield* Effect.logInfo(
         `DLC sample — ${sample.mapId} [${sample.category}] ` +
           `"${sample.displayName ?? sample.name}" eid=${sample.entityID} ` +

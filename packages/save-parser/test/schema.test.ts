@@ -4,23 +4,14 @@
  * `Schema.Int` (an integer read) except the f32 reads (`RawF32`), which stay unrestricted so
  * one NaN coordinate can't reject a whole save.
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-
 import { Effect, Exit, Schema } from 'effect';
 import { describe, expect, it } from 'vitest';
 
 import { LeanSave, parseSave } from '../src/index.ts';
+import { loadFixtureSave } from './fixture-save.ts';
 
-const here = (rel: string) => fileURLToPath(new URL(rel, import.meta.url));
-const fixture = readFileSync(here('./fixtures/ER0000.sl2'));
-const save = Effect.runSync(
-  parseSave(
-    fixture.buffer.slice(
-      fixture.byteOffset,
-      fixture.byteOffset + fixture.byteLength,
-    ),
-  ),
+const save = await Effect.runPromise(
+  Effect.flatMap(loadFixtureSave, parseSave),
 );
 const decode = Schema.decodeUnknownExit(LeanSave);
 

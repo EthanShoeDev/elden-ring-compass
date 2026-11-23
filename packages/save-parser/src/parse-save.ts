@@ -26,7 +26,7 @@
  * coordinate/quaternion pair; the online-session/countdown bookkeeping bytes) are intentionally
  * still skipped. See `docs/projects/typescript-save-parser-port.md`.
  */
-import { Effect, Schema } from 'effect';
+import { Effect, Schema, String as Str } from 'effect';
 
 import {
   BinaryReader,
@@ -538,7 +538,7 @@ function readCharacterName(r: BinaryReaderApi, absPos: number): string {
   let end = 0;
   while (end + 1 < raw.length && !(raw[end] === 0 && raw[end + 1] === 0))
     end += 2;
-  return utf16le.decode(raw.subarray(0, end)).trimEnd();
+  return Str.trimEnd(utf16le.decode(raw.subarray(0, end)));
 }
 
 function readChrAsm(r: BinaryReaderApi): LeanChrAsm {

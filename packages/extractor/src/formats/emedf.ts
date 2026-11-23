@@ -1,5 +1,12 @@
 import { erCommonEmedfUrl } from '@elden-ring-compass/vendored-data';
-import { Data, Effect, FileSystem, Path, Schema } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  FileSystem,
+  Path,
+  Schema,
+  String as Str,
+} from 'effect';
 
 import type { EmevdInstruction, EmevdParameter } from './emevd.ts';
 
@@ -22,9 +29,10 @@ import type { EmevdInstruction, EmevdParameter } from './emevd.ts';
  * applied first via {@link applyParameters}.
  */
 
-export class EmedfError extends Data.TaggedError('EmedfError')<{
-  readonly detail: string;
-}> {}
+export class EmedfError extends Schema.TaggedError<
+  EmedfError,
+  { readonly brand: unique symbol }
+>()('EmedfError', { detail: Schema.String }) {}
 
 // soulstruct ArgType (base/events/emevd/emedf.py).
 const ARG_SIZE: Record<number, number> = {
@@ -95,14 +103,14 @@ export const indexEmedf = (raw: EmedfJsonShape): Emedf => {
         bank: cls.index,
         id: instr.index,
         name: instr.name,
-        args: instr.args.map((a) => ({
+        args: Arr.map(instr.args, (a) => ({
           name: a.name,
           type: a.type,
           enumName: a.enum_name,
         })),
       };
       byOpcode.set(opcodeKey(cls.index, instr.index), def);
-      const lower = instr.name.toLowerCase();
+      const lower = Str.toLowerCase(instr.name);
       if (!byName.has(lower)) byName.set(lower, def);
     }
   }
@@ -129,8 +137,8 @@ export const loadEmedf: Effect.Effect<
   );
   return indexEmedf(raw);
 }).pipe(
-  Effect.mapError(
-    (cause) => new EmedfError({ detail: `loading EMEDF: ${String(cause)}` }),
+  Effect.mapError((cause) =>
+    EmedfError.make({ detail: `loading EMEDF: ${String(cause)}` }),
   ),
 );
 

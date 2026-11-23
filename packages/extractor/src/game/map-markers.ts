@@ -1,4 +1,10 @@
-import { Data, Effect, FileSystem } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  FileSystem,
+  Schema,
+  String as Str,
+} from 'effect';
 
 import { globSorted } from '../external/glob.ts';
 import type { OodleError } from '../external/oodle.ts';
@@ -22,9 +28,10 @@ import {
  * `WorldMapLegacyConvParam` + the affine transform in `interactive-map.tsx`.
  */
 
-export class MapMarkersError extends Data.TaggedError('MapMarkersError')<{
-  readonly detail: string;
-}> {}
+export class MapMarkersError extends Schema.TaggedError<
+  MapMarkersError,
+  { readonly brand: unique symbol }
+>()('MapMarkersError', { detail: Schema.String }) {}
 
 /** A placed entity in a specific map, with its local coordinates. */
 export interface MapEntity extends MsbMarker {
@@ -56,14 +63,11 @@ export const loadMapMarkers = (
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const dir = `${gameRoot}/map/mapstudio`;
-    const paths = yield* globSorted(
-      '*.msb.dcx',
-      dir,
-      (cause) =>
-        new MapMarkersError({ detail: `scanning ${dir}: ${String(cause)}` }),
+    const paths = yield* globSorted('*.msb.dcx', dir, (cause) =>
+      MapMarkersError.make({ detail: `scanning ${dir}: ${String(cause)}` }),
     );
     if (paths.length === 0) {
-      return yield* new MapMarkersError({
+      return yield* MapMarkersError.make({
         detail: `no MSBs under ${dir} — run the unpack stage first`,
       });
     }
@@ -71,16 +75,15 @@ export const loadMapMarkers = (
     const entities: MapEntity[] = [];
     const treasures: MapTreasure[] = [];
     for (const path of paths) {
-      const mapId = (path.split(/[\\/]/).pop() ?? '').replace(
+      const mapId = Str.replace(
         /\.msb\.dcx$/i,
         '',
-      );
+      )(Arr.lastNonEmpty(Str.split(path, /[\\/]/)));
       const dcx = yield* fs.readFile(path).pipe(
-        Effect.mapError(
-          (cause) =>
-            new MapMarkersError({
-              detail: `reading ${path}: ${String(cause)}`,
-            }),
+        Effect.mapError((cause) =>
+          MapMarkersError.make({
+            detail: `reading ${path}: ${String(cause)}`,
+          }),
         ),
       );
       const raw = yield* dcxDecompress(dcx, oo2corePath);

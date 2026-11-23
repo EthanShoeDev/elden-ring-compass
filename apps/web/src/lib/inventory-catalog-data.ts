@@ -11,15 +11,16 @@ import {
   TALISMANS,
   WEAPONS,
 } from '@elden-ring-compass/data';
+import { Array as Arr, String as Str } from 'effect';
 
 import { enrichWeapon } from './weapon-affinity';
 
 const AMMO_CATEGORIES = new Set(['Arrow', 'Bolt', 'Greatarrow', 'Greatbolt']);
 const goodsIn = (category: string) =>
-  GOODS.filter((g) => g.category === category);
+  Arr.filter(GOODS, (g) => g.category === category);
 // Cookbooks are tagged `Key Item` in the dataset, but the game shows them under the
 // Tools tab — so we split them out of Key Items and into Tools (see CATALOG below).
-const isCookbook = (g: { name: string }) => g.name.includes('Cookbook');
+const isCookbook = (g: { name: string }) => Str.includes('Cookbook')(g.name);
 
 /**
  * The inventory tables, mirroring Elden Ring's own inventory tabs. Equipment categories use the
@@ -32,10 +33,11 @@ const isCookbook = (g: { name: string }) => g.name.includes('Cookbook');
 export const CATALOG = {
   // Enriched with derived affinity fields so the armaments table can collapse the
   // ~13 affinity variants of each weapon to one base row (see weapon-affinity.ts).
-  armaments: WEAPONS.filter((w) => !AMMO_CATEGORIES.has(w.category)).map(
+  armaments: Arr.map(
+    Arr.filter(WEAPONS, (w) => !AMMO_CATEGORIES.has(w.category)),
     enrichWeapon,
   ),
-  ammo: WEAPONS.filter((w) => AMMO_CATEGORIES.has(w.category)),
+  ammo: Arr.filter(WEAPONS, (w) => AMMO_CATEGORIES.has(w.category)),
   armor: ARMOR,
   talismans: TALISMANS,
   ashes: ASHES_OF_WAR,
@@ -48,7 +50,7 @@ export const CATALOG = {
     ...goodsIn('Wondrous Physick'),
     ...goodsIn('Crystal Tear'),
     ...goodsIn('Crafting Tool'),
-    ...goodsIn('Key Item').filter(isCookbook),
+    ...Arr.filter(goodsIn('Key Item'), isCookbook),
   ],
   craftingMaterials: goodsIn('Crafting Material'),
   // Bolstering Materials tab in-game (Smithing Stones + Glovewort).
@@ -56,7 +58,7 @@ export const CATALOG = {
   // Key Items tab: quest objectives incl. Maps & Whetblades, plus Remembrances and Great Runes.
   // Cookbooks are excluded here — they live under Tools, matching the game.
   keyItems: [
-    ...goodsIn('Key Item').filter((g) => !isCookbook(g)),
+    ...Arr.filter(goodsIn('Key Item'), (g) => !isCookbook(g)),
     ...goodsIn('Remembrance'),
     ...goodsIn('Great Rune'),
   ],

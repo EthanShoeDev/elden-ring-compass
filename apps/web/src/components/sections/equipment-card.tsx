@@ -1,3 +1,5 @@
+import { Array as Arr } from 'effect';
+
 import { equipmentDbView } from '@/lib/vm/equipement';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
@@ -49,23 +51,26 @@ export function EquipmentCard() {
   const eq = equipmentDbView(slot);
 
   // Keyed by hand + slot position: the same weapon can be equipped in two slots.
-  const armaments = [
-    ...eq.right_hand_armaments.map((item, i) => ({
-      slot: `R${(i + 1).toString()}`,
-      item,
-    })),
-    ...eq.left_hand_armaments.map((item, i) => ({
-      slot: `L${(i + 1).toString()}`,
-      item,
-    })),
-  ].filter(({ item }) => isEquipped(item));
+  const armaments = Arr.filter(
+    [
+      ...Arr.map(eq.right_hand_armaments, (item, i) => ({
+        slot: `R${(i + 1).toString()}`,
+        item,
+      })),
+      ...Arr.map(eq.left_hand_armaments, (item, i) => ({
+        slot: `L${(i + 1).toString()}`,
+        item,
+      })),
+    ],
+    ({ item }) => isEquipped(item),
+  );
   const armor = [
     ['Head', eq.head],
     ['Chest', eq.chest],
     ['Arms', eq.arms],
     ['Legs', eq.legs],
   ] as const;
-  const talismans = eq.talismans.filter(isEquipped);
+  const talismans = Arr.filter(eq.talismans, isEquipped);
 
   return (
     <Card className='min-w-64'>
@@ -79,7 +84,7 @@ export function EquipmentCard() {
             Armaments
           </div>
           {armaments.length > 0 ? (
-            armaments.map(({ slot: armSlot, item }) => (
+            Arr.map(armaments, ({ slot: armSlot, item }) => (
               <ArmamentRow key={armSlot} item={item} />
             ))
           ) : (
@@ -89,7 +94,7 @@ export function EquipmentCard() {
         <Separator />
         <div className='flex flex-col gap-1'>
           <div className='text-xs font-medium text-muted-foreground'>Armor</div>
-          {armor.map(([label, piece]) => (
+          {Arr.map(armor, ([label, piece]) => (
             <GearRow
               key={label}
               label={label}
@@ -103,7 +108,7 @@ export function EquipmentCard() {
             Talismans ({talismans.length}/{eq.talisman_count})
           </div>
           {talismans.length > 0 ? (
-            talismans.map((item) => (
+            Arr.map(talismans, (item) => (
               <span key={item.id} className='text-sm'>
                 {item.name}
               </span>

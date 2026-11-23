@@ -26,6 +26,7 @@ import {
   type LegacyConv,
   WORLD_MAP_LEGACY_CONV,
 } from '@elden-ring-compass/data';
+import { String as Str } from 'effect';
 
 /**
  * Absolute world→master-pixel offsets: `px = worldX + OFFSET_X`, `py = OFFSET_Y − worldZ`.
@@ -156,7 +157,7 @@ export function playerToMasterPixel(
   if (mapId.length < 4 || coords.length < 3) return null;
   const [a, b, c, d] = mapId as [number, number, number, number];
   const [x, , z] = coords as readonly [number, number, number];
-  const pad = (n: number) => n.toString().padStart(2, '0');
+  const pad = (n: number) => Str.padStart(2, '0')(n.toString());
   return (
     overworldMarkerToMasterPixel(
       `m${pad(a)}_${pad(b)}_${pad(c)}_${pad(d)}`,

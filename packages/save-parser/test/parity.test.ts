@@ -15,49 +15,49 @@
  *     (an independent implementation) via `fixtures/gen-reference-fields.py` — re-run that
  *     script (see its header for the `uv` command) to regenerate it.
  */
-import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-
-import { Effect, Predicate } from 'effect';
+import { Array as Arr, Effect, Predicate, Record as Rec } from 'effect';
+import { Digest } from 'effect/crypto';
 import { describe, expect, it } from 'vitest';
 
 import { parseSave } from '../src/index.ts';
+import { loadFixtureSave } from './fixture-save.ts';
+import oracleJson from './fixtures/oracle.er0000.json' with { type: 'json' };
+import referenceJson from './fixtures/reference-fields.er0000.json' with { type: 'json' };
 
-const here = (rel: string) => fileURLToPath(new URL(rel, import.meta.url));
-
-const fixture = readFileSync(here('./fixtures/ER0000.sl2'));
-const arrayBuffer = fixture.buffer.slice(
-  fixture.byteOffset,
-  fixture.byteOffset + fixture.byteLength,
-);
+const arrayBuffer = await Effect.runPromise(loadFixtureSave);
 
 type OracleSlot = Record<string, unknown> & {
   event_flags: { flags_length: number; flags_sha256: string };
 };
-const oracle = JSON.parse(
-  readFileSync(here('./fixtures/oracle.er0000.json'), 'utf-8'),
-) as {
+const oracle: {
   global_steam_id: string;
   character_steam_ids: string[];
   slots: OracleSlot[];
-};
+} = oracleJson;
 
-const reference = JSON.parse(
-  readFileSync(here('./fixtures/reference-fields.er0000.json'), 'utf-8'),
-) as { global_steam_id: string; slots: Record<string, unknown>[] };
+const reference: {
+  global_steam_id: string;
+  slots: Record<string, unknown>[];
+} = referenceJson;
 
 const parsed = Effect.runSync(parseSave(arrayBuffer));
 
-const sha256 = (b: Uint8Array) => createHash('sha256').update(b).digest('hex');
-
 /** Replace the parser's Uint8Array flags with the oracle's {length, sha256} form. */
-const normalize = (slot: (typeof parsed.slots)[number]) => ({
-  ...slot,
-  event_flags: {
-    flags_length: slot.event_flags.flags.length,
-    flags_sha256: sha256(slot.event_flags.flags),
-  },
+const normalize = Effect.fnUntraced(function* (
+  slot: (typeof parsed.slots)[number],
+) {
+  const digest = yield* Digest.Digest;
+  const flagsSha256 = yield* digest.digestHex(
+    Digest.sha256,
+    slot.event_flags.flags,
+  );
+  return {
+    ...slot,
+    event_flags: {
+      flags_length: slot.event_flags.flags.length,
+      flags_sha256: flagsSha256,
+    },
+  };
 });
 
 /**
@@ -66,11 +66,11 @@ const normalize = (slot: (typeof parsed.slots)[number]) => ({
  * whole (the oracle's array elements never gained keys).
  */
 const deepPick = (value: unknown, template: unknown): unknown => {
-  if (Array.isArray(template)) return value;
+  if (Arr.isArray(template)) return value;
   if (Predicate.isObject(template)) {
     const v = value as Record<string, unknown>;
-    return Object.fromEntries(
-      Object.keys(template).map((k) => [
+    return Rec.fromEntries(
+      Arr.map(Rec.keys(template as Record<string, unknown>), (k) => [
         k,
         deepPick(v[k], (template as Record<string, unknown>)[k]),
       ]),
@@ -111,7 +111,7 @@ const projectNewFields = (s: (typeof parsed.slots)[number]) => {
     active_weapon_slots: s.active_weapon_slots,
     equipped_spells: s.equipped_spells,
     equipped_gestures: s.equipped_gestures,
-    gestures_nonzero: s.gestures.filter((g) => g !== 0 && g !== 0xfffffffe)
+    gestures_nonzero: Arr.filter(s.gestures, (g) => g !== 0 && g !== 0xfffffffe)
       .length,
     gestures_len: s.gestures.length,
     equipped_physics: s.equipped_physics,
@@ -138,12 +138,16 @@ describe('TS save parser parity (ER0000.sl2)', () => {
   });
 
   for (let i = 0; i < oracle.slots.length; i++) {
-    it(`slot[${i}] original fields match the WASM oracle byte-for-byte`, () => {
-      const parsedSlot = parsed.slots[i];
-      if (parsedSlot === undefined) throw new Error(`missing parsed slot ${i}`);
-      const slot = normalize(parsedSlot);
-      expect(deepPick(slot, oracle.slots[i])).toEqual(oracle.slots[i]);
-    });
+    it(`slot[${i}] original fields match the WASM oracle byte-for-byte`, () =>
+      Effect.runPromise(
+        Effect.gen(function* () {
+          const parsedSlot = parsed.slots[i];
+          if (parsedSlot === undefined)
+            throw new Error(`missing parsed slot ${i}`);
+          const slot = yield* normalize(parsedSlot);
+          expect(deepPick(slot, oracle.slots[i])).toEqual(oracle.slots[i]);
+        }).pipe(Effect.provide(Digest.layerWebCrypto)),
+      ));
 
     it(`slot[${i}] new fields match the Python reference`, () => {
       const parsedSlot = parsed.slots[i];

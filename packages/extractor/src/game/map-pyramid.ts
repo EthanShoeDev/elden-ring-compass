@@ -1,4 +1,12 @@
-import { Data, Effect, FileSystem, Match, PlatformError } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  FileSystem,
+  Match,
+  PlatformError,
+  Schema,
+  String as Str,
+} from 'effect';
 import sharp, { type Sharp } from 'sharp';
 
 import type { ImageEncodeOptions } from './images.ts';
@@ -58,13 +66,14 @@ export const parseTileName = (stem: string): TileName | null => {
     lod: Number(lod),
     col: Number(col),
     row: Number(row),
-    layer: layer.toLowerCase(),
+    layer: Str.toLowerCase(layer),
   };
 };
 
-export class MapPyramidError extends Data.TaggedError('MapPyramidError')<{
-  readonly detail: string;
-}> {}
+export class MapPyramidError extends Schema.TaggedError<
+  MapPyramidError,
+  { readonly brand: unique symbol }
+>()('MapPyramidError', { detail: Schema.String }) {}
 
 /** One decoded L0 tile (lossless PNG) and its grid position. */
 export interface DecodedTile {
@@ -115,7 +124,7 @@ export const buildLayerPyramid = (
             background: transparent,
           },
         }).composite(
-          tiles.map((t) => ({
+          Arr.map(tiles, (t) => ({
             // Wrap the Rust-returned bytes in a zero-copy Buffer (sharp's
             // OverlayOptions.input is typed as Buffer; this shares the memory).
             input: Buffer.from(
@@ -140,7 +149,7 @@ export const buildLayerPyramid = (
           .toFile(outBaseDir);
       },
       catch: (cause) =>
-        new MapPyramidError({
+        MapPyramidError.make({
           detail: `pyramid build failed: ${String(cause)}`,
         }),
     });

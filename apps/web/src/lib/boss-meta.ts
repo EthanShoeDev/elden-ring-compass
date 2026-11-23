@@ -21,6 +21,7 @@
  */
 import { GOODS, REGIONS } from '@elden-ring-compass/data';
 import { itemIconUrl } from '@elden-ring-compass/data/images';
+import { Array as Arr } from 'effect';
 
 export type BossBadge =
   | 'demigod'
@@ -88,7 +89,7 @@ const SHARDBEARER_FLAGS: ReadonlySet<number> = new Set([
   14000800, // Rennala (Great Rune of the Unborn)
 ]);
 
-const goodById = new Map(GOODS.map((g) => [g.id, g]));
+const goodById = new Map(Arr.map(GOODS, (g) => [g.id, g]));
 
 /**
  * The defeat flags of the boss(es) that award a Remembrance (or other boss reward) good.
@@ -96,9 +97,10 @@ const goodById = new Map(GOODS.map((g) => [g.id, g]));
  * also count a defeated boss, not just a held item.
  */
 export function rewardBossFlags(goodId: number): number[] {
-  return [...BOSS_REWARD_GOOD_BY_FLAG]
-    .filter(([, id]) => id === goodId)
-    .map(([flag]) => flag);
+  return Arr.map(
+    Arr.filter(BOSS_REWARD_GOOD_BY_FLAG, ([, id]) => id === goodId),
+    ([flag]) => flag,
+  );
 }
 
 /** The Remembrance/Legend reward a boss drops (name + icon), or undefined. */
@@ -189,14 +191,14 @@ const REGION_NAME_BY_BLOCK: ReadonlyMap<string, string> = (() => {
   for (const [key, regions] of byBlock) {
     const first = regions[0];
     if (!first) continue;
-    const names = new Set(regions.map((r) => r.name));
+    const names = new Set(Arr.map(regions, (r) => r.name));
     // A single-region block is a self-contained dungeon (e.g. a catacomb) — its
     // `name` IS the place. A multi-region block is a big legacy area (Stormveil,
     // Leyndell, …) whose shared `area` names the whole dungeon.
     const label =
       names.size === 1
         ? first.name
-        : (mode(regions.map((r) => r.area)) ?? first.name);
+        : (mode(Arr.map(regions, (r) => r.area)) ?? first.name);
     out.set(key, label);
   }
   return out;

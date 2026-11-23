@@ -1,3 +1,4 @@
+import { Array as Arr } from 'effect';
 import { type LucideIcon, SparklesIcon } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,7 +47,7 @@ export function FeaturePreview({
               Planned
             </div>
             <ul className='flex flex-col gap-1.5'>
-              {planned.map((p) => (
+              {Arr.map(planned, (p) => (
                 <li key={p} className='flex items-start gap-2 text-sm'>
                   <span className='mt-2 size-1.5 shrink-0 rounded-full bg-muted-foreground/60' />
                   <span>{p}</span>

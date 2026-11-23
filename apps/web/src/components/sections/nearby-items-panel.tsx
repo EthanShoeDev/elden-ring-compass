@@ -16,7 +16,7 @@
  * syncs with the table UI, persists, and clears via the normal "Clear pins".
  */
 import { itemIconUrl } from '@elden-ring-compass/data/images';
-import { Predicate } from 'effect';
+import { Array as Arr, Order, Predicate, Record as Rec } from 'effect';
 import { useDeferredValue, useMemo, useState } from 'react';
 
 import { MapPinGlyph } from '@/components/icons/map-pin-glyph';
@@ -68,6 +68,8 @@ interface NearbyEntry {
   approx: boolean;
 }
 
+const byDistance = Order.mapInput(Order.Number, (e: NearbyEntry) => e.distance);
+
 function useNearbyItems(
   playerPin: MapPin | null,
   radius: number,
@@ -83,12 +85,11 @@ function useNearbyItems(
       string,
       { row: InventoryRow; tableId: InventoryTableType }
     >();
-    for (const [tableId, result] of Object.entries(allTables)) {
-      const type = TABLE_PLACEMENT_TYPE[tableId as InventoryTableType];
+    for (const [tableId, result] of Rec.toEntries(allTables)) {
+      const type = TABLE_PLACEMENT_TYPE[tableId];
       for (const row of result.items) {
         const k = `${type}:${row.id.toString()}`;
-        if (!m.has(k))
-          m.set(k, { row, tableId: tableId as InventoryTableType });
+        if (!m.has(k)) m.set(k, { row, tableId });
       }
     }
     return m;
@@ -135,7 +136,7 @@ function useNearbyItems(
         approx: pin.approx,
       });
     }
-    return entries.toSorted((a, b) => a.distance - b.distance);
+    return Arr.sort(entries, byDistance);
   }, [playerPin, radius, includeOwned, includeChanceDrops, rowByKey]);
 }
 
@@ -150,7 +151,7 @@ function entryMeta(e: NearbyEntry): string {
   ];
   if (e.nearbyCount > 1) parts.push(`×${e.nearbyCount.toString()}`);
   if (e.row.quantity > 0) parts.push('owned');
-  return parts.join(' · ');
+  return Arr.join(parts, ' · ');
 }
 
 export function NearbyItemsPanel({
@@ -179,7 +180,9 @@ export function NearbyItemsPanel({
     const id = e.row.id.toString();
     setRowSelection(e.tableId)((prev) =>
       prev[id]
-        ? Object.fromEntries(Object.entries(prev).filter(([key]) => key !== id))
+        ? Rec.fromEntries(
+            Arr.filter(Rec.toEntries(prev), ([key]) => key !== id),
+          )
         : { ...prev, [id]: true },
     );
   };
@@ -258,7 +261,7 @@ export function NearbyItemsPanel({
             {deferredRadius}m — click to pin on the map.
           </p>
           <div className='flex flex-col'>
-            {shown.map((e) => {
+            {Arr.map(shown, (e) => {
               const pinned =
                 !!tableState[e.tableId]?.rowSelection?.[e.row.id.toString()];
               const iconUrl = itemIconUrl(e.row.icon);

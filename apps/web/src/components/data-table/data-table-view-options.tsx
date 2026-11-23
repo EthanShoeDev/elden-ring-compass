@@ -1,4 +1,5 @@
 import type { RowData } from '@tanstack/react-table';
+import { Array as Arr } from 'effect';
 import { SlidersHorizontal as MixerHorizontalIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -39,13 +40,13 @@ export function DataTableViewOptions<TData extends RowData>({
         <DropdownMenuGroup>
           <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {table
-            .getAllColumns()
-            .filter(
+          {Arr.map(
+            Arr.filter(
+              table.getAllColumns(),
               (column) =>
                 column.accessorFn !== undefined && column.getCanHide(),
-            )
-            .map((column) => (
+            ),
+            (column) => (
               <DropdownMenuCheckboxItem
                 key={column.id}
                 className='capitalize'
@@ -56,7 +57,8 @@ export function DataTableViewOptions<TData extends RowData>({
               >
                 {column.id}
               </DropdownMenuCheckboxItem>
-            ))}
+            ),
+          )}
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

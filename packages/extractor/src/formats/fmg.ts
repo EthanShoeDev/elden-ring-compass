@@ -1,4 +1,4 @@
-import { Data, Effect } from 'effect';
+import { Effect, Schema } from 'effect';
 
 import { BinaryReader } from './binary-reader.ts';
 
@@ -8,9 +8,10 @@ import { BinaryReader } from './binary-reader.ts';
  * (wide = 64-bit offsets). Entries with a null/empty offset are skipped.
  */
 
-export class FmgError extends Data.TaggedError('FmgError')<{
-  readonly detail: string;
-}> {}
+export class FmgError extends Schema.TaggedError<
+  FmgError,
+  { readonly brand: unique symbol }
+>()('FmgError', { detail: Schema.String }) {}
 
 export const parseFmg = (
   data: Uint8Array,
@@ -31,7 +32,7 @@ export const parseFmg = (
     const wide = version === 2;
     r.varintLong = wide;
     if (version !== 0 && version !== 1 && version !== 2) {
-      return yield* new FmgError({ detail: `unknown FMG version ${version}` });
+      return yield* FmgError.make({ detail: `unknown FMG version ${version}` });
     }
 
     r.skip(4); // file size

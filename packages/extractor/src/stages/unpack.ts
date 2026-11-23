@@ -1,11 +1,12 @@
-import { Data, Effect } from 'effect';
+import { Effect, Schema } from 'effect';
 
 import { unpackInstall } from '../archive/dvdbnd.ts';
 import { PipelineContext } from '../domain/context.ts';
 
-export class UnpackError extends Data.TaggedError('UnpackError')<{
-  readonly detail: string;
-}> {}
+export class UnpackError extends Schema.TaggedError<
+  UnpackError,
+  { readonly brand: unique symbol }
+>()('UnpackError', { detail: Schema.String }) {}
 
 /**
  * Stage 1 — locate & unpack. Unpacks the encrypted dvdbnd archives
@@ -25,7 +26,7 @@ export const unpack = Effect.gen(function* () {
     gameRoot: ctx.gameRoot,
     clean: ctx.clean,
   }).pipe(
-    Effect.mapError((cause) => new UnpackError({ detail: String(cause) })),
+    Effect.mapError((cause) => UnpackError.make({ detail: String(cause) })),
   );
   if (summary.extracted === 0 && summary.unknown === 0) {
     yield* Effect.logInfo(

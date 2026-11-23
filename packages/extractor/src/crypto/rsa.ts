@@ -1,6 +1,8 @@
 // oxlint-disable-next-line effecttsgo/node-builtin-import -- Effect's Crypto has no PEM/KeyObject parsing; createPublicKey decodes the PKCS#1 key
 import { createPublicKey } from 'node:crypto';
 
+import { pipe, String as Str } from 'effect';
+
 /**
  * Decrypt an Elden Ring `.bhd` archive header.
  *
@@ -13,7 +15,7 @@ import { createPublicKey } from 'node:crypto';
 
 function b64urlToBig(b64url: string): bigint {
   const bytes = Buffer.from(
-    b64url.replaceAll('-', '+').replaceAll('_', '/'),
+    pipe(b64url, Str.replaceAll('-', '+'), Str.replaceAll('_', '/')),
     'base64',
   );
   let v = 0n;

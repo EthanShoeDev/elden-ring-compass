@@ -1,5 +1,12 @@
 import { eventFlagOffset } from '@elden-ring-compass/data';
-import { Effect, Option, Schema } from 'effect';
+import {
+  Array as Arr,
+  Effect,
+  Option,
+  pipe,
+  Schema,
+  String as Str,
+} from 'effect';
 import LZString from 'lz-string';
 
 import { logError, logWarning } from '@/lib/runtime/log';
@@ -18,9 +25,15 @@ const ShareableProgressionJson = Schema.fromJsonString(
 );
 
 function base64UrlToBytes(encoded: string): Uint8Array {
-  const base64 = encoded.replaceAll('-', '+').replaceAll('_', '/');
-  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
-  return Uint8Array.from(atob(padded), (char) => char.codePointAt(0) ?? 0);
+  const base64 = pipe(
+    encoded,
+    Str.replaceAll('-', '+'),
+    Str.replaceAll('_', '/'),
+  );
+  const padded = Str.padEnd(Math.ceil(base64.length / 4) * 4, '=')(base64);
+  return Uint8Array.from(atob(padded), (char) =>
+    Option.getOrElse(Str.codePointAt(char, 0), () => 0),
+  );
 }
 
 function parseShareableProgressionJson(
@@ -53,7 +66,7 @@ const gunzip = Effect.fn('gunzip')(function* (bytes: Uint8Array) {
  */
 export function decodeFromUrl(encoded: string): ShareableProgression | null {
   try {
-    if (encoded.startsWith(GZIP_PREFIX)) {
+    if (Str.startsWith(GZIP_PREFIX)(encoded)) {
       logWarning('Tried to synchronously decode async gzip share data');
       return null;
     }
@@ -72,10 +85,11 @@ export const decodeFromUrlEffect = Effect.fn('decodeFromUrlEffect')(function* (
   encoded: string,
 ) {
   if (!encoded) return null;
-  if (!encoded.startsWith(GZIP_PREFIX)) return decodeFromUrl(encoded);
+  if (!Str.startsWith(GZIP_PREFIX)(encoded)) return decodeFromUrl(encoded);
 
-  const compressed = base64UrlToBytes(encoded.slice(GZIP_PREFIX.length));
-  const json = new TextDecoder().decode(yield* gunzip(compressed));
+  const compressed = base64UrlToBytes(Str.slice(GZIP_PREFIX.length)(encoded));
+  const decompressed = yield* gunzip(compressed);
+  const json = new TextDecoder().decode(decompressed);
   return parseShareableProgressionJson(json);
 });
 
@@ -100,7 +114,7 @@ export function reconstructSlot(data: ShareableProgression): Partial<Slot> {
     const inventory = (
       items: ReadonlyArray<readonly [number, number, number]>,
     ) =>
-      items.map(([handle, quantity, inventoryIndex]) => ({
+      Arr.map(items, ([handle, quantity, inventoryIndex]) => ({
         ga_item_handle: handle,
         quantity,
         inventory_index: inventoryIndex,
@@ -166,11 +180,14 @@ export function reconstructSlot(data: ShareableProgression): Partial<Slot> {
         unlocked_regions: data.ur,
       },
       event_flags: { flags },
-      ga_items: data.ga.map(([gaitem_handle, item_id, gem_gaitem_handle]) => ({
-        gaitem_handle,
-        item_id,
-        gem_gaitem_handle,
-      })),
+      ga_items: Arr.map(
+        data.ga,
+        ([gaitem_handle, item_id, gem_gaitem_handle]) => ({
+          gaitem_handle,
+          item_id,
+          gem_gaitem_handle,
+        }),
+      ),
       chr_asm2: {
         left_hand_armaments: data.ca.l,
         right_hand_armaments: data.ca.r,
@@ -204,15 +221,15 @@ export function reconstructSlot(data: ShareableProgression): Partial<Slot> {
         key_items: inventory(data.si.k),
       },
       equip_item_data: {
-        quick_slot_items: data.eq.q.map((item_id) => ({ item_id })),
-        pouch_items: data.eq.p.map((item_id) => ({ item_id })),
+        quick_slot_items: Arr.map(data.eq.q, (item_id) => ({ item_id })),
+        pouch_items: Arr.map(data.eq.p, (item_id) => ({ item_id })),
       },
       equipped_spells: data.esp,
       equipped_gestures: data.eg,
       gestures: data.ges,
       equipped_physics: data.eph,
       acquired_projectiles: data.ap,
-      sp_effects: data.se.map(([sp_effect_id, remaining_time]) => ({
+      sp_effects: Arr.map(data.se, ([sp_effect_id, remaining_time]) => ({
         sp_effect_id,
         remaining_time,
       })),
@@ -233,7 +250,7 @@ export function reconstructSlot(data: ShareableProgression): Partial<Slot> {
   }
 
   // Reconstruct inventory items (equip storage only; weapons can't be shown without ga_items).
-  const commonItems = data.inv.map(([handle, qty], i) => ({
+  const commonItems = Arr.map(data.inv, ([handle, qty], i) => ({
     ga_item_handle: handle,
     quantity: qty,
     inventory_index: i,

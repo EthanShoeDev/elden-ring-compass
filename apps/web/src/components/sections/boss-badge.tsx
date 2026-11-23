@@ -1,3 +1,4 @@
+import { Array as Arr } from 'effect';
 import {
   CrownIcon,
   GemIcon,
@@ -76,7 +77,7 @@ export function BossBadges({
   if (badges.length === 0) return null;
   return (
     <span className={cn('inline-flex flex-wrap items-center gap-1', className)}>
-      {badges.map((b) => (
+      {Arr.map(badges, (b) => (
         <BossBadgePill key={b} kind={b} iconOnly={iconOnly} />
       ))}
     </span>
