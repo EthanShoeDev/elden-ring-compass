@@ -172,6 +172,53 @@ const backupDirs = (gameRoot: string) =>
     }
   });
 
+/**
+ * Decrypt + parse an archive's BHD5 file table (path hash → BDT slab). Reads only
+ * the small `.bhd` header, never the `.bdt` payload.
+ */
+const readArchiveIndex = (bhdPath: string, archive: string) =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    const raw = yield* fs.readFile(bhdPath);
+    const isPlain = new TextDecoder().decode(raw.subarray(0, 4)) === 'BHD5';
+    if (isPlain) return parseBhd5(raw);
+    const key = ER_ARCHIVE_KEYS[archive];
+    if (key === undefined)
+      return yield* DvdbndError.make({
+        detail: `no archive key for "${archive}"`,
+      });
+    return parseBhd5(decryptBhdHeader(raw, key));
+  });
+
+/**
+ * The dictionary-known paths each installed archive ships, keyed by archive name
+ * (`Data0`…`DLC`, `sd/…`). Header-only, so it's cheap and works whether or not the
+ * install has been unpacked; an archive that isn't installed maps to `[]`.
+ */
+export const listArchivePaths = (gameRoot: string) =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    const dictionary = yield* loadDictionary;
+    const out = new Map<string, readonly string[]>();
+    for (const archive of ER_GAME_INFO.archives) {
+      const bhdPath = `${gameRoot}/${archive}.bhd`;
+      if (!(yield* fs.exists(bhdPath))) {
+        out.set(archive, []);
+        continue;
+      }
+      const entries = yield* readArchiveIndex(bhdPath, archive);
+      out.set(
+        archive,
+        Arr.getSomes(
+          Arr.map(entries, (e) =>
+            Option.fromUndefinedOr(dictionary.get(e.hash)),
+          ),
+        ),
+      );
+    }
+    return out;
+  });
+
 const unpackArchive = (
   gameRoot: string,
   archive: string,
@@ -195,23 +242,7 @@ const unpackArchive = (
       } satisfies ArchiveSummary;
     }
 
-    const rawBuffer = yield* Effect.promise(() =>
-      Bun.file(bhdPath).arrayBuffer(),
-    );
-    const raw = new Uint8Array(rawBuffer);
-    const isPlain = new TextDecoder().decode(raw.subarray(0, 4)) === 'BHD5';
-    let header: Uint8Array;
-    if (isPlain) {
-      header = raw;
-    } else {
-      const key = ER_ARCHIVE_KEYS[archive];
-      if (key === undefined)
-        return yield* DvdbndError.make({
-          detail: `no archive key for "${archive}"`,
-        });
-      header = decryptBhdHeader(raw, key);
-    }
-    const entries = parseBhd5(header);
+    const entries = yield* readArchiveIndex(bhdPath, archive);
 
     const isSd = SD_ARCHIVES.has(archive);
     const [archiveBase] = Str.split(archive, '/');

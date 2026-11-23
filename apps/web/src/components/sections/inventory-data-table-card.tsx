@@ -21,6 +21,7 @@ import { useState } from 'react';
 
 import {
   commonAccessorColumnDef,
+  renderNameCell,
   commonPinColumnDef,
   commonWikiColumnDef,
   quantityFilterFn,
@@ -333,6 +334,7 @@ type BaseRow = WithOwnership<{
   name: string;
   icon: number;
   rarity: string;
+  isDlc: boolean;
   /**
    * Armaments only (see `EnrichedWeapon`): the affinity-0 sibling's name
    * ("Dagger" for "Heavy Dagger"). The wiki column links it when present —
@@ -400,6 +402,7 @@ function defaultColumns<T extends BaseRow>(
     }),
     commonAccessorColumnDef(columnHelper, 'name', 'Name', {
       filterFn: 'includesString',
+      cell: renderNameCell,
     }),
     commonWikiColumnDef(columnHelper, wikiNameForItem),
     // Quantity shares one filter between the prominent All/Owned/Missing segmented

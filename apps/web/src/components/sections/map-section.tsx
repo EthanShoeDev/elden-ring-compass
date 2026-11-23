@@ -44,6 +44,8 @@ import {
   bossReward,
 } from '@/lib/boss-meta';
 import { useDataTableData } from '@/lib/data-table-data';
+import { inDlcScope } from '@/lib/dlc';
+import { useDlcScope } from '@/lib/dlc-scope';
 import {
   type InventoryTableType,
   TABLE_PLACEMENT_TYPE,
@@ -378,6 +380,7 @@ function useSelectedPins(): MapPin[] {
   const tableState = useTableStateMap();
   const eventsItems = useDataTableData('events');
   const allTables = useInventoryTables();
+  const { scope } = useDlcScope();
 
   return useMemo(() => {
     // Defeat state by flag, so bosses-table pins (which only know the flag) get the
@@ -428,7 +431,7 @@ function useSelectedPins(): MapPin[] {
         }
         if (tableId === 'bosses') {
           const pin = bossPinByFlag.get(Number(id));
-          if (!pin) return [];
+          if (!pin || !inDlcScope(scope, pin.isDlc)) return [];
           const defeated = defeatedByFlag.get(pin.flag);
           return [
             {
@@ -484,7 +487,7 @@ function useSelectedPins(): MapPin[] {
         }));
       });
     });
-  }, [tableState, eventsItems, allTables]);
+  }, [tableState, eventsItems, allTables, scope]);
 }
 
 /** "You are here" pin from the active save's player position (overworld only). */

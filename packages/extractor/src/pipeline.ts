@@ -8,7 +8,9 @@ import {
 } from 'effect';
 
 import { PipelineContext } from './domain/context.ts';
+import { resolveBossArenas } from './game/bosses.ts';
 import { loadGameVersion } from './game/game-version.ts';
+import { loadDlcMapAreas } from './game/map-archives.ts';
 import { loadPlacements } from './game/placements.ts';
 import { loadSpEffectLabels } from './game/sp-effect-labels.ts';
 import { loadLegacyConv } from './game/world-map-legacy-conv.ts';
@@ -71,6 +73,29 @@ export const runPipeline = Effect.gen(function* () {
     paramFiles,
     graces,
   ).pipe(Effect.annotateLogs('stage', '6-markers'));
+  // dlc: which map areas ship in DLC.bdt. Settles boss arenas against the MSB
+  // (needs markers) and flags DLC bosses + graces by area.
+  const dlc = yield* Effect.gen(function* () {
+    const dlcAreas = yield* loadDlcMapAreas(ctx.gameRoot);
+    yield* Effect.logInfo(
+      `DLC map areas — ${Arr.join(
+        Arr.map(Arr.sort([...dlcAreas], Order.Number), (a) => `m${a}`),
+        ' ',
+      )}`,
+    );
+    const resolved = resolveBossArenas(bosses, markerEntities, dlcAreas);
+    for (const o of resolved.overrides)
+      yield* Effect.logInfo(`boss arena from MSB (param row disagrees): ${o}`);
+    const tagged = Arr.map(graces, (g) => ({
+      ...g,
+      isDlc: dlcAreas.has(g.areaNo),
+    }));
+    yield* Effect.logInfo(
+      `DLC — bosses ${Arr.filter(resolved.bosses, (b) => b.isDlc).length}/${resolved.bosses.length}, ` +
+        `graces ${Arr.filter(tagged, (g) => g.isDlc).length}/${tagged.length}`,
+    );
+    return { bosses: resolved.bosses, graces: tagged };
+  }).pipe(Effect.annotateLogs('stage', '6-dlc'));
   // placements: enemy/boss drops (npcParamId → NpcParam.itemLotId_enemy →
   // ItemLotParam_enemy, joined to enemy marker coords) PLUS map treasure (MSB
   // Treasure event Part coords → ItemLotParam_map).
@@ -124,8 +149,8 @@ export const runPipeline = Effect.gen(function* () {
 
   yield* images.pipe(Effect.annotateLogs('stage', '8-images'));
   yield* codegen({
-    graces,
-    bosses,
+    graces: dlc.graces,
+    bosses: dlc.bosses,
     regions,
     matchmakingRegionIds,
     mapFragments,

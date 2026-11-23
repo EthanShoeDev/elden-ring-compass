@@ -5,6 +5,7 @@ import type { eventsDbView } from '@/lib/vm/events';
 
 import {
   commonAccessorColumnDef,
+  renderNameCell,
   commonPinColumnDef,
 } from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
@@ -55,6 +56,7 @@ const columns: Array<DataTableColumnDef<Grace>> = [
   commonAccessorColumnDef(columnHelper, 'id', 'ID', { size: 1 }),
   commonAccessorColumnDef(columnHelper, 'name', 'Name', {
     filterFn: 'includesString',
+    cell: renderNameCell,
   }),
   commonAccessorColumnDef(columnHelper, 'subtitle', 'Region', {
     filterFn: 'includesString',

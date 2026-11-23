@@ -2,6 +2,7 @@ import { useLocation } from '@tanstack/react-router';
 import { Array as Arr, Order, Record as Rec, String as Str } from 'effect';
 
 import { DarkModeToggle } from '@/components/misc/dark-mode-toggle';
+import { DlcScopeControl } from '@/components/misc/dlc-scope-control';
 import { ConnectSaveButton } from '@/components/misc/save-file-source-selector';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -52,6 +53,8 @@ export function AppTopBar() {
           {meta.sub}
         </div>
       </div>
+
+      <DlcScopeControl />
 
       {/* Quick mobile actions. Full controls live in the sidebar Sheet (open via
           the trigger); these stay surfaced for one-tap access on small screens. */}

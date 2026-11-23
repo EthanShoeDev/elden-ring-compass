@@ -14,6 +14,8 @@ import {
   BOSS_GALLERY,
   bossReward,
 } from '@/lib/boss-meta';
+import { inDlcScope } from '@/lib/dlc';
+import { useDlcScope } from '@/lib/dlc-scope';
 import { cn } from '@/lib/utils';
 import { bossPinByFlag } from '@/lib/vm/map-pins';
 import { wikiPageUrl } from '@/lib/wiki';
@@ -29,8 +31,6 @@ import { BossBadgePill, BossBadges } from './boss-badge';
 const pct = (n: number, total: number) =>
   total === 0 ? 0 : Math.round((n / total) * 100);
 
-const ALL_BOSSES = Arr.flatMap(BOSS_GALLERY, (g) => g.bosses);
-
 export function StoryBossSection() {
   const slot = useSelectedSlot();
   const connected = !!slot;
@@ -38,6 +38,9 @@ export function StoryBossSection() {
   // Which bosses are currently pinned on the map = selected in the shared `bosses`
   // table store. The all-bosses table and this gallery toggle the same set.
   const pinned = useTableStateMap().bosses?.rowSelection ?? {};
+  const { scope } = useDlcScope();
+  const groups = Arr.filter(BOSS_GALLERY, (g) => inDlcScope(scope, g.isDlc));
+  const allBosses = Arr.flatMap(groups, (g) => g.bosses);
 
   // Read a boss defeat flag straight from the save bitfield. The gallery is a curated
   // list of specific flag ids (some, like Starscourge Radahn 310 and the Scadutree
@@ -60,8 +63,8 @@ export function StoryBossSection() {
     );
   };
 
-  const killed = Arr.filter(ALL_BOSSES, (b) => isDefeated(b.flag)).length;
-  const total = ALL_BOSSES.length;
+  const killed = Arr.filter(allBosses, (b) => isDefeated(b.flag)).length;
+  const total = allBosses.length;
 
   return (
     <>
@@ -95,7 +98,7 @@ export function StoryBossSection() {
         </div>
       )}
 
-      {Arr.map(BOSS_GALLERY, (group) => (
+      {Arr.map(groups, (group) => (
         <div key={group.title}>
           <div className='mb-0.5 text-[11px] font-bold tracking-wider text-muted-foreground uppercase'>
             {group.title}

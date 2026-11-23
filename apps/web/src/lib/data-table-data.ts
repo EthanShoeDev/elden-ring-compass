@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import type { TableId } from '@/components/data-table/data-table-store';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
+import { useDlcScope } from './dlc-scope';
 import {
   type InventoryRow,
   type InventoryTableType,
@@ -28,9 +29,10 @@ export function useDataTableData(
   | Array<InventoryRow> {
   const slot = useSelectedSlot();
   const allTables = useInventoryTables();
+  const { scope } = useDlcScope();
 
   const items = useMemo(() => {
-    if (tableId === 'events') return eventsDbView(slot);
+    if (tableId === 'events') return eventsDbView(slot, scope);
     if (tableId === 'regions') return regionsDbView(slot);
     // 'weapons', 'weapon-calculator' and 'bosses' serve their own data (see
     // weapon-ar-calculator.tsx / bosses-data-table.tsx), not the save-driven
@@ -42,7 +44,7 @@ export function useDataTableData(
     )
       return [];
     return allTables[tableId].items;
-  }, [slot, tableId, allTables]);
+  }, [slot, tableId, allTables, scope]);
 
   return items;
 }

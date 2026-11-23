@@ -10,7 +10,7 @@ import {
 } from 'effect';
 
 import type { Archetype } from '../game/archetypes.ts';
-import type { BossArea } from '../game/bosses.ts';
+import type { ResolvedBoss } from '../game/bosses.ts';
 import { loadEventFlagBst } from '../game/event-flags.ts';
 import type { Grace } from '../game/graces.ts';
 import type { ItemText } from '../game/item-text.ts';
@@ -44,8 +44,8 @@ import type {
  */
 
 export interface CodegenInput {
-  readonly graces: readonly Grace[];
-  readonly bosses: readonly BossArea[];
+  readonly graces: readonly (Grace & { readonly isDlc: boolean })[];
+  readonly bosses: readonly ResolvedBoss[];
   readonly regions: readonly Region[];
   readonly matchmakingRegionIds: readonly number[];
   readonly mapFragments: readonly MapFragment[];
@@ -363,6 +363,7 @@ export const codegen = (input: CodegenInput) =>
           'readonly region: string | null;',
           'readonly bonfireEntityId: number;',
           'readonly mapArea: number;',
+          'readonly isDlc: boolean;',
         ],
         'GRACES',
         Arr.map(graces, (g) => ({
@@ -371,6 +372,7 @@ export const codegen = (input: CodegenInput) =>
           region: g.region,
           bonfireEntityId: g.bonfireEntityId,
           mapArea: g.areaNo,
+          isDlc: g.isDlc,
         })),
       ),
     );
@@ -387,6 +389,7 @@ export const codegen = (input: CodegenInput) =>
           'readonly y: number;',
           'readonly z: number;',
           'readonly runes: number;',
+          'readonly isDlc: boolean;',
         ],
         'BOSSES',
         Arr.map(bosses, (b) => ({
@@ -397,6 +400,7 @@ export const codegen = (input: CodegenInput) =>
           y: b.y,
           z: b.z,
           runes: b.runes,
+          isDlc: b.isDlc,
         })),
       ),
     );
@@ -416,6 +420,7 @@ export const codegen = (input: CodegenInput) =>
           'readonly rarity: string;',
           'readonly icon: number;',
           'readonly sellValue: number;',
+          'readonly isDlc: boolean;',
           'readonly weight: number;',
           'readonly attackPhysical: number;',
           'readonly reqStrength: number;',
@@ -446,6 +451,7 @@ export const codegen = (input: CodegenInput) =>
           'readonly rarity: string;',
           'readonly icon: number;',
           'readonly sellValue: number;',
+          'readonly isDlc: boolean;',
           'readonly weight: number;',
           'readonly negationPhysical: number;',
           'readonly negationStrike: number;',
@@ -483,6 +489,7 @@ export const codegen = (input: CodegenInput) =>
           'readonly rarity: string;',
           'readonly icon: number;',
           'readonly sellValue: number;',
+          'readonly isDlc: boolean;',
           'readonly weight: number;',
           'readonly conflicts: readonly string[];',
           'readonly effects: readonly { readonly attribute: string; readonly value: number; readonly model: string; readonly type: string; readonly conditions?: readonly string[] }[];',
@@ -497,7 +504,9 @@ export const codegen = (input: CodegenInput) =>
     const goods = Arr.sort(input.goods, byId);
     yield* write(
       'goods.ts',
-      renderDataset(
+      // JSON.parse form: with `isDlc` the 2k-row inline array literal trips
+      // TS2590. See `renderDatasetJson`.
+      renderDatasetJson(
         'Good',
         [
           'readonly id: number;',
@@ -508,6 +517,7 @@ export const codegen = (input: CodegenInput) =>
           'readonly rarity: string;',
           'readonly icon: number;',
           'readonly sellValue: number;',
+          'readonly isDlc: boolean;',
           'readonly weight: number;',
           'readonly maxHeld: number;',
         ],
@@ -529,6 +539,7 @@ export const codegen = (input: CodegenInput) =>
           'readonly rarity: string;',
           'readonly icon: number;',
           'readonly sellValue: number;',
+          'readonly isDlc: boolean;',
           'readonly armamentCategories: readonly string[];',
           'readonly defaultAffinity: string;',
           'readonly possibleAffinities: readonly string[];',
@@ -552,6 +563,7 @@ export const codegen = (input: CodegenInput) =>
           'readonly rarity: string;',
           'readonly icon: number;',
           'readonly sellValue: number;',
+          'readonly isDlc: boolean;',
           'readonly category: string;',
           'readonly fpCost: number;',
           'readonly fpCostExtra: number;',
@@ -580,6 +592,7 @@ export const codegen = (input: CodegenInput) =>
           'readonly rarity: string;',
           'readonly icon: number;',
           'readonly sellValue: number;',
+          'readonly isDlc: boolean;',
           'readonly summonName: string;',
           'readonly fpCost: number;',
           'readonly hpCost: number;',

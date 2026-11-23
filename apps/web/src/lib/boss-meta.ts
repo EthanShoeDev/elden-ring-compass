@@ -237,6 +237,8 @@ export interface GalleryBoss {
 export interface GalleryGroup {
   title: string;
   subtitle: string;
+  /** Shadow of the Erdtree content (checked against the extracted BOSSES in boss-meta.test.ts). */
+  isDlc: boolean;
   bosses: GalleryBoss[];
 }
 
@@ -245,6 +247,7 @@ export const BOSS_GALLERY: readonly GalleryGroup[] = [
     title: 'Shardbearers — claim two Great Runes',
     subtitle:
       'Any two Great Runes open Leyndell — none of these Shardbearers is individually required, and you can even skip Stormveil (and Godrick) to claim your two elsewhere.',
+    isDlc: false,
     bosses: [
       {
         flag: 10000800,
@@ -279,6 +282,7 @@ export const BOSS_GALLERY: readonly GalleryGroup[] = [
   {
     title: 'Leyndell & the Mountaintops',
     subtitle: 'Through the Royal Capital to the Forge of the Giants.',
+    isDlc: false,
     bosses: [
       {
         flag: 11000800,
@@ -298,6 +302,7 @@ export const BOSS_GALLERY: readonly GalleryGroup[] = [
   {
     title: 'The Ashen Endgame',
     subtitle: 'Crumbling Farum Azula to the foot of the Erdtree.',
+    isDlc: false,
     bosses: [
       {
         flag: 13000800,
@@ -323,6 +328,7 @@ export const BOSS_GALLERY: readonly GalleryGroup[] = [
   {
     title: 'Optional Legends',
     subtitle: 'Major Remembrance bosses off the critical path.',
+    isDlc: false,
     bosses: [
       {
         flag: 12050800,
@@ -368,6 +374,7 @@ export const BOSS_GALLERY: readonly GalleryGroup[] = [
     title: 'Shadow of the Erdtree — the main path',
     subtitle:
       'Enter through Mohg’s arena after felling Radahn and Mohg, then raise your Scadutree Blessing as you go.',
+    isDlc: true,
     bosses: [
       {
         flag: 20000800,
@@ -405,6 +412,7 @@ export const BOSS_GALLERY: readonly GalleryGroup[] = [
   {
     title: 'Shadow of the Erdtree — optional Remembrances',
     subtitle: 'Powerful side bosses scattered across the Realm of Shadow.',
+    isDlc: true,
     bosses: [
       {
         flag: 2054390800,

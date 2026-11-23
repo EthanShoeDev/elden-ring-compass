@@ -1,6 +1,7 @@
 import { BOSSES, eventFlagOffset, GRACES } from '@elden-ring-compass/data';
 import { Array as Arr } from 'effect';
 
+import { type DlcScope, inDlcScope } from '../dlc';
 import type { Slot } from '../save-dto';
 import { bossFlagToPixel, graceFlagToPixel } from './map-pins';
 
@@ -15,6 +16,8 @@ type BaseEvent = {
   name: string;
   type: EventType;
   subtitle?: string | undefined;
+  /** Shadow of the Erdtree content (install-derived). */
+  isDlc: boolean;
 };
 
 /**
@@ -37,6 +40,7 @@ const FLAG_EVENTS: ReadonlyArray<BaseEvent & { flagId: number }> = Arr.map(
             name: g.name,
             type: 'grace' as const,
             subtitle: g.region ?? undefined,
+            isDlc: g.isDlc,
           })),
           ...Arr.map(
             Arr.filter(
@@ -47,10 +51,16 @@ const FLAG_EVENTS: ReadonlyArray<BaseEvent & { flagId: number }> = Arr.map(
               id: b.defeatFlagId,
               name: b.name,
               type: 'boss' as const,
+              isDlc: b.isDlc,
             }),
           ),
           // Starscourge Radahn (Caelid) has no standard arena flag in BOSSES; kept as the legacy did.
-          { id: 310, name: 'Starscourge Radahn', type: 'boss' as const },
+          {
+            id: 310,
+            name: 'Starscourge Radahn',
+            type: 'boss' as const,
+            isDlc: false,
+          },
         ],
         (e) => [e.id, e] as const, // dedupe by flag id (bosses can share a defeat flag)
       ),
@@ -85,7 +95,8 @@ export function isEventFlagOn(
   return get_bit(slot.event_flags.flags[offset[0]] ?? 0, offset[1]);
 }
 
-export function eventsDbView(slot?: Readonly<Slot>) {
+/** Graces + bosses with their state in `slot`, limited to `scope`'s content. */
+export function eventsDbView(slot?: Readonly<Slot>, scope: DlcScope = 'all') {
   const isFlagOn = (flagId: number) => isEventFlagOn(slot, flagId);
 
   // Install-derived overworld pixel (graces / field bosses), keyed by flag id.
@@ -95,7 +106,8 @@ export function eventsDbView(slot?: Readonly<Slot>) {
       ? graceFlagToPixel.get(flagId)
       : bossFlagToPixel.get(flagId);
 
-  return Arr.map(FLAG_EVENTS, ({ flagId, ...e }) => ({
+  const inScope = Arr.filter(FLAG_EVENTS, (e) => inDlcScope(scope, e.isDlc));
+  return Arr.map(inScope, ({ flagId, ...e }) => ({
     ...e,
     on: isFlagOn(flagId),
     pixel: pixelFor(e, flagId),

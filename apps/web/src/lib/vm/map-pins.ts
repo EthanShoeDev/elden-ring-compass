@@ -57,6 +57,8 @@ export interface BossPin extends MasterPixel {
   flag: number;
   /** Arena map id (`m10_00_00_00`) — for `bossMapName`/`bossBadges`. */
   mapId: string;
+  /** Shadow of the Erdtree boss — hidden from the map outside the DLC scope. */
+  isDlc: boolean;
 }
 
 /** Boss defeat-flag id → placed pin, for the all-bosses table's map selection. */
@@ -72,6 +74,7 @@ export const bossPinByFlag: ReadonlyMap<number, BossPin> = new Map(
               name: b.name ?? 'Unknown boss',
               flag: b.defeatFlagId,
               mapId: b.mapId,
+              isDlc: b.isDlc,
             },
           ] as const,
         ]

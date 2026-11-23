@@ -1,4 +1,5 @@
 import {
+  Array as Arr,
   Effect,
   FileSystem,
   Path,
@@ -15,6 +16,8 @@ import type { FmgError } from '../formats/fmg.ts';
 import { decodeRow, type ParamError, parseParam } from '../formats/param.ts';
 import { loadParamdef, type ParamdefError } from '../formats/paramdef.ts';
 import { type BossNamesError, resolveBossNames } from './boss-names.ts';
+import { mapAreaOf } from './map-archives.ts';
+import type { MapEntity } from './map-markers.ts';
 
 /**
  * Derives boss DEFEAT event flags from `GameAreaParam` (the param behind boss
@@ -45,6 +48,50 @@ export interface BossArea {
   readonly z: number;
   readonly runes: number; // rune bounty for the kill (GameAreaParam.bonusSoul_single)
 }
+
+export interface ResolvedBoss extends BossArea {
+  readonly isDlc: boolean; // arena map ships in DLC.bdt (see map-archives.ts)
+}
+
+/**
+ * Settle each boss's arena map, then flag DLC bosses.
+ *
+ * A few DLC `GameAreaParam` rows are clones of a base-game row that were never
+ * filled in: Golden Hippopotamus (21000850) carries Malenia's exact arena
+ * (`m15_00_00_00`, same coordinates) and Base Serpent Messmer (21010800) her map
+ * id, which put both on the Haligtree. The boss's own MSB enemy part — whose
+ * entity id is the defeat flag — is placed in its real map (Shadow Keep, m21),
+ * so when the two disagree on the map AREA, the MSB placement wins. Within one
+ * area they routinely differ by tile or LOD (`m60_44_36_00` arena vs a `…_10`
+ * spawn; one flag shared by two Bell Bearing Hunter arenas) and the param's
+ * arena position is the right one, so it is kept.
+ */
+export const resolveBossArenas = (
+  bosses: readonly BossArea[],
+  entities: readonly MapEntity[],
+  dlcAreas: ReadonlySet<number>,
+) => {
+  const placed = new Map(
+    Arr.map(
+      Arr.filter(entities, (e) => e.kind === 'part'),
+      (e) => [e.entityID, e] as const,
+    ),
+  );
+  const overrides: string[] = [];
+  const resolved = Arr.map(bosses, (b): ResolvedBoss => {
+    const part = placed.get(b.defeatFlagId);
+    const arena =
+      part !== undefined && mapAreaOf(part.mapId) !== mapAreaOf(b.mapId)
+        ? { mapId: part.mapId, x: part.x, y: part.y, z: part.z }
+        : { mapId: b.mapId, x: b.x, y: b.y, z: b.z };
+    if (arena.mapId !== b.mapId)
+      overrides.push(
+        `${b.defeatFlagId} ${b.name ?? '(unnamed)'}: ${b.mapId} → ${arena.mapId}`,
+      );
+    return { ...b, ...arena, isDlc: dlcAreas.has(mapAreaOf(arena.mapId)) };
+  });
+  return { bosses: resolved, overrides };
+};
 
 const mapIdOf = (areaNo: number, blockNo: number, mapNo: number): string => {
   const pad = (n: number) => Str.padStart(2, '0')(n.toString());

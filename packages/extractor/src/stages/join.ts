@@ -46,6 +46,7 @@ export interface CoreItemFields {
   readonly rarity: string; // 'Common' | 'Rare' | 'Legendary'
   readonly icon: number; // iconId (armor: iconIdM)
   readonly sellValue: number;
+  readonly isDlc: boolean; // name only in a `_dlcNN` FMG (see ItemText.dlcIds)
 }
 
 export interface WeaponRecord extends CoreItemFields {
@@ -439,13 +440,15 @@ const splitDescription = (text?: string): string[] =>
 /**
  * Fields every item category shares, sourced identically: summary/description
  * from the per-category Info/Caption FMG (passed in), rarity/icon/sellValue from
- * the decoded param row. `iconField` is `iconIdM` for armor, `iconId` otherwise.
+ * the decoded param row, `isDlc` from the category's name-table DLC ids.
+ * `iconField` is `iconIdM` for armor, `iconId` otherwise.
  */
 const coreFields = (
   f: Row,
   id: number,
   info: ReadonlyMap<number, string> | undefined,
   caption: ReadonlyMap<number, string> | undefined,
+  dlcIds: ReadonlySet<number>,
   iconField = 'iconId',
 ): CoreItemFields => ({
   summary: info?.get(id) ?? '',
@@ -453,6 +456,7 @@ const coreFields = (
   rarity: rarityLabel(num(f, 'rarity')),
   icon: num(f, iconField),
   sellValue: num(f, 'sellValue'),
+  isDlc: dlcIds.has(id),
 });
 
 /**
@@ -596,7 +600,13 @@ export const join = (
         category: WEAPON_CATEGORY[num(f, 'wepType')] ?? 'Other',
         allowAshOfWar: num(f, 'gemMountType') === 2, // GEM_MOUNT_TYPE.ALLOW_CHANGE
         isBuffable: num(f, 'isEnhance') === 1,
-        ...coreFields(f, id, undefined, names.WeaponCaption), // no WeaponInfo summary
+        ...coreFields(
+          f,
+          id,
+          undefined,
+          names.WeaponCaption,
+          names.dlcIds.WeaponName,
+        ), // no WeaponInfo summary
         weight: num(f, 'weight'),
         attackPhysical: num(f, 'attackBasePhysics'),
         reqStrength: num(f, 'properStrength'),
@@ -783,6 +793,7 @@ export const join = (
           id,
           names.ProtectorInfo,
           names.ProtectorCaption,
+          names.dlcIds.ProtectorName,
           'iconIdM',
         ),
         weight: num(f, 'weight'),
@@ -817,7 +828,13 @@ export const join = (
       (id, name, f) => ({
         id,
         name,
-        ...coreFields(f, id, names.AccessoryInfo, names.AccessoryCaption),
+        ...coreFields(
+          f,
+          id,
+          names.AccessoryInfo,
+          names.AccessoryCaption,
+          names.dlcIds.AccessoryName,
+        ),
         weight: num(f, 'weight'),
         effects: aggregateEffects(resolveEffects(num(f, 'refId'))),
         accessoryGroup: num(f, 'accessoryGroup'), // -1 = no conflict group
@@ -854,7 +871,13 @@ export const join = (
           num(f, 'sortGroupId') === GESTURE_SORT_GROUP
             ? 'Gesture'
             : (GOODS_CATEGORY[num(f, 'goodsType')] ?? 'Other'),
-        ...coreFields(f, id, names.GoodsInfo, names.GoodsCaption),
+        ...coreFields(
+          f,
+          id,
+          names.GoodsInfo,
+          names.GoodsCaption,
+          names.dlcIds.GoodsName,
+        ),
         weight: num(f, 'weight'),
         maxHeld: num(f, 'maxNum'),
       }),
@@ -869,7 +892,13 @@ export const join = (
       (id, name, f): AshOfWarRecord => ({
         id,
         name,
-        ...coreFields(f, id, names.GemInfo, names.GemCaption),
+        ...coreFields(
+          f,
+          id,
+          names.GemInfo,
+          names.GemCaption,
+          names.dlcIds.GemName,
+        ),
         armamentCategories: Arr.map(
           Arr.filter(
             GEM_MOUNT_CATEGORIES,
@@ -904,7 +933,13 @@ export const join = (
       spells.push({
         id,
         name,
-        ...coreFields(g, id, names.GoodsInfo, names.GoodsCaption),
+        ...coreFields(
+          g,
+          id,
+          names.GoodsInfo,
+          names.GoodsCaption,
+          names.dlcIds.GoodsName,
+        ),
         category: GOODS_CATEGORY[num(g, 'goodsType')] ?? 'Sorcery',
         fpCost: num(m, 'mp'),
         fpCostExtra: num(m, 'mp_charge'),
@@ -940,7 +975,13 @@ export const join = (
       spiritAshes.push({
         id,
         name,
-        ...coreFields(g, id, names.GoodsInfo, names.GoodsCaption),
+        ...coreFields(
+          g,
+          id,
+          names.GoodsInfo,
+          names.GoodsCaption,
+          names.dlcIds.GoodsName,
+        ),
         summonName: Str.trim(names.GoodsInfo2.get(id) ?? ''),
         fpCost: num(g, 'consumeMP'),
         hpCost: Math.max(0, hp),

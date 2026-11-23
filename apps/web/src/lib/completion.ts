@@ -15,6 +15,8 @@ import { useMemo } from 'react';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 import { rewardBossFlags } from './boss-meta';
+import { type DlcScope, inDlcScope } from './dlc';
+import { useDlcScope } from './dlc-scope';
 import { type InventoryRow, useInventoryTables } from './inventory-catalog';
 import type { Slot } from './save-dto';
 import { equipmentDbView } from './vm/equipement';
@@ -120,9 +122,10 @@ const MILESTONE_SETS: ReadonlyArray<{
   },
 ];
 
-/** Great Rune / Remembrance trophy progress for a save slot (0 owned without one). */
+/** Great Rune / Remembrance trophy progress for a save slot (0 owned without one), within `scope`. */
 export function completionMilestones(
   slot: Readonly<Slot> | undefined,
+  scope: DlcScope = 'all',
 ): Milestone[] {
   const goodsQuantities = slot
     ? goodsQuantityById(slot)
@@ -131,7 +134,10 @@ export function completionMilestones(
   return Arr.map(MILESTONE_SETS, ({ key, label, category, collected }) => {
     const set = Arr.filter(
       GOODS,
-      (g) => g.category === category && !Str.startsWith('[ERROR]')(g.name),
+      (g) =>
+        g.category === category &&
+        !Str.startsWith('[ERROR]')(g.name) &&
+        inDlcScope(scope, g.isDlc),
     );
     return {
       key,
@@ -145,9 +151,10 @@ export function completionMilestones(
 export function useCompletion(): CompletionModel {
   const slot = useSelectedSlot();
   const tables = useInventoryTables();
+  const { scope } = useDlcScope();
 
   return useMemo(() => {
-    const events = eventsDbView(slot);
+    const events = eventsDbView(slot, scope);
     const bosses = Arr.filter(events, (e) => e.type === 'boss');
     const graces = Arr.filter(events, (e) => e.type === 'grace');
 
@@ -257,7 +264,7 @@ export function useCompletion(): CompletionModel {
       hasSave: !!slot,
       overallPct,
       categories,
-      milestones: completionMilestones(slot),
+      milestones: completionMilestones(slot, scope),
     };
-  }, [slot, tables]);
+  }, [slot, tables, scope]);
 }

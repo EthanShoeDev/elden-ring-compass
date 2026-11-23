@@ -3,6 +3,7 @@ import { Subscribe } from '@tanstack/react-table';
 import { Array as Arr, Option, Predicate, Schema } from 'effect';
 import { CheckIcon, ExternalLinkIcon, XIcon } from 'lucide-react';
 
+import { DlcTag } from '@/components/misc/dlc-tag';
 import { wikiPageUrl } from '@/lib/wiki';
 
 import { DataTableColumnHeader } from './data-table-column-header';
@@ -172,6 +173,20 @@ quantityFilterFn[defaultFacetedFilterFnSymbol] = true;
 /** `JSON.stringify` that yields `None` (instead of `undefined` or a throw) for values with no JSON form. */
 export const encodeJsonOption = Schema.encodeOption(
   Schema.fromJsonString(Schema.Unknown),
+);
+
+/** Name cell with a SotE tag on Shadow of the Erdtree rows; pass as a Name column's `cell`. */
+export const renderNameCell = <
+  T extends RowData & { readonly name: string; readonly isDlc: boolean },
+>({
+  row,
+}: {
+  row: DataTableRow<T>;
+}) => (
+  <div className='flex items-center gap-1.5'>
+    <span>{row.original.name}</span>
+    {row.original.isDlc && <DlcTag />}
+  </div>
 );
 
 export const commonAccessorColumnDef = <T extends RowData>(

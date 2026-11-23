@@ -7,6 +7,8 @@ import { useMemo } from 'react';
 
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
+import { type DlcScope, inDlcScope } from './dlc';
+import { useDlcScope } from './dlc-scope';
 import {
   CATALOG,
   TABLE_PLACEMENT_TYPE,
@@ -50,6 +52,8 @@ export type InventoryRow = WithOwnership<{
   name: string;
   icon: number;
   rarity: string;
+  /** Added by Shadow of the Erdtree (install-derived). */
+  isDlc: boolean;
 }>;
 
 export type InventoryTableResult = {
@@ -80,9 +84,11 @@ const TABLE_ITEM_TYPE: Record<InventoryTableType, InventoryItemType> = {
  * highest upgrade level (appended to the name as ` +N`, as before). Items are typed broadly
  * (`InventoryRow`); per-column field access is typed via `CATALOG` in the table definitions.
  * Gestures aren't inventory items — they're owned when unlocked in the save's gesture table.
+ * Rows outside `scope` (base game / DLC) are left out, so `ownedCount` follows it too.
  */
 export function inventoryTables(
   slot: Readonly<Slot> | undefined,
+  scope: DlcScope = 'all',
 ): Record<InventoryTableType, InventoryTableResult> {
   const owned = new Map<
     string,
@@ -116,6 +122,7 @@ export function inventoryTables(
       name: string;
       icon: number;
       rarity: string;
+      isDlc: boolean;
     }>,
     itemType: InventoryItemType,
     placementType: string,
@@ -123,7 +130,11 @@ export function inventoryTables(
     const items: InventoryRow[] = Arr.map(
       // Drop the datasets' `[ERROR]Type N` placeholder rows (48 in WEAPONS, 54 in ARMOR,
       // 1 in TALISMANS) — unused item slots that would otherwise render as junk table rows.
-      Arr.filter(rows, (row) => !Str.startsWith('[ERROR]')(row.name)),
+      Arr.filter(
+        rows,
+        (row) =>
+          !Str.startsWith('[ERROR]')(row.name) && inDlcScope(scope, row.isDlc),
+      ),
       (row) => {
         const o = owned.get(ownedItemKey(itemType, row.id));
         const weaponUpgradeLevel = o?.upgradeLevel ?? 0;
@@ -165,5 +176,6 @@ export function useInventoryTables(): Record<
   InventoryTableResult
 > {
   const slot = useSelectedSlot();
-  return useMemo(() => inventoryTables(slot), [slot]);
+  const { scope } = useDlcScope();
+  return useMemo(() => inventoryTables(slot, scope), [slot, scope]);
 }

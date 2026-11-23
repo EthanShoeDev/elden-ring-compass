@@ -9,6 +9,8 @@ import {
   bossMapName,
   bossReward,
 } from '@/lib/boss-meta';
+import { inDlcScope } from '@/lib/dlc';
+import { useDlcScope } from '@/lib/dlc-scope';
 import type { MasterPixel } from '@/lib/map-affine';
 import { bossFlagToPixel } from '@/lib/vm/map-pins';
 import { wikiNameForBoss } from '@/lib/wiki';
@@ -16,6 +18,7 @@ import { useSelectedSlot } from '@/stores/slot-selection-store';
 
 import {
   commonAccessorColumnDef,
+  renderNameCell,
   commonPinColumnDef,
   commonWikiColumnDef,
 } from '../data-table/common-column-defs';
@@ -51,6 +54,8 @@ type BossRow = {
   // pinnable; the rest render a muted dash in the pin column.
   pixel?: MasterPixel | undefined;
   defeated: boolean | null;
+  /** Shadow of the Erdtree boss — tagged in the Name column. */
+  isDlc: boolean;
 };
 
 // Cell renderers kept at module scope (not redefined per render) so the table's
@@ -92,6 +97,7 @@ const renderRunesCell = ({ row }: { row: DataTableRow<BossRow> }) => (
 export function BossesDataTable() {
   const slot = useSelectedSlot();
   const connected = !!slot;
+  const { scope } = useDlcScope();
 
   const rows = useMemo<Array<BossRow>>(() => {
     // Read a boss defeat flag straight from the save bitfield (same approach as
@@ -108,7 +114,12 @@ export function BossesDataTable() {
     const seen = new Set<number>();
     const out: Array<BossRow> = [];
     for (const b of BOSSES) {
-      if (b.name === null || b.name === '' || seen.has(b.defeatFlagId))
+      if (
+        b.name === null ||
+        b.name === '' ||
+        seen.has(b.defeatFlagId) ||
+        !inDlcScope(scope, b.isDlc)
+      )
         continue;
       seen.add(b.defeatFlagId);
       const badges = bossBadges(b.defeatFlagId, b.mapId);
@@ -124,10 +135,11 @@ export function BossesDataTable() {
         runes: b.runes,
         pixel: bossFlagToPixel.get(b.defeatFlagId),
         defeated: connected ? isDefeated(b.defeatFlagId) : null,
+        isDlc: b.isDlc,
       });
     }
     return out;
-  }, [slot, connected]);
+  }, [slot, connected, scope]);
 
   const columns = useMemo<Array<DataTableColumnDef<BossRow>>>(() => {
     const helper = createAppColumnHelper<BossRow>();
@@ -135,6 +147,7 @@ export function BossesDataTable() {
       commonPinColumnDef(helper),
       commonAccessorColumnDef(helper, 'name', 'Name', {
         filterFn: 'includesString',
+        cell: renderNameCell,
       }),
       commonWikiColumnDef(helper, (r) => wikiNameForBoss(r.name)),
       commonAccessorColumnDef(helper, 'mapName', 'Map', {

@@ -47,7 +47,15 @@ export const ITEM_TEXT_CATEGORIES = [
 ] as const;
 
 export type ItemTextCategory = (typeof ITEM_TEXT_CATEGORIES)[number];
-export type ItemText = Record<ItemTextCategory, Map<number, string>>;
+export type ItemText = Record<ItemTextCategory, Map<number, string>> & {
+  /**
+   * Per category, the ids whose text exists ONLY in a `_dlcNN` FMG — the items
+   * Shadow of the Erdtree added. The DLC msgbnds re-ship every base FMG too, so
+   * an id counts as DLC only when no base (unsuffixed) FMG has text for it; that
+   * keeps a DLC-era text fix to a base item (one talisman on 2.7.1) as base game.
+   */
+  readonly dlcIds: Record<ItemTextCategory, ReadonlySet<number>>;
+};
 
 // Read base + DLC message archives; later ones layer on top.
 const MSGBNDS = [
@@ -56,13 +64,23 @@ const MSGBNDS = [
   'item_dlc02.msgbnd.dcx',
 ];
 
-// "…/WeaponName_dlc01.fmg" → "WeaponName" ('_' is not in the name char class,
-// so the lazy group stops before the optional "_dlcNN" suffix).
-const categoryOf = (entryName: string | null): string | null => {
+// "…/WeaponName_dlc01.fmg" → { category: "WeaponName", dlc: true } ('_' is not in
+// the name char class, so the lazy group stops before the optional "_dlcNN").
+const categoryOf = (
+  entryName: string | null,
+): { readonly category: string; readonly dlc: boolean } | null => {
   if (entryName === null) return null;
   const base = Arr.lastNonEmpty(Str.split(entryName, /[\\/]/));
-  return /^([A-Za-z0-9]+?)(?:_dlc\d+)?\.fmg$/i.exec(base)?.[1] ?? null;
+  const m = /^([A-Za-z0-9]+?)(_dlc\d+)?\.fmg$/i.exec(base);
+  return m?.[1] === undefined
+    ? null
+    : { category: m[1], dlc: m[2] !== undefined };
 };
+
+const emptySets = () =>
+  Rec.fromEntries(
+    Arr.map(ITEM_TEXT_CATEGORIES, (c) => [c, new Set<number>()] as const),
+  ) as Record<ItemTextCategory, Set<number>>;
 
 export const loadItemText = (
   gameRoot: string,
@@ -75,12 +93,15 @@ export const loadItemText = (
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const wanted = new Set<string>(ITEM_TEXT_CATEGORIES);
-    const result = Rec.fromEntries(
+    const text = Rec.fromEntries(
       Arr.map(
         ITEM_TEXT_CATEGORIES,
         (c) => [c, new Map<number, string>()] as const,
       ),
-    ) as ItemText;
+    ) as Record<ItemTextCategory, Map<number, string>>;
+    // Ids with non-blank text, split by whether the FMG was a `_dlcNN` one.
+    const baseIds = emptySets();
+    const dlcFileIds = emptySets();
 
     for (const rel of MSGBNDS) {
       const path = `${gameRoot}/msg/engus/${rel}`;
@@ -89,12 +110,21 @@ export const loadItemText = (
       const bnd = yield* dcxDecompress(dcx, oo2corePath);
       const entries = yield* parseBnd4(bnd);
       for (const entry of entries) {
-        const category = categoryOf(entry.name);
-        if (category === null || !wanted.has(category)) continue;
+        const file = categoryOf(entry.name);
+        if (file === null || !wanted.has(file.category)) continue;
+        const category = file.category as ItemTextCategory;
         const fmg = yield* parseFmg(entry.bytes);
-        const target = result[category as ItemTextCategory];
-        for (const [id, name] of fmg) target.set(id, name);
+        const seen = (file.dlc ? dlcFileIds : baseIds)[category];
+        for (const [id, name] of fmg) {
+          text[category].set(id, name);
+          if (Str.isNonEmpty(Str.trim(name))) seen.add(id);
+        }
       }
     }
-    return result;
+    const dlcIds = Rec.map(
+      dlcFileIds,
+      (ids, category) =>
+        new Set(Arr.filter([...ids], (id) => !baseIds[category].has(id))),
+    );
+    return { ...text, dlcIds };
   });
