@@ -13,7 +13,6 @@ import { Array as Arr } from 'effect';
 export const SHAREABLE_EVENT_IDS: ReadonlyArray<number> = [
   ...Arr.map(GRACES, (g) => g.flagId),
   ...Arr.map(BOSSES, (b) => b.defeatFlagId),
-  310, // Starscourge Radahn — see lib/vm/events.ts
   ...Arr.map(MAP_FRAGMENTS, (m) => m.openEventFlagId),
 ];
 

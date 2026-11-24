@@ -14,7 +14,9 @@ import {
   TABLE_PLACEMENT_TYPE,
   type InventoryTableType,
 } from './inventory-catalog-data';
+import { realmLabels } from './map-affine';
 import type { Slot } from './save-dto';
+import { equippedItemKeys } from './vm/equipement';
 import { unlockedGestureGoodsIds } from './vm/gestures';
 import {
   inventoryDbView,
@@ -44,6 +46,45 @@ export type WithOwnership<T> = T & {
   // How many overworld pins selecting this row drops on the map — the visible
   // "Locations" column. `hasCoords === (locationCount > 0)`.
   locationCount: number;
+  /** A copy is equipped (weapon/armor/talisman slot, quick slot or pouch, memorized spell). */
+  equipped: boolean;
+  /** Where your copies are — see {@link ItemStatus}. `['Missing']` when you have none. */
+  status: readonly ItemStatus[];
+  /** Realms of the item's pickup locations (`realmLabels`), `['Not on map']` when none. */
+  realms: readonly string[];
+};
+
+/**
+ * Where a character's copies of an item are. One item can be several at once —
+ * equipped ⊂ carried, and a stack can be split between your pockets and the
+ * Sorting Chest (the storage box at a Site of Grace). Gestures aren't items: an
+ * unlocked one is just `Unlocked`.
+ */
+export const ITEM_STATUS = [
+  'Equipped',
+  'Carried',
+  'Sorting Chest',
+  'Unlocked',
+  'Missing',
+] as const;
+export type ItemStatus = (typeof ITEM_STATUS)[number];
+/** Every status that means "you have it". */
+export const OWNED_STATUSES: readonly ItemStatus[] = Arr.filter(
+  ITEM_STATUS,
+  (s) => s !== 'Missing',
+);
+
+const itemStatus = (
+  o: { held: number; stored: number } | undefined,
+  equipped: boolean,
+  isGesture: boolean,
+): ItemStatus[] => {
+  if (isGesture) return o ? ['Unlocked'] : ['Missing'];
+  const status: ItemStatus[] = [];
+  if (equipped) status.push('Equipped');
+  if ((o?.held ?? 0) > 0) status.push('Carried');
+  if ((o?.stored ?? 0) > 0) status.push('Sorting Chest');
+  return status.length > 0 ? status : ['Missing'];
 };
 
 /** Broad shape every joined row satisfies (used where the category isn't statically known). */
@@ -110,6 +151,7 @@ export function inventoryTables(
     string,
     { held: number; stored: number; upgradeLevel: number }
   >();
+  const equipped = new Set<string>();
   if (slot) {
     for (const item of inventoryDbView(slot).items) {
       const key = ownedItemKey(item.type, item.item_id);
@@ -124,6 +166,7 @@ export function inventoryTables(
         upgradeLevel: Math.max(cur?.upgradeLevel ?? 0, item.upgrade_level),
       });
     }
+    for (const k of equippedItemKeys(slot)) equipped.add(k);
     for (const id of unlockedGestureGoodsIds(slot))
       owned.set(ownedItemKey('ITEM', id), {
         held: 1,
@@ -142,6 +185,7 @@ export function inventoryTables(
     }>,
     itemType: InventoryItemType,
     placementType: string,
+    isGesture: boolean,
   ): InventoryTableResult => {
     const items: InventoryRow[] = Arr.map(
       // Drop the datasets' `[ERROR]Type N` placeholder rows (48 in WEAPONS, 54 in ARMOR,
@@ -155,9 +199,17 @@ export function inventoryTables(
           inDlcScope(scope, row.isDlc),
       ),
       (row) => {
-        const o = owned.get(ownedItemKey(itemType, row.id));
+        const key = ownedItemKey(itemType, row.id);
+        const o = owned.get(key);
         const weaponUpgradeLevel = o?.upgradeLevel ?? 0;
-        const locationCount = itemPins(placementType, row.id).length;
+        const pins = itemPins(placementType, row.id);
+        const locationCount = pins.length;
+        // Goods count as equipped only when carried: a flask's quick slot holds
+        // the base flask id (1001), not the upgraded one you actually have. An
+        // Ash of War attached to an equipped weapon has no stack of its own, so
+        // equipped alone is enough for it.
+        const isEquipped =
+          equipped.has(key) && (itemType !== 'ITEM' || (o?.held ?? 0) > 0);
         const heldQuantity = o?.held ?? 0;
         const storedQuantity = o?.stored ?? 0;
         return {
@@ -172,29 +224,42 @@ export function inventoryTables(
               : row.name,
           hasCoords: locationCount > 0,
           locationCount,
+          equipped: isEquipped,
+          status: itemStatus(o, isEquipped, isGesture),
+          realms: realmLabels(Arr.map(pins, (p) => p.master)),
         };
       },
     );
     return {
       items,
-      ownedCount: Arr.filter(items, (i) => i.quantity > 0).length,
+      ownedCount: Arr.filter(items, (i) => !i.status.includes('Missing'))
+        .length,
     };
   };
 
   return Rec.fromEntries(
     Arr.map(Rec.toEntries(CATALOG), ([table, rows]) => [
       table,
-      join(rows, TABLE_ITEM_TYPE[table], TABLE_PLACEMENT_TYPE[table]),
+      join(
+        rows,
+        TABLE_ITEM_TYPE[table],
+        TABLE_PLACEMENT_TYPE[table],
+        table === 'gestures',
+      ),
     ]),
   ) as Record<InventoryTableType, InventoryTableResult>;
 }
 
-/** {@link inventoryTables} for the selected save slot. */
-export function useInventoryTables(): Record<
-  InventoryTableType,
-  InventoryTableResult
-> {
+/**
+ * {@link inventoryTables} for the selected save slot, limited to the global
+ * content scope — or to `scopeOverride` (data tables pass `'all'`: their
+ * Content filter mirrors the scope instead, so every option stays listed).
+ */
+export function useInventoryTables(
+  scopeOverride?: DlcScope,
+): Record<InventoryTableType, InventoryTableResult> {
   const slot = useSelectedSlot();
-  const { scope } = useDlcScope();
+  const { scope: globalScope } = useDlcScope();
+  const scope = scopeOverride ?? globalScope;
   return useMemo(() => inventoryTables(slot, scope), [slot, scope]);
 }

@@ -9,9 +9,9 @@ import {
   bossMapName,
   bossReward,
 } from '@/lib/boss-meta';
-import { DLC_SCOPE_LABEL, inDlcScope } from '@/lib/dlc';
+import { inDlcScope } from '@/lib/dlc';
 import { useDlcScope } from '@/lib/dlc-scope';
-import type { MasterPixel } from '@/lib/map-affine';
+import { type MasterPixel, mapRealm, realmLabels } from '@/lib/map-affine';
 import { bossFlagToPixel } from '@/lib/vm/map-pins';
 import { wikiNameForBoss } from '@/lib/wiki';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
@@ -21,6 +21,8 @@ import {
   renderNameCell,
   commonPinColumnDef,
   commonWikiColumnDef,
+  contentColumnDef,
+  realmColumnDef,
 } from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
 import type {
@@ -40,6 +42,8 @@ import { BossBadges } from './boss-badge';
 type BossRow = {
   id: number; // the boss's defeat-flag id (unique)
   name: string;
+  /** Which interactive map(s) it's on — see `realmLabels`. */
+  realms: readonly string[];
   mapName: string;
   // The boss's category, most-significant badge first (Demigod / Shardbearer /
   // Legend / Great Enemy / Field / Dungeon). `category` is the primary badge's
@@ -56,8 +60,6 @@ type BossRow = {
   defeated: boolean | null;
   /** Shadow of the Erdtree boss — tagged in the Name column. */
   isDlc: boolean;
-  /** "Base game" / "Shadow of the Erdtree" — the Content facet. */
-  content: string;
 };
 
 // Cell renderers kept at module scope (not redefined per render) so the table's
@@ -116,12 +118,7 @@ export function BossesDataTable() {
     const seen = new Set<number>();
     const out: Array<BossRow> = [];
     for (const b of BOSSES) {
-      if (
-        b.name === null ||
-        b.name === '' ||
-        seen.has(b.defeatFlagId) ||
-        !inDlcScope(scope, b.isDlc)
-      )
+      if (b.name === null || b.name === '' || seen.has(b.defeatFlagId))
         continue;
       seen.add(b.defeatFlagId);
       const badges = bossBadges(b.defeatFlagId, b.mapId);
@@ -129,6 +126,9 @@ export function BossesDataTable() {
       out.push({
         id: b.defeatFlagId,
         name: b.name,
+        // 4 arenas have no map placement in the game (Chapel of Anticipation,
+        // Fractured Marika, the two Ancestor Spirit arenas).
+        realms: realmLabels([mapRealm(b.mapId)]),
         mapName: bossMapName(b.mapId),
         category: badges[0] ? BADGE_LABEL[badges[0]] : '',
         badges,
@@ -138,11 +138,10 @@ export function BossesDataTable() {
         pixel: bossFlagToPixel.get(b.defeatFlagId),
         defeated: connected ? isDefeated(b.defeatFlagId) : null,
         isDlc: b.isDlc,
-        content: DLC_SCOPE_LABEL[b.isDlc ? 'dlc' : 'base'],
       });
     }
     return out;
-  }, [slot, connected, scope]);
+  }, [slot, connected]);
 
   const columns = useMemo<Array<DataTableColumnDef<BossRow>>>(() => {
     const helper = createAppColumnHelper<BossRow>();
@@ -153,9 +152,10 @@ export function BossesDataTable() {
         cell: renderNameCell,
       }),
       commonWikiColumnDef(helper, (r) => wikiNameForBoss(r.name)),
+      realmColumnDef(helper, (r) => r.realms),
       // Faceted (pick places from a searchable list, with counts), not substring.
       commonAccessorColumnDef(helper, 'mapName', 'Map'),
-      commonAccessorColumnDef(helper, 'content', 'Content'),
+      contentColumnDef(helper),
       commonAccessorColumnDef(helper, 'category', 'Category', {
         cell: renderCategoryCell,
       }),
@@ -172,7 +172,10 @@ export function BossesDataTable() {
     return cols;
   }, [connected]);
 
-  const defeatedCount = Arr.filter(rows, (r) => r.defeated === true).length;
+  // Rows cover all content (the Content filter mirrors the scope); the headline
+  // counts follow the scope itself.
+  const scoped = Arr.filter(rows, (r) => inDlcScope(scope, r.isDlc));
+  const defeatedCount = Arr.filter(scoped, (r) => r.defeated === true).length;
 
   return (
     <Card className='w-full'>
@@ -180,10 +183,10 @@ export function BossesDataTable() {
         <CardTitle>All Bosses</CardTitle>
         <CardDescription>
           {connected
-            ? `${defeatedCount} / ${rows.length} - (${Math.round((defeatedCount / rows.length) * 100)}% defeated)`
-            : `${rows.length} bosses in the game`}
-          {' · '}filter by name, map, content, category or reward, then tap the
-          pin to drop a boss on the map.
+            ? `${defeatedCount} / ${scoped.length} - (${Math.round((defeatedCount / scoped.length) * 100)}% defeated)`
+            : `${scoped.length} bosses in the game`}
+          {' · '}filter by name, realm, map, content, category or reward, then
+          tap the pin to drop a boss on the map.
         </CardDescription>
       </CardHeader>
       <CardContent>

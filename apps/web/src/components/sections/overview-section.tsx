@@ -10,14 +10,19 @@ import {
   SwordIcon,
   type LucideIcon,
 } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import { goodsByName } from '@/lib/game-data';
 import { cn } from '@/lib/utils';
 import { eventsDbView } from '@/lib/vm/events';
 import {
+  chargesAffordable,
   flasksView,
+  goldenSeedsSpent,
   MAX_FLASK_CHARGES,
+  MAX_FLASK_LEVEL,
   mixedPhysickTearIds,
+  TOTAL_GOLDEN_SEEDS,
 } from '@/lib/vm/flasks';
 import { goodsQuantityById } from '@/lib/vm/inventory';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
@@ -282,6 +287,14 @@ export function OverviewSection() {
   const flasks = flasksView(slot);
   const goldenSeed = goodsByName.get('Golden Seed');
   const sacredTear = goodsByName.get('Sacred Tear');
+  const seedsHeld = inventoryQuantityById.get(goldenSeed?.id ?? -1) ?? 0;
+  // Seeds and tears leave the inventory when used, so progress is read off the
+  // charge count / flask level. More Golden Seeds exist than the 30 the ten
+  // charge upgrades need; Sacred Tears are exactly 12.
+  const seedsUsed = goldenSeedsSpent(flasks.totalCharges);
+  const tearsHeld = inventoryQuantityById.get(sacredTear?.id ?? -1) ?? 0;
+  const affordable = chargesAffordable(flasks.totalCharges, seedsHeld);
+  const tearsReady = Math.min(tearsHeld, MAX_FLASK_LEVEL - flasks.level);
 
   return (
     <>
@@ -300,11 +313,16 @@ export function OverviewSection() {
         <CardHeader>
           <CardTitle>Flasks</CardTitle>
           <CardDescription>
-            {flasks.totalCharges} / {MAX_FLASK_CHARGES} flask charges · seeds,
-            sacred tears &amp; physick crystal tears
+            {flasks.totalCharges} / {MAX_FLASK_CHARGES} charges · +
+            {flasks.level} / +{MAX_FLASK_LEVEL} · physick crystal tears
           </CardDescription>
         </CardHeader>
         <CardContent className='flex flex-col gap-1'>
+          {/* Charges are one shared pool split between the two flasks at a
+              grace, and Sacred Tears level both flasks together — so the
+              meters track those two totals (one pip per charge / level), not
+              each flask. Dashed pips = upgrades your unused seeds/tears can buy
+              right now. */}
           <FlaskItem
             item={flasks.crimson.item}
             detail={`${flasks.crimson.charges.toString()} charges`}
@@ -317,12 +335,28 @@ export function OverviewSection() {
           <Separator />
           <FlaskItem
             item={goldenSeed}
-            detail={`${(inventoryQuantityById.get(goldenSeed?.id ?? -1) ?? 0).toString()} / 30`}
+            detail={`${seedsUsed.toString()} / ${TOTAL_GOLDEN_SEEDS.toString()} used · ${seedsHeld.toString()} unused`}
+            meter={
+              <PipMeter
+                label={`${flasks.totalCharges.toString()} / ${MAX_FLASK_CHARGES.toString()} charges`}
+                total={MAX_FLASK_CHARGES}
+                filled={flasks.totalCharges}
+                ready={affordable}
+              />
+            }
           />
           <Separator />
           <FlaskItem
             item={sacredTear}
-            detail={`${(inventoryQuantityById.get(sacredTear?.id ?? -1) ?? 0).toString()} / 12`}
+            detail={`${flasks.level.toString()} / ${MAX_FLASK_LEVEL.toString()} used · ${tearsHeld.toString()} unused`}
+            meter={
+              <PipMeter
+                label={`+${flasks.level.toString()} / +${MAX_FLASK_LEVEL.toString()} flask level`}
+                total={MAX_FLASK_LEVEL}
+                filled={flasks.level}
+                ready={tearsReady}
+              />
+            }
           />
           <Separator />
           <WondrousPhysick />
@@ -584,18 +618,69 @@ function WondrousPhysick() {
 function FlaskItem({
   item,
   detail,
+  meter,
 }: {
   item: { id: number; name: string; icon: number } | undefined;
   detail: string;
+  /** Optional progress meter shown under the detail line. */
+  meter?: ReactNode;
 }) {
   if (!item) return null;
   const imgSrc = itemIconUrl(item.icon) ?? '';
   return (
     <div className='flex items-center justify-between gap-10 rounded-lg transition-colors hover:bg-muted/50'>
       <TooltipImg imgSrc={imgSrc} thumbSrc={itemIconThumbUrl(item.icon)} />
-      <div className='flex flex-col items-end p-2'>
+      <div className='flex flex-col items-end gap-1 p-2'>
         <p>{item.name}</p>
         <p className='text-sm text-muted-foreground'>{detail}</p>
+        {meter}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * One pip per step toward a cap: filled = done, dashed = affordable right now
+ * with what you carry, empty = still to find. Turns green when complete.
+ */
+function PipMeter({
+  label,
+  total,
+  filled,
+  ready,
+}: {
+  label: string;
+  total: number;
+  filled: number;
+  ready: number;
+}) {
+  const done = filled >= total;
+  return (
+    <div className='flex items-center gap-2' title={label}>
+      <span
+        className={cn(
+          'text-xs tabular-nums',
+          done ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground',
+        )}
+      >
+        {label}
+      </span>
+      <div className='flex gap-0.5' aria-hidden>
+        {Arr.makeBy(total, (i) => (
+          <span
+            key={i}
+            className={cn(
+              'h-2.5 w-1.5 rounded-[2px]',
+              i < filled
+                ? done
+                  ? 'bg-emerald-500'
+                  : 'bg-amber-500'
+                : i < filled + ready
+                  ? 'border border-dashed border-amber-500'
+                  : 'bg-muted-foreground/20',
+            )}
+          />
+        ))}
       </div>
     </div>
   );

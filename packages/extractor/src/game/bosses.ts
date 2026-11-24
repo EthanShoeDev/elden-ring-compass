@@ -133,10 +133,14 @@ export const loadBosses = (
       const defeatFlagId = Number(f.get('defeatBossFlagId'));
       if (defeatFlagId <= 0) continue; // a few non-boss rows
       // The healthbar `character` equals the defeat flag for almost all bosses;
-      // a few differ, so fall back to the flag seen in the boss event's init call.
+      // a few differ, so fall back to the flag seen in the boss event's init
+      // call, then to the character the flag's death event kills (Radahn,
+      // field bosses whose name bar is set up in a separate event).
+      const killed = names.characterByFlag.get(defeatFlagId);
       const name =
         names.byCharacter.get(defeatFlagId) ??
         names.byInitFlag.get(defeatFlagId) ??
+        (killed === undefined ? undefined : names.byCharacter.get(killed)) ??
         null;
       bosses.push({
         defeatFlagId,

@@ -26,7 +26,7 @@ import {
   type LegacyConv,
   WORLD_MAP_LEGACY_CONV,
 } from '@elden-ring-compass/data';
-import { String as Str } from 'effect';
+import { Array as Arr, Record as Rec, String as Str } from 'effect';
 
 /**
  * Absolute world→master-pixel offsets: `px = worldX + OFFSET_X`, `py = OFFSET_Y − worldZ`.
@@ -45,7 +45,7 @@ const OFFSET_X = -7168;
 const OFFSET_Y = 16640;
 
 /** Which tile-pyramid master a pin belongs to (surface M00/M10 or underground M01/M11). */
-type MasterId = 'M00' | 'M01' | 'M10' | 'M11';
+export type MasterId = 'M00' | 'M01' | 'M10' | 'M11';
 
 /** A pin resolved to a specific master + master pixel. */
 export interface MasterPixel {
@@ -78,6 +78,48 @@ const legacyConvByBlock: ReadonlyMap<string, readonly LegacyConv[]> = (() => {
 function dungeonBlock(mapId: string): string | null {
   const m = /^(m\d\d_\d\d_\d\d)_/.exec(mapId);
   return m?.[1] ?? null;
+}
+
+/**
+ * Compact realm names — the map switcher's labels and the bosses table's Realm
+ * column. (`M11`, the DLC underground, is cut content and hidden from the switcher.)
+ */
+export const REALM_LABEL: Record<MasterId, string> = {
+  M00: 'Overworld',
+  M01: 'Underground',
+  M10: 'Land of Shadow',
+  M11: 'Shadow Underground',
+};
+
+/** Realm facet value for something the game never places on a map. */
+export const NOT_ON_MAP = 'Not on map';
+
+/**
+ * Realm facet values for a set of masters, in map-switcher order; `[NOT_ON_MAP]`
+ * when there are none (an item with no pickup location, an unplaced arena).
+ */
+export function realmLabels(masters: Iterable<MasterId | null>): string[] {
+  const present = new Set(masters);
+  const labels = Arr.map(
+    Arr.filter(Rec.toEntries(REALM_LABEL), ([id]) => present.has(id)),
+    ([, label]) => label,
+  );
+  return labels.length > 0 ? labels : [NOT_ON_MAP];
+}
+
+/**
+ * Which map (`M00` Overworld / `M01` Underground / `M10` Land of Shadow / `M11`)
+ * a map id belongs to, by the same routing the pins use: overworld tiles by their
+ * area, legacy dungeons by their conv entry. `null` when the game has no map
+ * placement for it (no conv entry).
+ */
+export function mapRealm(mapId: string): MasterId | null {
+  const overworld = /^m(60|61)_/.exec(mapId);
+  if (overworld) return overworld[1] === '60' ? 'M00' : 'M10';
+  const block = dungeonBlock(mapId);
+  return block === null
+    ? null
+    : (legacyConvByBlock.get(block)?.[0]?.master ?? null);
 }
 
 /**

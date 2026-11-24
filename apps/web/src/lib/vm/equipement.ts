@@ -11,6 +11,9 @@ import type { Slot } from '../save-dto';
 import {
   InventoryGaItemTypeToOffset,
   InventoryItemTypeToOffset,
+  type InventoryItemType,
+  normalizeGoodsId,
+  ownedItemKey,
 } from './inventory';
 /** No Ash of War attached (the gem handle on a weapon reads 0). */
 const noAsh = { id: 0, name: 'None' } as const;
@@ -209,4 +212,35 @@ export function equipmentDbView(slot?: Readonly<Slot>) {
     quickslots,
     pouch,
   };
+}
+
+/**
+ * Ownership keys (`ownedItemKey`) of everything the character has equipped:
+ * armaments + their Ashes of War, arrows/bolts, armor, talismans, quick-slot and
+ * pouch goods, and memorized spells. Equipped items are always also carried —
+ * the save's equip slots point into the held inventory.
+ */
+export function equippedItemKeys(slot: Readonly<Slot>): ReadonlySet<string> {
+  const e = equipmentDbView(slot);
+  const keys = new Set<string>();
+  const add = (type: InventoryItemType, id: number | undefined) => {
+    if (id !== undefined && id > 0) keys.add(ownedItemKey(type, id));
+  };
+  // Weapon gaitem ids carry the upgrade level in their last two digits; the
+  // ownership key is the un-upgraded id (see `inventoryDbView`).
+  const weapon = (id: number | undefined) =>
+    add('WEAPON', id === undefined ? undefined : id - (id % 100));
+  for (const w of [...e.left_hand_armaments, ...e.right_hand_armaments]) {
+    weapon(w.id);
+    add('AOW', w.ashOfWar.id);
+  }
+  for (const a of e.arrows) weapon(a.id);
+  for (const a of [e.head, e.chest, e.arms, e.legs]) add('ARMOR', a.id);
+  for (const t of e.talismans) add('ACCESSORY', t.id);
+  for (const g of [...e.quickslots, ...e.pouch])
+    add('ITEM', normalizeGoodsId(g.id).id); // upgraded spirit ash → its +0 row
+  // Spell param ids are the spells' goods ids; an empty slot reads 0xFFFFFFFF.
+  for (const id of slot.equipped_spells)
+    if (id !== 0xff_ff_ff_ff) add('ITEM', id);
+  return keys;
 }

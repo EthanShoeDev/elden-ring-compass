@@ -1,3 +1,4 @@
+import { SPIRIT_ASHES } from '@elden-ring-compass/data';
 import { Array as Arr } from 'effect';
 
 import {
@@ -27,6 +28,25 @@ export const InventoryGaItemTypeToOffset = {
   ITEM: 0xb0000000,
   AOW: 0xc0000000,
 } as const;
+
+const SPIRIT_ASH_IDS: ReadonlySet<number> = new Set(
+  Arr.map(SPIRIT_ASHES, (s) => s.id),
+);
+
+/**
+ * Goods id → catalog id + upgrade level. Spirit ashes are one goods row per
+ * upgrade level (Mimic Tear Ashes +8 = 207008) while the catalog lists only the
+ * +0 id, so an upgraded ash would never match its row. Other goods pass through.
+ */
+export function normalizeGoodsId(id: number): {
+  id: number;
+  upgradeLevel: number;
+} {
+  const level = id % 100;
+  return level > 0 && SPIRIT_ASH_IDS.has(id - level)
+    ? { id: id - level, upgradeLevel: level }
+    : { id, upgradeLevel: 0 };
+}
 
 /** Where an inventory stack lives: carried by the character, or in the Sorting Chest at a grace. */
 export type InventoryLocation = 'held' | 'storage';
@@ -127,11 +147,18 @@ export function inventoryDbView(slot: Readonly<Slot>) {
           return null;
         }
 
-        const itemId = ['ACCESSORY', 'ITEM', 'EMPTY'].includes(itemType)
+        const rawId = ['ACCESSORY', 'ITEM', 'EMPTY'].includes(itemType)
           ? commonItem.ga_item_handle ^ InventoryGaItemTypeToOffset[itemType]
           : gaitem.item_id ^ InventoryItemTypeToOffset[itemType];
+        // Upgraded spirit ashes: keep the +0 id plus the level, like weapons.
+        const goods =
+          itemType === 'ITEM'
+            ? normalizeGoodsId(rawId)
+            : { id: rawId, upgradeLevel: 0 };
+        const itemId = goods.id + goods.upgradeLevel;
 
-        const upgrade_level = itemType === 'WEAPON' ? gaitem.item_id % 100 : 0;
+        const upgrade_level =
+          itemType === 'WEAPON' ? gaitem.item_id % 100 : goods.upgradeLevel;
         const itemName = (() => {
           if (itemType === 'WEAPON') {
             const baseId = itemId - upgrade_level;
@@ -148,7 +175,11 @@ export function inventoryDbView(slot: Readonly<Slot>) {
               accessoryNameById.get(itemId) ?? `[UNKOWN_${itemId.toString()}]`
             );
           } else if (itemType === 'ITEM') {
-            return itemNameById.get(itemId) ?? `[UNKOWN_${itemId.toString()}]`;
+            const name =
+              itemNameById.get(goods.id) ?? `[UNKOWN_${goods.id.toString()}]`;
+            return upgrade_level > 0
+              ? `${name} +${upgrade_level.toString()}`
+              : name;
           } else if (itemType === 'AOW') {
             return aowNameById.get(itemId) ?? `[UNKOWN_${itemId.toString()}]`;
           }

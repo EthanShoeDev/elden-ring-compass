@@ -43,8 +43,8 @@ export function StoryBossSection() {
   const allBosses = Arr.flatMap(groups, (g) => g.bosses);
 
   // Read a boss defeat flag straight from the save bitfield. The gallery is a curated
-  // list of specific flag ids (some, like Starscourge Radahn 310 and the Scadutree
-  // Avatar, aren't standard arena flags in BOSSES), so resolve the bit directly.
+  // list of specific flag ids (some, like the Scadutree Avatar, aren't standard
+  // arena flags in BOSSES), so resolve the bit directly.
   const isDefeated = (flagId: number) => {
     if (!slot) return false;
     const offset = eventFlagOffset(flagId);

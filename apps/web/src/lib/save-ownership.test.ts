@@ -8,11 +8,17 @@ import { readFixtureSave } from '@/test/fixture-save';
 
 import { completionMilestones } from './completion';
 import { parseEldenRingData } from './er-save-parser';
-import { inventoryTables } from './inventory-catalog';
+import { type InventoryRow, inventoryTables } from './inventory-catalog';
 import type { Slot } from './save-dto';
 import { derivedStatsView } from './vm/derived-stats';
 import { equipmentDbView } from './vm/equipement';
-import { flasksView, mixedPhysickTearIds } from './vm/flasks';
+import {
+  chargesAffordable,
+  flasksView,
+  goldenSeedsSpent,
+  mixedPhysickTearIds,
+  TOTAL_GOLDEN_SEEDS,
+} from './vm/flasks';
 import { inventoryDbView } from './vm/inventory';
 
 // Regression tests for issue #11 ("Incorrect data imported from save file"): the save parsed
@@ -282,6 +288,55 @@ it.layer(NodeServices.layer)('save ownership view-models (issue #11)', (it) => {
       }),
   );
 
+  it.effect('status says where your copies are: equipped, carried, chest', () =>
+    Effect.gen(function* () {
+      const { slots, byName } = yield* loadSlots;
+      for (const slot of slots)
+        for (const table of Rec.values(inventoryTables(slot)))
+          for (const row of table.items) {
+            // Missing is exclusive, and only when nothing is owned or equipped.
+            expect(row.status.includes('Missing')).toBe(
+              row.quantity === 0 && !row.equipped,
+            );
+            if (row.status.includes('Missing'))
+              expect(row.status).toEqual(['Missing']);
+            expect(row.status.includes('Sorting Chest')).toBe(
+              row.storedQuantity > 0,
+            );
+          }
+
+      const sam = inventoryTables(byName('sam'));
+      const equippedNames = (rows: ReadonlyArray<InventoryRow>) =>
+        Arr.map(
+          Arr.filter(rows, (r) => r.equipped),
+          (r) => r.name,
+        );
+      // Every slot kind resolves to a table row.
+      expect(equippedNames(sam.armaments.items).length).toBeGreaterThan(0);
+      expect(equippedNames(sam.armor.items)).toHaveLength(4);
+      expect(equippedNames(sam.talismans.items).length).toBeGreaterThan(0);
+      expect(equippedNames(sam.spirits.items).length).toBeGreaterThan(0);
+
+      // Upgraded spirit ashes are their own goods ids (Mimic Tear +8 = 207008);
+      // they must still land on the catalog's +0 row.
+      const mimic = Arr.findFirst(sam.spirits.items, (r) => r.id === 207_000);
+      expect(Option.map(mimic, (r) => [r.name, r.equipped])).toEqual(
+        Option.some(['Mimic Tear Ashes +8', true]),
+      );
+
+      const yager = inventoryTables(byName('Yager'));
+      const daggers = Arr.findFirst(
+        yager.tools.items,
+        (r) => r.name === 'Throwing Dagger',
+      );
+      expect(
+        Option.map(daggers, (d) =>
+          Arr.filter(d.status, (s) => s !== 'Equipped'),
+        ),
+      ).toEqual(Option.some(['Carried', 'Sorting Chest']));
+    }),
+  );
+
   it.effect(
     'the empty-slot sentinels (bare Head/Body/Arms/Legs, Unarmed) are not listed',
     () =>
@@ -296,4 +351,14 @@ it.layer(NodeServices.layer)('save ownership view-models (issue #11)', (it) => {
         expect(ids(tables.armaments.items).has(110_000)).toBe(false);
       }),
   );
+});
+
+it('Golden Seeds spent follow the 1,1,2,2,…,5,5 charge costs', () => {
+  expect(chargesAffordable(4, 3)).toBe(2); // 1 + 1, the next costs 2
+  expect(chargesAffordable(6, 3)).toBe(1);
+  expect(chargesAffordable(14, 99)).toBe(0);
+  expect(goldenSeedsSpent(4)).toBe(0);
+  expect(goldenSeedsSpent(6)).toBe(2);
+  expect(goldenSeedsSpent(14)).toBe(TOTAL_GOLDEN_SEEDS);
+  expect(TOTAL_GOLDEN_SEEDS).toBe(30);
 });

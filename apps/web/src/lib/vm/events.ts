@@ -54,13 +54,6 @@ const FLAG_EVENTS: ReadonlyArray<BaseEvent & { flagId: number }> = Arr.map(
               isDlc: b.isDlc,
             }),
           ),
-          // Starscourge Radahn (Caelid) has no standard arena flag in BOSSES; kept as the legacy did.
-          {
-            id: 310,
-            name: 'Starscourge Radahn',
-            type: 'boss' as const,
-            isDlc: false,
-          },
         ],
         (e) => [e.id, e] as const, // dedupe by flag id (bosses can share a defeat flag)
       ),

@@ -1,12 +1,17 @@
 import { Array as Arr } from 'effect';
 
 import { useDataTableData } from '@/lib/data-table-data';
+import { inDlcScope } from '@/lib/dlc';
+import { useDlcScope } from '@/lib/dlc-scope';
+import { realmLabels } from '@/lib/map-affine';
 import type { eventsDbView } from '@/lib/vm/events';
 
 import {
   commonAccessorColumnDef,
   renderNameCell,
   commonPinColumnDef,
+  contentColumnDef,
+  realmColumnDef,
 } from '../data-table/common-column-defs';
 import { DataTable } from '../data-table/data-table';
 import type { DataTableColumnDef } from '../data-table/table-hook';
@@ -28,7 +33,11 @@ export function GracesDataTable() {
     useDataTableData('events'),
     (e) => e.type === 'grace',
   );
-  const litCount = Arr.filter(items, (item) => item.on).length;
+  // Rows cover all content (the Content filter mirrors the scope); the headline
+  // counts follow the scope itself.
+  const { scope } = useDlcScope();
+  const scoped = Arr.filter(items, (g) => inDlcScope(scope, g.isDlc));
+  const litCount = Arr.filter(scoped, (item) => item.on).length;
 
   return (
     <Card className='flex min-h-0 w-full flex-1 flex-col'>
@@ -37,9 +46,9 @@ export function GracesDataTable() {
         <CardDescription>
           Graces discovered across the Lands Between
           <br />
-          {litCount} / {items.length}
+          {litCount} / {scoped.length}
           <br />
-          {((litCount / items.length) * 100).toFixed(0)}% lit
+          {((litCount / scoped.length) * 100).toFixed(0)}% lit
         </CardDescription>
       </CardHeader>
       <CardContent className='flex min-h-0 flex-1 flex-col'>
@@ -62,6 +71,10 @@ const columns: Array<DataTableColumnDef<Grace>> = [
     filterFn: 'includesString',
   }),
   commonAccessorColumnDef(columnHelper, 'on', 'Discovered'),
+  realmColumnDef(columnHelper, (row) =>
+    realmLabels([row.pixel?.master ?? null]),
+  ),
+  contentColumnDef(columnHelper),
   commonAccessorColumnDef(
     columnHelper,
     (row) => !!row.pixel,

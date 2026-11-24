@@ -1,14 +1,16 @@
 import { FlexRender } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { Array as Arr } from 'effect';
+import { Array as Arr, Option } from 'effect';
 import { type CSSProperties, useState } from 'react';
 
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
+import { CONTENT_COLUMN_ID } from './common-column-defs';
 import type { DataTableStateInitProps } from './data-table-store';
 import { useDataTableStateSync } from './data-table-store';
 import { DataTableToolbar } from './data-table-toolbar';
+import { useDlcScopeFilterLink } from './dlc-scope-filter-link';
 import type { DataTableColumnDef, DataTableInstance } from './table-hook';
 import { useAppTable } from './table-hook';
 
@@ -29,14 +31,7 @@ const cellStyle = (columnId: string, size: number): CSSProperties => ({
   flexBasis: size,
 });
 
-export function DataTable<TData extends { id: number; name: string }>({
-  className,
-  columns,
-  data,
-  fill = false,
-  maxBodyHeight = '70vh',
-  ...props
-}: {
+type DataTableProps<TData extends { id: number; name: string }> = {
   className?: string;
   columns: Array<DataTableColumnDef<TData>>;
   data: Array<TData>;
@@ -48,7 +43,28 @@ export function DataTable<TData extends { id: number; name: string }>({
   fill?: boolean;
   /** Cap for the scrolling body when not in `fill` mode. */
   maxBodyHeight?: string;
-} & DataTableStateInitProps) {
+} & DataTableStateInitProps;
+
+/**
+ * One table instance per `tableId`. The inventory route swaps `tableId` in
+ * place; without the key the table would keep the previous category's state
+ * (filters, sorting, pins — pins are row ids, so they'd land on the wrong
+ * items) whenever the new category has nothing persisted yet.
+ */
+export function DataTable<TData extends { id: number; name: string }>(
+  props: DataTableProps<TData>,
+) {
+  return <DataTableInstanceView key={props.tableId} {...props} />;
+}
+
+function DataTableInstanceView<TData extends { id: number; name: string }>({
+  className,
+  columns,
+  data,
+  fill = false,
+  maxBodyHeight = '70vh',
+  ...props
+}: DataTableProps<TData>) {
   // Default selector = re-render on any registered state change (v8 parity). v9's
   // `useTable` returns a fresh `table` reference per state change, so the React
   // Compiler correctly invalidates everything derived from it — no `'use no memo'`.
@@ -79,10 +95,31 @@ export function DataTable<TData extends { id: number; name: string }>({
     getRowId: (row) => row.id.toString(),
   });
   useDataTableStateSync(table, props);
+  useDlcScopeFilterLink(table, props.tableId);
 
   const rowCount = table.getRowModel().rows.length;
   const totalWidth = table.getTotalSize();
-  const selectedCount = table.getFilteredSelectedRowModel().rows.length;
+  const filteredSelected = table.getFilteredSelectedRowModel().rows;
+  const selectedCount = filteredSelected.length;
+  // Pins stay on the map whatever the table shows (filtering to find one more
+  // thing to pin mustn't drop the others), so say how many the filters hide.
+  // Rows outside the content scope (the Content filter) aren't on the map
+  // either, so they don't count.
+  const shownIds = new Set(Arr.map(filteredSelected, (r) => r.id));
+  const contentFilter = Arr.findFirst(
+    table.state.columnFilters,
+    (f) => f.id === CONTENT_COLUMN_ID,
+  ).pipe(Option.map((f) => f.value));
+  const hiddenPinnedCount = Arr.filter(
+    table.getSelectedRowModel().rows,
+    (r) =>
+      !shownIds.has(r.id) &&
+      Option.match(contentFilter, {
+        onNone: () => true,
+        onSome: (v) =>
+          Arr.isArray(v) && v.includes(r.getValue(CONTENT_COLUMN_ID)),
+      }),
+  ).length;
 
   // The scroll container is the virtualizer's scroll element — the Base UI
   // ScrollArea's Viewport (the element that actually scrolls), not its Root. The
@@ -159,6 +196,9 @@ export function DataTable<TData extends { id: number; name: string }>({
       </ScrollArea>
       <div className='shrink-0 px-2 text-sm text-muted-foreground'>
         {selectedCount > 0 && <>{selectedCount} pinned · </>}
+        {hiddenPinnedCount > 0 && (
+          <>{hiddenPinnedCount} more pinned, hidden by filters · </>
+        )}
         {rowCount.toLocaleString()} {rowCount === 1 ? 'row' : 'rows'}
       </div>
     </div>

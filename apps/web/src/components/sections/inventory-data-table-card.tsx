@@ -1,7 +1,7 @@
 import { useAtom } from '@effect/atom-react';
 import { itemIconThumbUrl, itemIconUrl } from '@elden-ring-compass/data/images';
 import { useNavigate } from '@tanstack/react-router';
-import { Array as Arr, Predicate } from 'effect';
+import { Array as Arr, Match, Predicate } from 'effect';
 import {
   ChevronsUpDownIcon,
   FileCheckIcon,
@@ -24,7 +24,9 @@ import {
   renderNameCell,
   commonPinColumnDef,
   commonWikiColumnDef,
-  quantityFilterFn,
+  contentColumnDef,
+  multiValueColumnDef,
+  realmColumnDef,
 } from '@/components/data-table/common-column-defs';
 import { DataTable } from '@/components/data-table/data-table';
 import { useColumnFilterValue } from '@/components/data-table/data-table-store';
@@ -45,8 +47,12 @@ import {
 } from '@/components/ui/popover';
 import { showAffinityVariantsAtom } from '@/lib/atoms/weapons';
 import { useDataTableData } from '@/lib/data-table-data';
+import { inDlcScope } from '@/lib/dlc';
+import { useDlcScope } from '@/lib/dlc-scope';
 import {
   type CATALOG,
+  type ItemStatus,
+  OWNED_STATUSES,
   useInventoryTables,
   type WithOwnership,
   type InventoryTableType,
@@ -200,41 +206,42 @@ export function InventoryDataTableCard({
         )
       : allItems;
   const hiddenVariantCount = collapsible ? allItems.length - items.length : 0;
-  const ownedCount = Arr.filter(items, (i) => i.quantity > 0).length;
+  // Rows cover all content (the Content filter mirrors the scope); the headline
+  // counts follow the scope itself.
+  const { scope } = useDlcScope();
+  const scoped = Arr.filter(items, (i) => inDlcScope(scope, i.isDlc));
+  const ownedCount = Arr.filter(
+    scoped,
+    (i) => !i.status.includes('Missing'),
+  ).length;
 
-  // Ownership filter — "what I've collected" vs "what's left" vs the whole catalogue.
-  // Pairs with the affinity-variant toggle (variants = "every variant in the game").
-  // This segmented control and the Quantity column's faceted chip are the SAME
-  // filter (it writes the `'owned'`/`'missing'` presets that `quantityFilterFn`
-  // reads, the facet writes exact values) — one shared source of truth, so the two
-  // controls can't drift out of sync.
-  // Held / Storage likewise write the Location column's facet (see `LOCATION_PRESETS`), so
-  // "what's in my Sorting Chest" is the same filter as ticking those Location boxes.
-  const [qtyFilter, setQtyFilter] = useColumnFilterValue(table, 'Quantity');
-  const [locFilter, setLocFilter] = useColumnFilterValue(table, 'Location');
-  // The toggle reflects the shared Quantity + Location filters: their presets light
-  // up, an explicit value-facet selection (e.g. `[2]`) lights up nothing (null), and
-  // both cleared is "all". So picking exact quantities in the facet doesn't falsely
-  // highlight "All".
+  // Ownership is ONE filter: the Status column (Equipped / Carried / Sorting Chest
+  // / Missing — an item can be several). This All / Owned / Missing toggle just
+  // writes presets into it, and the Status dropdown in the toolbar refines it
+  // ("only what's in my Sorting Chest"), so the two can't disagree. Owned = every
+  // "have it" status this KIND of table can have — fixed, not "the ones present
+  // right now", which drifts as the scope / save / variant toggle changes and
+  // leaves a stale preset silently hiding items while no segment is lit.
+  const [statusFilter, setStatusFilter] = useColumnFilterValue(table, 'Status');
+  const ownedPreset: readonly ItemStatus[] =
+    table === 'gestures'
+      ? ['Unlocked']
+      : Arr.filter(OWNED_STATUSES, (s) => s !== 'Unlocked');
   const ownerFilter = ((): OwnerFilter | null => {
-    if (Predicate.isNullish(locFilter)) {
-      if (Predicate.isNullish(qtyFilter)) return 'all';
-      if (qtyFilter === 'owned' || qtyFilter === 'missing') return qtyFilter;
-      return null;
-    }
-    if (!Predicate.isNullish(qtyFilter)) return null;
-    if (sameValues(locFilter, LOCATION_PRESETS.held)) return 'held';
-    if (sameValues(locFilter, LOCATION_PRESETS.storage)) return 'storage';
-    return null;
+    if (Predicate.isNullish(statusFilter)) return 'all';
+    if (sameValues(statusFilter, ['Missing'])) return 'missing';
+    if (sameValues(statusFilter, ownedPreset)) return 'owned';
+    return null; // a custom Status selection
   })();
-  const setOwnerFilter = (key: OwnerFilter) => {
-    setQtyFilter(key === 'owned' || key === 'missing' ? key : undefined);
-    setLocFilter(
-      key === 'held' || key === 'storage'
-        ? [...LOCATION_PRESETS[key]]
-        : undefined,
+  const setOwnerFilter = (key: OwnerFilter) =>
+    setStatusFilter(
+      Match.value(key).pipe(
+        Match.when('all', () => undefined),
+        Match.when('missing', () => ['Missing']),
+        Match.when('owned', () => [...ownedPreset]),
+        Match.exhaustive,
+      ),
     );
-  };
 
   // Full-bleed: the table *is* the route now (no Card chrome, no page padding —
   // see the `/inventory/$category` route's `fullBleed` staticData). A slim header
@@ -250,8 +257,8 @@ export function InventoryDataTableCard({
             allTables={allTables}
           />
           <span className='text-sm text-muted-foreground'>
-            {ownedCount} / {items.length} (
-            {((ownedCount / items.length) * 100).toFixed(0)}% owned)
+            {ownedCount} / {scoped.length} (
+            {((ownedCount / scoped.length) * 100).toFixed(0)}% owned)
             {collapsible && !showVariants && hiddenVariantCount > 0 && (
               <> · {hiddenVariantCount} affinity variants hidden</>
             )}
@@ -263,6 +270,7 @@ export function InventoryDataTableCard({
               <button
                 key={key}
                 type='button'
+                aria-pressed={ownerFilter === key}
                 onClick={() => {
                   setOwnerFilter(key);
                 }}
@@ -297,33 +305,54 @@ export function InventoryDataTableCard({
   );
 }
 
-const OWNER_FILTERS = ['all', 'owned', 'held', 'storage', 'missing'] as const;
+const OWNER_FILTERS = ['all', 'owned', 'missing'] as const;
 type OwnerFilter = (typeof OWNER_FILTERS)[number];
 
-/** Location column values: where the owned copies of an item are. */
-type ItemLocation = 'Held' | 'Storage' | 'Held + Storage' | 'Not owned';
-const itemLocation = (row: {
-  heldQuantity: number;
-  storedQuantity: number;
-}): ItemLocation =>
-  row.heldQuantity > 0
-    ? row.storedQuantity > 0
-      ? 'Held + Storage'
-      : 'Held'
-    : row.storedQuantity > 0
-      ? 'Storage'
-      : 'Not owned';
-
-/** The Location facet values the Held / Storage toggle presets select. */
-const LOCATION_PRESETS: Record<'held' | 'storage', readonly ItemLocation[]> = {
-  held: ['Held', 'Held + Storage'],
-  storage: ['Storage', 'Held + Storage'],
-};
-
-const sameValues = (value: unknown, preset: readonly ItemLocation[]) =>
+const sameValues = (value: unknown, preset: readonly ItemStatus[]) =>
   Arr.isArray(value) &&
   value.length === preset.length &&
   Arr.every(preset, (v) => value.includes(v));
+
+const STATUS_BADGE: Record<ItemStatus, string> = {
+  Equipped:
+    'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300',
+  Carried:
+    'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+  'Sorting Chest':
+    'border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300',
+  Unlocked:
+    'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+  Missing: '',
+};
+
+/** Status cell: a badge per place your copies are, with the count for stacks. */
+const renderStatusCell = ({ row }: { row: { original: BaseRow } }) => {
+  const r = row.original;
+  if (r.status.includes('Missing'))
+    return <span className='text-muted-foreground/40'>—</span>;
+  const count = (s: ItemStatus) =>
+    s === 'Carried' && r.heldQuantity > 1
+      ? ` ${r.heldQuantity.toLocaleString()}`
+      : s === 'Sorting Chest' && r.storedQuantity > 1
+        ? ` ${r.storedQuantity.toLocaleString()}`
+        : '';
+  return (
+    <div className='flex flex-wrap gap-1'>
+      {Arr.map(r.status, (s) => (
+        <span
+          key={s}
+          className={cn(
+            'rounded border px-1.5 py-0.5 text-[11px] leading-none font-medium whitespace-nowrap',
+            STATUS_BADGE[s],
+          )}
+        >
+          {s}
+          {count(s)}
+        </span>
+      ))}
+    </div>
+  );
+};
 
 // Row element types per category, joined with save ownership.
 type Row<K extends InventoryTableType> = WithOwnership<
@@ -405,29 +434,17 @@ function defaultColumns<T extends BaseRow>(
       cell: renderNameCell,
     }),
     commonWikiColumnDef(columnHelper, wikiNameForItem),
-    // Quantity shares one filter between the prominent All/Owned/Missing segmented
-    // control (which writes the `'owned'`/`'missing'` presets) and its faceted chip
-    // (which writes exact values like `[2]` — "weapons I have 2 of"). See
-    // `quantityFilterFn`; both stay in sync because it's a single column filter.
+    // Total owned — sort only. Filtering by ownership is the Status column's job.
+    // (`filterFn` ignores a value persisted by the old Owned/Missing toggle, which
+    // used to write here.)
     commonAccessorColumnDef(columnHelper, 'quantity', 'Quantity', {
-      filterFn: quantityFilterFn,
+      enableColumnFilter: false,
+      filterFn: () => true,
     }),
-    // Held (carried) vs Storage (Sorting Chest). Faceted, and driven by the toggle's
-    // Held / Storage presets; a split stack shows both counts.
-    commonAccessorColumnDef(columnHelper, itemLocation, 'Location', {
-      size: 150,
-      cell: (cell: DataTableCellContext<BaseRow>) => {
-        const row = cell.row.original;
-        const location = cell.getValue<ItemLocation>();
-        if (location === 'Not owned')
-          return <span className='text-muted-foreground/40'>—</span>;
-        if (location !== 'Held + Storage') return <span>{location}</span>;
-        return (
-          <span>
-            {row.heldQuantity} held · {row.storedQuantity} stored
-          </span>
-        );
-      },
+    // Where your copies are: Equipped / Carried / Sorting Chest, or Missing.
+    multiValueColumnDef(columnHelper, (r) => r.status, 'Status', {
+      size: 200,
+      cell: renderStatusCell,
     }),
     commonAccessorColumnDef(columnHelper, 'rarity', 'Rarity'),
     // How many map pins selecting this row drops (supersedes the old boolean
@@ -449,6 +466,8 @@ function defaultColumns<T extends BaseRow>(
         );
       },
     }),
+    realmColumnDef(columnHelper, (r) => r.realms),
+    contentColumnDef(columnHelper),
     // Cast: columns built against BaseRow are structurally valid for the caller's narrower T
   ] as unknown as Array<DataTableColumnDef<T>>;
 }

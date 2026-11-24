@@ -1,5 +1,5 @@
 import type { RowData } from '@tanstack/react-table';
-import { Array as Arr, Match, Option, Predicate } from 'effect';
+import { Array as Arr, Option } from 'effect';
 import { PlusCircle as PlusCircledIcon } from 'lucide-react';
 import * as React from 'react';
 
@@ -36,6 +36,8 @@ type FacetOption = {
   label: string;
   value: unknown;
   icon?: React.ComponentType<{ className?: string }>;
+  /** Rows with this value before any other filter applies. */
+  total?: number;
 };
 
 type DataTableFacetedFilterProps<TData extends RowData, TValue> = {
@@ -56,27 +58,11 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
   // `options` every render and re-renders per table state change (fresh `table`
   // ref), so this component's props always change identity alongside the state.
   const facets = column?.getFacetedUniqueValues();
-  // The filter value is normally an `Array<value>` (faceted multi-select). The
-  // inventory Quantity column additionally accepts the ownership presets the
-  // segmented control writes (`'owned'` / `'missing'`) — interpret those into the
-  // equivalent checked boxes so the toggle and this dropdown stay visibly linked.
-  // Numeric: 'owned' = every value > 0, 'missing' = the 0 bucket.
+  // The filter value is an `Array<value>` (faceted multi-select); anything else
+  // (e.g. a stale value persisted by an older UI) selects nothing.
   const rawFilterValue = column?.getFilterValue();
-  const numericValues = Arr.filter(
-    Arr.map(options, (o) => o.value),
-    Predicate.isNumber,
-  );
-  const selectedValues = Match.value(rawFilterValue).pipe(
-    Match.when(
-      'owned',
-      () => new Set<unknown>(Arr.filter(numericValues, (v) => v > 0)),
-    ),
-    Match.when(
-      'missing',
-      () => new Set<unknown>(Arr.filter(numericValues, (v) => v === 0)),
-    ),
-    Match.when(Match.instanceOf(Array), (values) => new Set<unknown>(values)),
-    Match.orElse(() => new Set<unknown>()),
+  const selectedValues = new Set<unknown>(
+    Arr.isArray(rawFilterValue) ? rawFilterValue : [],
   );
 
   const setSelected = (values: Array<unknown>) =>
@@ -138,6 +124,19 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
   // the value, which is the count?). The pill + `count ×` affordance disambiguates.
   const optionCount = (option: FacetOption) => {
     const count = facets?.get(option.value);
+    // Every row with this value is hidden by the OTHER filters (e.g. Land of
+    // Shadow while Content = Base game): show how many exist, set apart.
+    if ((count === undefined || count === 0) && (option.total ?? 0) > 0) {
+      const total = option.total ?? 0;
+      return (
+        <span
+          title={`${total} ${total === 1 ? 'item' : 'items'}, hidden by your other filters`}
+          className='ml-auto shrink-0 rounded border border-dashed px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground/70 tabular-nums'
+        >
+          {total}×
+        </span>
+      );
+    }
     return count !== undefined && count !== 0 ? (
       <span
         title={`${count} ${count === 1 ? 'item' : 'items'}`}
@@ -159,7 +158,7 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
         >
           {triggerInner}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align='start' className='w-[12.5rem]'>
+        <DropdownMenuContent align='start' className='w-72'>
           {Arr.map(options, (option) => (
             <DropdownMenuCheckboxItem
               key={optionKey(option)}
@@ -210,7 +209,9 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
       >
         {triggerInner}
       </ComboboxTrigger>
-      <ComboboxContent>
+      {/* The default popup is as wide as its trigger — far too narrow behind a
+          short "Map" button for place names — so give it a fixed width. */}
+      <ComboboxContent align='start' className='w-72'>
         <ComboboxInput showTrigger={false} placeholder={title} />
         <ComboboxEmpty>No results found.</ComboboxEmpty>
         <ComboboxList>

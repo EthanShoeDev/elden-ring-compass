@@ -32,15 +32,22 @@ import { ITEM_MSGBNDS, loadFmgTable } from './fmg-tables.ts';
  * we also resolve those by substituting each `Initialize(Common)Event` call's
  * args through the target event's `Parameter` records.
  *
- * Returns two lookups keyed for `bosses.ts` to join `GameAreaParam.defeatBossFlagId`:
+ * Returns lookups keyed for `bosses.ts` to join `GameAreaParam.defeatBossFlagId`:
  *   - byCharacter: healthbar `character` → name (the common case, char == flag)
- *   - byInitFlag:  a defeat-flag value seen in the init call → name (the few
- *     bosses whose healthbar character differs from the flag)
+ *   - byInitFlag:  a defeat-flag value seen in the init call → name (bosses whose
+ *     healthbar is set up in the same templated call that gets the flag)
+ *   - characterByFlag: defeat flag → the boss character it belongs to, read off
+ *     the death event — the one that runs `KillBossAndDisplayBanner(character)`
+ *     (2003[12]) and then `EnableFlag(flag)` (2003[66]). This links bosses whose
+ *     entity id is NOT their flag and whose name bar lives in a separate event:
+ *     Starscourge Radahn (character 1052380800, defeat flag 1252380800, the
+ *     festival fight's own flag block) and the field bosses whose `90005860`
+ *     death template and `90005871` name-bar template are separate calls
+ *     (Night's Cavalry: character 1043370340, flag 1043370800).
  *
- * Caveats: multi-phase bosses have several healthbars under one character; we
+ * Caveat: multi-phase bosses have several healthbars under one character; we
  * keep the first seen (e.g. Messmer resolves to his serpent-phase name, not
- * "Messmer the Impaler"). ~10 roaming/field bosses (Night's Cavalry, etc.) use a
- * normal name bar rather than 2003[11], so they resolve to no name.
+ * "Messmer the Impaler").
  */
 
 export class BossNamesError extends Schema.TaggedError<
@@ -51,10 +58,15 @@ export class BossNamesError extends Schema.TaggedError<
 export interface BossNameTables {
   readonly byCharacter: Map<number, string>;
   readonly byInitFlag: Map<number, string>;
+  readonly characterByFlag: Map<number, number>;
 }
 
 const HEALTHBAR_BANK = 2003;
 const HEALTHBAR_ID = 11; // EnableBossHealthBar; args: state(byte), character, bar_slot, name
+const KILL_BOSS_ID = 12; // KillBossAndDisplayBanner; args: character, banner_type(byte)
+const SET_FLAG_ID = 66; // SetFlagState; args: flag_type(byte), flag(@4), state(byte @8)
+const FLAG_ABSOLUTE = 0;
+const FLAG_ON = 1;
 const RUN_BANK = 2000;
 const RUN_EVENT = 0; // RunEvent (same-file target)
 const RUN_COMMON = 6; // RunCommonEvent (common_func target)
@@ -66,6 +78,48 @@ const i32le = (b: Uint8Array, o: number): number =>
 
 const isHealthbar = (bank: number, id: number) =>
   bank === HEALTHBAR_BANK && id === HEALTHBAR_ID;
+const isKillBoss = (bank: number, id: number) =>
+  bank === HEALTHBAR_BANK && id === KILL_BOSS_ID;
+const isSetFlag = (bank: number, id: number) =>
+  bank === HEALTHBAR_BANK && id === SET_FLAG_ID;
+const isOfInterest = (bank: number, id: number) =>
+  isHealthbar(bank, id) || isKillBoss(bank, id) || isSetFlag(bank, id);
+
+/** A boss death: the character killed and the flags the same event turns on. */
+interface ResolvedKill {
+  readonly character: number;
+  readonly flags: number[];
+}
+
+/**
+ * The boss death in one event instance (`args(i)` = instruction i's argument
+ * bytes, after any template substitution): exactly one character killed with a
+ * boss banner, plus every absolute flag the event enables. Several banner
+ * variants of one character (the field-boss template branches on banner type)
+ * count once; two different characters are ambiguous and skipped.
+ */
+function killIn(
+  ev: EmevdEvent,
+  args: (i: number) => Uint8Array,
+): ResolvedKill | undefined {
+  const characters = new Set<number>();
+  const flags: number[] = [];
+  for (const [i, ins] of ev.instructions.entries()) {
+    if (isKillBoss(ins.bank, ins.id)) {
+      const character = i32le(args(i), 0);
+      if (character > 0) characters.add(character);
+    } else if (isSetFlag(ins.bank, ins.id)) {
+      const a = args(i);
+      const flag = i32le(a, 4);
+      if (a[0] === FLAG_ABSOLUTE && a[8] === FLAG_ON && flag > 0)
+        flags.push(flag);
+    }
+  }
+  const [character] = characters;
+  return characters.size === 1 && character !== undefined && flags.length > 0
+    ? { character, flags }
+    : undefined;
+}
 
 interface ResolvedBar {
   readonly character: number;
@@ -80,12 +134,19 @@ interface ResolvedBar {
 function resolveBars(
   emevd: Emevd,
   commonFunc: Map<number, EmevdEvent>,
-): ResolvedBar[] {
+): { bars: ResolvedBar[]; kills: ResolvedKill[] } {
   const out: ResolvedBar[] = [];
+  const kills: ResolvedKill[] = [];
   const sameFile = new Map<number, EmevdEvent>();
   for (const e of emevd.events) sameFile.set(e.id, e);
 
   for (const ev of emevd.events) {
+    // A concrete boss death (e.g. Radahn's, written out in his map's script).
+    const kill = killIn(
+      ev,
+      (i) => ev.instructions[i]?.argData ?? new Uint8Array(),
+    );
+    if (kill) kills.push(kill);
     // Direct (concrete) healthbars.
     for (const ins of ev.instructions) {
       if (isHealthbar(ins.bank, ins.id)) {
@@ -116,15 +177,15 @@ function resolveBars(
           : sameFile.get(targetId);
       if (
         !target ||
-        !Arr.some(target.instructions, (t) => isHealthbar(t.bank, t.id))
+        !Arr.some(target.instructions, (t) => isOfInterest(t.bank, t.id))
       )
         continue;
 
       const paramBytes = ins.argData.subarray(8); // after slot + event_id
       const initFlags = argInts(ins.argData).slice(2); // the passed params, as int32s
-      for (const [idx, t] of target.instructions.entries()) {
-        if (!isHealthbar(t.bank, t.id)) continue;
-        const buf = new Uint8Array(t.argData);
+      // Instruction `idx`'s args with this call's params substituted in.
+      const argsOf = (idx: number): Uint8Array => {
+        const buf = new Uint8Array(target.instructions[idx]?.argData ?? []);
         for (const p of target.parameters) {
           if (p.instructionIndex !== idx) continue;
           for (let k = 0; k < p.byteCount; k++) {
@@ -132,6 +193,14 @@ function resolveBars(
             if (src !== undefined) buf[p.targetStartByte + k] = src;
           }
         }
+        return buf;
+      };
+      // A templated boss death (the field-boss template 90005860).
+      const templatedKill = killIn(target, argsOf);
+      if (templatedKill) kills.push(templatedKill);
+      for (const [idx, t] of target.instructions.entries()) {
+        if (!isHealthbar(t.bank, t.id)) continue;
+        const buf = argsOf(idx);
         const character = i32le(buf, 4);
         const nameId = i32le(buf, 12);
         if (character > 0 && nameId > 0)
@@ -139,7 +208,7 @@ function resolveBars(
       }
     }
   }
-  return out;
+  return { bars: out, kills };
 }
 
 export const resolveBossNames = (
@@ -197,9 +266,15 @@ export const resolveBossNames = (
 
     const byCharacter = new Map<number, string>();
     const byInitFlag = new Map<number, string>();
+    const characterByFlag = new Map<number, number>();
     for (const path of paths) {
       const emevd = yield* readEmevd(path);
-      for (const bar of resolveBars(emevd, commonFunc)) {
+      const { bars, kills } = resolveBars(emevd, commonFunc);
+      for (const kill of kills)
+        for (const flag of kill.flags)
+          if (!characterByFlag.has(flag))
+            characterByFlag.set(flag, kill.character);
+      for (const bar of bars) {
         const name = npcName.get(bar.nameId);
         if (name === undefined || name === '') continue;
         if (!byCharacter.has(bar.character))
@@ -209,5 +284,5 @@ export const resolveBossNames = (
         }
       }
     }
-    return { byCharacter, byInitFlag };
+    return { byCharacter, byInitFlag, characterByFlag };
   });

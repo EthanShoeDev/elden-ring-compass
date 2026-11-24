@@ -43,17 +43,17 @@ import {
   bossMapName,
   bossReward,
 } from '@/lib/boss-meta';
-import { useDataTableData } from '@/lib/data-table-data';
-import { inDlcScope } from '@/lib/dlc';
+import { type DlcScope, inDlcScope } from '@/lib/dlc';
 import { useDlcScope } from '@/lib/dlc-scope';
 import {
   type InventoryTableType,
   TABLE_PLACEMENT_TYPE,
   useInventoryTables,
 } from '@/lib/inventory-catalog';
-import { playerToMasterPixel } from '@/lib/map-affine';
+import { playerToMasterPixel, REALM_LABEL } from '@/lib/map-affine';
 import { mapManifestAtom, mapTileIndexAtom } from '@/lib/map-tiles';
 import { cn } from '@/lib/utils';
+import { eventsDbView } from '@/lib/vm/events';
 import { bossMapIdByFlag, bossPinByFlag, itemPins } from '@/lib/vm/map-pins';
 import { wikiNameForItem } from '@/lib/wiki';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
@@ -87,11 +87,7 @@ const HIDDEN_MAP_IDS = new Set(['M11']);
  * ("Lands Between (Overworld)", …) are too wide for an on-map control,
  * especially on phones. Unknown ids fall back to the manifest name.
  */
-const SHORT_MAP_NAME: Record<string, string> = {
-  M00: 'Overworld',
-  M01: 'Underground',
-  M10: 'Land of Shadow',
-};
+const SHORT_MAP_NAME: Record<string, string> = REALM_LABEL;
 
 /** The three toggleable content layers a pin can belong to. */
 type LayerKey = 'graces' | 'bosses' | 'items';
@@ -376,9 +372,25 @@ function bossEnrichment(
   };
 }
 
+const DLC_REALMS: ReadonlySet<string> = new Set(['M10', 'M11']);
+/** `id` if its realm is inside `scope`, else that scope's main realm. */
+const realmInScope = (id: string, scope: DlcScope): string => {
+  const isDlc = DLC_REALMS.has(id);
+  if (scope === 'base' && isDlc) return 'M00';
+  if (scope === 'dlc' && !isDlc) return 'M10';
+  return id;
+};
+
+/** Graces + bosses within the global content scope (the data tables list every row). */
+function useScopedEvents() {
+  const slot = useSelectedSlot();
+  const { scope } = useDlcScope();
+  return useMemo(() => eventsDbView(slot, scope), [slot, scope]);
+}
+
 function useSelectedPins(): MapPin[] {
   const tableState = useTableStateMap();
-  const eventsItems = useDataTableData('events');
+  const eventsItems = useScopedEvents();
   const allTables = useInventoryTables();
   const { scope } = useDlcScope();
 
@@ -570,7 +582,16 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
     AsyncResult.value,
     Option.getOrUndefined,
   );
-  const [activeMapId, setActiveMapId] = useState('M00');
+  // The realm tabs follow the base game / DLC scope like the tables do: a realm
+  // the scope hides isn't shown (Base → the Lands Between, DLC → the Land of
+  // Shadow), and picking one widens the scope for this character instead.
+  const { scope, adjustScope } = useDlcScope();
+  const [pickedMapId, setPickedMapId] = useState('M00');
+  const activeMapId = realmInScope(pickedMapId, scope);
+  const setActiveMapId = (id: string) => {
+    if (realmInScope(id, scope) !== id) adjustScope('all');
+    setPickedMapId(id);
+  };
   // Layer visibility — hide (but don't clear) graces/bosses/items on the map.
   const [layers, setLayers] = useState<Record<LayerKey, boolean>>({
     graces: true,
@@ -588,9 +609,18 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
   const playerPin = usePlayerPin();
   const bloodstainPin = useBloodstainPin();
   const slotConnected = !!useSelectedSlot();
+  // Pins on a realm the scope hides (a base-game item's Land of Shadow drop
+  // under Base) aren't shown or counted, so no "switch" chip offers a jump
+  // that would widen the scope for the whole app.
   const visiblePins = useMemo(
-    () => Arr.filter(pins, (p) => layers[pinLayer(p.category)]),
-    [pins, layers],
+    () =>
+      Arr.filter(
+        pins,
+        (p) =>
+          layers[pinLayer(p.category)] &&
+          realmInScope(p.master, scope) === p.master,
+      ),
+    [pins, layers, scope],
   );
   // Selected-pin counts per realm, surfaced as badges on the map switcher so a
   // pin dropped on a non-active map is never a silent no-op. Counts what would
@@ -611,7 +641,7 @@ export function MapSection({ embedded = false }: { embedded?: boolean } = {}) {
         : Arr.sort(pinCountByMaster.entries(), byPinCountDesc),
     [pinCountByMaster, activeMapId],
   );
-  const eventsItems = useDataTableData('events');
+  const eventsItems = useScopedEvents();
   const { setRowSelection, clearAllRowSelection: clearPins } =
     useRowSelectionControls();
 

@@ -16,8 +16,8 @@
  *
  * Keys are boss DEFEAT event-flag ids (the same ids in `BOSSES.defeatFlagId`, and
  * the bits the save records). A few gallery-only bosses aren't arena rows in
- * `BOSSES` (Starscourge Radahn, Radagon/Elden Beast, the Scadutree Avatar), so
- * their flags are curated here too — matching the existing gallery's approach.
+ * `BOSSES` (Radagon/Elden Beast, the Scadutree Avatar), so their flags are
+ * curated here too — matching the existing gallery's approach.
  */
 import { GOODS, REGIONS } from '@elden-ring-compass/data';
 import { itemIconUrl } from '@elden-ring-compass/data/images';

@@ -12,7 +12,36 @@ export const MAX_FLASK_CHARGES = 14;
 // `base + 2·level + 1` the filled one (same name, different icon). Only one level is ever held.
 const CRIMSON_BASE_ID = 1000;
 const CERULEAN_BASE_ID = 1050;
-const MAX_FLASK_LEVEL = 12;
+/** Sacred Tears raise both flasks together, one level each, up to +12. */
+export const MAX_FLASK_LEVEL = 12;
+
+/** Every character starts with 4 charges; each Golden Seed step adds one. */
+const BASE_FLASK_CHARGES = 4;
+/** Seeds the Nth extra charge costs (1,1,2,2,…,5,5 → 30 for all ten). */
+const GOLDEN_SEED_COST = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5] as const;
+const sum = (xs: readonly number[]) => Arr.reduce(xs, 0, (a, b) => a + b);
+export const TOTAL_GOLDEN_SEEDS = sum(GOLDEN_SEED_COST);
+
+/** Golden Seeds already spent to reach `totalCharges` (spent seeds leave the inventory). */
+export const goldenSeedsSpent = (totalCharges: number) =>
+  sum(
+    Arr.take(GOLDEN_SEED_COST, Math.max(0, totalCharges - BASE_FLASK_CHARGES)),
+  );
+
+/** Extra charges the held Golden Seeds could still buy at a grace, on top of `totalCharges`. */
+export function chargesAffordable(totalCharges: number, seedsHeld: number) {
+  let seeds = seedsHeld;
+  let extra = 0;
+  for (const cost of Arr.drop(
+    GOLDEN_SEED_COST,
+    Math.max(0, totalCharges - BASE_FLASK_CHARGES),
+  )) {
+    if (cost > seeds) break;
+    seeds -= cost;
+    extra++;
+  }
+  return extra;
+}
 
 const goodsById = new Map(Arr.map(GOODS, (g) => [g.id, g]));
 
@@ -73,5 +102,7 @@ export function flasksView(slot: Readonly<Slot>) {
     crimson,
     cerulean,
     totalCharges: crimson.charges + cerulean.charges,
+    /** Flask upgrade level = Sacred Tears already spent (both flasks share it). */
+    level: Math.max(crimson.level, cerulean.level),
   };
 }

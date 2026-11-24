@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import type { TableId } from '@/components/data-table/data-table-store';
 import { useSelectedSlot } from '@/stores/slot-selection-store';
 
-import { useDlcScope } from './dlc-scope';
 import {
   type InventoryRow,
   type InventoryTableType,
@@ -21,6 +20,12 @@ export function useDataTableData(
 export function useDataTableData(
   tableId: InventoryTableType,
 ): Array<InventoryRow>;
+/**
+ * Rows for a data table. Unlike the map and completion totals these are NOT cut
+ * to the global base game / DLC scope: each table's Content column filter is
+ * linked to that scope (see `useDlcScopeFilterLink`), so the rows stay in the
+ * table and its Realm / Content filters always list every option.
+ */
 export function useDataTableData(
   tableId: TableId,
 ):
@@ -28,11 +33,10 @@ export function useDataTableData(
   | ReturnType<typeof regionsDbView>
   | Array<InventoryRow> {
   const slot = useSelectedSlot();
-  const allTables = useInventoryTables();
-  const { scope } = useDlcScope();
+  const allTables = useInventoryTables('all');
 
   const items = useMemo(() => {
-    if (tableId === 'events') return eventsDbView(slot, scope);
+    if (tableId === 'events') return eventsDbView(slot, 'all');
     if (tableId === 'regions') return regionsDbView(slot);
     // 'weapons', 'weapon-calculator' and 'bosses' serve their own data (see
     // weapon-ar-calculator.tsx / bosses-data-table.tsx), not the save-driven
@@ -44,7 +48,7 @@ export function useDataTableData(
     )
       return [];
     return allTables[tableId].items;
-  }, [slot, tableId, allTables, scope]);
+  }, [slot, tableId, allTables]);
 
   return items;
 }

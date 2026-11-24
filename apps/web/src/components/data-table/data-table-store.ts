@@ -243,6 +243,30 @@ export const useColumnFilterValue = (tableId: TableId, columnId: string) => {
   return [value, setValue] as const;
 };
 
+/**
+ * Read/write a table's WHOLE `columnFilters` slice from outside the `DataTable`,
+ * for changes that touch several columns at once (one write, so they can't
+ * clobber each other). `undefined` until hydrated, like `useColumnFilterValue`.
+ */
+export const useColumnFiltersState = (tableId: TableId) => {
+  const hydrated = useHydrated();
+  const slice = useAtomValue(tableStateSliceFamily(tableId));
+  const setTableState = useAtomSet(tableStateAtom);
+  const filters = hydrated ? (slice?.columnFilters ?? []) : undefined;
+  /** Takes an updater so the change applies to the latest filters, not a render's. */
+  const setFilters = (
+    update: (prev: ColumnFiltersState) => ColumnFiltersState,
+  ) => {
+    setTableState((prev) => {
+      const prevState = prev[tableId] ?? defaultTableState({ tableId });
+      const columnFilters = update(prevState.columnFilters);
+      if (columnFilters === prevState.columnFilters) return prev;
+      return { ...prev, [tableId]: { ...prevState, columnFilters } };
+    });
+  };
+  return [filters, setFilters] as const;
+};
+
 /** The full per-table state map (e.g. to derive selected map markers). */
 export const useTableStateMap = (): TableStateMap =>
   useAtomValue(tableStateAtom);

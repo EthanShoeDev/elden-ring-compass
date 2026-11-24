@@ -4,6 +4,7 @@ import { Array as Arr, Option, Predicate, Schema } from 'effect';
 import { CheckIcon, ExternalLinkIcon, XIcon } from 'lucide-react';
 
 import { DlcTag } from '@/components/misc/dlc-tag';
+import { DLC_SCOPE_LABEL } from '@/lib/dlc';
 import { wikiPageUrl } from '@/lib/wiki';
 
 import { DataTableColumnHeader } from './data-table-column-header';
@@ -144,31 +145,67 @@ function defaultFacetedFilterFn<T extends RowData>(
 defaultFacetedFilterFn[defaultFacetedFilterFnSymbol] = true;
 
 /**
- * Filter for the inventory Quantity column. ONE filter value, two shapes, so the
- * prominent All/Owned/Missing segmented control (see `InventoryDataTableCard`) and
- * the column's faceted dropdown stay linked to a single source of truth instead of
- * being two controls that can disagree:
- *   - `'owned'`   → `quantity > 0`   (the toggle's Owned preset)
- *   - `'missing'` → `quantity === 0` (the toggle's Missing preset)
- *   - `number[]`  → exact-value facet selection (e.g. "weapons I have 2 of")
- *   - anything else / cleared → keep every row
- * Tagged with `defaultFacetedFilterFnSymbol` so the toolbar still renders the
- * faceted chip; the facet UI interprets the `'owned'`/`'missing'` presets into
- * checked boxes (see `DataTableFacetedFilter`).
+ * Faceted filter over SEVERAL values per row (`getUniqueValues`): an item found
+ * in two realms, a stack that's both carried and in the Sorting Chest. Keeps a
+ * row when any of its values is selected. Ignores non-array filter values.
  */
-export function quantityFilterFn<T extends RowData>(
+function multiValueFilterFn<T extends RowData>(
   row: DataTableRow<T>,
   columnId: string,
   filterVal: unknown,
 ) {
-  const qty = row.getValue<number>(columnId);
-  if (filterVal === 'owned') return qty > 0;
-  if (filterVal === 'missing') return qty === 0;
-  if (Arr.isArray(filterVal))
-    return filterVal.length === 0 || filterVal.includes(qty);
-  return true;
+  if (!Arr.isArray(filterVal) || filterVal.length === 0) return true;
+  return Arr.some(row.getUniqueValues<unknown>(columnId), (v) =>
+    filterVal.includes(v),
+  );
 }
-quantityFilterFn[defaultFacetedFilterFnSymbol] = true;
+multiValueFilterFn[defaultFacetedFilterFnSymbol] = true;
+
+/**
+ * A faceted column whose rows each carry a list of values. The facet counts and
+ * filters per value; the cell shows them joined (pass `cell` to render badges).
+ */
+export const multiValueColumnDef = <T extends RowData>(
+  columnHelper: DataTableColumnHelper<T>,
+  values: (row: T) => readonly string[],
+  label: string,
+  overrides?: Parameters<DataTableColumnHelper<T>['accessor']>[1],
+): DataTableColumnDef<T> =>
+  commonAccessorColumnDef(
+    columnHelper,
+    (row: T) => Arr.join(values(row), ', '),
+    label,
+    {
+      id: label,
+      getUniqueValues: values,
+      filterFn: multiValueFilterFn,
+      ...overrides,
+    },
+  );
+
+/**
+ * Content: Base game / Shadow of the Erdtree. Complements the global scope in the
+ * top bar — with it on "All", this splits a table without leaving the page.
+ */
+export const contentColumnDef = <
+  T extends RowData & { readonly isDlc: boolean },
+>(
+  columnHelper: DataTableColumnHelper<T>,
+): DataTableColumnDef<T> =>
+  commonAccessorColumnDef(
+    columnHelper,
+    (row: T) => DLC_SCOPE_LABEL[row.isDlc ? 'dlc' : 'base'],
+    CONTENT_COLUMN_ID,
+  );
+
+/** Column id of {@link contentColumnDef} — linked to the global content scope. */
+export const CONTENT_COLUMN_ID = 'Content';
+
+/** Realm: which interactive map(s) a row is on (`realmLabels`). */
+export const realmColumnDef = <T extends RowData>(
+  columnHelper: DataTableColumnHelper<T>,
+  realms: (row: T) => readonly string[],
+): DataTableColumnDef<T> => multiValueColumnDef(columnHelper, realms, 'Realm');
 
 /** `JSON.stringify` that yields `None` (instead of `undefined` or a throw) for values with no JSON form. */
 export const encodeJsonOption = Schema.encodeOption(

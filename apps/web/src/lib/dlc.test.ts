@@ -11,6 +11,7 @@ import { completionMilestones } from './completion';
 import { inDlcScope } from './dlc';
 import { parseEldenRingData } from './er-save-parser';
 import { inventoryTables } from './inventory-catalog';
+import { mapRealm } from './map-affine';
 import type { Slot } from './save-dto';
 import { hasStartedDlc } from './vm/dlc-progress';
 import { eventsDbView } from './vm/events';
@@ -52,6 +53,47 @@ it('marks each curated gallery group the same way the extracted bosses are', () 
     }),
   );
   expect(Arr.map(mismatched, (b) => b.name)).toEqual([]);
+});
+
+it('puts DLC bosses in the Land of Shadow and base bosses in the Lands Between', () => {
+  const misplaced = Arr.filter(BOSSES, (b) => {
+    const realm = mapRealm(b.mapId);
+    return b.isDlc ? realm !== 'M10' : realm === 'M10' || realm === 'M11';
+  });
+  expect(Arr.map(misplaced, (b) => `${b.name ?? '?'} ${b.mapId}`)).toEqual([]);
+  // Only a handful of arenas have no map placement at all.
+  const unplaced = new Set(
+    Arr.map(
+      Arr.filter(BOSSES, (b) => mapRealm(b.mapId) === null),
+      (b) => b.defeatFlagId,
+    ),
+  );
+  expect(unplaced.size).toBeLessThanOrEqual(4);
+});
+
+it('names bosses whose entity id differs from their defeat flag', () => {
+  // Starscourge Radahn's character is 1052380800 but his festival fight sets
+  // 1252380800; Night's Cavalry's death and name-bar templates are separate
+  // calls. Both are joined through the death event (KillBossAndDisplayBanner +
+  // EnableFlag) — see the extractor's boss-names.ts.
+  const nameOf = (flag: number) =>
+    Option.getOrUndefined(Arr.findFirst(BOSSES, (b) => b.defeatFlagId === flag))
+      ?.name;
+  expect(nameOf(1252380800)).toBe('Starscourge Radahn');
+  expect(nameOf(1043370800)).toBe("Night's Cavalry");
+  // What's left unnamed are arena rows no event script ever defeats.
+  expect(Arr.filter(BOSSES, (b) => b.name === null).length).toBeLessThanOrEqual(
+    3,
+  );
+  // The overview's boss total and the bosses table count the same arenas.
+  const tableFlags = new Set(
+    Arr.map(
+      Arr.filter(BOSSES, (b) => b.name !== null && b.name !== ''),
+      (b) => b.defeatFlagId,
+    ),
+  );
+  const eventBosses = Arr.filter(eventsDbView(), (e) => e.type === 'boss');
+  expect(eventBosses).toHaveLength(tableFlags.size);
 });
 
 it.layer(NodeServices.layer)('DLC scope on a real save', (it) => {

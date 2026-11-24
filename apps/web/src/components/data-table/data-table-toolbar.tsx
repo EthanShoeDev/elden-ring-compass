@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 import {
+  CONTENT_COLUMN_ID,
   defaultFacetedFilterFnSymbol,
   encodeJsonOption,
 } from './common-column-defs';
@@ -23,7 +24,13 @@ type DataTableToolbarProps<TData extends RowData> = {
 export function DataTableToolbar<TData extends RowData>({
   table,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.state.columnFilters.length > 0;
+  // The Content filter is the top bar's base game / DLC scope (see
+  // `useDlcScopeFilterLink`), an app-wide setting: Reset leaves it alone, and
+  // it alone doesn't count as "filtered".
+  const isFiltered = Arr.some(
+    table.state.columnFilters,
+    (f) => f.id !== CONTENT_COLUMN_ID,
+  );
 
   return (
     <div className='flex items-center justify-between'>
@@ -51,26 +58,32 @@ export function DataTableToolbar<TData extends RowData>({
               )[defaultFacetedFilterFnSymbol] === true,
           ),
           (column) => {
-            // [value, count] pairs. Numeric columns (e.g. Upgrade Level, Locations)
-            // read most naturally sorted by value ascending; everything else by
-            // aggregate count descending (most-common first). `getFacetedUniqueValues`
-            // iterates in row-encounter order otherwise, which feels random.
-            const entries = Array.from(
-              column.getFacetedUniqueValues().entries(),
-            );
+            // [value, count] pairs over ALL rows, not the faceted ones: other
+            // filters must not make an option vanish (Content = Base game would
+            // otherwise drop Land of Shadow from Realm). The live counts beside
+            // each option still come from the faceted model; an option the other
+            // filters empty shows its full count, marked as hidden. Numeric columns
+            // (e.g. Upgrade Level, Locations) read most naturally sorted by value
+            // ascending; everything else by count descending (most-common first).
+            const totals = new Map<unknown, number>();
+            for (const row of table.getCoreRowModel().rows)
+              for (const v of row.getUniqueValues<unknown>(column.id))
+                totals.set(v, (totals.get(v) ?? 0) + 1);
+            const entries = Array.from(totals.entries());
             const isNumeric =
               entries.length > 0 &&
               Arr.every(entries, ([v]) => Predicate.isNumber(v));
             entries.sort(([va, ca], [vb, cb]) =>
               isNumeric ? (va as number) - (vb as number) : cb - ca,
             );
-            const options = Arr.map(entries, ([value]) => ({
+            const options = Arr.map(entries, ([value, total]) => ({
               label: Predicate.isString(value)
                 ? value
                 : Predicate.isNullish(value)
                   ? 'NA'
                   : Option.getOrElse(encodeJsonOption(value), () => 'NA'),
-              value: value as unknown,
+              value,
+              total,
             }));
             return (
               <DataTableFacetedFilter
@@ -86,7 +99,9 @@ export function DataTableToolbar<TData extends RowData>({
           <Button
             variant='ghost'
             onClick={() => {
-              table.resetColumnFilters();
+              table.setColumnFilters((prev) =>
+                Arr.filter(prev, (f) => f.id === CONTENT_COLUMN_ID),
+              );
             }}
             className='h-8 px-2 lg:px-3'
           >
