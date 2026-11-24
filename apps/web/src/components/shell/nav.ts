@@ -17,8 +17,8 @@ import { INVENTORY_TABLES } from '@/lib/inventory-tables';
  * The dashboard's primary navigation. Each entry is its own TanStack Router
  * route under the `_app` layout. Map leads — the app is fully explorable
  * without a save, and the world map is the hero landing view at `/` (see the
- * compass-app design kit: README "UI kits"). Build & Quests are scaffolded
- * previews of future features (docs/projects/future/*).
+ * compass-app design kit: README "UI kits"). Build is a scaffolded
+ * preview of a future feature (docs/projects/future/*).
  */
 /** A nested nav entry — rendered as a `SidebarMenuSub` link under its parent. */
 type NavChild = {
@@ -60,7 +60,7 @@ export const NAV: readonly NavItem[] = [
   },
   { to: '/graces', label: 'Sites of Grace', icon: FlameIcon },
   { to: '/build', label: 'Calculator', icon: SlidersHorizontalIcon },
-  { to: '/quests', label: 'Quests', icon: ListChecksIcon, preview: true },
+  { to: '/quests', label: 'Quests', icon: ListChecksIcon },
   { to: '/overview', label: 'Overview', icon: LayoutDashboardIcon },
 ];
 
@@ -87,7 +87,7 @@ export const SECTION_META: Record<string, { title: string; sub: string }> = {
   },
   '/quests': {
     title: 'Quest Compass',
-    sub: 'Save-aware guidance on what to do next.',
+    sub: 'Where you are in each NPC questline, and what comes next.',
   },
   '/overview': {
     title: 'Overview',

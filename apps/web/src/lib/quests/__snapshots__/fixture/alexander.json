@@ -1,0 +1,110 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "stormhill": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "stormhill-thanks": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "gael-tunnel": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "festival-talk": "Locked (gate): Defeat Starscourge Radahn",
+      "after-radahn": "Available",
+      "liurnia-free": "Upcoming",
+      "gelmir": "Upcoming",
+      "fire-giant-summon": "Upcoming",
+      "farum-duel": "Upcoming",
+      "farum-farewell": "Upcoming"
+    },
+    "warnings": [
+      "liurnia-free before: Meet Alexander on Mt. Gelmir",
+      "fire-giant-summon before: Defeat the Fire Giant"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "stormhill": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "stormhill-thanks": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "gael-tunnel": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "festival-talk": "Locked (gate): Defeat Starscourge Radahn",
+      "after-radahn": "Available",
+      "liurnia-free": "Upcoming",
+      "gelmir": "Upcoming",
+      "fire-giant-summon": "Upcoming",
+      "farum-duel": "Upcoming",
+      "farum-farewell": "Upcoming"
+    },
+    "warnings": [
+      "liurnia-free before: Meet Alexander on Mt. Gelmir",
+      "fire-giant-summon before: Defeat the Fire Giant"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "stormhill": "Available",
+      "stormhill-thanks": "Upcoming",
+      "gael-tunnel": "Upcoming",
+      "festival-talk": "Blocked",
+      "after-radahn": "Blocked",
+      "liurnia-free": "Upcoming",
+      "gelmir": "Upcoming",
+      "fire-giant-summon": "Upcoming",
+      "farum-duel": "Upcoming",
+      "farum-farewell": "Upcoming"
+    },
+    "warnings": [
+      "stormhill before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "stormhill-thanks before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "gael-tunnel before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "festival-talk before: Defeat Starscourge Radahn",
+      "liurnia-free before: Meet Alexander on Mt. Gelmir",
+      "fire-giant-summon before: Defeat the Fire Giant"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "stormhill": "Available",
+      "stormhill-thanks": "Upcoming",
+      "gael-tunnel": "Upcoming",
+      "festival-talk": "Blocked",
+      "after-radahn": "Blocked",
+      "liurnia-free": "Upcoming",
+      "gelmir": "Upcoming",
+      "fire-giant-summon": "Upcoming",
+      "farum-duel": "Upcoming",
+      "farum-farewell": "Upcoming"
+    },
+    "warnings": [
+      "stormhill before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "stormhill-thanks before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "gael-tunnel before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "festival-talk before: Defeat Starscourge Radahn",
+      "liurnia-free before: Meet Alexander on Mt. Gelmir",
+      "fire-giant-summon before: Defeat the Fire Giant"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "0/4",
+    "steps": {
+      "stormhill": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "stormhill-thanks": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "gael-tunnel": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "festival-talk": "Done",
+      "after-radahn": "Available",
+      "liurnia-free": "Upcoming",
+      "gelmir": "Upcoming",
+      "fire-giant-summon": "Upcoming",
+      "farum-duel": "Upcoming",
+      "farum-farewell": "Upcoming"
+    },
+    "warnings": [
+      "liurnia-free before: Meet Alexander on Mt. Gelmir",
+      "fire-giant-summon before: Defeat the Fire Giant"
+    ]
+  }
+}

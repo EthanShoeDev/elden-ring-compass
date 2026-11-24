@@ -1,0 +1,152 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/11",
+    "steps": {
+      "meet-igon": "Available",
+      "meet-priestess": "Blocked",
+      "blessing": "Upcoming",
+      "give-concoction": "Upcoming",
+      "igon-yells": "Upcoming",
+      "furled-finger": "Upcoming",
+      "summon-igon": "Upcoming",
+      "igon-gear": "Upcoming",
+      "return-altar": "Upcoming",
+      "priestess-heart": "Upcoming",
+      "dragonbolt": "Upcoming",
+      "florissax": "Upcoming"
+    },
+    "warnings": [
+      "meet-igon before: Defeat Bayle the Dread",
+      "meet-priestess before: Defeat Bayle the Dread",
+      "blessing before: Defeat Bayle the Dread",
+      "give-concoction before: Defeat Bayle the Dread",
+      "igon-yells before: Defeat Bayle the Dread",
+      "furled-finger before: Defeat Bayle the Dread",
+      "igon-gear before: Defeat Bayle before Igon is ready at the canyon",
+      "return-altar before: Defeat Bayle before Igon is ready at the canyon",
+      "priestess-heart before: Give her Thiollier’s Concoction",
+      "dragonbolt before: Defeat Bayle without giving her the Concoction"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/11",
+    "steps": {
+      "meet-igon": "Available",
+      "meet-priestess": "Blocked",
+      "blessing": "Upcoming",
+      "give-concoction": "Upcoming",
+      "igon-yells": "Upcoming",
+      "furled-finger": "Upcoming",
+      "summon-igon": "Upcoming",
+      "igon-gear": "Upcoming",
+      "return-altar": "Upcoming",
+      "priestess-heart": "Upcoming",
+      "dragonbolt": "Upcoming",
+      "florissax": "Upcoming"
+    },
+    "warnings": [
+      "meet-igon before: Defeat Bayle the Dread",
+      "meet-priestess before: Defeat Bayle the Dread",
+      "blessing before: Defeat Bayle the Dread",
+      "give-concoction before: Defeat Bayle the Dread",
+      "igon-yells before: Defeat Bayle the Dread",
+      "furled-finger before: Defeat Bayle the Dread",
+      "igon-gear before: Defeat Bayle before Igon is ready at the canyon",
+      "return-altar before: Defeat Bayle before Igon is ready at the canyon",
+      "priestess-heart before: Give her Thiollier’s Concoction",
+      "dragonbolt before: Defeat Bayle without giving her the Concoction"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/11",
+    "steps": {
+      "meet-igon": "Available",
+      "meet-priestess": "Blocked",
+      "blessing": "Upcoming",
+      "give-concoction": "Upcoming",
+      "igon-yells": "Upcoming",
+      "furled-finger": "Upcoming",
+      "summon-igon": "Upcoming",
+      "igon-gear": "Upcoming",
+      "return-altar": "Upcoming",
+      "priestess-heart": "Upcoming",
+      "dragonbolt": "Upcoming",
+      "florissax": "Upcoming"
+    },
+    "warnings": [
+      "meet-igon before: Defeat Bayle the Dread",
+      "meet-priestess before: Defeat Bayle the Dread",
+      "blessing before: Defeat Bayle the Dread",
+      "give-concoction before: Defeat Bayle the Dread",
+      "igon-yells before: Defeat Bayle the Dread",
+      "furled-finger before: Defeat Bayle the Dread",
+      "igon-gear before: Defeat Bayle before Igon is ready at the canyon",
+      "return-altar before: Defeat Bayle before Igon is ready at the canyon",
+      "priestess-heart before: Give her Thiollier’s Concoction",
+      "dragonbolt before: Defeat Bayle without giving her the Concoction"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/11",
+    "steps": {
+      "meet-igon": "Available",
+      "meet-priestess": "Blocked",
+      "blessing": "Upcoming",
+      "give-concoction": "Upcoming",
+      "igon-yells": "Upcoming",
+      "furled-finger": "Upcoming",
+      "summon-igon": "Upcoming",
+      "igon-gear": "Upcoming",
+      "return-altar": "Upcoming",
+      "priestess-heart": "Upcoming",
+      "dragonbolt": "Upcoming",
+      "florissax": "Upcoming"
+    },
+    "warnings": [
+      "meet-igon before: Defeat Bayle the Dread",
+      "meet-priestess before: Defeat Bayle the Dread",
+      "blessing before: Defeat Bayle the Dread",
+      "give-concoction before: Defeat Bayle the Dread",
+      "igon-yells before: Defeat Bayle the Dread",
+      "furled-finger before: Defeat Bayle the Dread",
+      "igon-gear before: Defeat Bayle before Igon is ready at the canyon",
+      "return-altar before: Defeat Bayle before Igon is ready at the canyon",
+      "priestess-heart before: Give her Thiollier’s Concoction",
+      "dragonbolt before: Defeat Bayle without giving her the Concoction"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/11",
+    "steps": {
+      "meet-igon": "Available",
+      "meet-priestess": "Blocked",
+      "blessing": "Upcoming",
+      "give-concoction": "Upcoming",
+      "igon-yells": "Upcoming",
+      "furled-finger": "Upcoming",
+      "summon-igon": "Upcoming",
+      "igon-gear": "Upcoming",
+      "return-altar": "Upcoming",
+      "priestess-heart": "Upcoming",
+      "dragonbolt": "Upcoming",
+      "florissax": "Upcoming"
+    },
+    "warnings": [
+      "meet-igon before: Defeat Bayle the Dread",
+      "meet-priestess before: Defeat Bayle the Dread",
+      "blessing before: Defeat Bayle the Dread",
+      "give-concoction before: Defeat Bayle the Dread",
+      "igon-yells before: Defeat Bayle the Dread",
+      "furled-finger before: Defeat Bayle the Dread",
+      "igon-gear before: Defeat Bayle before Igon is ready at the canyon",
+      "return-altar before: Defeat Bayle before Igon is ready at the canyon",
+      "priestess-heart before: Give her Thiollier’s Concoction",
+      "dragonbolt before: Defeat Bayle without giving her the Concoction"
+    ]
+  }
+}

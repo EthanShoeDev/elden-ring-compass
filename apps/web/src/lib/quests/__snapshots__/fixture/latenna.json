@@ -1,0 +1,79 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "3/4",
+    "steps": {
+      "meet": "Inferred",
+      "show-medallion": "Done",
+      "join": "Done",
+      "snow-valley-talk": "Blocked",
+      "snowfield-talk": "Available",
+      "apostate-derelict": "Blocked"
+    },
+    "warnings": [
+      "snow-valley-talk before: Pick up the left half of the Haligtree Secret Medallion at Castle Sol"
+    ]
+  },
+  "Yager": {
+    "outcome": "LockedOut: Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Locked (gate): Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+      "show-medallion": "Locked (gate): Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+      "join": "Locked (gate): Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+      "snow-valley-talk": "Locked (gate): Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+      "snowfield-talk": "Locked (upstream): Unreachable: “Meet Latenna at the Slumbering Wolf’s Shack” is locked",
+      "apostate-derelict": "Locked (upstream): Unreachable: “Meet Latenna at the Slumbering Wolf’s Shack” is locked"
+    },
+    "warnings": []
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "show-medallion": "Upcoming",
+      "join": "Upcoming",
+      "snow-valley-talk": "Upcoming",
+      "snowfield-talk": "Upcoming",
+      "apostate-derelict": "Upcoming"
+    },
+    "warnings": [
+      "meet before: Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+      "show-medallion before: Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+      "join before: Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+      "snow-valley-talk before: Pick up the left half of the Haligtree Secret Medallion at Castle Sol"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "show-medallion": "Upcoming",
+      "join": "Upcoming",
+      "snow-valley-talk": "Upcoming",
+      "snowfield-talk": "Upcoming",
+      "apostate-derelict": "Upcoming"
+    },
+    "warnings": [
+      "meet before: Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+      "show-medallion before: Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+      "join before: Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+      "snow-valley-talk before: Pick up the left half of the Haligtree Secret Medallion at Castle Sol"
+    ]
+  },
+  "sam": {
+    "outcome": "LockedOut: Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Locked (gate): Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+      "show-medallion": "Locked (gate): Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+      "join": "Locked (gate): Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+      "snow-valley-talk": "Locked (gate): Pick up the left half of the Haligtree Secret Medallion at Castle Sol",
+      "snowfield-talk": "Locked (upstream): Unreachable: “Meet Latenna at the Slumbering Wolf’s Shack” is locked",
+      "apostate-derelict": "Locked (upstream): Unreachable: “Meet Latenna at the Slumbering Wolf’s Shack” is locked"
+    },
+    "warnings": []
+  }
+}

@@ -18,6 +18,9 @@ export default defineConfig(
       'packages/data/images/**',
       // Frozen golden parity fixtures (oracle / reference), kept verbatim.
       'packages/save-parser/test/fixtures/*.json',
+      // Vitest snapshot files (incl. `toMatchFileSnapshot` output): written by the test runner,
+      // so formatting them makes the next run report a mismatch.
+      '**/__snapshots__/**',
       // Vendored verbatim from soulstruct (EMEVD instruction dictionary).
       'packages/vendored-data/assets/er-common.emedf.json',
       '**/pkg/**',

@@ -1,0 +1,117 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "4/13",
+    "steps": {
+      "meet": "Done",
+      "leaving": "Done",
+      "junction": "Done",
+      "find-goldmask": "Done",
+      "tell-corhyn": "Available",
+      "greatbridge": "Upcoming",
+      "colosseum": "Upcoming",
+      "principia": "Upcoming",
+      "regression": "Upcoming",
+      "totality": "Upcoming",
+      "corhyn-after": "Upcoming",
+      "mountaintops": "Upcoming",
+      "mending-rune": "Upcoming",
+      "belongings-pickup": "Upcoming"
+    },
+    "warnings": [
+      "totality before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/13",
+    "steps": {
+      "meet": "Available",
+      "leaving": "Upcoming",
+      "junction": "Upcoming",
+      "find-goldmask": "Upcoming",
+      "tell-corhyn": "Upcoming",
+      "greatbridge": "Upcoming",
+      "colosseum": "Upcoming",
+      "principia": "Upcoming",
+      "regression": "Upcoming",
+      "totality": "Upcoming",
+      "corhyn-after": "Upcoming",
+      "mountaintops": "Upcoming",
+      "mending-rune": "Upcoming",
+      "belongings-pickup": "Upcoming"
+    },
+    "warnings": [
+      "totality before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "shoe": {
+    "outcome": "InProgress",
+    "progress": "1/13",
+    "steps": {
+      "meet": "Done",
+      "leaving": "Blocked",
+      "junction": "Upcoming",
+      "find-goldmask": "Upcoming",
+      "tell-corhyn": "Upcoming",
+      "greatbridge": "Upcoming",
+      "colosseum": "Upcoming",
+      "principia": "Upcoming",
+      "regression": "Upcoming",
+      "totality": "Upcoming",
+      "corhyn-after": "Upcoming",
+      "mountaintops": "Upcoming",
+      "mending-rune": "Upcoming",
+      "belongings-pickup": "Upcoming"
+    },
+    "warnings": [
+      "totality before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/13",
+    "steps": {
+      "meet": "Available",
+      "leaving": "Upcoming",
+      "junction": "Upcoming",
+      "find-goldmask": "Upcoming",
+      "tell-corhyn": "Upcoming",
+      "greatbridge": "Upcoming",
+      "colosseum": "Upcoming",
+      "principia": "Upcoming",
+      "regression": "Upcoming",
+      "totality": "Upcoming",
+      "corhyn-after": "Upcoming",
+      "mountaintops": "Upcoming",
+      "mending-rune": "Upcoming",
+      "belongings-pickup": "Upcoming"
+    },
+    "warnings": [
+      "totality before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "1/13",
+    "steps": {
+      "meet": "Done",
+      "leaving": "Available",
+      "junction": "Upcoming",
+      "find-goldmask": "Upcoming",
+      "tell-corhyn": "Upcoming",
+      "greatbridge": "Upcoming",
+      "colosseum": "Upcoming",
+      "principia": "Upcoming",
+      "regression": "Upcoming",
+      "totality": "Upcoming",
+      "corhyn-after": "Upcoming",
+      "mountaintops": "Upcoming",
+      "mending-rune": "Upcoming",
+      "belongings-pickup": "Upcoming"
+    },
+    "warnings": [
+      "totality before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  }
+}

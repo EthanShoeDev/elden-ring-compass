@@ -1,0 +1,86 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "1/7",
+    "steps": {
+      "meet": "Done",
+      "servant": "Available",
+      "roundtable-again": "Upcoming",
+      "manor": "Upcoming",
+      "leaves-manor": "Upcoming",
+      "jarburg": "Upcoming",
+      "last-stand": "Upcoming"
+    },
+    "warnings": [
+      "servant before: Defeat Rykard, Lord of Blasphemy",
+      "roundtable-again before: Defeat Rykard, Lord of Blasphemy"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Available",
+      "servant": "Upcoming",
+      "roundtable-again": "Upcoming",
+      "manor": "Upcoming",
+      "leaves-manor": "Upcoming",
+      "jarburg": "Upcoming",
+      "last-stand": "Upcoming"
+    },
+    "warnings": [
+      "meet before: Defeat Rykard, Lord of Blasphemy",
+      "servant before: Defeat Rykard, Lord of Blasphemy",
+      "roundtable-again before: Defeat Rykard, Lord of Blasphemy"
+    ]
+  },
+  "shoe": {
+    "outcome": "InProgress",
+    "progress": "1/7",
+    "steps": {
+      "meet": "Done",
+      "servant": "Available",
+      "roundtable-again": "Upcoming",
+      "manor": "Upcoming",
+      "leaves-manor": "Upcoming",
+      "jarburg": "Upcoming",
+      "last-stand": "Upcoming"
+    },
+    "warnings": [
+      "servant before: Defeat Rykard, Lord of Blasphemy",
+      "roundtable-again before: Defeat Rykard, Lord of Blasphemy"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Available",
+      "servant": "Upcoming",
+      "roundtable-again": "Upcoming",
+      "manor": "Upcoming",
+      "leaves-manor": "Upcoming",
+      "jarburg": "Upcoming",
+      "last-stand": "Upcoming"
+    },
+    "warnings": [
+      "meet before: Defeat Rykard, Lord of Blasphemy",
+      "servant before: Defeat Rykard, Lord of Blasphemy",
+      "roundtable-again before: Defeat Rykard, Lord of Blasphemy"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "5/7",
+    "steps": {
+      "meet": "Inferred",
+      "servant": "Done",
+      "roundtable-again": "Done",
+      "manor": "Done",
+      "leaves-manor": "Done",
+      "jarburg": "Available",
+      "last-stand": "Upcoming"
+    },
+    "warnings": []
+  }
+}

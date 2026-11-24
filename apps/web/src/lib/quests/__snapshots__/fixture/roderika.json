@@ -1,0 +1,135 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "5/11",
+    "steps": {
+      "meet-shack": "Done",
+      "find-memento": "Done",
+      "give-memento": "Locked (gate): Light any Site of Grace in Liurnia",
+      "roundtable": "Done",
+      "meet-hewg": "Inferred",
+      "tell-roderika": "Done",
+      "ask-hewg": "Done",
+      "spirit-tuner": "Done",
+      "crimson-hood-pickup": "Available",
+      "hewg-prayer": "Available",
+      "upgrade-ash": "Available",
+      "curtsy": "Upcoming",
+      "dung-eater-talk": "Upcoming",
+      "hewg-after-burning": "Upcoming",
+      "both-after-burning": "Upcoming",
+      "weapon-upgrade-talk": "Upcoming",
+      "farewell": "Upcoming"
+    },
+    "warnings": [
+      "dung-eater-talk before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/11",
+    "steps": {
+      "meet-shack": "Locked (gate): Light any Site of Grace in Liurnia",
+      "find-memento": "Locked (gate): Light any Site of Grace in Liurnia",
+      "give-memento": "Locked (gate): Light any Site of Grace in Liurnia",
+      "roundtable": "Available",
+      "meet-hewg": "Upcoming",
+      "tell-roderika": "Upcoming",
+      "ask-hewg": "Upcoming",
+      "spirit-tuner": "Upcoming",
+      "crimson-hood-pickup": "Upcoming",
+      "hewg-prayer": "Upcoming",
+      "upgrade-ash": "Upcoming",
+      "curtsy": "Upcoming",
+      "dung-eater-talk": "Upcoming",
+      "hewg-after-burning": "Upcoming",
+      "both-after-burning": "Upcoming",
+      "weapon-upgrade-talk": "Upcoming",
+      "farewell": "Upcoming"
+    },
+    "warnings": [
+      "dung-eater-talk before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "shoe": {
+    "outcome": "InProgress",
+    "progress": "0/11",
+    "steps": {
+      "meet-shack": "Done",
+      "find-memento": "Done",
+      "give-memento": "Locked (gate): Light any Site of Grace in Liurnia",
+      "roundtable": "Available",
+      "meet-hewg": "Upcoming",
+      "tell-roderika": "Upcoming",
+      "ask-hewg": "Upcoming",
+      "spirit-tuner": "Upcoming",
+      "crimson-hood-pickup": "Upcoming",
+      "hewg-prayer": "Upcoming",
+      "upgrade-ash": "Upcoming",
+      "curtsy": "Upcoming",
+      "dung-eater-talk": "Upcoming",
+      "hewg-after-burning": "Upcoming",
+      "both-after-burning": "Upcoming",
+      "weapon-upgrade-talk": "Upcoming",
+      "farewell": "Upcoming"
+    },
+    "warnings": [
+      "dung-eater-talk before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/11",
+    "steps": {
+      "meet-shack": "Available",
+      "find-memento": "Upcoming",
+      "give-memento": "Upcoming",
+      "roundtable": "Blocked",
+      "meet-hewg": "Upcoming",
+      "tell-roderika": "Upcoming",
+      "ask-hewg": "Upcoming",
+      "spirit-tuner": "Upcoming",
+      "crimson-hood-pickup": "Upcoming",
+      "hewg-prayer": "Upcoming",
+      "upgrade-ash": "Upcoming",
+      "curtsy": "Upcoming",
+      "dung-eater-talk": "Upcoming",
+      "hewg-after-burning": "Upcoming",
+      "both-after-burning": "Upcoming",
+      "weapon-upgrade-talk": "Upcoming",
+      "farewell": "Upcoming"
+    },
+    "warnings": [
+      "meet-shack before: Light any Site of Grace in Liurnia",
+      "find-memento before: Light any Site of Grace in Liurnia",
+      "give-memento before: Light any Site of Grace in Liurnia",
+      "dung-eater-talk before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "7/11",
+    "steps": {
+      "meet-shack": "Done",
+      "find-memento": "Done",
+      "give-memento": "Locked (gate): Light any Site of Grace in Liurnia",
+      "roundtable": "Done",
+      "meet-hewg": "Inferred",
+      "tell-roderika": "Done",
+      "ask-hewg": "Done",
+      "spirit-tuner": "Done",
+      "crimson-hood-pickup": "Available",
+      "hewg-prayer": "Inferred",
+      "upgrade-ash": "Done",
+      "curtsy": "Available",
+      "dung-eater-talk": "Upcoming",
+      "hewg-after-burning": "Upcoming",
+      "both-after-burning": "Upcoming",
+      "weapon-upgrade-talk": "Upcoming",
+      "farewell": "Upcoming"
+    },
+    "warnings": [
+      "dung-eater-talk before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  }
+}

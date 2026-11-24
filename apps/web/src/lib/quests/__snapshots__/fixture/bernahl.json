@@ -1,0 +1,120 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/5",
+    "steps": {
+      "meet-shack": "Available",
+      "manor": "Blocked",
+      "after-istvan": "Upcoming",
+      "letter": "Upcoming",
+      "kill-vargram": "Upcoming",
+      "vargram-reward": "Upcoming",
+      "after-rykard": "Upcoming",
+      "summon": "Upcoming",
+      "farum-azula": "Upcoming"
+    },
+    "warnings": [
+      "meet-shack before: Join the Volcano Manor through Tanith",
+      "manor before: Defeat Rykard, Lord of Blasphemy",
+      "after-istvan before: Defeat Rykard, Lord of Blasphemy",
+      "letter before: Defeat Rykard, Lord of Blasphemy",
+      "kill-vargram before: Burn the Erdtree at the Forge of the Giants",
+      "vargram-reward before: Burn the Erdtree at the Forge of the Giants",
+      "vargram-reward before: Talk to Bernahl after Rykard’s defeat (he leaves the Manor)",
+      "summon before: Defeat the Godskin Duo in Crumbling Farum Azula"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/5",
+    "steps": {
+      "meet-shack": "Available",
+      "manor": "Blocked",
+      "after-istvan": "Upcoming",
+      "letter": "Upcoming",
+      "kill-vargram": "Upcoming",
+      "vargram-reward": "Upcoming",
+      "after-rykard": "Upcoming",
+      "summon": "Upcoming",
+      "farum-azula": "Upcoming"
+    },
+    "warnings": [
+      "meet-shack before: Join the Volcano Manor through Tanith",
+      "manor before: Defeat Rykard, Lord of Blasphemy",
+      "after-istvan before: Defeat Rykard, Lord of Blasphemy",
+      "letter before: Defeat Rykard, Lord of Blasphemy",
+      "kill-vargram before: Burn the Erdtree at the Forge of the Giants",
+      "vargram-reward before: Burn the Erdtree at the Forge of the Giants",
+      "vargram-reward before: Talk to Bernahl after Rykard’s defeat (he leaves the Manor)",
+      "summon before: Defeat the Godskin Duo in Crumbling Farum Azula"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/5",
+    "steps": {
+      "meet-shack": "Available",
+      "manor": "Blocked",
+      "after-istvan": "Upcoming",
+      "letter": "Upcoming",
+      "kill-vargram": "Upcoming",
+      "vargram-reward": "Upcoming",
+      "after-rykard": "Upcoming",
+      "summon": "Upcoming",
+      "farum-azula": "Upcoming"
+    },
+    "warnings": [
+      "meet-shack before: Join the Volcano Manor through Tanith",
+      "manor before: Defeat Rykard, Lord of Blasphemy",
+      "after-istvan before: Defeat Rykard, Lord of Blasphemy",
+      "letter before: Defeat Rykard, Lord of Blasphemy",
+      "kill-vargram before: Burn the Erdtree at the Forge of the Giants",
+      "vargram-reward before: Burn the Erdtree at the Forge of the Giants",
+      "vargram-reward before: Talk to Bernahl after Rykard’s defeat (he leaves the Manor)",
+      "summon before: Defeat the Godskin Duo in Crumbling Farum Azula"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/5",
+    "steps": {
+      "meet-shack": "Available",
+      "manor": "Blocked",
+      "after-istvan": "Upcoming",
+      "letter": "Upcoming",
+      "kill-vargram": "Upcoming",
+      "vargram-reward": "Upcoming",
+      "after-rykard": "Upcoming",
+      "summon": "Upcoming",
+      "farum-azula": "Upcoming"
+    },
+    "warnings": [
+      "meet-shack before: Join the Volcano Manor through Tanith",
+      "manor before: Defeat Rykard, Lord of Blasphemy",
+      "after-istvan before: Defeat Rykard, Lord of Blasphemy",
+      "letter before: Defeat Rykard, Lord of Blasphemy",
+      "kill-vargram before: Burn the Erdtree at the Forge of the Giants",
+      "vargram-reward before: Burn the Erdtree at the Forge of the Giants",
+      "vargram-reward before: Talk to Bernahl after Rykard’s defeat (he leaves the Manor)",
+      "summon before: Defeat the Godskin Duo in Crumbling Farum Azula"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "4/5",
+    "steps": {
+      "meet-shack": "Locked (condition): Join the Volcano Manor through Tanith",
+      "manor": "Done",
+      "after-istvan": "Done",
+      "letter": "Done",
+      "kill-vargram": "Done",
+      "vargram-reward": "Locked (condition): Talk to Bernahl after Rykard’s defeat (he leaves the Manor)",
+      "after-rykard": "Done",
+      "summon": "Blocked",
+      "farum-azula": "Blocked"
+    },
+    "warnings": [
+      "summon before: Defeat the Godskin Duo in Crumbling Farum Azula"
+    ]
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "1/7",
+    "steps": {
+      "festival": "Done",
+      "festival-speech": "Available",
+      "after-radahn": "Available",
+      "witchbane": "Upcoming",
+      "defeat-sellen": "Upcoming",
+      "reward": "Upcoming",
+      "defeat-jerren": "Upcoming"
+    },
+    "warnings": [
+      "defeat-sellen before: Choose “Side with Sellen and defeat Jerren” (Sorceress Sellen)",
+      "reward before: Choose “Side with Sellen and defeat Jerren” (Sorceress Sellen)",
+      "defeat-jerren before: Choose “Side with Jerren and defeat Sellen” (Sorceress Sellen)"
+    ]
+  },
+  "Yager": {
+    "outcome": "InProgress",
+    "progress": "3/7",
+    "steps": {
+      "festival": "Done",
+      "festival-speech": "Inferred",
+      "after-radahn": "Done",
+      "witchbane": "Blocked",
+      "defeat-sellen": "Upcoming",
+      "reward": "Upcoming",
+      "defeat-jerren": "Upcoming"
+    },
+    "warnings": [
+      "defeat-sellen before: Choose “Side with Sellen and defeat Jerren” (Sorceress Sellen)",
+      "reward before: Choose “Side with Sellen and defeat Jerren” (Sorceress Sellen)",
+      "defeat-jerren before: Choose “Side with Jerren and defeat Sellen” (Sorceress Sellen)"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "festival": "Blocked",
+      "festival-speech": "Upcoming",
+      "after-radahn": "Upcoming",
+      "witchbane": "Upcoming",
+      "defeat-sellen": "Upcoming",
+      "reward": "Upcoming",
+      "defeat-jerren": "Upcoming"
+    },
+    "warnings": [
+      "defeat-sellen before: Choose “Side with Sellen and defeat Jerren” (Sorceress Sellen)",
+      "reward before: Choose “Side with Sellen and defeat Jerren” (Sorceress Sellen)",
+      "defeat-jerren before: Choose “Side with Jerren and defeat Sellen” (Sorceress Sellen)"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "festival": "Blocked",
+      "festival-speech": "Upcoming",
+      "after-radahn": "Upcoming",
+      "witchbane": "Upcoming",
+      "defeat-sellen": "Upcoming",
+      "reward": "Upcoming",
+      "defeat-jerren": "Upcoming"
+    },
+    "warnings": [
+      "defeat-sellen before: Choose “Side with Sellen and defeat Jerren” (Sorceress Sellen)",
+      "reward before: Choose “Side with Sellen and defeat Jerren” (Sorceress Sellen)",
+      "defeat-jerren before: Choose “Side with Jerren and defeat Sellen” (Sorceress Sellen)"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "3/7",
+    "steps": {
+      "festival": "Done",
+      "festival-speech": "Inferred",
+      "after-radahn": "Done",
+      "witchbane": "Blocked",
+      "defeat-sellen": "Upcoming",
+      "reward": "Upcoming",
+      "defeat-jerren": "Upcoming"
+    },
+    "warnings": [
+      "defeat-sellen before: Choose “Side with Sellen and defeat Jerren” (Sorceress Sellen)",
+      "reward before: Choose “Side with Sellen and defeat Jerren” (Sorceress Sellen)",
+      "defeat-jerren before: Choose “Side with Jerren and defeat Sellen” (Sorceress Sellen)"
+    ]
+  }
+}

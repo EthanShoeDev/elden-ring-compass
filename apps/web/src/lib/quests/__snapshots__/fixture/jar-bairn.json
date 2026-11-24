@@ -1,0 +1,127 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "2/5",
+    "steps": {
+      "meet": "Done",
+      "flowers": "Done",
+      "awake": "Blocked",
+      "about-alexander": "Upcoming",
+      "poachers": "Upcoming",
+      "about-diallos": "Upcoming",
+      "town-centre": "Upcoming",
+      "near-diallos": "Upcoming",
+      "journey": "Upcoming",
+      "innards": "Upcoming",
+      "companion-jar": "Upcoming"
+    },
+    "warnings": [
+      "about-alexander before: Let Diallos settle in Jarburg",
+      "poachers before: Let Diallos settle in Jarburg",
+      "about-diallos before: Let Diallos die before he reaches Jarburg",
+      "town-centre before: Let Diallos die before he reaches Jarburg",
+      "near-diallos before: Let Diallos die before he reaches Jarburg",
+      "journey before: Let Diallos die before he reaches Jarburg"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/5",
+    "steps": {
+      "meet": "Available",
+      "flowers": "Upcoming",
+      "awake": "Upcoming",
+      "about-alexander": "Upcoming",
+      "poachers": "Upcoming",
+      "about-diallos": "Upcoming",
+      "town-centre": "Upcoming",
+      "near-diallos": "Upcoming",
+      "journey": "Upcoming",
+      "innards": "Upcoming",
+      "companion-jar": "Upcoming"
+    },
+    "warnings": [
+      "about-alexander before: Let Diallos settle in Jarburg",
+      "poachers before: Let Diallos settle in Jarburg",
+      "about-diallos before: Let Diallos die before he reaches Jarburg",
+      "town-centre before: Let Diallos die before he reaches Jarburg",
+      "near-diallos before: Let Diallos die before he reaches Jarburg",
+      "journey before: Let Diallos die before he reaches Jarburg"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/5",
+    "steps": {
+      "meet": "Available",
+      "flowers": "Upcoming",
+      "awake": "Upcoming",
+      "about-alexander": "Upcoming",
+      "poachers": "Upcoming",
+      "about-diallos": "Upcoming",
+      "town-centre": "Upcoming",
+      "near-diallos": "Upcoming",
+      "journey": "Upcoming",
+      "innards": "Upcoming",
+      "companion-jar": "Upcoming"
+    },
+    "warnings": [
+      "about-alexander before: Let Diallos settle in Jarburg",
+      "poachers before: Let Diallos settle in Jarburg",
+      "about-diallos before: Let Diallos die before he reaches Jarburg",
+      "town-centre before: Let Diallos die before he reaches Jarburg",
+      "near-diallos before: Let Diallos die before he reaches Jarburg",
+      "journey before: Let Diallos die before he reaches Jarburg"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/5",
+    "steps": {
+      "meet": "Available",
+      "flowers": "Upcoming",
+      "awake": "Upcoming",
+      "about-alexander": "Upcoming",
+      "poachers": "Upcoming",
+      "about-diallos": "Upcoming",
+      "town-centre": "Upcoming",
+      "near-diallos": "Upcoming",
+      "journey": "Upcoming",
+      "innards": "Upcoming",
+      "companion-jar": "Upcoming"
+    },
+    "warnings": [
+      "about-alexander before: Let Diallos settle in Jarburg",
+      "poachers before: Let Diallos settle in Jarburg",
+      "about-diallos before: Let Diallos die before he reaches Jarburg",
+      "town-centre before: Let Diallos die before he reaches Jarburg",
+      "near-diallos before: Let Diallos die before he reaches Jarburg",
+      "journey before: Let Diallos die before he reaches Jarburg"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/5",
+    "steps": {
+      "meet": "Available",
+      "flowers": "Upcoming",
+      "awake": "Upcoming",
+      "about-alexander": "Upcoming",
+      "poachers": "Upcoming",
+      "about-diallos": "Upcoming",
+      "town-centre": "Upcoming",
+      "near-diallos": "Upcoming",
+      "journey": "Upcoming",
+      "innards": "Upcoming",
+      "companion-jar": "Upcoming"
+    },
+    "warnings": [
+      "about-alexander before: Let Diallos settle in Jarburg",
+      "poachers before: Let Diallos settle in Jarburg",
+      "about-diallos before: Let Diallos die before he reaches Jarburg",
+      "town-centre before: Let Diallos die before he reaches Jarburg",
+      "near-diallos before: Let Diallos die before he reaches Jarburg",
+      "journey before: Let Diallos die before he reaches Jarburg"
+    ]
+  }
+}

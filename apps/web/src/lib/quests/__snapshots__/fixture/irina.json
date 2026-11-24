@@ -1,0 +1,62 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "take-letter": "Upcoming",
+      "deliver-letter": "Upcoming",
+      "slain": "Upcoming",
+      "find-body": "Upcoming"
+    },
+    "warnings": []
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "take-letter": "Upcoming",
+      "deliver-letter": "Upcoming",
+      "slain": "Upcoming",
+      "find-body": "Upcoming"
+    },
+    "warnings": []
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "take-letter": "Upcoming",
+      "deliver-letter": "Upcoming",
+      "slain": "Upcoming",
+      "find-body": "Upcoming"
+    },
+    "warnings": []
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "take-letter": "Upcoming",
+      "deliver-letter": "Upcoming",
+      "slain": "Upcoming",
+      "find-body": "Upcoming"
+    },
+    "warnings": []
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "take-letter": "Upcoming",
+      "deliver-letter": "Upcoming",
+      "slain": "Upcoming",
+      "find-body": "Upcoming"
+    },
+    "warnings": []
+  }
+}

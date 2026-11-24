@@ -1,0 +1,75 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "get-armor": "Upcoming",
+      "give-armor": "Upcoming",
+      "gargoyles-summon": "Upcoming",
+      "deeproot-talk": "Upcoming",
+      "twinned-loot": "Upcoming"
+    },
+    "warnings": [
+      "gargoyles-summon before: Defeat the Valiant Gargoyles"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "get-armor": "Upcoming",
+      "give-armor": "Upcoming",
+      "gargoyles-summon": "Upcoming",
+      "deeproot-talk": "Upcoming",
+      "twinned-loot": "Upcoming"
+    },
+    "warnings": [
+      "gargoyles-summon before: Defeat the Valiant Gargoyles"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "get-armor": "Upcoming",
+      "give-armor": "Upcoming",
+      "gargoyles-summon": "Upcoming",
+      "deeproot-talk": "Upcoming",
+      "twinned-loot": "Upcoming"
+    },
+    "warnings": [
+      "gargoyles-summon before: Defeat the Valiant Gargoyles"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "get-armor": "Upcoming",
+      "give-armor": "Upcoming",
+      "gargoyles-summon": "Upcoming",
+      "deeproot-talk": "Upcoming",
+      "twinned-loot": "Upcoming"
+    },
+    "warnings": [
+      "gargoyles-summon before: Defeat the Valiant Gargoyles"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "1/4",
+    "steps": {
+      "meet": "Done",
+      "get-armor": "Blocked",
+      "give-armor": "Upcoming",
+      "gargoyles-summon": "Unknown",
+      "deeproot-talk": "Upcoming",
+      "twinned-loot": "Upcoming"
+    },
+    "warnings": []
+  }
+}

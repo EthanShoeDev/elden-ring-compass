@@ -1,0 +1,87 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "missive": "Blocked",
+      "meet": "Upcoming",
+      "duel": "Upcoming",
+      "romina-summon": "Upcoming",
+      "dryleaf-set-pickup": "Upcoming",
+      "miquellas-faithful": "Upcoming",
+      "footwork-pickup": "Upcoming"
+    },
+    "warnings": [
+      "duel before: Burn the Sealing Tree and enter Enir-Ilim",
+      "romina-summon before: Defeat Romina, Saint of the Bud"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "missive": "Blocked",
+      "meet": "Upcoming",
+      "duel": "Upcoming",
+      "romina-summon": "Upcoming",
+      "dryleaf-set-pickup": "Upcoming",
+      "miquellas-faithful": "Upcoming",
+      "footwork-pickup": "Upcoming"
+    },
+    "warnings": [
+      "duel before: Burn the Sealing Tree and enter Enir-Ilim",
+      "romina-summon before: Defeat Romina, Saint of the Bud"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "missive": "Blocked",
+      "meet": "Upcoming",
+      "duel": "Upcoming",
+      "romina-summon": "Upcoming",
+      "dryleaf-set-pickup": "Upcoming",
+      "miquellas-faithful": "Upcoming",
+      "footwork-pickup": "Upcoming"
+    },
+    "warnings": [
+      "duel before: Burn the Sealing Tree and enter Enir-Ilim",
+      "romina-summon before: Defeat Romina, Saint of the Bud"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "missive": "Blocked",
+      "meet": "Upcoming",
+      "duel": "Upcoming",
+      "romina-summon": "Upcoming",
+      "dryleaf-set-pickup": "Upcoming",
+      "miquellas-faithful": "Upcoming",
+      "footwork-pickup": "Upcoming"
+    },
+    "warnings": [
+      "duel before: Burn the Sealing Tree and enter Enir-Ilim",
+      "romina-summon before: Defeat Romina, Saint of the Bud"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "missive": "Blocked",
+      "meet": "Upcoming",
+      "duel": "Upcoming",
+      "romina-summon": "Upcoming",
+      "dryleaf-set-pickup": "Upcoming",
+      "miquellas-faithful": "Upcoming",
+      "footwork-pickup": "Upcoming"
+    },
+    "warnings": [
+      "duel before: Burn the Sealing Tree and enter Enir-Ilim",
+      "romina-summon before: Defeat Romina, Saint of the Bud"
+    ]
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/8",
+    "steps": {
+      "meet": "Blocked",
+      "belurat-cross": "Upcoming",
+      "cerulean-cross": "Upcoming",
+      "after-charm": "Upcoming",
+      "storehouse": "Upcoming",
+      "freyja-request": "Upcoming",
+      "secret-rite-scroll": "Upcoming",
+      "give-scroll": "Upcoming",
+      "freyja-reply-talk": "Upcoming",
+      "survive-leda": "Upcoming",
+      "summon": "Upcoming",
+      "last-talk": "Upcoming",
+      "parting-gifts": "Upcoming"
+    },
+    "warnings": [
+      "belurat-cross before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "cerulean-cross before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "give-scroll before: Burn the Sealing Tree and enter Enir-Ilim",
+      "survive-leda before: Choose “Help Leda hunt Ansbach” (Needle Knight Leda)",
+      "summon before: Defeat Promised Consort Radahn",
+      "last-talk before: Defeat Promised Consort Radahn"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/8",
+    "steps": {
+      "meet": "Blocked",
+      "belurat-cross": "Upcoming",
+      "cerulean-cross": "Upcoming",
+      "after-charm": "Upcoming",
+      "storehouse": "Upcoming",
+      "freyja-request": "Upcoming",
+      "secret-rite-scroll": "Upcoming",
+      "give-scroll": "Upcoming",
+      "freyja-reply-talk": "Upcoming",
+      "survive-leda": "Upcoming",
+      "summon": "Upcoming",
+      "last-talk": "Upcoming",
+      "parting-gifts": "Upcoming"
+    },
+    "warnings": [
+      "belurat-cross before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "cerulean-cross before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "give-scroll before: Burn the Sealing Tree and enter Enir-Ilim",
+      "survive-leda before: Choose “Help Leda hunt Ansbach” (Needle Knight Leda)",
+      "summon before: Defeat Promised Consort Radahn",
+      "last-talk before: Defeat Promised Consort Radahn"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/8",
+    "steps": {
+      "meet": "Blocked",
+      "belurat-cross": "Upcoming",
+      "cerulean-cross": "Upcoming",
+      "after-charm": "Upcoming",
+      "storehouse": "Upcoming",
+      "freyja-request": "Upcoming",
+      "secret-rite-scroll": "Upcoming",
+      "give-scroll": "Upcoming",
+      "freyja-reply-talk": "Upcoming",
+      "survive-leda": "Upcoming",
+      "summon": "Upcoming",
+      "last-talk": "Upcoming",
+      "parting-gifts": "Upcoming"
+    },
+    "warnings": [
+      "belurat-cross before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "cerulean-cross before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "give-scroll before: Burn the Sealing Tree and enter Enir-Ilim",
+      "survive-leda before: Choose “Help Leda hunt Ansbach” (Needle Knight Leda)",
+      "summon before: Defeat Promised Consort Radahn",
+      "last-talk before: Defeat Promised Consort Radahn"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/8",
+    "steps": {
+      "meet": "Blocked",
+      "belurat-cross": "Upcoming",
+      "cerulean-cross": "Upcoming",
+      "after-charm": "Upcoming",
+      "storehouse": "Upcoming",
+      "freyja-request": "Upcoming",
+      "secret-rite-scroll": "Upcoming",
+      "give-scroll": "Upcoming",
+      "freyja-reply-talk": "Upcoming",
+      "survive-leda": "Upcoming",
+      "summon": "Upcoming",
+      "last-talk": "Upcoming",
+      "parting-gifts": "Upcoming"
+    },
+    "warnings": [
+      "belurat-cross before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "cerulean-cross before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "give-scroll before: Burn the Sealing Tree and enter Enir-Ilim",
+      "survive-leda before: Choose “Help Leda hunt Ansbach” (Needle Knight Leda)",
+      "summon before: Defeat Promised Consort Radahn",
+      "last-talk before: Defeat Promised Consort Radahn"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/8",
+    "steps": {
+      "meet": "Blocked",
+      "belurat-cross": "Upcoming",
+      "cerulean-cross": "Upcoming",
+      "after-charm": "Upcoming",
+      "storehouse": "Upcoming",
+      "freyja-request": "Upcoming",
+      "secret-rite-scroll": "Upcoming",
+      "give-scroll": "Upcoming",
+      "freyja-reply-talk": "Upcoming",
+      "survive-leda": "Upcoming",
+      "summon": "Upcoming",
+      "last-talk": "Upcoming",
+      "parting-gifts": "Upcoming"
+    },
+    "warnings": [
+      "belurat-cross before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "cerulean-cross before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "give-scroll before: Burn the Sealing Tree and enter Enir-Ilim",
+      "survive-leda before: Choose “Help Leda hunt Ansbach” (Needle Knight Leda)",
+      "summon before: Defeat Promised Consort Radahn",
+      "last-talk before: Defeat Promised Consort Radahn"
+    ]
+  }
+}

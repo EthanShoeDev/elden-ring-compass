@@ -1,0 +1,77 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "storeroom-key": "Blocked",
+      "meet": "Upcoming",
+      "first-stew": "Upcoming",
+      "gourmet-stew": "Upcoming",
+      "her-body": "Upcoming"
+    },
+    "warnings": [
+      "meet before: Defeat the Divine Beast Dancing Lion",
+      "first-stew before: Defeat Messmer the Impaler"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "storeroom-key": "Blocked",
+      "meet": "Upcoming",
+      "first-stew": "Upcoming",
+      "gourmet-stew": "Upcoming",
+      "her-body": "Upcoming"
+    },
+    "warnings": [
+      "meet before: Defeat the Divine Beast Dancing Lion",
+      "first-stew before: Defeat Messmer the Impaler"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "storeroom-key": "Blocked",
+      "meet": "Upcoming",
+      "first-stew": "Upcoming",
+      "gourmet-stew": "Upcoming",
+      "her-body": "Upcoming"
+    },
+    "warnings": [
+      "meet before: Defeat the Divine Beast Dancing Lion",
+      "first-stew before: Defeat Messmer the Impaler"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "storeroom-key": "Blocked",
+      "meet": "Upcoming",
+      "first-stew": "Upcoming",
+      "gourmet-stew": "Upcoming",
+      "her-body": "Upcoming"
+    },
+    "warnings": [
+      "meet before: Defeat the Divine Beast Dancing Lion",
+      "first-stew before: Defeat Messmer the Impaler"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "storeroom-key": "Blocked",
+      "meet": "Upcoming",
+      "first-stew": "Upcoming",
+      "gourmet-stew": "Upcoming",
+      "her-body": "Upcoming"
+    },
+    "warnings": [
+      "meet before: Defeat the Divine Beast Dancing Lion",
+      "first-stew before: Defeat Messmer the Impaler"
+    ]
+  }
+}

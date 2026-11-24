@@ -1,0 +1,117 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Blocked",
+      "summon-ghostflame": "Upcoming",
+      "summon-messmer": "Upcoming",
+      "summon-sentinels": "Upcoming",
+      "tell-anna": "Upcoming",
+      "metyr-dead": "Upcoming",
+      "fight": "Upcoming",
+      "slumped": "Upcoming",
+      "give-grace": "Upcoming",
+      "jolan-and-anna": "Upcoming",
+      "give-occultation": "Upcoming"
+    },
+    "warnings": [
+      "summon-ghostflame before: Defeat the Ghostflame Dragon on the Cerulean Coast",
+      "summon-messmer before: Defeat Messmer the Impaler",
+      "summon-sentinels before: Defeat the Tree Sentinels in the Hinterland",
+      "tell-anna before: Defeat Metyr, Mother of Fingers"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Blocked",
+      "summon-ghostflame": "Upcoming",
+      "summon-messmer": "Upcoming",
+      "summon-sentinels": "Upcoming",
+      "tell-anna": "Upcoming",
+      "metyr-dead": "Upcoming",
+      "fight": "Upcoming",
+      "slumped": "Upcoming",
+      "give-grace": "Upcoming",
+      "jolan-and-anna": "Upcoming",
+      "give-occultation": "Upcoming"
+    },
+    "warnings": [
+      "summon-ghostflame before: Defeat the Ghostflame Dragon on the Cerulean Coast",
+      "summon-messmer before: Defeat Messmer the Impaler",
+      "summon-sentinels before: Defeat the Tree Sentinels in the Hinterland",
+      "tell-anna before: Defeat Metyr, Mother of Fingers"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Blocked",
+      "summon-ghostflame": "Upcoming",
+      "summon-messmer": "Upcoming",
+      "summon-sentinels": "Upcoming",
+      "tell-anna": "Upcoming",
+      "metyr-dead": "Upcoming",
+      "fight": "Upcoming",
+      "slumped": "Upcoming",
+      "give-grace": "Upcoming",
+      "jolan-and-anna": "Upcoming",
+      "give-occultation": "Upcoming"
+    },
+    "warnings": [
+      "summon-ghostflame before: Defeat the Ghostflame Dragon on the Cerulean Coast",
+      "summon-messmer before: Defeat Messmer the Impaler",
+      "summon-sentinels before: Defeat the Tree Sentinels in the Hinterland",
+      "tell-anna before: Defeat Metyr, Mother of Fingers"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Blocked",
+      "summon-ghostflame": "Upcoming",
+      "summon-messmer": "Upcoming",
+      "summon-sentinels": "Upcoming",
+      "tell-anna": "Upcoming",
+      "metyr-dead": "Upcoming",
+      "fight": "Upcoming",
+      "slumped": "Upcoming",
+      "give-grace": "Upcoming",
+      "jolan-and-anna": "Upcoming",
+      "give-occultation": "Upcoming"
+    },
+    "warnings": [
+      "summon-ghostflame before: Defeat the Ghostflame Dragon on the Cerulean Coast",
+      "summon-messmer before: Defeat Messmer the Impaler",
+      "summon-sentinels before: Defeat the Tree Sentinels in the Hinterland",
+      "tell-anna before: Defeat Metyr, Mother of Fingers"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Blocked",
+      "summon-ghostflame": "Upcoming",
+      "summon-messmer": "Upcoming",
+      "summon-sentinels": "Upcoming",
+      "tell-anna": "Upcoming",
+      "metyr-dead": "Upcoming",
+      "fight": "Upcoming",
+      "slumped": "Upcoming",
+      "give-grace": "Upcoming",
+      "jolan-and-anna": "Upcoming",
+      "give-occultation": "Upcoming"
+    },
+    "warnings": [
+      "summon-ghostflame before: Defeat the Ghostflame Dragon on the Cerulean Coast",
+      "summon-messmer before: Defeat Messmer the Impaler",
+      "summon-sentinels before: Defeat the Tree Sentinels in the Hinterland",
+      "tell-anna before: Defeat Metyr, Mother of Fingers"
+    ]
+  }
+}

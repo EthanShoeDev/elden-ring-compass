@@ -1,0 +1,67 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "first-invasion": "Available",
+      "second-invasion": "Upcoming",
+      "find-body": "Upcoming",
+      "give-grace": "Upcoming",
+      "give-occultation": "Upcoming",
+      "greatsword": "Upcoming"
+    },
+    "warnings": []
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "first-invasion": "Available",
+      "second-invasion": "Upcoming",
+      "find-body": "Upcoming",
+      "give-grace": "Upcoming",
+      "give-occultation": "Upcoming",
+      "greatsword": "Upcoming"
+    },
+    "warnings": []
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "first-invasion": "Available",
+      "second-invasion": "Upcoming",
+      "find-body": "Upcoming",
+      "give-grace": "Upcoming",
+      "give-occultation": "Upcoming",
+      "greatsword": "Upcoming"
+    },
+    "warnings": []
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "first-invasion": "Available",
+      "second-invasion": "Upcoming",
+      "find-body": "Upcoming",
+      "give-grace": "Upcoming",
+      "give-occultation": "Upcoming",
+      "greatsword": "Upcoming"
+    },
+    "warnings": []
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "first-invasion": "Available",
+      "second-invasion": "Upcoming",
+      "find-body": "Upcoming",
+      "give-grace": "Upcoming",
+      "give-occultation": "Upcoming",
+      "greatsword": "Upcoming"
+    },
+    "warnings": []
+  }
+}

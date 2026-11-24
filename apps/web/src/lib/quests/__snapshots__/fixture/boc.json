@@ -1,0 +1,107 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "1/9",
+    "steps": {
+      "meet-bush": "Done",
+      "in-cave": "Available",
+      "chiefs": "Upcoming",
+      "needle": "Upcoming",
+      "lake-facing": "Locked (gate): Light the East Capital Rampart grace in Leyndell",
+      "east-raya-lucaria": "Locked (gate): Light the East Capital Rampart grace in Leyndell",
+      "altus": "Locked (gate): Light the East Capital Rampart grace in Leyndell",
+      "leyndell": "Upcoming",
+      "gold-needle": "Upcoming",
+      "use-pate": "Upcoming",
+      "give-tear": "Upcoming",
+      "beside-rennala": "Upcoming"
+    },
+    "warnings": []
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/9",
+    "steps": {
+      "meet-bush": "Available",
+      "in-cave": "Upcoming",
+      "chiefs": "Upcoming",
+      "needle": "Upcoming",
+      "lake-facing": "Locked (gate): Light the East Capital Rampart grace in Leyndell",
+      "east-raya-lucaria": "Locked (gate): Light the East Capital Rampart grace in Leyndell",
+      "altus": "Locked (gate): Light the East Capital Rampart grace in Leyndell",
+      "leyndell": "Upcoming",
+      "gold-needle": "Upcoming",
+      "use-pate": "Upcoming",
+      "give-tear": "Upcoming",
+      "beside-rennala": "Upcoming"
+    },
+    "warnings": []
+  },
+  "shoe": {
+    "outcome": "InProgress",
+    "progress": "3/9",
+    "steps": {
+      "meet-bush": "Done",
+      "in-cave": "Inferred",
+      "chiefs": "Done",
+      "needle": "Available",
+      "lake-facing": "Upcoming",
+      "east-raya-lucaria": "Upcoming",
+      "altus": "Upcoming",
+      "leyndell": "Upcoming",
+      "gold-needle": "Upcoming",
+      "use-pate": "Upcoming",
+      "give-tear": "Upcoming",
+      "beside-rennala": "Upcoming"
+    },
+    "warnings": [
+      "lake-facing before: Light the East Capital Rampart grace in Leyndell",
+      "east-raya-lucaria before: Light the East Capital Rampart grace in Leyndell",
+      "altus before: Light the East Capital Rampart grace in Leyndell"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/9",
+    "steps": {
+      "meet-bush": "Available",
+      "in-cave": "Upcoming",
+      "chiefs": "Upcoming",
+      "needle": "Upcoming",
+      "lake-facing": "Upcoming",
+      "east-raya-lucaria": "Upcoming",
+      "altus": "Upcoming",
+      "leyndell": "Upcoming",
+      "gold-needle": "Upcoming",
+      "use-pate": "Upcoming",
+      "give-tear": "Upcoming",
+      "beside-rennala": "Upcoming"
+    },
+    "warnings": [
+      "lake-facing before: Light the East Capital Rampart grace in Leyndell",
+      "east-raya-lucaria before: Light the East Capital Rampart grace in Leyndell",
+      "altus before: Light the East Capital Rampart grace in Leyndell"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "5/9",
+    "steps": {
+      "meet-bush": "Done",
+      "in-cave": "Done",
+      "chiefs": "Done",
+      "needle": "Done",
+      "lake-facing": "Locked (gate): Light the East Capital Rampart grace in Leyndell",
+      "east-raya-lucaria": "Locked (gate): Light the East Capital Rampart grace in Leyndell",
+      "altus": "Locked (gate): Light the East Capital Rampart grace in Leyndell",
+      "leyndell": "Done",
+      "gold-needle": "Available",
+      "use-pate": "Blocked",
+      "give-tear": "Available",
+      "beside-rennala": "Upcoming"
+    },
+    "warnings": [
+      "decide: beauty"
+    ]
+  }
+}

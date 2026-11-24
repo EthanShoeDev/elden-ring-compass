@@ -1,0 +1,81 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "meet-seaside": "Locked (gate): Defeat Flying Dragon Agheel",
+      "agheel-talk": "Locked (upstream): Unreachable: “Meet Yura northeast of the Seaside Ruins grace” is locked",
+      "nerijus": "Available",
+      "after-nerijus": "Upcoming",
+      "ravenmount": "Upcoming",
+      "after-ravenmount": "Upcoming",
+      "second-church": "Upcoming",
+      "eleonora": "Upcoming"
+    },
+    "warnings": []
+  },
+  "Yager": {
+    "outcome": "LockedOut: Yura was killed",
+    "progress": "0/6",
+    "steps": {
+      "meet-seaside": "Locked (npc): Yura was killed",
+      "agheel-talk": "Locked (npc): Yura was killed",
+      "nerijus": "Locked (npc): Yura was killed",
+      "after-nerijus": "Locked (npc): Yura was killed",
+      "ravenmount": "Locked (npc): Yura was killed",
+      "after-ravenmount": "Locked (npc): Yura was killed",
+      "second-church": "Locked (npc): Yura was killed",
+      "eleonora": "Locked (npc): Yura was killed"
+    },
+    "warnings": []
+  },
+  "shoe": {
+    "outcome": "InProgress",
+    "progress": "1/6",
+    "steps": {
+      "meet-seaside": "Available",
+      "agheel-talk": "Unknown",
+      "nerijus": "Done",
+      "after-nerijus": "Available",
+      "ravenmount": "Upcoming",
+      "after-ravenmount": "Upcoming",
+      "second-church": "Upcoming",
+      "eleonora": "Upcoming"
+    },
+    "warnings": [
+      "meet-seaside before: Defeat Flying Dragon Agheel"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "meet-seaside": "Available",
+      "agheel-talk": "Upcoming",
+      "nerijus": "Available",
+      "after-nerijus": "Upcoming",
+      "ravenmount": "Upcoming",
+      "after-ravenmount": "Upcoming",
+      "second-church": "Upcoming",
+      "eleonora": "Upcoming"
+    },
+    "warnings": [
+      "meet-seaside before: Defeat Flying Dragon Agheel"
+    ]
+  },
+  "sam": {
+    "outcome": "LockedOut: Yura was killed",
+    "progress": "0/6",
+    "steps": {
+      "meet-seaside": "Locked (npc): Yura was killed",
+      "agheel-talk": "Locked (npc): Yura was killed",
+      "nerijus": "Locked (npc): Yura was killed",
+      "after-nerijus": "Locked (npc): Yura was killed",
+      "ravenmount": "Locked (npc): Yura was killed",
+      "after-ravenmount": "Locked (npc): Yura was killed",
+      "second-church": "Locked (npc): Yura was killed",
+      "eleonora": "Locked (npc): Yura was killed"
+    },
+    "warnings": []
+  }
+}

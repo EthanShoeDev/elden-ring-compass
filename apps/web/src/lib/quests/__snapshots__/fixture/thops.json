@@ -1,0 +1,80 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "5/6",
+    "steps": {
+      "meet": "Inferred",
+      "donate": "Done",
+      "about-key": "Done",
+      "sellen-talk": "Locked (condition): Thops took the key and died at the Academy",
+      "second-key": "Done",
+      "give-key": "Done",
+      "his-body": "Available"
+    },
+    "warnings": []
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "meet": "Available",
+      "donate": "Available",
+      "about-key": "Upcoming",
+      "sellen-talk": "Upcoming",
+      "second-key": "Upcoming",
+      "give-key": "Upcoming",
+      "his-body": "Upcoming"
+    },
+    "warnings": [
+      "sellen-talk before: Give Thops the key (he dies at the Academy)"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "meet": "Available",
+      "donate": "Available",
+      "about-key": "Upcoming",
+      "sellen-talk": "Upcoming",
+      "second-key": "Upcoming",
+      "give-key": "Upcoming",
+      "his-body": "Upcoming"
+    },
+    "warnings": [
+      "sellen-talk before: Give Thops the key (he dies at the Academy)"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "meet": "Available",
+      "donate": "Available",
+      "about-key": "Upcoming",
+      "sellen-talk": "Upcoming",
+      "second-key": "Upcoming",
+      "give-key": "Upcoming",
+      "his-body": "Upcoming"
+    },
+    "warnings": [
+      "sellen-talk before: Give Thops the key (he dies at the Academy)"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "3/6",
+    "steps": {
+      "meet": "Inferred",
+      "donate": "Done",
+      "about-key": "Done",
+      "sellen-talk": "Available",
+      "second-key": "Blocked",
+      "give-key": "Upcoming",
+      "his-body": "Upcoming"
+    },
+    "warnings": [
+      "sellen-talk before: Give Thops the key (he dies at the Academy)"
+    ]
+  }
+}

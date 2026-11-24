@@ -1,0 +1,132 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "3/8",
+    "steps": {
+      "accept": "Inferred",
+      "roundtable": "Done",
+      "third-church": "Done",
+      "dectus": "Available",
+      "outer-wall": "Upcoming",
+      "outer-order": "Upcoming",
+      "forsaken": "Upcoming",
+      "rampart": "Done",
+      "summon-against-morgott": "Available",
+      "rold-medallion": "Blocked",
+      "enia": "Upcoming",
+      "repose": "Upcoming",
+      "first-church": "Upcoming",
+      "forge": "Upcoming",
+      "frenzy-farewell": "Upcoming",
+      "forge-frenzy": "Upcoming"
+    },
+    "warnings": [
+      "summon-against-morgott before: Defeat Morgott, the Omen King",
+      "forge before: Accept the Frenzied Flame from the Three Fingers"
+    ]
+  },
+  "Yager": {
+    "outcome": "InProgress",
+    "progress": "4/8",
+    "steps": {
+      "accept": "Done",
+      "roundtable": "Done",
+      "third-church": "Available",
+      "dectus": "Upcoming",
+      "outer-wall": "Upcoming",
+      "outer-order": "Upcoming",
+      "forsaken": "Upcoming",
+      "rampart": "Done",
+      "summon-against-morgott": "Unknown",
+      "rold-medallion": "Done",
+      "enia": "Available",
+      "repose": "Available",
+      "first-church": "Upcoming",
+      "forge": "Blocked",
+      "frenzy-farewell": "Blocked",
+      "forge-frenzy": "Upcoming"
+    },
+    "warnings": [
+      "forge before: Accept the Frenzied Flame from the Three Fingers",
+      "decide: kindling"
+    ]
+  },
+  "shoe": {
+    "outcome": "InProgress",
+    "progress": "2/8",
+    "steps": {
+      "accept": "Done",
+      "roundtable": "Done",
+      "third-church": "Available",
+      "dectus": "Upcoming",
+      "outer-wall": "Upcoming",
+      "outer-order": "Upcoming",
+      "forsaken": "Upcoming",
+      "rampart": "Available",
+      "summon-against-morgott": "Upcoming",
+      "rold-medallion": "Upcoming",
+      "enia": "Upcoming",
+      "repose": "Upcoming",
+      "first-church": "Upcoming",
+      "forge": "Upcoming",
+      "frenzy-farewell": "Upcoming",
+      "forge-frenzy": "Upcoming"
+    },
+    "warnings": [
+      "summon-against-morgott before: Defeat Morgott, the Omen King",
+      "forge before: Accept the Frenzied Flame from the Three Fingers"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "InProgress",
+    "progress": "1/8",
+    "steps": {
+      "accept": "Done",
+      "roundtable": "Available",
+      "third-church": "Upcoming",
+      "dectus": "Upcoming",
+      "outer-wall": "Upcoming",
+      "outer-order": "Upcoming",
+      "forsaken": "Upcoming",
+      "rampart": "Upcoming",
+      "summon-against-morgott": "Upcoming",
+      "rold-medallion": "Upcoming",
+      "enia": "Upcoming",
+      "repose": "Upcoming",
+      "first-church": "Upcoming",
+      "forge": "Upcoming",
+      "frenzy-farewell": "Upcoming",
+      "forge-frenzy": "Upcoming"
+    },
+    "warnings": [
+      "summon-against-morgott before: Defeat Morgott, the Omen King",
+      "forge before: Accept the Frenzied Flame from the Three Fingers"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "4/8",
+    "steps": {
+      "accept": "Done",
+      "roundtable": "Done",
+      "third-church": "Done",
+      "dectus": "Done",
+      "outer-wall": "Available",
+      "outer-order": "Upcoming",
+      "forsaken": "Upcoming",
+      "rampart": "Done",
+      "summon-against-morgott": "Unknown",
+      "rold-medallion": "Done",
+      "enia": "Available",
+      "repose": "Done",
+      "first-church": "Done",
+      "forge": "Blocked",
+      "frenzy-farewell": "Blocked",
+      "forge-frenzy": "Upcoming"
+    },
+    "warnings": [
+      "forge before: Accept the Frenzied Flame from the Three Fingers",
+      "decide: kindling"
+    ]
+  }
+}

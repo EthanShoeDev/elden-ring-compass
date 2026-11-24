@@ -1,0 +1,158 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "spare": "Available",
+      "chest": "Upcoming",
+      "scenic-isle": "Upcoming",
+      "erdtree-way": "Upcoming",
+      "gelmir": "Upcoming",
+      "kicked": "Upcoming",
+      "after-kick": "Upcoming",
+      "manor": "Upcoming",
+      "letter": "Upcoming",
+      "kill-tragoth": "Upcoming",
+      "report": "Upcoming",
+      "reward": "Upcoming",
+      "after-rykard": "Upcoming",
+      "castanets": "Upcoming",
+      "murkwater-again": "Upcoming",
+      "last-shop": "Upcoming"
+    },
+    "warnings": [
+      "chest before: Patches moves on from Murkwater Cave",
+      "scenic-isle before: Join the Volcano Manor through Tanith",
+      "erdtree-way before: Join the Volcano Manor through Tanith",
+      "gelmir before: Join the Volcano Manor through Tanith",
+      "kicked before: Join the Volcano Manor through Tanith",
+      "after-kick before: Join the Volcano Manor through Tanith",
+      "manor before: Defeat Rykard without joining the Volcano Manor",
+      "kill-tragoth before: Talk to Patches after Rykard’s defeat (he leaves the Manor)",
+      "report before: Talk to Patches after Rykard’s defeat (he leaves the Manor)",
+      "reward before: Talk to Patches after Rykard’s defeat (he leaves the Manor)"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "spare": "Available",
+      "chest": "Upcoming",
+      "scenic-isle": "Upcoming",
+      "erdtree-way": "Upcoming",
+      "gelmir": "Upcoming",
+      "kicked": "Upcoming",
+      "after-kick": "Upcoming",
+      "manor": "Upcoming",
+      "letter": "Upcoming",
+      "kill-tragoth": "Upcoming",
+      "report": "Upcoming",
+      "reward": "Upcoming",
+      "after-rykard": "Upcoming",
+      "castanets": "Upcoming",
+      "murkwater-again": "Upcoming",
+      "last-shop": "Upcoming"
+    },
+    "warnings": [
+      "chest before: Patches moves on from Murkwater Cave",
+      "scenic-isle before: Join the Volcano Manor through Tanith",
+      "erdtree-way before: Join the Volcano Manor through Tanith",
+      "gelmir before: Join the Volcano Manor through Tanith",
+      "kicked before: Join the Volcano Manor through Tanith",
+      "after-kick before: Join the Volcano Manor through Tanith",
+      "manor before: Defeat Rykard without joining the Volcano Manor",
+      "kill-tragoth before: Talk to Patches after Rykard’s defeat (he leaves the Manor)",
+      "report before: Talk to Patches after Rykard’s defeat (he leaves the Manor)",
+      "reward before: Talk to Patches after Rykard’s defeat (he leaves the Manor)"
+    ]
+  },
+  "shoe": {
+    "outcome": "InProgress",
+    "progress": "1/7",
+    "steps": {
+      "spare": "Done",
+      "chest": "Locked (condition): Patches moves on from Murkwater Cave",
+      "scenic-isle": "Done",
+      "erdtree-way": "Done",
+      "gelmir": "Available",
+      "kicked": "Upcoming",
+      "after-kick": "Upcoming",
+      "manor": "Blocked",
+      "letter": "Upcoming",
+      "kill-tragoth": "Upcoming",
+      "report": "Upcoming",
+      "reward": "Upcoming",
+      "after-rykard": "Upcoming",
+      "castanets": "Upcoming",
+      "murkwater-again": "Upcoming",
+      "last-shop": "Upcoming"
+    },
+    "warnings": [
+      "gelmir before: Join the Volcano Manor through Tanith",
+      "kicked before: Join the Volcano Manor through Tanith",
+      "after-kick before: Join the Volcano Manor through Tanith",
+      "manor before: Defeat Rykard without joining the Volcano Manor",
+      "kill-tragoth before: Talk to Patches after Rykard’s defeat (he leaves the Manor)",
+      "report before: Talk to Patches after Rykard’s defeat (he leaves the Manor)",
+      "reward before: Talk to Patches after Rykard’s defeat (he leaves the Manor)"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "spare": "Available",
+      "chest": "Upcoming",
+      "scenic-isle": "Upcoming",
+      "erdtree-way": "Upcoming",
+      "gelmir": "Upcoming",
+      "kicked": "Upcoming",
+      "after-kick": "Upcoming",
+      "manor": "Upcoming",
+      "letter": "Upcoming",
+      "kill-tragoth": "Upcoming",
+      "report": "Upcoming",
+      "reward": "Upcoming",
+      "after-rykard": "Upcoming",
+      "castanets": "Upcoming",
+      "murkwater-again": "Upcoming",
+      "last-shop": "Upcoming"
+    },
+    "warnings": [
+      "chest before: Patches moves on from Murkwater Cave",
+      "scenic-isle before: Join the Volcano Manor through Tanith",
+      "erdtree-way before: Join the Volcano Manor through Tanith",
+      "gelmir before: Join the Volcano Manor through Tanith",
+      "kicked before: Join the Volcano Manor through Tanith",
+      "after-kick before: Join the Volcano Manor through Tanith",
+      "manor before: Defeat Rykard without joining the Volcano Manor",
+      "kill-tragoth before: Talk to Patches after Rykard’s defeat (he leaves the Manor)",
+      "report before: Talk to Patches after Rykard’s defeat (he leaves the Manor)",
+      "reward before: Talk to Patches after Rykard’s defeat (he leaves the Manor)"
+    ]
+  },
+  "sam": {
+    "outcome": "LockedOut: Patches is dead",
+    "progress": "0/7",
+    "steps": {
+      "spare": "Locked (npc): Patches is dead",
+      "chest": "Locked (npc): Patches is dead",
+      "scenic-isle": "Locked (condition): Join the Volcano Manor through Tanith",
+      "erdtree-way": "Locked (condition): Join the Volcano Manor through Tanith",
+      "gelmir": "Locked (condition): Join the Volcano Manor through Tanith",
+      "kicked": "Locked (condition): Join the Volcano Manor through Tanith",
+      "after-kick": "Locked (condition): Join the Volcano Manor through Tanith",
+      "manor": "Locked (npc): Patches is dead",
+      "letter": "Locked (npc): Patches is dead",
+      "kill-tragoth": "Locked (npc): Patches is dead",
+      "report": "Locked (npc): Patches is dead",
+      "reward": "Locked (npc): Patches is dead",
+      "after-rykard": "Locked (npc): Patches is dead",
+      "castanets": "Locked (npc): Patches is dead",
+      "murkwater-again": "Locked (npc): Patches is dead",
+      "last-shop": "Locked (npc): Patches is dead"
+    },
+    "warnings": []
+  }
+}

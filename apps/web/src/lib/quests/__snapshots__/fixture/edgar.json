@@ -1,0 +1,92 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/2",
+    "steps": {
+      "meet": "Available",
+      "deliver-letter": "Upcoming",
+      "misbegotten": "Upcoming",
+      "thanks": "Upcoming",
+      "at-irina": "Upcoming",
+      "revenger": "Upcoming"
+    },
+    "warnings": [
+      "deliver-letter before: Give Hyetta her first Shabriri Grape",
+      "misbegotten before: Give Hyetta her first Shabriri Grape",
+      "thanks before: Give Hyetta her first Shabriri Grape",
+      "at-irina before: Give Hyetta her first Shabriri Grape"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/2",
+    "steps": {
+      "meet": "Available",
+      "deliver-letter": "Upcoming",
+      "misbegotten": "Upcoming",
+      "thanks": "Upcoming",
+      "at-irina": "Upcoming",
+      "revenger": "Upcoming"
+    },
+    "warnings": [
+      "deliver-letter before: Give Hyetta her first Shabriri Grape",
+      "misbegotten before: Give Hyetta her first Shabriri Grape",
+      "thanks before: Give Hyetta her first Shabriri Grape",
+      "at-irina before: Give Hyetta her first Shabriri Grape"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/2",
+    "steps": {
+      "meet": "Available",
+      "deliver-letter": "Upcoming",
+      "misbegotten": "Upcoming",
+      "thanks": "Upcoming",
+      "at-irina": "Upcoming",
+      "revenger": "Upcoming"
+    },
+    "warnings": [
+      "deliver-letter before: Give Hyetta her first Shabriri Grape",
+      "misbegotten before: Give Hyetta her first Shabriri Grape",
+      "thanks before: Give Hyetta her first Shabriri Grape",
+      "at-irina before: Give Hyetta her first Shabriri Grape"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/2",
+    "steps": {
+      "meet": "Available",
+      "deliver-letter": "Upcoming",
+      "misbegotten": "Upcoming",
+      "thanks": "Upcoming",
+      "at-irina": "Upcoming",
+      "revenger": "Upcoming"
+    },
+    "warnings": [
+      "deliver-letter before: Give Hyetta her first Shabriri Grape",
+      "misbegotten before: Give Hyetta her first Shabriri Grape",
+      "thanks before: Give Hyetta her first Shabriri Grape",
+      "at-irina before: Give Hyetta her first Shabriri Grape"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/2",
+    "steps": {
+      "meet": "Available",
+      "deliver-letter": "Upcoming",
+      "misbegotten": "Upcoming",
+      "thanks": "Upcoming",
+      "at-irina": "Upcoming",
+      "revenger": "Upcoming"
+    },
+    "warnings": [
+      "deliver-letter before: Give Hyetta her first Shabriri Grape",
+      "misbegotten before: Give Hyetta her first Shabriri Grape",
+      "thanks before: Give Hyetta her first Shabriri Grape",
+      "at-irina before: Give Hyetta her first Shabriri Grape"
+    ]
+  }
+}

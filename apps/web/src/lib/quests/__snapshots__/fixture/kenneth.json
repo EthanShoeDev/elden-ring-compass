@@ -1,0 +1,82 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "meet": "Available",
+      "clear-fort": "Upcoming",
+      "reward": "Upcoming",
+      "service": "Upcoming",
+      "fort-haight": "Upcoming",
+      "throne-room": "Upcoming"
+    },
+    "warnings": [
+      "throne-room before: Choose “Give her Seluvis’s potion” (Nepheli Loux)",
+      "throne-room before: Let Nepheli Loux die"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "meet": "Available",
+      "clear-fort": "Upcoming",
+      "reward": "Upcoming",
+      "service": "Upcoming",
+      "fort-haight": "Upcoming",
+      "throne-room": "Upcoming"
+    },
+    "warnings": [
+      "throne-room before: Choose “Give her Seluvis’s potion” (Nepheli Loux)",
+      "throne-room before: Let Nepheli Loux die"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "meet": "Available",
+      "clear-fort": "Upcoming",
+      "reward": "Upcoming",
+      "service": "Upcoming",
+      "fort-haight": "Upcoming",
+      "throne-room": "Upcoming"
+    },
+    "warnings": [
+      "throne-room before: Choose “Give her Seluvis’s potion” (Nepheli Loux)",
+      "throne-room before: Let Nepheli Loux die"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "meet": "Available",
+      "clear-fort": "Upcoming",
+      "reward": "Upcoming",
+      "service": "Upcoming",
+      "fort-haight": "Upcoming",
+      "throne-room": "Upcoming"
+    },
+    "warnings": [
+      "throne-room before: Choose “Give her Seluvis’s potion” (Nepheli Loux)",
+      "throne-room before: Let Nepheli Loux die"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/6",
+    "steps": {
+      "meet": "Available",
+      "clear-fort": "Upcoming",
+      "reward": "Upcoming",
+      "service": "Upcoming",
+      "fort-haight": "Upcoming",
+      "throne-room": "Upcoming"
+    },
+    "warnings": [
+      "throne-room before: Choose “Give her Seluvis’s potion” (Nepheli Loux)",
+      "throne-room before: Let Nepheli Loux die"
+    ]
+  }
+}

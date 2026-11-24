@@ -1,0 +1,85 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "1/5",
+    "steps": {
+      "meet": "Done",
+      "buy-necklace": "Done",
+      "buy-prawns": "Available",
+      "makar-summon": "Unknown",
+      "moat": "Upcoming",
+      "dung-eater-warning": "Upcoming",
+      "dying": "Upcoming",
+      "loot-body": "Upcoming"
+    },
+    "warnings": []
+  },
+  "Yager": {
+    "outcome": "InProgress",
+    "progress": "1/5",
+    "steps": {
+      "meet": "Done",
+      "buy-necklace": "Available",
+      "buy-prawns": "Available",
+      "makar-summon": "Unknown",
+      "moat": "Upcoming",
+      "dung-eater-warning": "Upcoming",
+      "dying": "Upcoming",
+      "loot-body": "Upcoming"
+    },
+    "warnings": [
+      "buy-necklace before: Boggart has left Liurnia"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/5",
+    "steps": {
+      "meet": "Available",
+      "buy-necklace": "Upcoming",
+      "buy-prawns": "Upcoming",
+      "makar-summon": "Upcoming",
+      "moat": "Upcoming",
+      "dung-eater-warning": "Upcoming",
+      "dying": "Upcoming",
+      "loot-body": "Upcoming"
+    },
+    "warnings": [
+      "buy-necklace before: Boggart has left Liurnia",
+      "makar-summon before: Defeat Magma Wyrm Makar"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/5",
+    "steps": {
+      "meet": "Available",
+      "buy-necklace": "Upcoming",
+      "buy-prawns": "Upcoming",
+      "makar-summon": "Upcoming",
+      "moat": "Upcoming",
+      "dung-eater-warning": "Upcoming",
+      "dying": "Upcoming",
+      "loot-body": "Upcoming"
+    },
+    "warnings": [
+      "buy-necklace before: Boggart has left Liurnia",
+      "makar-summon before: Defeat Magma Wyrm Makar"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "1/5",
+    "steps": {
+      "meet": "Done",
+      "buy-necklace": "Done",
+      "buy-prawns": "Available",
+      "makar-summon": "Unknown",
+      "moat": "Upcoming",
+      "dung-eater-warning": "Upcoming",
+      "dying": "Upcoming",
+      "loot-body": "Upcoming"
+    },
+    "warnings": []
+  }
+}

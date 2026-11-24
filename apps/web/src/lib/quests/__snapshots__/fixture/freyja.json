@@ -1,0 +1,127 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Blocked",
+      "lion-summon": "Upcoming",
+      "three-path-talk": "Upcoming",
+      "rugalea-summon": "Upcoming",
+      "after-charm": "Upcoming",
+      "hippopotamus-summon": "Upcoming",
+      "storehouse-talk": "Upcoming",
+      "give-letter": "Upcoming",
+      "miquellas-faithful": "Upcoming",
+      "freyja-gear-pickup": "Upcoming"
+    },
+    "warnings": [
+      "lion-summon before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "lion-summon before: Defeat the Divine Beast Dancing Lion",
+      "three-path-talk before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "rugalea-summon before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "rugalea-summon before: Defeat Rugalea the Great Red Bear",
+      "hippopotamus-summon before: Defeat the Golden Hippopotamus",
+      "storehouse-talk before: Give Ansbach the Secret Rite Scroll before hearing Freyja out in the Storehouse"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Blocked",
+      "lion-summon": "Upcoming",
+      "three-path-talk": "Upcoming",
+      "rugalea-summon": "Upcoming",
+      "after-charm": "Upcoming",
+      "hippopotamus-summon": "Upcoming",
+      "storehouse-talk": "Upcoming",
+      "give-letter": "Upcoming",
+      "miquellas-faithful": "Upcoming",
+      "freyja-gear-pickup": "Upcoming"
+    },
+    "warnings": [
+      "lion-summon before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "lion-summon before: Defeat the Divine Beast Dancing Lion",
+      "three-path-talk before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "rugalea-summon before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "rugalea-summon before: Defeat Rugalea the Great Red Bear",
+      "hippopotamus-summon before: Defeat the Golden Hippopotamus",
+      "storehouse-talk before: Give Ansbach the Secret Rite Scroll before hearing Freyja out in the Storehouse"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Blocked",
+      "lion-summon": "Upcoming",
+      "three-path-talk": "Upcoming",
+      "rugalea-summon": "Upcoming",
+      "after-charm": "Upcoming",
+      "hippopotamus-summon": "Upcoming",
+      "storehouse-talk": "Upcoming",
+      "give-letter": "Upcoming",
+      "miquellas-faithful": "Upcoming",
+      "freyja-gear-pickup": "Upcoming"
+    },
+    "warnings": [
+      "lion-summon before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "lion-summon before: Defeat the Divine Beast Dancing Lion",
+      "three-path-talk before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "rugalea-summon before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "rugalea-summon before: Defeat Rugalea the Great Red Bear",
+      "hippopotamus-summon before: Defeat the Golden Hippopotamus",
+      "storehouse-talk before: Give Ansbach the Secret Rite Scroll before hearing Freyja out in the Storehouse"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Blocked",
+      "lion-summon": "Upcoming",
+      "three-path-talk": "Upcoming",
+      "rugalea-summon": "Upcoming",
+      "after-charm": "Upcoming",
+      "hippopotamus-summon": "Upcoming",
+      "storehouse-talk": "Upcoming",
+      "give-letter": "Upcoming",
+      "miquellas-faithful": "Upcoming",
+      "freyja-gear-pickup": "Upcoming"
+    },
+    "warnings": [
+      "lion-summon before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "lion-summon before: Defeat the Divine Beast Dancing Lion",
+      "three-path-talk before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "rugalea-summon before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "rugalea-summon before: Defeat Rugalea the Great Red Bear",
+      "hippopotamus-summon before: Defeat the Golden Hippopotamus",
+      "storehouse-talk before: Give Ansbach the Secret Rite Scroll before hearing Freyja out in the Storehouse"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Blocked",
+      "lion-summon": "Upcoming",
+      "three-path-talk": "Upcoming",
+      "rugalea-summon": "Upcoming",
+      "after-charm": "Upcoming",
+      "hippopotamus-summon": "Upcoming",
+      "storehouse-talk": "Upcoming",
+      "give-letter": "Upcoming",
+      "miquellas-faithful": "Upcoming",
+      "freyja-gear-pickup": "Upcoming"
+    },
+    "warnings": [
+      "lion-summon before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "lion-summon before: Defeat the Divine Beast Dancing Lion",
+      "three-path-talk before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "rugalea-summon before: Break Miquella’s charm (approach the Shadow Keep’s front gate, or head east past Bonny Village)",
+      "rugalea-summon before: Defeat Rugalea the Great Red Bear",
+      "hippopotamus-summon before: Defeat the Golden Hippopotamus",
+      "storehouse-talk before: Give Ansbach the Secret Rite Scroll before hearing Freyja out in the Storehouse"
+    ]
+  }
+}

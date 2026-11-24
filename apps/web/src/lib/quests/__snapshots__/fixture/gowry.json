@@ -1,0 +1,132 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "meet": "Available",
+      "needle": "Upcoming",
+      "give-needle": "Upcoming",
+      "repaired": "Upcoming",
+      "where-millicent": "Upcoming",
+      "millicent-healed": "Upcoming",
+      "visit": "Upcoming",
+      "prosthesis-news": "Upcoming",
+      "about-malenia": "Upcoming",
+      "plea-talk": "Upcoming",
+      "lament": "Upcoming",
+      "kill-gowry": "Upcoming",
+      "gone": "Upcoming"
+    },
+    "warnings": [
+      "about-malenia before: Gowry dies",
+      "plea-talk before: Choose “Aid her against her sisters” (Millicent)",
+      "plea-talk before: Choose “Use her red sign and defeat her” (Millicent)",
+      "lament before: Choose “Use her red sign and defeat her” (Millicent)",
+      "gone before: Choose “Aid her against her sisters” (Millicent)"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "meet": "Available",
+      "needle": "Upcoming",
+      "give-needle": "Upcoming",
+      "repaired": "Upcoming",
+      "where-millicent": "Upcoming",
+      "millicent-healed": "Upcoming",
+      "visit": "Upcoming",
+      "prosthesis-news": "Upcoming",
+      "about-malenia": "Upcoming",
+      "plea-talk": "Upcoming",
+      "lament": "Upcoming",
+      "kill-gowry": "Upcoming",
+      "gone": "Upcoming"
+    },
+    "warnings": [
+      "about-malenia before: Gowry dies",
+      "plea-talk before: Choose “Aid her against her sisters” (Millicent)",
+      "plea-talk before: Choose “Use her red sign and defeat her” (Millicent)",
+      "lament before: Choose “Use her red sign and defeat her” (Millicent)",
+      "gone before: Choose “Aid her against her sisters” (Millicent)"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "meet": "Available",
+      "needle": "Upcoming",
+      "give-needle": "Upcoming",
+      "repaired": "Upcoming",
+      "where-millicent": "Upcoming",
+      "millicent-healed": "Upcoming",
+      "visit": "Upcoming",
+      "prosthesis-news": "Upcoming",
+      "about-malenia": "Upcoming",
+      "plea-talk": "Upcoming",
+      "lament": "Upcoming",
+      "kill-gowry": "Upcoming",
+      "gone": "Upcoming"
+    },
+    "warnings": [
+      "about-malenia before: Gowry dies",
+      "plea-talk before: Choose “Aid her against her sisters” (Millicent)",
+      "plea-talk before: Choose “Use her red sign and defeat her” (Millicent)",
+      "lament before: Choose “Use her red sign and defeat her” (Millicent)",
+      "gone before: Choose “Aid her against her sisters” (Millicent)"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "meet": "Available",
+      "needle": "Upcoming",
+      "give-needle": "Upcoming",
+      "repaired": "Upcoming",
+      "where-millicent": "Upcoming",
+      "millicent-healed": "Upcoming",
+      "visit": "Upcoming",
+      "prosthesis-news": "Upcoming",
+      "about-malenia": "Upcoming",
+      "plea-talk": "Upcoming",
+      "lament": "Upcoming",
+      "kill-gowry": "Upcoming",
+      "gone": "Upcoming"
+    },
+    "warnings": [
+      "about-malenia before: Gowry dies",
+      "plea-talk before: Choose “Aid her against her sisters” (Millicent)",
+      "plea-talk before: Choose “Use her red sign and defeat her” (Millicent)",
+      "lament before: Choose “Use her red sign and defeat her” (Millicent)",
+      "gone before: Choose “Aid her against her sisters” (Millicent)"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "meet": "Available",
+      "needle": "Upcoming",
+      "give-needle": "Upcoming",
+      "repaired": "Upcoming",
+      "where-millicent": "Upcoming",
+      "millicent-healed": "Upcoming",
+      "visit": "Upcoming",
+      "prosthesis-news": "Upcoming",
+      "about-malenia": "Upcoming",
+      "plea-talk": "Upcoming",
+      "lament": "Upcoming",
+      "kill-gowry": "Upcoming",
+      "gone": "Upcoming"
+    },
+    "warnings": [
+      "about-malenia before: Gowry dies",
+      "plea-talk before: Choose “Aid her against her sisters” (Millicent)",
+      "plea-talk before: Choose “Use her red sign and defeat her” (Millicent)",
+      "lament before: Choose “Use her red sign and defeat her” (Millicent)",
+      "gone before: Choose “Aid her against her sisters” (Millicent)"
+    ]
+  }
+}

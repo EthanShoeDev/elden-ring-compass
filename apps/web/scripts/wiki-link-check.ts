@@ -39,6 +39,7 @@ import { Command, Flag } from 'effect/cli';
 import { FetchHttpClient, HttpClient } from 'effect/http';
 
 import { CATALOG } from '../src/lib/inventory-catalog-data';
+import { QUEST_WIKI_PAGE_NAMES } from '../src/lib/quests/wiki';
 import { wikiNameForBoss, wikiNameForItem, wikiPageUrl } from '../src/lib/wiki';
 
 const COMMAND_NAME = 'wiki-link-check';
@@ -66,6 +67,8 @@ const SOURCES: Record<
   bosses: Arr.flatMap(BOSSES, (b) =>
     b.name === null ? [] : [{ name: wikiNameForBoss(b.name) }],
   ),
+  // The Quest Compass links each questline's NPC page(s).
+  quests: Arr.map(QUEST_WIKI_PAGE_NAMES, (name) => ({ name })),
 };
 
 interface LinkCheck {

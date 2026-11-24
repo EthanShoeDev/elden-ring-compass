@@ -1,0 +1,112 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "meet": "Available",
+      "first-bell": "Upcoming",
+      "jolan-talk": "Upcoming",
+      "second-map": "Upcoming",
+      "graveyard-talk": "Upcoming",
+      "second-bell": "Upcoming",
+      "third-map": "Upcoming",
+      "empty-throne": "Upcoming",
+      "anna": "Upcoming",
+      "metyr": "Upcoming",
+      "ymir-boss": "Upcoming",
+      "cherishing-fingers": "Upcoming"
+    },
+    "warnings": [
+      "jolan-talk before: Take the third Ruins Map from Ymir",
+      "graveyard-talk before: Ring both sacred bells"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "meet": "Available",
+      "first-bell": "Upcoming",
+      "jolan-talk": "Upcoming",
+      "second-map": "Upcoming",
+      "graveyard-talk": "Upcoming",
+      "second-bell": "Upcoming",
+      "third-map": "Upcoming",
+      "empty-throne": "Upcoming",
+      "anna": "Upcoming",
+      "metyr": "Upcoming",
+      "ymir-boss": "Upcoming",
+      "cherishing-fingers": "Upcoming"
+    },
+    "warnings": [
+      "jolan-talk before: Take the third Ruins Map from Ymir",
+      "graveyard-talk before: Ring both sacred bells"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "meet": "Available",
+      "first-bell": "Upcoming",
+      "jolan-talk": "Upcoming",
+      "second-map": "Upcoming",
+      "graveyard-talk": "Upcoming",
+      "second-bell": "Upcoming",
+      "third-map": "Upcoming",
+      "empty-throne": "Upcoming",
+      "anna": "Upcoming",
+      "metyr": "Upcoming",
+      "ymir-boss": "Upcoming",
+      "cherishing-fingers": "Upcoming"
+    },
+    "warnings": [
+      "jolan-talk before: Take the third Ruins Map from Ymir",
+      "graveyard-talk before: Ring both sacred bells"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "meet": "Available",
+      "first-bell": "Upcoming",
+      "jolan-talk": "Upcoming",
+      "second-map": "Upcoming",
+      "graveyard-talk": "Upcoming",
+      "second-bell": "Upcoming",
+      "third-map": "Upcoming",
+      "empty-throne": "Upcoming",
+      "anna": "Upcoming",
+      "metyr": "Upcoming",
+      "ymir-boss": "Upcoming",
+      "cherishing-fingers": "Upcoming"
+    },
+    "warnings": [
+      "jolan-talk before: Take the third Ruins Map from Ymir",
+      "graveyard-talk before: Ring both sacred bells"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "meet": "Available",
+      "first-bell": "Upcoming",
+      "jolan-talk": "Upcoming",
+      "second-map": "Upcoming",
+      "graveyard-talk": "Upcoming",
+      "second-bell": "Upcoming",
+      "third-map": "Upcoming",
+      "empty-throne": "Upcoming",
+      "anna": "Upcoming",
+      "metyr": "Upcoming",
+      "ymir-boss": "Upcoming",
+      "cherishing-fingers": "Upcoming"
+    },
+    "warnings": [
+      "jolan-talk before: Take the third Ruins Map from Ymir",
+      "graveyard-talk before: Ring both sacred bells"
+    ]
+  }
+}

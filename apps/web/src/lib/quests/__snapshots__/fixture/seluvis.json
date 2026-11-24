@@ -1,0 +1,157 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "3/10",
+    "steps": {
+      "spirit": "Done",
+      "loot": "Blocked",
+      "ask-nokron": "Done",
+      "rise": "Done",
+      "potion": "Done",
+      "report-potion": "Blocked",
+      "puppet-room": "Available",
+      "ask-chambers": "Available",
+      "starlight-shards": "Upcoming",
+      "buy-puppets": "Upcoming",
+      "scheme": "Upcoming",
+      "amber-starlight": "Upcoming",
+      "give-amber": "Upcoming",
+      "receive-draught": "Upcoming"
+    },
+    "warnings": [
+      "report-potion before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "puppet-room before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "ask-chambers before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "starlight-shards before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "buy-puppets before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "scheme before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "amber-starlight before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "give-amber before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "receive-draught before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "spirit": "Blocked",
+      "loot": "Upcoming",
+      "ask-nokron": "Locked (gate): Defeat Starscourge Radahn",
+      "rise": "Upcoming",
+      "potion": "Upcoming",
+      "report-potion": "Upcoming",
+      "puppet-room": "Upcoming",
+      "ask-chambers": "Upcoming",
+      "starlight-shards": "Upcoming",
+      "buy-puppets": "Upcoming",
+      "scheme": "Upcoming",
+      "amber-starlight": "Upcoming",
+      "give-amber": "Upcoming",
+      "receive-draught": "Upcoming"
+    },
+    "warnings": [
+      "rise before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "potion before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "report-potion before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "puppet-room before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "ask-chambers before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "starlight-shards before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "buy-puppets before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "scheme before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "amber-starlight before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "give-amber before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "receive-draught before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "spirit": "Blocked",
+      "loot": "Upcoming",
+      "ask-nokron": "Upcoming",
+      "rise": "Upcoming",
+      "potion": "Upcoming",
+      "report-potion": "Upcoming",
+      "puppet-room": "Upcoming",
+      "ask-chambers": "Upcoming",
+      "starlight-shards": "Upcoming",
+      "buy-puppets": "Upcoming",
+      "scheme": "Upcoming",
+      "amber-starlight": "Upcoming",
+      "give-amber": "Upcoming",
+      "receive-draught": "Upcoming"
+    },
+    "warnings": [
+      "ask-nokron before: Defeat Starscourge Radahn",
+      "ask-nokron before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "rise before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "potion before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "report-potion before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "puppet-room before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "ask-chambers before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "starlight-shards before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "buy-puppets before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "scheme before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "amber-starlight before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "give-amber before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "receive-draught before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "spirit": "Blocked",
+      "loot": "Upcoming",
+      "ask-nokron": "Upcoming",
+      "rise": "Upcoming",
+      "potion": "Upcoming",
+      "report-potion": "Upcoming",
+      "puppet-room": "Upcoming",
+      "ask-chambers": "Upcoming",
+      "starlight-shards": "Upcoming",
+      "buy-puppets": "Upcoming",
+      "scheme": "Upcoming",
+      "amber-starlight": "Upcoming",
+      "give-amber": "Upcoming",
+      "receive-draught": "Upcoming"
+    },
+    "warnings": [
+      "ask-nokron before: Defeat Starscourge Radahn",
+      "ask-nokron before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "rise before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "potion before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "report-potion before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "puppet-room before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "ask-chambers before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "starlight-shards before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "buy-puppets before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "scheme before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "amber-starlight before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "give-amber before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)",
+      "receive-draught before: Give Ranni the Fingerslayer Blade (she does away with Seluvis)"
+    ]
+  },
+  "sam": {
+    "outcome": "LockedOut: Ranni has the Fingerslayer Blade, and Seluvis is dead",
+    "progress": "3/10",
+    "steps": {
+      "spirit": "Done",
+      "loot": "Done",
+      "ask-nokron": "Done",
+      "rise": "Done",
+      "potion": "Done",
+      "report-potion": "Locked (condition): Ranni has the Fingerslayer Blade, and Seluvis is dead",
+      "puppet-room": "Locked (condition): Ranni has the Fingerslayer Blade, and Seluvis is dead",
+      "ask-chambers": "Locked (condition): Ranni has the Fingerslayer Blade, and Seluvis is dead",
+      "starlight-shards": "Locked (condition): Ranni has the Fingerslayer Blade, and Seluvis is dead",
+      "buy-puppets": "Locked (condition): Ranni has the Fingerslayer Blade, and Seluvis is dead",
+      "scheme": "Locked (condition): Ranni has the Fingerslayer Blade, and Seluvis is dead",
+      "amber-starlight": "Locked (condition): Ranni has the Fingerslayer Blade, and Seluvis is dead",
+      "give-amber": "Locked (condition): Ranni has the Fingerslayer Blade, and Seluvis is dead",
+      "receive-draught": "Locked (condition): Ranni has the Fingerslayer Blade, and Seluvis is dead"
+    },
+    "warnings": []
+  }
+}

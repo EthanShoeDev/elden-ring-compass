@@ -1,0 +1,121 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "1/2",
+    "steps": {
+      "meet": "Done",
+      "darriwil-together": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "evergaol-talk": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "rise-talk": "Done",
+      "siofra-talk": "Inferred",
+      "festival-news": "Done",
+      "redmane-talk": "Done",
+      "dunes-talk": "Done",
+      "sealed-talk": "Available",
+      "release": "Upcoming",
+      "defeat-mad": "Blocked"
+    },
+    "warnings": [
+      "sealed-talk before: Blaidd turns on Ranni (Dark Moon Ring + Astel)",
+      "release before: Blaidd turns on Ranni (Dark Moon Ring + Astel)"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/2",
+    "steps": {
+      "meet": "Available",
+      "darriwil-together": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "evergaol-talk": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "rise-talk": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "siofra-talk": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "festival-news": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "redmane-talk": "Locked (gate): Defeat Starscourge Radahn",
+      "dunes-talk": "Upcoming",
+      "sealed-talk": "Upcoming",
+      "release": "Upcoming",
+      "defeat-mad": "Upcoming"
+    },
+    "warnings": [
+      "dunes-talk before: Iji seals Blaidd in the evergaol",
+      "sealed-talk before: Blaidd turns on Ranni (Dark Moon Ring + Astel)",
+      "release before: Blaidd turns on Ranni (Dark Moon Ring + Astel)"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/2",
+    "steps": {
+      "meet": "Available",
+      "darriwil-together": "Upcoming",
+      "evergaol-talk": "Upcoming",
+      "rise-talk": "Upcoming",
+      "siofra-talk": "Upcoming",
+      "festival-news": "Upcoming",
+      "redmane-talk": "Upcoming",
+      "dunes-talk": "Upcoming",
+      "sealed-talk": "Upcoming",
+      "release": "Upcoming",
+      "defeat-mad": "Upcoming"
+    },
+    "warnings": [
+      "darriwil-together before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "darriwil-together before: Defeat Darriwil alone, before meeting Blaidd",
+      "evergaol-talk before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "rise-talk before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "siofra-talk before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "festival-news before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "redmane-talk before: Defeat Starscourge Radahn",
+      "dunes-talk before: Iji seals Blaidd in the evergaol",
+      "sealed-talk before: Blaidd turns on Ranni (Dark Moon Ring + Astel)",
+      "release before: Blaidd turns on Ranni (Dark Moon Ring + Astel)"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/2",
+    "steps": {
+      "meet": "Available",
+      "darriwil-together": "Upcoming",
+      "evergaol-talk": "Upcoming",
+      "rise-talk": "Upcoming",
+      "siofra-talk": "Upcoming",
+      "festival-news": "Upcoming",
+      "redmane-talk": "Upcoming",
+      "dunes-talk": "Upcoming",
+      "sealed-talk": "Upcoming",
+      "release": "Upcoming",
+      "defeat-mad": "Upcoming"
+    },
+    "warnings": [
+      "darriwil-together before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "darriwil-together before: Defeat Darriwil alone, before meeting Blaidd",
+      "evergaol-talk before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "rise-talk before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "siofra-talk before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "festival-news before: Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "redmane-talk before: Defeat Starscourge Radahn",
+      "dunes-talk before: Iji seals Blaidd in the evergaol",
+      "sealed-talk before: Blaidd turns on Ranni (Dark Moon Ring + Astel)",
+      "release before: Blaidd turns on Ranni (Dark Moon Ring + Astel)"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "1/2",
+    "steps": {
+      "meet": "Done",
+      "darriwil-together": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "evergaol-talk": "Locked (gate): Start the Radahn Festival (hear of Radahn from Sellen or Seluvis, or reach the Altus Plateau)",
+      "rise-talk": "Done",
+      "siofra-talk": "Inferred",
+      "festival-news": "Done",
+      "redmane-talk": "Done",
+      "dunes-talk": "Done",
+      "sealed-talk": "Locked (condition): Blaidd has turned on Ranni",
+      "release": "Locked (condition): Blaidd has turned on Ranni",
+      "defeat-mad": "Available"
+    },
+    "warnings": []
+  }
+}

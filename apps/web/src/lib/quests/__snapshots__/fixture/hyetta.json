@@ -1,0 +1,102 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/13",
+    "steps": {
+      "meet": "Blocked",
+      "grape-1": "Upcoming",
+      "grape-2": "Upcoming",
+      "grape-3": "Upcoming",
+      "tell-truth": "Upcoming",
+      "finger-maiden": "Upcoming",
+      "bellum": "Upcoming",
+      "fingerprint-grape": "Upcoming",
+      "give-fingerprint": "Upcoming",
+      "proscription": "Upcoming",
+      "after-flame": "Upcoming",
+      "touch-eye": "Upcoming",
+      "farewell": "Upcoming"
+    },
+    "warnings": []
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/13",
+    "steps": {
+      "meet": "Blocked",
+      "grape-1": "Upcoming",
+      "grape-2": "Upcoming",
+      "grape-3": "Upcoming",
+      "tell-truth": "Upcoming",
+      "finger-maiden": "Upcoming",
+      "bellum": "Upcoming",
+      "fingerprint-grape": "Upcoming",
+      "give-fingerprint": "Upcoming",
+      "proscription": "Upcoming",
+      "after-flame": "Upcoming",
+      "touch-eye": "Upcoming",
+      "farewell": "Upcoming"
+    },
+    "warnings": []
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/13",
+    "steps": {
+      "meet": "Blocked",
+      "grape-1": "Upcoming",
+      "grape-2": "Upcoming",
+      "grape-3": "Upcoming",
+      "tell-truth": "Upcoming",
+      "finger-maiden": "Upcoming",
+      "bellum": "Upcoming",
+      "fingerprint-grape": "Upcoming",
+      "give-fingerprint": "Upcoming",
+      "proscription": "Upcoming",
+      "after-flame": "Upcoming",
+      "touch-eye": "Upcoming",
+      "farewell": "Upcoming"
+    },
+    "warnings": []
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/13",
+    "steps": {
+      "meet": "Blocked",
+      "grape-1": "Upcoming",
+      "grape-2": "Upcoming",
+      "grape-3": "Upcoming",
+      "tell-truth": "Upcoming",
+      "finger-maiden": "Upcoming",
+      "bellum": "Upcoming",
+      "fingerprint-grape": "Upcoming",
+      "give-fingerprint": "Upcoming",
+      "proscription": "Upcoming",
+      "after-flame": "Upcoming",
+      "touch-eye": "Upcoming",
+      "farewell": "Upcoming"
+    },
+    "warnings": []
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/13",
+    "steps": {
+      "meet": "Blocked",
+      "grape-1": "Upcoming",
+      "grape-2": "Upcoming",
+      "grape-3": "Upcoming",
+      "tell-truth": "Upcoming",
+      "finger-maiden": "Upcoming",
+      "bellum": "Upcoming",
+      "fingerprint-grape": "Upcoming",
+      "give-fingerprint": "Upcoming",
+      "proscription": "Upcoming",
+      "after-flame": "Upcoming",
+      "touch-eye": "Upcoming",
+      "farewell": "Upcoming"
+    },
+    "warnings": []
+  }
+}

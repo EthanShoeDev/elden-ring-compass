@@ -1,0 +1,102 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Blocked",
+      "give-stew": "Upcoming",
+      "new-cross-map": "Upcoming",
+      "after-charm": "Upcoming",
+      "hippopotamus-summon": "Upcoming",
+      "survive-leda": "Upcoming",
+      "messmer-summon": "Upcoming",
+      "dark-chamber-talk": "Upcoming",
+      "rauh-invasion": "Upcoming"
+    },
+    "warnings": [
+      "hippopotamus-summon before: Defeat the Golden Hippopotamus",
+      "survive-leda before: Choose “Help Leda hunt Hornsent” (Needle Knight Leda)",
+      "messmer-summon before: Defeat Messmer the Impaler"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Blocked",
+      "give-stew": "Upcoming",
+      "new-cross-map": "Upcoming",
+      "after-charm": "Upcoming",
+      "hippopotamus-summon": "Upcoming",
+      "survive-leda": "Upcoming",
+      "messmer-summon": "Upcoming",
+      "dark-chamber-talk": "Upcoming",
+      "rauh-invasion": "Upcoming"
+    },
+    "warnings": [
+      "hippopotamus-summon before: Defeat the Golden Hippopotamus",
+      "survive-leda before: Choose “Help Leda hunt Hornsent” (Needle Knight Leda)",
+      "messmer-summon before: Defeat Messmer the Impaler"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Blocked",
+      "give-stew": "Upcoming",
+      "new-cross-map": "Upcoming",
+      "after-charm": "Upcoming",
+      "hippopotamus-summon": "Upcoming",
+      "survive-leda": "Upcoming",
+      "messmer-summon": "Upcoming",
+      "dark-chamber-talk": "Upcoming",
+      "rauh-invasion": "Upcoming"
+    },
+    "warnings": [
+      "hippopotamus-summon before: Defeat the Golden Hippopotamus",
+      "survive-leda before: Choose “Help Leda hunt Hornsent” (Needle Knight Leda)",
+      "messmer-summon before: Defeat Messmer the Impaler"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Blocked",
+      "give-stew": "Upcoming",
+      "new-cross-map": "Upcoming",
+      "after-charm": "Upcoming",
+      "hippopotamus-summon": "Upcoming",
+      "survive-leda": "Upcoming",
+      "messmer-summon": "Upcoming",
+      "dark-chamber-talk": "Upcoming",
+      "rauh-invasion": "Upcoming"
+    },
+    "warnings": [
+      "hippopotamus-summon before: Defeat the Golden Hippopotamus",
+      "survive-leda before: Choose “Help Leda hunt Hornsent” (Needle Knight Leda)",
+      "messmer-summon before: Defeat Messmer the Impaler"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Blocked",
+      "give-stew": "Upcoming",
+      "new-cross-map": "Upcoming",
+      "after-charm": "Upcoming",
+      "hippopotamus-summon": "Upcoming",
+      "survive-leda": "Upcoming",
+      "messmer-summon": "Upcoming",
+      "dark-chamber-talk": "Upcoming",
+      "rauh-invasion": "Upcoming"
+    },
+    "warnings": [
+      "hippopotamus-summon before: Defeat the Golden Hippopotamus",
+      "survive-leda before: Choose “Help Leda hunt Hornsent” (Needle Knight Leda)",
+      "messmer-summon before: Defeat Messmer the Impaler"
+    ]
+  }
+}

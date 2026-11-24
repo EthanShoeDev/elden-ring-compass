@@ -1,0 +1,139 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "3/12",
+    "steps": {
+      "meet": "Done",
+      "godrick-summon-sign": "Unknown",
+      "arsenal-charm": "Done",
+      "leaves-hold": "Done",
+      "albinaurics": "Available",
+      "omenkiller-summon-sign": "Unknown",
+      "omenkiller": "Upcoming",
+      "back-at-hold": "Upcoming",
+      "gideon-news": "Upcoming",
+      "stormhawk-king": "Upcoming",
+      "give-stormhawk": "Upcoming",
+      "lord": "Upcoming",
+      "smithing-stone": "Upcoming",
+      "godfrey-summon-sign": "Upcoming",
+      "potion": "Upcoming"
+    },
+    "warnings": [
+      "albinaurics before: Burn the Erdtree at the Forge of the Giants",
+      "omenkiller before: Burn the Erdtree at the Forge of the Giants",
+      "give-stormhawk before: Defeat Maliketh, the Black Blade"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/12",
+    "steps": {
+      "meet": "Available",
+      "godrick-summon-sign": "Unknown",
+      "arsenal-charm": "Upcoming",
+      "leaves-hold": "Upcoming",
+      "albinaurics": "Upcoming",
+      "omenkiller-summon-sign": "Unknown",
+      "omenkiller": "Upcoming",
+      "back-at-hold": "Upcoming",
+      "gideon-news": "Upcoming",
+      "stormhawk-king": "Upcoming",
+      "give-stormhawk": "Upcoming",
+      "lord": "Upcoming",
+      "smithing-stone": "Upcoming",
+      "godfrey-summon-sign": "Upcoming",
+      "potion": "Upcoming"
+    },
+    "warnings": [
+      "arsenal-charm before: Burn the Erdtree at the Forge of the Giants",
+      "leaves-hold before: Burn the Erdtree at the Forge of the Giants",
+      "albinaurics before: Burn the Erdtree at the Forge of the Giants",
+      "omenkiller before: Burn the Erdtree at the Forge of the Giants",
+      "give-stormhawk before: Defeat Maliketh, the Black Blade"
+    ]
+  },
+  "shoe": {
+    "outcome": "InProgress",
+    "progress": "1/12",
+    "steps": {
+      "meet": "Done",
+      "godrick-summon-sign": "Unknown",
+      "arsenal-charm": "Available",
+      "leaves-hold": "Upcoming",
+      "albinaurics": "Upcoming",
+      "omenkiller-summon-sign": "Upcoming",
+      "omenkiller": "Upcoming",
+      "back-at-hold": "Upcoming",
+      "gideon-news": "Upcoming",
+      "stormhawk-king": "Upcoming",
+      "give-stormhawk": "Upcoming",
+      "lord": "Upcoming",
+      "smithing-stone": "Upcoming",
+      "godfrey-summon-sign": "Upcoming",
+      "potion": "Upcoming"
+    },
+    "warnings": [
+      "arsenal-charm before: Burn the Erdtree at the Forge of the Giants",
+      "leaves-hold before: Burn the Erdtree at the Forge of the Giants",
+      "albinaurics before: Burn the Erdtree at the Forge of the Giants",
+      "omenkiller-summon-sign before: Defeat the Omenkiller at the Village of the Albinaurics",
+      "omenkiller before: Burn the Erdtree at the Forge of the Giants",
+      "give-stormhawk before: Defeat Maliketh, the Black Blade"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/12",
+    "steps": {
+      "meet": "Available",
+      "godrick-summon-sign": "Upcoming",
+      "arsenal-charm": "Upcoming",
+      "leaves-hold": "Upcoming",
+      "albinaurics": "Upcoming",
+      "omenkiller-summon-sign": "Upcoming",
+      "omenkiller": "Upcoming",
+      "back-at-hold": "Upcoming",
+      "gideon-news": "Upcoming",
+      "stormhawk-king": "Upcoming",
+      "give-stormhawk": "Upcoming",
+      "lord": "Upcoming",
+      "smithing-stone": "Upcoming",
+      "godfrey-summon-sign": "Upcoming",
+      "potion": "Upcoming"
+    },
+    "warnings": [
+      "godrick-summon-sign before: Defeat Godrick the Grafted",
+      "arsenal-charm before: Burn the Erdtree at the Forge of the Giants",
+      "leaves-hold before: Burn the Erdtree at the Forge of the Giants",
+      "albinaurics before: Burn the Erdtree at the Forge of the Giants",
+      "omenkiller-summon-sign before: Defeat the Omenkiller at the Village of the Albinaurics",
+      "omenkiller before: Burn the Erdtree at the Forge of the Giants",
+      "give-stormhawk before: Defeat Maliketh, the Black Blade"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "6/12",
+    "steps": {
+      "meet": "Done",
+      "godrick-summon-sign": "Unknown",
+      "arsenal-charm": "Done",
+      "leaves-hold": "Done",
+      "albinaurics": "Done",
+      "omenkiller-summon-sign": "Unknown",
+      "omenkiller": "Done",
+      "back-at-hold": "Done",
+      "gideon-news": "Blocked",
+      "stormhawk-king": "Upcoming",
+      "give-stormhawk": "Upcoming",
+      "lord": "Upcoming",
+      "smithing-stone": "Upcoming",
+      "godfrey-summon-sign": "Upcoming",
+      "potion": "Upcoming"
+    },
+    "warnings": [
+      "give-stormhawk before: Defeat Maliketh, the Black Blade"
+    ]
+  }
+}

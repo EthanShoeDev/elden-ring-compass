@@ -1,0 +1,92 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "1/10",
+    "steps": {
+      "meet": "Done",
+      "seedbed-curse": "Available",
+      "sewer-key": "Upcoming",
+      "release": "Upcoming",
+      "invader": "Upcoming",
+      "message": "Upcoming",
+      "give-potion": "Upcoming",
+      "gather-curses": "Upcoming",
+      "feed-curses": "Upcoming",
+      "rune-pickup": "Upcoming",
+      "armor-pickup": "Upcoming"
+    },
+    "warnings": []
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "meet": "Available",
+      "seedbed-curse": "Upcoming",
+      "sewer-key": "Upcoming",
+      "release": "Upcoming",
+      "invader": "Upcoming",
+      "message": "Upcoming",
+      "give-potion": "Upcoming",
+      "gather-curses": "Upcoming",
+      "feed-curses": "Upcoming",
+      "rune-pickup": "Upcoming",
+      "armor-pickup": "Upcoming"
+    },
+    "warnings": []
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "meet": "Available",
+      "seedbed-curse": "Upcoming",
+      "sewer-key": "Upcoming",
+      "release": "Upcoming",
+      "invader": "Upcoming",
+      "message": "Upcoming",
+      "give-potion": "Upcoming",
+      "gather-curses": "Upcoming",
+      "feed-curses": "Upcoming",
+      "rune-pickup": "Upcoming",
+      "armor-pickup": "Upcoming"
+    },
+    "warnings": []
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/10",
+    "steps": {
+      "meet": "Available",
+      "seedbed-curse": "Upcoming",
+      "sewer-key": "Upcoming",
+      "release": "Upcoming",
+      "invader": "Upcoming",
+      "message": "Upcoming",
+      "give-potion": "Upcoming",
+      "gather-curses": "Upcoming",
+      "feed-curses": "Upcoming",
+      "rune-pickup": "Upcoming",
+      "armor-pickup": "Upcoming"
+    },
+    "warnings": []
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "3/10",
+    "steps": {
+      "meet": "Done",
+      "seedbed-curse": "Done",
+      "sewer-key": "Done",
+      "release": "Available",
+      "invader": "Upcoming",
+      "message": "Upcoming",
+      "give-potion": "Upcoming",
+      "gather-curses": "Upcoming",
+      "feed-curses": "Upcoming",
+      "rune-pickup": "Upcoming",
+      "armor-pickup": "Upcoming"
+    },
+    "warnings": []
+  }
+}

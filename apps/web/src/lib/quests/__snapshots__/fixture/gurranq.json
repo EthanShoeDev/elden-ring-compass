@@ -1,0 +1,92 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "6/11",
+    "steps": {
+      "meet": "Done",
+      "deathroot-1": "Done",
+      "deathroot-2": "Done",
+      "deathroot-3": "Done",
+      "deathroot-4": "Done",
+      "frenzy": "Done",
+      "deathroot-5": "Blocked",
+      "deathroot-6": "Upcoming",
+      "deathroot-7": "Upcoming",
+      "deathroot-8": "Upcoming",
+      "deathroot-9": "Upcoming"
+    },
+    "warnings": []
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/11",
+    "steps": {
+      "meet": "Available",
+      "deathroot-1": "Upcoming",
+      "deathroot-2": "Upcoming",
+      "deathroot-3": "Upcoming",
+      "deathroot-4": "Upcoming",
+      "frenzy": "Upcoming",
+      "deathroot-5": "Upcoming",
+      "deathroot-6": "Upcoming",
+      "deathroot-7": "Upcoming",
+      "deathroot-8": "Upcoming",
+      "deathroot-9": "Upcoming"
+    },
+    "warnings": []
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/11",
+    "steps": {
+      "meet": "Available",
+      "deathroot-1": "Upcoming",
+      "deathroot-2": "Upcoming",
+      "deathroot-3": "Upcoming",
+      "deathroot-4": "Upcoming",
+      "frenzy": "Upcoming",
+      "deathroot-5": "Upcoming",
+      "deathroot-6": "Upcoming",
+      "deathroot-7": "Upcoming",
+      "deathroot-8": "Upcoming",
+      "deathroot-9": "Upcoming"
+    },
+    "warnings": []
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/11",
+    "steps": {
+      "meet": "Available",
+      "deathroot-1": "Upcoming",
+      "deathroot-2": "Upcoming",
+      "deathroot-3": "Upcoming",
+      "deathroot-4": "Upcoming",
+      "frenzy": "Upcoming",
+      "deathroot-5": "Upcoming",
+      "deathroot-6": "Upcoming",
+      "deathroot-7": "Upcoming",
+      "deathroot-8": "Upcoming",
+      "deathroot-9": "Upcoming"
+    },
+    "warnings": []
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "2/11",
+    "steps": {
+      "meet": "Done",
+      "deathroot-1": "Done",
+      "deathroot-2": "Available",
+      "deathroot-3": "Upcoming",
+      "deathroot-4": "Upcoming",
+      "frenzy": "Upcoming",
+      "deathroot-5": "Upcoming",
+      "deathroot-6": "Upcoming",
+      "deathroot-7": "Upcoming",
+      "deathroot-8": "Upcoming",
+      "deathroot-9": "Upcoming"
+    },
+    "warnings": []
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "4/5",
+    "steps": {
+      "welcome": "Done",
+      "his-room": "Done",
+      "shardbearers": "Done",
+      "about-nepheli": "Done",
+      "second-rune": "Done",
+      "give-potion": "Available",
+      "about-ensha": "Done",
+      "use-medallion": "Blocked",
+      "haligtree-roots": "Blocked",
+      "mohg-cocoon": "Blocked",
+      "mausoleum-news": "Available",
+      "after-burning": "Blocked"
+    },
+    "warnings": [
+      "give-potion before: Defeat Maliketh, the Black Blade",
+      "give-potion before: Choose “Give her Seluvis’s potion” (Nepheli Loux)",
+      "give-potion before: Choose “Feed him Seluvis’s Potion” (Dung Eater)",
+      "use-medallion before: Defeat Maliketh, the Black Blade",
+      "haligtree-roots before: Defeat Maliketh, the Black Blade",
+      "mohg-cocoon before: Defeat Maliketh, the Black Blade",
+      "mausoleum-news before: Defeat Maliketh, the Black Blade",
+      "after-burning before: Defeat Maliketh, the Black Blade"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/5",
+    "steps": {
+      "welcome": "Available",
+      "his-room": "Upcoming",
+      "shardbearers": "Upcoming",
+      "about-nepheli": "Upcoming",
+      "second-rune": "Upcoming",
+      "give-potion": "Upcoming",
+      "about-ensha": "Upcoming",
+      "use-medallion": "Upcoming",
+      "haligtree-roots": "Upcoming",
+      "mohg-cocoon": "Upcoming",
+      "mausoleum-news": "Upcoming",
+      "after-burning": "Upcoming"
+    },
+    "warnings": [
+      "welcome before: Defeat Maliketh, the Black Blade",
+      "his-room before: Defeat Maliketh, the Black Blade",
+      "shardbearers before: Defeat Maliketh, the Black Blade",
+      "about-nepheli before: Defeat Maliketh, the Black Blade",
+      "second-rune before: Defeat Maliketh, the Black Blade",
+      "give-potion before: Defeat Maliketh, the Black Blade",
+      "give-potion before: Choose “Give her Seluvis’s potion” (Nepheli Loux)",
+      "give-potion before: Choose “Feed him Seluvis’s Potion” (Dung Eater)",
+      "about-ensha before: Defeat Maliketh, the Black Blade",
+      "use-medallion before: Defeat Maliketh, the Black Blade",
+      "haligtree-roots before: Defeat Maliketh, the Black Blade",
+      "mohg-cocoon before: Defeat Maliketh, the Black Blade",
+      "mausoleum-news before: Defeat Maliketh, the Black Blade",
+      "after-burning before: Defeat Maliketh, the Black Blade"
+    ]
+  },
+  "shoe": {
+    "outcome": "InProgress",
+    "progress": "1/5",
+    "steps": {
+      "welcome": "Done",
+      "his-room": "Available",
+      "shardbearers": "Upcoming",
+      "about-nepheli": "Upcoming",
+      "second-rune": "Upcoming",
+      "give-potion": "Upcoming",
+      "about-ensha": "Upcoming",
+      "use-medallion": "Upcoming",
+      "haligtree-roots": "Upcoming",
+      "mohg-cocoon": "Upcoming",
+      "mausoleum-news": "Upcoming",
+      "after-burning": "Upcoming"
+    },
+    "warnings": [
+      "his-room before: Defeat Maliketh, the Black Blade",
+      "shardbearers before: Defeat Maliketh, the Black Blade",
+      "about-nepheli before: Defeat Maliketh, the Black Blade",
+      "second-rune before: Defeat Maliketh, the Black Blade",
+      "give-potion before: Defeat Maliketh, the Black Blade",
+      "give-potion before: Choose “Give her Seluvis’s potion” (Nepheli Loux)",
+      "give-potion before: Choose “Feed him Seluvis’s Potion” (Dung Eater)",
+      "about-ensha before: Defeat Maliketh, the Black Blade",
+      "use-medallion before: Defeat Maliketh, the Black Blade",
+      "haligtree-roots before: Defeat Maliketh, the Black Blade",
+      "mohg-cocoon before: Defeat Maliketh, the Black Blade",
+      "mausoleum-news before: Defeat Maliketh, the Black Blade",
+      "after-burning before: Defeat Maliketh, the Black Blade"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/5",
+    "steps": {
+      "welcome": "Available",
+      "his-room": "Upcoming",
+      "shardbearers": "Upcoming",
+      "about-nepheli": "Upcoming",
+      "second-rune": "Upcoming",
+      "give-potion": "Upcoming",
+      "about-ensha": "Upcoming",
+      "use-medallion": "Upcoming",
+      "haligtree-roots": "Upcoming",
+      "mohg-cocoon": "Upcoming",
+      "mausoleum-news": "Upcoming",
+      "after-burning": "Upcoming"
+    },
+    "warnings": [
+      "welcome before: Defeat Maliketh, the Black Blade",
+      "his-room before: Defeat Maliketh, the Black Blade",
+      "shardbearers before: Defeat Maliketh, the Black Blade",
+      "about-nepheli before: Defeat Maliketh, the Black Blade",
+      "second-rune before: Defeat Maliketh, the Black Blade",
+      "give-potion before: Defeat Maliketh, the Black Blade",
+      "give-potion before: Choose “Give her Seluvis’s potion” (Nepheli Loux)",
+      "give-potion before: Choose “Feed him Seluvis’s Potion” (Dung Eater)",
+      "about-ensha before: Defeat Maliketh, the Black Blade",
+      "use-medallion before: Defeat Maliketh, the Black Blade",
+      "haligtree-roots before: Defeat Maliketh, the Black Blade",
+      "mohg-cocoon before: Defeat Maliketh, the Black Blade",
+      "mausoleum-news before: Defeat Maliketh, the Black Blade",
+      "after-burning before: Defeat Maliketh, the Black Blade"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "4/5",
+    "steps": {
+      "welcome": "Done",
+      "his-room": "Inferred",
+      "shardbearers": "Done",
+      "about-nepheli": "Available",
+      "second-rune": "Done",
+      "give-potion": "Available",
+      "about-ensha": "Available",
+      "use-medallion": "Available",
+      "haligtree-roots": "Blocked",
+      "mohg-cocoon": "Blocked",
+      "mausoleum-news": "Available",
+      "after-burning": "Blocked"
+    },
+    "warnings": [
+      "about-nepheli before: Defeat Maliketh, the Black Blade",
+      "give-potion before: Defeat Maliketh, the Black Blade",
+      "give-potion before: Choose “Give her Seluvis’s potion” (Nepheli Loux)",
+      "give-potion before: Choose “Feed him Seluvis’s Potion” (Dung Eater)",
+      "about-ensha before: Defeat Maliketh, the Black Blade",
+      "use-medallion before: Defeat Maliketh, the Black Blade",
+      "haligtree-roots before: Defeat Maliketh, the Black Blade",
+      "mohg-cocoon before: Defeat Maliketh, the Black Blade",
+      "mausoleum-news before: Defeat Maliketh, the Black Blade",
+      "after-burning before: Defeat Maliketh, the Black Blade"
+    ]
+  }
+}

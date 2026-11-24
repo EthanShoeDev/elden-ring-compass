@@ -1,0 +1,157 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/9",
+    "steps": {
+      "meet": "Available",
+      "get-concoction": "Blocked",
+      "after-charm": "Blocked",
+      "learn-search": "Upcoming",
+      "summon-putrescent": "Upcoming",
+      "find-trina": "Upcoming",
+      "tell-him": "Upcoming",
+      "with-trina": "Upcoming",
+      "imbibe": "Upcoming",
+      "relay": "Upcoming",
+      "invasion": "Upcoming",
+      "talk-after": "Upcoming",
+      "summon-faithful": "Upcoming",
+      "summon-radahn": "Upcoming",
+      "thiollier-gear": "Upcoming",
+      "blossom": "Upcoming"
+    },
+    "warnings": [
+      "get-concoction before: Let Thiollier leave the Pillar Path Cross",
+      "learn-search before: Defeat the Putrescent Knight",
+      "summon-putrescent before: Defeat the Putrescent Knight",
+      "invasion before: Defeat Miquella’s Faithful (Leda and her allies) in Enir-Ilim",
+      "invasion before: Kill Thiollier",
+      "summon-faithful before: Defeat Miquella’s Faithful (Leda and her allies) in Enir-Ilim",
+      "summon-radahn before: Defeat Promised Consort Radahn"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/9",
+    "steps": {
+      "meet": "Available",
+      "get-concoction": "Blocked",
+      "after-charm": "Blocked",
+      "learn-search": "Upcoming",
+      "summon-putrescent": "Upcoming",
+      "find-trina": "Upcoming",
+      "tell-him": "Upcoming",
+      "with-trina": "Upcoming",
+      "imbibe": "Upcoming",
+      "relay": "Upcoming",
+      "invasion": "Upcoming",
+      "talk-after": "Upcoming",
+      "summon-faithful": "Upcoming",
+      "summon-radahn": "Upcoming",
+      "thiollier-gear": "Upcoming",
+      "blossom": "Upcoming"
+    },
+    "warnings": [
+      "get-concoction before: Let Thiollier leave the Pillar Path Cross",
+      "learn-search before: Defeat the Putrescent Knight",
+      "summon-putrescent before: Defeat the Putrescent Knight",
+      "invasion before: Defeat Miquella’s Faithful (Leda and her allies) in Enir-Ilim",
+      "invasion before: Kill Thiollier",
+      "summon-faithful before: Defeat Miquella’s Faithful (Leda and her allies) in Enir-Ilim",
+      "summon-radahn before: Defeat Promised Consort Radahn"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/9",
+    "steps": {
+      "meet": "Available",
+      "get-concoction": "Blocked",
+      "after-charm": "Blocked",
+      "learn-search": "Upcoming",
+      "summon-putrescent": "Upcoming",
+      "find-trina": "Upcoming",
+      "tell-him": "Upcoming",
+      "with-trina": "Upcoming",
+      "imbibe": "Upcoming",
+      "relay": "Upcoming",
+      "invasion": "Upcoming",
+      "talk-after": "Upcoming",
+      "summon-faithful": "Upcoming",
+      "summon-radahn": "Upcoming",
+      "thiollier-gear": "Upcoming",
+      "blossom": "Upcoming"
+    },
+    "warnings": [
+      "get-concoction before: Let Thiollier leave the Pillar Path Cross",
+      "learn-search before: Defeat the Putrescent Knight",
+      "summon-putrescent before: Defeat the Putrescent Knight",
+      "invasion before: Defeat Miquella’s Faithful (Leda and her allies) in Enir-Ilim",
+      "invasion before: Kill Thiollier",
+      "summon-faithful before: Defeat Miquella’s Faithful (Leda and her allies) in Enir-Ilim",
+      "summon-radahn before: Defeat Promised Consort Radahn"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/9",
+    "steps": {
+      "meet": "Available",
+      "get-concoction": "Blocked",
+      "after-charm": "Blocked",
+      "learn-search": "Upcoming",
+      "summon-putrescent": "Upcoming",
+      "find-trina": "Upcoming",
+      "tell-him": "Upcoming",
+      "with-trina": "Upcoming",
+      "imbibe": "Upcoming",
+      "relay": "Upcoming",
+      "invasion": "Upcoming",
+      "talk-after": "Upcoming",
+      "summon-faithful": "Upcoming",
+      "summon-radahn": "Upcoming",
+      "thiollier-gear": "Upcoming",
+      "blossom": "Upcoming"
+    },
+    "warnings": [
+      "get-concoction before: Let Thiollier leave the Pillar Path Cross",
+      "learn-search before: Defeat the Putrescent Knight",
+      "summon-putrescent before: Defeat the Putrescent Knight",
+      "invasion before: Defeat Miquella’s Faithful (Leda and her allies) in Enir-Ilim",
+      "invasion before: Kill Thiollier",
+      "summon-faithful before: Defeat Miquella’s Faithful (Leda and her allies) in Enir-Ilim",
+      "summon-radahn before: Defeat Promised Consort Radahn"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/9",
+    "steps": {
+      "meet": "Available",
+      "get-concoction": "Blocked",
+      "after-charm": "Blocked",
+      "learn-search": "Upcoming",
+      "summon-putrescent": "Upcoming",
+      "find-trina": "Upcoming",
+      "tell-him": "Upcoming",
+      "with-trina": "Upcoming",
+      "imbibe": "Upcoming",
+      "relay": "Upcoming",
+      "invasion": "Upcoming",
+      "talk-after": "Upcoming",
+      "summon-faithful": "Upcoming",
+      "summon-radahn": "Upcoming",
+      "thiollier-gear": "Upcoming",
+      "blossom": "Upcoming"
+    },
+    "warnings": [
+      "get-concoction before: Let Thiollier leave the Pillar Path Cross",
+      "learn-search before: Defeat the Putrescent Knight",
+      "summon-putrescent before: Defeat the Putrescent Knight",
+      "invasion before: Defeat Miquella’s Faithful (Leda and her allies) in Enir-Ilim",
+      "invasion before: Kill Thiollier",
+      "summon-faithful before: Defeat Miquella’s Faithful (Leda and her allies) in Enir-Ilim",
+      "summon-radahn before: Defeat Promised Consort Radahn"
+    ]
+  }
+}

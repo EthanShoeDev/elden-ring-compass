@@ -1,0 +1,92 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "2/4",
+    "steps": {
+      "meet-limgrave": "Locked (condition): D has moved to Roundtable Hold",
+      "show-deathroot": "Locked (condition): You found Gurranq on your own",
+      "roundtable": "Done",
+      "after-gurranq": "Done",
+      "rogier-talk": "Available",
+      "give-dagger": "Blocked",
+      "loot-armor": "Upcoming"
+    },
+    "warnings": [
+      "rogier-talk before: D has died",
+      "give-dagger before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet-limgrave": "Locked (condition): D has moved to Roundtable Hold",
+      "show-deathroot": "Blocked",
+      "roundtable": "Available",
+      "after-gurranq": "Upcoming",
+      "rogier-talk": "Upcoming",
+      "give-dagger": "Upcoming",
+      "loot-armor": "Upcoming"
+    },
+    "warnings": [
+      "show-deathroot before: You found Gurranq on your own",
+      "rogier-talk before: D has died",
+      "give-dagger before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet-limgrave": "Available",
+      "show-deathroot": "Blocked",
+      "roundtable": "Blocked",
+      "after-gurranq": "Upcoming",
+      "rogier-talk": "Upcoming",
+      "give-dagger": "Upcoming",
+      "loot-armor": "Upcoming"
+    },
+    "warnings": [
+      "meet-limgrave before: D has moved to Roundtable Hold",
+      "show-deathroot before: You found Gurranq on your own",
+      "rogier-talk before: D has died",
+      "give-dagger before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet-limgrave": "Available",
+      "show-deathroot": "Blocked",
+      "roundtable": "Blocked",
+      "after-gurranq": "Upcoming",
+      "rogier-talk": "Upcoming",
+      "give-dagger": "Upcoming",
+      "loot-armor": "Upcoming"
+    },
+    "warnings": [
+      "meet-limgrave before: D has moved to Roundtable Hold",
+      "show-deathroot before: You found Gurranq on your own",
+      "rogier-talk before: D has died",
+      "give-dagger before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "0/4",
+    "steps": {
+      "meet-limgrave": "Locked (condition): D has moved to Roundtable Hold",
+      "show-deathroot": "Done",
+      "roundtable": "Available",
+      "after-gurranq": "Upcoming",
+      "rogier-talk": "Upcoming",
+      "give-dagger": "Upcoming",
+      "loot-armor": "Upcoming"
+    },
+    "warnings": [
+      "rogier-talk before: D has died",
+      "give-dagger before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  }
+}

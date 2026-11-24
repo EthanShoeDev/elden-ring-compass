@@ -1,0 +1,146 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "4/13",
+    "steps": {
+      "meet-renna": "Locked (gate): Light any Site of Grace in Liurnia",
+      "reach-rise": "Done",
+      "join": "Done",
+      "retainers": "Done",
+      "slumber": "Done",
+      "fingerslayer": "Available",
+      "give-blade": "Upcoming",
+      "cursemark": "Upcoming",
+      "miniature-ranni": "Upcoming",
+      "doll-speaks": "Upcoming",
+      "doll-nokstella": "Upcoming",
+      "doll-waterfall": "Upcoming",
+      "baleful-shadow": "Upcoming",
+      "dark-moon-ring": "Upcoming",
+      "cathedral": "Upcoming",
+      "farewell": "Upcoming",
+      "greatsword-pickup": "Upcoming",
+      "doll-chamber": "Upcoming",
+      "choose-age-of-stars": "Upcoming"
+    },
+    "warnings": [
+      "doll-nokstella before: Defeat the Baleful Shadow",
+      "doll-waterfall before: Defeat the Baleful Shadow"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/13",
+    "steps": {
+      "meet-renna": "Locked (gate): Light any Site of Grace in Liurnia",
+      "reach-rise": "Blocked",
+      "join": "Upcoming",
+      "retainers": "Upcoming",
+      "slumber": "Upcoming",
+      "fingerslayer": "Upcoming",
+      "give-blade": "Upcoming",
+      "cursemark": "Upcoming",
+      "miniature-ranni": "Upcoming",
+      "doll-speaks": "Upcoming",
+      "doll-nokstella": "Upcoming",
+      "doll-waterfall": "Upcoming",
+      "baleful-shadow": "Upcoming",
+      "dark-moon-ring": "Upcoming",
+      "cathedral": "Upcoming",
+      "farewell": "Upcoming",
+      "greatsword-pickup": "Upcoming",
+      "doll-chamber": "Upcoming",
+      "choose-age-of-stars": "Upcoming"
+    },
+    "warnings": [
+      "doll-nokstella before: Defeat the Baleful Shadow",
+      "doll-waterfall before: Defeat the Baleful Shadow"
+    ]
+  },
+  "shoe": {
+    "outcome": "InProgress",
+    "progress": "0/13",
+    "steps": {
+      "meet-renna": "Done",
+      "reach-rise": "Blocked",
+      "join": "Upcoming",
+      "retainers": "Upcoming",
+      "slumber": "Upcoming",
+      "fingerslayer": "Upcoming",
+      "give-blade": "Upcoming",
+      "cursemark": "Upcoming",
+      "miniature-ranni": "Upcoming",
+      "doll-speaks": "Upcoming",
+      "doll-nokstella": "Upcoming",
+      "doll-waterfall": "Upcoming",
+      "baleful-shadow": "Upcoming",
+      "dark-moon-ring": "Upcoming",
+      "cathedral": "Upcoming",
+      "farewell": "Upcoming",
+      "greatsword-pickup": "Upcoming",
+      "doll-chamber": "Upcoming",
+      "choose-age-of-stars": "Upcoming"
+    },
+    "warnings": [
+      "doll-nokstella before: Defeat the Baleful Shadow",
+      "doll-waterfall before: Defeat the Baleful Shadow"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/13",
+    "steps": {
+      "meet-renna": "Available",
+      "reach-rise": "Blocked",
+      "join": "Upcoming",
+      "retainers": "Upcoming",
+      "slumber": "Upcoming",
+      "fingerslayer": "Upcoming",
+      "give-blade": "Upcoming",
+      "cursemark": "Upcoming",
+      "miniature-ranni": "Upcoming",
+      "doll-speaks": "Upcoming",
+      "doll-nokstella": "Upcoming",
+      "doll-waterfall": "Upcoming",
+      "baleful-shadow": "Upcoming",
+      "dark-moon-ring": "Upcoming",
+      "cathedral": "Upcoming",
+      "farewell": "Upcoming",
+      "greatsword-pickup": "Upcoming",
+      "doll-chamber": "Upcoming",
+      "choose-age-of-stars": "Upcoming"
+    },
+    "warnings": [
+      "meet-renna before: Light any Site of Grace in Liurnia",
+      "meet-renna before: Reach Ranni at her Rise",
+      "doll-nokstella before: Defeat the Baleful Shadow",
+      "doll-waterfall before: Defeat the Baleful Shadow"
+    ]
+  },
+  "sam": {
+    "outcome": "Completed",
+    "progress": "13/13",
+    "steps": {
+      "meet-renna": "Done",
+      "reach-rise": "Done",
+      "join": "Done",
+      "retainers": "Done",
+      "slumber": "Done",
+      "fingerslayer": "Done",
+      "give-blade": "Done",
+      "cursemark": "Inferred",
+      "miniature-ranni": "Done",
+      "doll-speaks": "Done",
+      "doll-nokstella": "Done",
+      "doll-waterfall": "Locked (condition): The Baleful Shadow is dead and the doll has gone quiet",
+      "baleful-shadow": "Done",
+      "dark-moon-ring": "Done",
+      "cathedral": "Done",
+      "farewell": "Done",
+      "greatsword-pickup": "Available",
+      "doll-chamber": "Available",
+      "choose-age-of-stars": "Upcoming"
+    },
+    "warnings": []
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Available",
+      "black-syrup": "Blocked",
+      "brood-cookbooks": "Available",
+      "cookbook-7": "Available",
+      "question": "Blocked",
+      "answer-put-behind": "Upcoming",
+      "faithful": "Upcoming",
+      "enir-gear": "Upcoming",
+      "answer-sad": "Upcoming",
+      "church-gear": "Upcoming"
+    },
+    "warnings": [
+      "black-syrup before: Let Thiollier leave the Pillar Path Cross",
+      "black-syrup before: Let Moore die of sorrow",
+      "brood-cookbooks before: Choose “Put it behind you” (Moore)",
+      "brood-cookbooks before: Choose “Remain sad forever” (Moore)",
+      "cookbook-7 before: Choose “Put it behind you” (Moore)",
+      "cookbook-7 before: Choose “Remain sad forever” (Moore)",
+      "question before: Burn the Sealing Tree and enter Enir-Ilim"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Available",
+      "black-syrup": "Blocked",
+      "brood-cookbooks": "Available",
+      "cookbook-7": "Available",
+      "question": "Blocked",
+      "answer-put-behind": "Upcoming",
+      "faithful": "Upcoming",
+      "enir-gear": "Upcoming",
+      "answer-sad": "Upcoming",
+      "church-gear": "Upcoming"
+    },
+    "warnings": [
+      "black-syrup before: Let Thiollier leave the Pillar Path Cross",
+      "black-syrup before: Let Moore die of sorrow",
+      "brood-cookbooks before: Choose “Put it behind you” (Moore)",
+      "brood-cookbooks before: Choose “Remain sad forever” (Moore)",
+      "cookbook-7 before: Choose “Put it behind you” (Moore)",
+      "cookbook-7 before: Choose “Remain sad forever” (Moore)",
+      "question before: Burn the Sealing Tree and enter Enir-Ilim"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Available",
+      "black-syrup": "Blocked",
+      "brood-cookbooks": "Available",
+      "cookbook-7": "Available",
+      "question": "Blocked",
+      "answer-put-behind": "Upcoming",
+      "faithful": "Upcoming",
+      "enir-gear": "Upcoming",
+      "answer-sad": "Upcoming",
+      "church-gear": "Upcoming"
+    },
+    "warnings": [
+      "black-syrup before: Let Thiollier leave the Pillar Path Cross",
+      "black-syrup before: Let Moore die of sorrow",
+      "brood-cookbooks before: Choose “Put it behind you” (Moore)",
+      "brood-cookbooks before: Choose “Remain sad forever” (Moore)",
+      "cookbook-7 before: Choose “Put it behind you” (Moore)",
+      "cookbook-7 before: Choose “Remain sad forever” (Moore)",
+      "question before: Burn the Sealing Tree and enter Enir-Ilim"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Available",
+      "black-syrup": "Blocked",
+      "brood-cookbooks": "Available",
+      "cookbook-7": "Available",
+      "question": "Blocked",
+      "answer-put-behind": "Upcoming",
+      "faithful": "Upcoming",
+      "enir-gear": "Upcoming",
+      "answer-sad": "Upcoming",
+      "church-gear": "Upcoming"
+    },
+    "warnings": [
+      "black-syrup before: Let Thiollier leave the Pillar Path Cross",
+      "black-syrup before: Let Moore die of sorrow",
+      "brood-cookbooks before: Choose “Put it behind you” (Moore)",
+      "brood-cookbooks before: Choose “Remain sad forever” (Moore)",
+      "cookbook-7 before: Choose “Put it behind you” (Moore)",
+      "cookbook-7 before: Choose “Remain sad forever” (Moore)",
+      "question before: Burn the Sealing Tree and enter Enir-Ilim"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/7",
+    "steps": {
+      "meet": "Available",
+      "black-syrup": "Blocked",
+      "brood-cookbooks": "Available",
+      "cookbook-7": "Available",
+      "question": "Blocked",
+      "answer-put-behind": "Upcoming",
+      "faithful": "Upcoming",
+      "enir-gear": "Upcoming",
+      "answer-sad": "Upcoming",
+      "church-gear": "Upcoming"
+    },
+    "warnings": [
+      "black-syrup before: Let Thiollier leave the Pillar Path Cross",
+      "black-syrup before: Let Moore die of sorrow",
+      "brood-cookbooks before: Choose “Put it behind you” (Moore)",
+      "brood-cookbooks before: Choose “Remain sad forever” (Moore)",
+      "cookbook-7 before: Choose “Put it behind you” (Moore)",
+      "cookbook-7 before: Choose “Remain sad forever” (Moore)",
+      "question before: Burn the Sealing Tree and enter Enir-Ilim"
+    ]
+  }
+}

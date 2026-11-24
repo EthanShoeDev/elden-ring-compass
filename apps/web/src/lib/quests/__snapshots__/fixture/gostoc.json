@@ -1,0 +1,75 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "2/4",
+    "steps": {
+      "meet": "Done",
+      "enter": "Done",
+      "early-shop-open": "Done",
+      "after-godrick": "Available",
+      "throne-room": "Upcoming"
+    },
+    "warnings": [
+      "throne-room before: Choose “Give her Seluvis’s potion” (Nepheli Loux)",
+      "throne-room before: Let Nepheli Loux die"
+    ]
+  },
+  "Yager": {
+    "outcome": "InProgress",
+    "progress": "3/4",
+    "steps": {
+      "meet": "Inferred",
+      "enter": "Inferred",
+      "early-shop-open": "Done",
+      "after-godrick": "Done",
+      "throne-room": "Blocked"
+    },
+    "warnings": [
+      "throne-room before: Choose “Give her Seluvis’s potion” (Nepheli Loux)",
+      "throne-room before: Let Nepheli Loux die"
+    ]
+  },
+  "shoe": {
+    "outcome": "InProgress",
+    "progress": "3/4",
+    "steps": {
+      "meet": "Done",
+      "enter": "Done",
+      "early-shop-open": "Done",
+      "after-godrick": "Done",
+      "throne-room": "Blocked"
+    },
+    "warnings": [
+      "throne-room before: Choose “Give her Seluvis’s potion” (Nepheli Loux)",
+      "throne-room before: Let Nepheli Loux die"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "enter": "Upcoming",
+      "early-shop-open": "Upcoming",
+      "after-godrick": "Upcoming",
+      "throne-room": "Upcoming"
+    },
+    "warnings": [
+      "early-shop-open before: Defeat Godrick the Grafted",
+      "throne-room before: Choose “Give her Seluvis’s potion” (Nepheli Loux)",
+      "throne-room before: Let Nepheli Loux die"
+    ]
+  },
+  "sam": {
+    "outcome": "LockedOut: Gatekeeper Gostoc is dead",
+    "progress": "2/4",
+    "steps": {
+      "meet": "Done",
+      "enter": "Done",
+      "early-shop-open": "Done",
+      "after-godrick": "Locked (npc): Gatekeeper Gostoc is dead",
+      "throne-room": "Locked (npc): Gatekeeper Gostoc is dead"
+    },
+    "warnings": []
+  }
+}

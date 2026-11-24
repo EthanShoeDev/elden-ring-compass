@@ -1,0 +1,171 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "0/8",
+    "steps": {
+      "meet": "Done",
+      "talk-in-secret": "Done",
+      "knifeprint-clue": "Blocked",
+      "weathered-dagger": "Available",
+      "deliver-dagger": "Upcoming",
+      "over-d-body": "Upcoming",
+      "champions": "Blocked",
+      "held-deeproot": "Upcoming",
+      "cursemark": "Upcoming",
+      "give-cursemark": "Upcoming",
+      "godwyn-talk": "Upcoming",
+      "farewell": "Upcoming",
+      "fortissax": "Upcoming",
+      "mending-rune": "Upcoming",
+      "fia-set-pickup": "Upcoming"
+    },
+    "warnings": [
+      "knifeprint-clue before: Fia has left Roundtable Hold",
+      "knifeprint-clue before: Burn the Erdtree at the Forge of the Giants",
+      "weathered-dagger before: Fia has left Roundtable Hold",
+      "weathered-dagger before: Burn the Erdtree at the Forge of the Giants",
+      "deliver-dagger before: Fia has left Roundtable Hold",
+      "deliver-dagger before: Burn the Erdtree at the Forge of the Giants",
+      "over-d-body before: Fia has left Roundtable Hold",
+      "over-d-body before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/8",
+    "steps": {
+      "meet": "Available",
+      "talk-in-secret": "Upcoming",
+      "knifeprint-clue": "Upcoming",
+      "weathered-dagger": "Upcoming",
+      "deliver-dagger": "Upcoming",
+      "over-d-body": "Upcoming",
+      "champions": "Blocked",
+      "held-deeproot": "Upcoming",
+      "cursemark": "Upcoming",
+      "give-cursemark": "Upcoming",
+      "godwyn-talk": "Upcoming",
+      "farewell": "Upcoming",
+      "fortissax": "Upcoming",
+      "mending-rune": "Upcoming",
+      "fia-set-pickup": "Upcoming"
+    },
+    "warnings": [
+      "meet before: Fia has left Roundtable Hold",
+      "meet before: Burn the Erdtree at the Forge of the Giants",
+      "talk-in-secret before: Fia has left Roundtable Hold",
+      "talk-in-secret before: Burn the Erdtree at the Forge of the Giants",
+      "knifeprint-clue before: Fia has left Roundtable Hold",
+      "knifeprint-clue before: Burn the Erdtree at the Forge of the Giants",
+      "weathered-dagger before: Fia has left Roundtable Hold",
+      "weathered-dagger before: Burn the Erdtree at the Forge of the Giants",
+      "deliver-dagger before: Fia has left Roundtable Hold",
+      "deliver-dagger before: Burn the Erdtree at the Forge of the Giants",
+      "over-d-body before: Fia has left Roundtable Hold",
+      "over-d-body before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/8",
+    "steps": {
+      "meet": "Available",
+      "talk-in-secret": "Upcoming",
+      "knifeprint-clue": "Upcoming",
+      "weathered-dagger": "Upcoming",
+      "deliver-dagger": "Upcoming",
+      "over-d-body": "Upcoming",
+      "champions": "Blocked",
+      "held-deeproot": "Upcoming",
+      "cursemark": "Upcoming",
+      "give-cursemark": "Upcoming",
+      "godwyn-talk": "Upcoming",
+      "farewell": "Upcoming",
+      "fortissax": "Upcoming",
+      "mending-rune": "Upcoming",
+      "fia-set-pickup": "Upcoming"
+    },
+    "warnings": [
+      "meet before: Fia has left Roundtable Hold",
+      "meet before: Burn the Erdtree at the Forge of the Giants",
+      "talk-in-secret before: Fia has left Roundtable Hold",
+      "talk-in-secret before: Burn the Erdtree at the Forge of the Giants",
+      "knifeprint-clue before: Fia has left Roundtable Hold",
+      "knifeprint-clue before: Burn the Erdtree at the Forge of the Giants",
+      "weathered-dagger before: Fia has left Roundtable Hold",
+      "weathered-dagger before: Burn the Erdtree at the Forge of the Giants",
+      "deliver-dagger before: Fia has left Roundtable Hold",
+      "deliver-dagger before: Burn the Erdtree at the Forge of the Giants",
+      "over-d-body before: Fia has left Roundtable Hold",
+      "over-d-body before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/8",
+    "steps": {
+      "meet": "Available",
+      "talk-in-secret": "Upcoming",
+      "knifeprint-clue": "Upcoming",
+      "weathered-dagger": "Upcoming",
+      "deliver-dagger": "Upcoming",
+      "over-d-body": "Upcoming",
+      "champions": "Blocked",
+      "held-deeproot": "Upcoming",
+      "cursemark": "Upcoming",
+      "give-cursemark": "Upcoming",
+      "godwyn-talk": "Upcoming",
+      "farewell": "Upcoming",
+      "fortissax": "Upcoming",
+      "mending-rune": "Upcoming",
+      "fia-set-pickup": "Upcoming"
+    },
+    "warnings": [
+      "meet before: Fia has left Roundtable Hold",
+      "meet before: Burn the Erdtree at the Forge of the Giants",
+      "talk-in-secret before: Fia has left Roundtable Hold",
+      "talk-in-secret before: Burn the Erdtree at the Forge of the Giants",
+      "knifeprint-clue before: Fia has left Roundtable Hold",
+      "knifeprint-clue before: Burn the Erdtree at the Forge of the Giants",
+      "weathered-dagger before: Fia has left Roundtable Hold",
+      "weathered-dagger before: Burn the Erdtree at the Forge of the Giants",
+      "deliver-dagger before: Fia has left Roundtable Hold",
+      "deliver-dagger before: Burn the Erdtree at the Forge of the Giants",
+      "over-d-body before: Fia has left Roundtable Hold",
+      "over-d-body before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "0/8",
+    "steps": {
+      "meet": "Done",
+      "talk-in-secret": "Available",
+      "knifeprint-clue": "Blocked",
+      "weathered-dagger": "Available",
+      "deliver-dagger": "Upcoming",
+      "over-d-body": "Upcoming",
+      "champions": "Blocked",
+      "held-deeproot": "Upcoming",
+      "cursemark": "Upcoming",
+      "give-cursemark": "Upcoming",
+      "godwyn-talk": "Upcoming",
+      "farewell": "Upcoming",
+      "fortissax": "Upcoming",
+      "mending-rune": "Upcoming",
+      "fia-set-pickup": "Upcoming"
+    },
+    "warnings": [
+      "talk-in-secret before: Fia has left Roundtable Hold",
+      "talk-in-secret before: Burn the Erdtree at the Forge of the Giants",
+      "knifeprint-clue before: Fia has left Roundtable Hold",
+      "knifeprint-clue before: Burn the Erdtree at the Forge of the Giants",
+      "weathered-dagger before: Fia has left Roundtable Hold",
+      "weathered-dagger before: Burn the Erdtree at the Forge of the Giants",
+      "deliver-dagger before: Fia has left Roundtable Hold",
+      "deliver-dagger before: Burn the Erdtree at the Forge of the Giants",
+      "over-d-body before: Fia has left Roundtable Hold",
+      "over-d-body before: Burn the Erdtree at the Forge of the Giants"
+    ]
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "3/4",
+    "steps": {
+      "meet": "Done",
+      "spirit": "Done",
+      "nokron-talk": "Done",
+      "why-evergaol": "Blocked",
+      "blaidds-end": "Blocked",
+      "loot": "Upcoming"
+    },
+    "warnings": [
+      "why-evergaol before: Defeat the maddened Blaidd"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "spirit": "Upcoming",
+      "nokron-talk": "Upcoming",
+      "why-evergaol": "Upcoming",
+      "blaidds-end": "Upcoming",
+      "loot": "Upcoming"
+    },
+    "warnings": [
+      "why-evergaol before: Defeat the maddened Blaidd"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "spirit": "Upcoming",
+      "nokron-talk": "Upcoming",
+      "why-evergaol": "Upcoming",
+      "blaidds-end": "Upcoming",
+      "loot": "Upcoming"
+    },
+    "warnings": [
+      "why-evergaol before: Defeat the maddened Blaidd"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/4",
+    "steps": {
+      "meet": "Available",
+      "spirit": "Upcoming",
+      "nokron-talk": "Upcoming",
+      "why-evergaol": "Upcoming",
+      "blaidds-end": "Upcoming",
+      "loot": "Upcoming"
+    },
+    "warnings": [
+      "why-evergaol before: Defeat the maddened Blaidd"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "2/4",
+    "steps": {
+      "meet": "Done",
+      "spirit": "Done",
+      "nokron-talk": "Available",
+      "why-evergaol": "Upcoming",
+      "blaidds-end": "Upcoming",
+      "loot": "Upcoming"
+    },
+    "warnings": [
+      "why-evergaol before: Defeat the maddened Blaidd"
+    ]
+  }
+}

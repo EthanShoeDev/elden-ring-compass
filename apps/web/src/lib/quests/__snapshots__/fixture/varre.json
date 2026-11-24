@@ -1,0 +1,104 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "8/10",
+    "steps": {
+      "meet": "Done",
+      "roundtable-chat-talk": "Locked (gate): Obtain a Great Rune",
+      "two-fingers": "Done",
+      "rose-church": "Done",
+      "bravo-message": "Locked (condition): Varré’s message is gone: you took his medal",
+      "festering-finger": "Done",
+      "trial": "Done",
+      "favor": "Done",
+      "soak-favor": "Done",
+      "medal": "Done",
+      "mohgwyn-invasion": "Available",
+      "final-words": "Upcoming"
+    },
+    "warnings": []
+  },
+  "Yager": {
+    "outcome": "InProgress",
+    "progress": "2/10",
+    "steps": {
+      "meet": "Inferred",
+      "roundtable-chat-talk": "Locked (gate): Obtain a Great Rune",
+      "two-fingers": "Done",
+      "rose-church": "Available",
+      "bravo-message": "Upcoming",
+      "festering-finger": "Upcoming",
+      "trial": "Upcoming",
+      "favor": "Upcoming",
+      "soak-favor": "Upcoming",
+      "medal": "Upcoming",
+      "mohgwyn-invasion": "Upcoming",
+      "final-words": "Upcoming"
+    },
+    "warnings": [
+      "bravo-message before: Accept the Pureblood Knight’s Medal from Varré"
+    ]
+  },
+  "shoe": {
+    "outcome": "InProgress",
+    "progress": "1/10",
+    "steps": {
+      "meet": "Done",
+      "roundtable-chat-talk": "Locked (gate): Obtain a Great Rune",
+      "two-fingers": "Available",
+      "rose-church": "Upcoming",
+      "bravo-message": "Upcoming",
+      "festering-finger": "Upcoming",
+      "trial": "Upcoming",
+      "favor": "Upcoming",
+      "soak-favor": "Upcoming",
+      "medal": "Upcoming",
+      "mohgwyn-invasion": "Upcoming",
+      "final-words": "Upcoming"
+    },
+    "warnings": [
+      "bravo-message before: Accept the Pureblood Knight’s Medal from Varré"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "InProgress",
+    "progress": "1/10",
+    "steps": {
+      "meet": "Done",
+      "roundtable-chat-talk": "Blocked",
+      "two-fingers": "Blocked",
+      "rose-church": "Upcoming",
+      "bravo-message": "Upcoming",
+      "festering-finger": "Upcoming",
+      "trial": "Upcoming",
+      "favor": "Upcoming",
+      "soak-favor": "Upcoming",
+      "medal": "Upcoming",
+      "mohgwyn-invasion": "Upcoming",
+      "final-words": "Upcoming"
+    },
+    "warnings": [
+      "roundtable-chat-talk before: Obtain a Great Rune",
+      "bravo-message before: Accept the Pureblood Knight’s Medal from Varré"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "8/10",
+    "steps": {
+      "meet": "Inferred",
+      "roundtable-chat-talk": "Locked (gate): Obtain a Great Rune",
+      "two-fingers": "Inferred",
+      "rose-church": "Done",
+      "bravo-message": "Locked (condition): Varré’s message is gone: you took his medal",
+      "festering-finger": "Done",
+      "trial": "Done",
+      "favor": "Done",
+      "soak-favor": "Done",
+      "medal": "Done",
+      "mohgwyn-invasion": "Available",
+      "final-words": "Upcoming"
+    },
+    "warnings": []
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "first": {
+    "outcome": "NotStarted",
+    "progress": "0/14",
+    "steps": {
+      "meet": "Available",
+      "give-needle": "Upcoming",
+      "shack": "Upcoming",
+      "makar-summon": "Unknown",
+      "erdtree-gazing": "Upcoming",
+      "prosthesis": "Upcoming",
+      "give-prosthesis": "Upcoming",
+      "apostle-summon": "Unknown",
+      "windmill": "Upcoming",
+      "sentinel-summon": "Unknown",
+      "kindred-summon": "Upcoming",
+      "snow-valley": "Upcoming",
+      "prayer-room": "Upcoming",
+      "signs": "Upcoming",
+      "assist-fight": "Upcoming",
+      "goodbye": "Upcoming",
+      "her-needle": "Upcoming",
+      "restore-needle": "Upcoming",
+      "defeat": "Upcoming"
+    },
+    "warnings": [
+      "kindred-summon before: Defeat the Black Blade Kindred in the Forbidden Lands"
+    ]
+  },
+  "Yager": {
+    "outcome": "NotStarted",
+    "progress": "0/14",
+    "steps": {
+      "meet": "Available",
+      "give-needle": "Upcoming",
+      "shack": "Upcoming",
+      "makar-summon": "Unknown",
+      "erdtree-gazing": "Upcoming",
+      "prosthesis": "Upcoming",
+      "give-prosthesis": "Upcoming",
+      "apostle-summon": "Upcoming",
+      "windmill": "Upcoming",
+      "sentinel-summon": "Unknown",
+      "kindred-summon": "Unknown",
+      "snow-valley": "Upcoming",
+      "prayer-room": "Upcoming",
+      "signs": "Upcoming",
+      "assist-fight": "Upcoming",
+      "goodbye": "Upcoming",
+      "her-needle": "Upcoming",
+      "restore-needle": "Upcoming",
+      "defeat": "Upcoming"
+    },
+    "warnings": [
+      "apostle-summon before: Defeat the Godskin Apostle at Windmill Village"
+    ]
+  },
+  "shoe": {
+    "outcome": "NotStarted",
+    "progress": "0/14",
+    "steps": {
+      "meet": "Available",
+      "give-needle": "Upcoming",
+      "shack": "Upcoming",
+      "makar-summon": "Upcoming",
+      "erdtree-gazing": "Upcoming",
+      "prosthesis": "Upcoming",
+      "give-prosthesis": "Upcoming",
+      "apostle-summon": "Upcoming",
+      "windmill": "Upcoming",
+      "sentinel-summon": "Upcoming",
+      "kindred-summon": "Upcoming",
+      "snow-valley": "Upcoming",
+      "prayer-room": "Upcoming",
+      "signs": "Upcoming",
+      "assist-fight": "Upcoming",
+      "goodbye": "Upcoming",
+      "her-needle": "Upcoming",
+      "restore-needle": "Upcoming",
+      "defeat": "Upcoming"
+    },
+    "warnings": [
+      "makar-summon before: Defeat Magma Wyrm Makar",
+      "apostle-summon before: Defeat the Godskin Apostle at Windmill Village",
+      "sentinel-summon before: Defeat the Draconic Tree Sentinel in the Capital Outskirts",
+      "kindred-summon before: Defeat the Black Blade Kindred in the Forbidden Lands"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/14",
+    "steps": {
+      "meet": "Available",
+      "give-needle": "Upcoming",
+      "shack": "Upcoming",
+      "makar-summon": "Upcoming",
+      "erdtree-gazing": "Upcoming",
+      "prosthesis": "Upcoming",
+      "give-prosthesis": "Upcoming",
+      "apostle-summon": "Upcoming",
+      "windmill": "Upcoming",
+      "sentinel-summon": "Upcoming",
+      "kindred-summon": "Upcoming",
+      "snow-valley": "Upcoming",
+      "prayer-room": "Upcoming",
+      "signs": "Upcoming",
+      "assist-fight": "Upcoming",
+      "goodbye": "Upcoming",
+      "her-needle": "Upcoming",
+      "restore-needle": "Upcoming",
+      "defeat": "Upcoming"
+    },
+    "warnings": [
+      "makar-summon before: Defeat Magma Wyrm Makar",
+      "apostle-summon before: Defeat the Godskin Apostle at Windmill Village",
+      "sentinel-summon before: Defeat the Draconic Tree Sentinel in the Capital Outskirts",
+      "kindred-summon before: Defeat the Black Blade Kindred in the Forbidden Lands"
+    ]
+  },
+  "sam": {
+    "outcome": "NotStarted",
+    "progress": "0/14",
+    "steps": {
+      "meet": "Available",
+      "give-needle": "Upcoming",
+      "shack": "Upcoming",
+      "makar-summon": "Unknown",
+      "erdtree-gazing": "Upcoming",
+      "prosthesis": "Upcoming",
+      "give-prosthesis": "Upcoming",
+      "apostle-summon": "Upcoming",
+      "windmill": "Upcoming",
+      "sentinel-summon": "Unknown",
+      "kindred-summon": "Unknown",
+      "snow-valley": "Upcoming",
+      "prayer-room": "Upcoming",
+      "signs": "Upcoming",
+      "assist-fight": "Upcoming",
+      "goodbye": "Upcoming",
+      "her-needle": "Upcoming",
+      "restore-needle": "Upcoming",
+      "defeat": "Upcoming"
+    },
+    "warnings": [
+      "apostle-summon before: Defeat the Godskin Apostle at Windmill Village"
+    ]
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "first": {
+    "outcome": "InProgress",
+    "progress": "2/17",
+    "steps": {
+      "meet": "Done",
+      "apprentice": "Done",
+      "show-letter": "Done",
+      "show-azur": "Blocked",
+      "her-story": "Upcoming",
+      "restore-current": "Upcoming",
+      "sealbreaker": "Upcoming",
+      "free-lusat": "Upcoming",
+      "report-lusat": "Upcoming",
+      "witchbane": "Upcoming",
+      "primal-glintstone": "Upcoming",
+      "new-body": "Upcoming",
+      "defend-sellen": "Upcoming",
+      "academy-reunion": "Upcoming",
+      "glintstone-kris": "Upcoming",
+      "transformed": "Upcoming",
+      "crown": "Upcoming",
+      "azur-set": "Upcoming",
+      "lusat-set": "Upcoming",
+      "hunt-sellen": "Upcoming"
+    },
+    "warnings": []
+  },
+  "Yager": {
+    "outcome": "InProgress",
+    "progress": "7/17",
+    "steps": {
+      "meet": "Inferred",
+      "apprentice": "Inferred",
+      "show-letter": "Blocked",
+      "show-azur": "Inferred",
+      "her-story": "Inferred",
+      "restore-current": "Inferred",
+      "sealbreaker": "Inferred",
+      "free-lusat": "Done",
+      "report-lusat": "Available",
+      "witchbane": "Upcoming",
+      "primal-glintstone": "Upcoming",
+      "new-body": "Upcoming",
+      "defend-sellen": "Upcoming",
+      "academy-reunion": "Upcoming",
+      "glintstone-kris": "Upcoming",
+      "transformed": "Upcoming",
+      "crown": "Upcoming",
+      "azur-set": "Upcoming",
+      "lusat-set": "Upcoming",
+      "hunt-sellen": "Upcoming"
+    },
+    "warnings": [
+      "show-letter before: Move Sellen into her new body"
+    ]
+  },
+  "shoe": {
+    "outcome": "InProgress",
+    "progress": "2/17",
+    "steps": {
+      "meet": "Done",
+      "apprentice": "Done",
+      "show-letter": "Blocked",
+      "show-azur": "Blocked",
+      "her-story": "Upcoming",
+      "restore-current": "Upcoming",
+      "sealbreaker": "Upcoming",
+      "free-lusat": "Upcoming",
+      "report-lusat": "Upcoming",
+      "witchbane": "Upcoming",
+      "primal-glintstone": "Upcoming",
+      "new-body": "Upcoming",
+      "defend-sellen": "Upcoming",
+      "academy-reunion": "Upcoming",
+      "glintstone-kris": "Upcoming",
+      "transformed": "Upcoming",
+      "crown": "Upcoming",
+      "azur-set": "Upcoming",
+      "lusat-set": "Upcoming",
+      "hunt-sellen": "Upcoming"
+    },
+    "warnings": [
+      "show-letter before: Move Sellen into her new body"
+    ]
+  },
+  "vagbond dlc prep": {
+    "outcome": "NotStarted",
+    "progress": "0/17",
+    "steps": {
+      "meet": "Available",
+      "apprentice": "Upcoming",
+      "show-letter": "Upcoming",
+      "show-azur": "Upcoming",
+      "her-story": "Upcoming",
+      "restore-current": "Upcoming",
+      "sealbreaker": "Upcoming",
+      "free-lusat": "Upcoming",
+      "report-lusat": "Upcoming",
+      "witchbane": "Upcoming",
+      "primal-glintstone": "Upcoming",
+      "new-body": "Upcoming",
+      "defend-sellen": "Upcoming",
+      "academy-reunion": "Upcoming",
+      "glintstone-kris": "Upcoming",
+      "transformed": "Upcoming",
+      "crown": "Upcoming",
+      "azur-set": "Upcoming",
+      "lusat-set": "Upcoming",
+      "hunt-sellen": "Upcoming"
+    },
+    "warnings": [
+      "show-letter before: Move Sellen into her new body"
+    ]
+  },
+  "sam": {
+    "outcome": "InProgress",
+    "progress": "2/17",
+    "steps": {
+      "meet": "Done",
+      "apprentice": "Done",
+      "show-letter": "Done",
+      "show-azur": "Blocked",
+      "her-story": "Upcoming",
+      "restore-current": "Upcoming",
+      "sealbreaker": "Upcoming",
+      "free-lusat": "Upcoming",
+      "report-lusat": "Upcoming",
+      "witchbane": "Upcoming",
+      "primal-glintstone": "Upcoming",
+      "new-body": "Upcoming",
+      "defend-sellen": "Upcoming",
+      "academy-reunion": "Upcoming",
+      "glintstone-kris": "Upcoming",
+      "transformed": "Upcoming",
+      "crown": "Upcoming",
+      "azur-set": "Upcoming",
+      "lusat-set": "Upcoming",
+      "hunt-sellen": "Upcoming"
+    },
+    "warnings": []
+  }
+}
